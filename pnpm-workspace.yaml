@@ -1,0 +1,8 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Narrow allowlist. esbuild ships prebuilt binaries and its postinstall only
+# links the right one into place. Nothing else may run install scripts.
+allowBuilds:
+  esbuild: true

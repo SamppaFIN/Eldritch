@@ -1,0 +1,22 @@
+node_modules/
+dist/
+dist-types/
+*.tsbuildinfo
+coverage/
+test-results/
+playwright-report/
+.env
+.env.*
+*.log
+.DS_Store
+android/
+.vite/
+
+# Legacy v2 repository — a separate git repo, and its .env is compromised.
+# claude.md golden rule 5: the old code is not read from here.
+EldrichHorror-v2/
+files.zip
+
+# Local verification artefacts
+shot-*.png
+probe.tmp.mjs

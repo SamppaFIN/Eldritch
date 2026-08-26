@@ -1,0 +1,372 @@
+/* =============================================================================
+   Eldritch Sanctuary v3 — design tokens
+   ONE file. Under 800 lines. (v2 had 34 files and 11 204 lines.)
+
+   Colour space: OKLCH, per AI-Koulu ui-ux ch.2. Perceptually linear — changing
+   lightness by 0.05 is the same visual step on every hue. The hex comment on each
+   line records the original v2 value the colour was measured from.
+
+   Contrast measured against --void-black, not assumed:
+     mystic-cyan 11.3:1 · sacred-gold 14.3:1 · awareness-green 15.0:1 · white 20.0:1
+     cosmic-purple 1.5:1 and eldritch-blue 1.4:1 are SURFACE colours — never text.
+   ========================================================================== */
+
+:root {
+  /* --- Palette (from v2 game/styles/main.css) ---------------------------- */
+  --void-black: oklch(0.136 0.028 299.6); /* #0a0612 */
+  --cosmic-purple: oklch(0.324 0.118 315.4); /* #4a1a5c */
+  --eldritch-blue: oklch(0.292 0.061 267.1); /* #1e2a4a — v2 typo: --elditch-blue */
+  --mystic-cyan: oklch(0.804 0.146 219.5); /* #00d4ff */
+  --sacred-gold: oklch(0.887 0.182 95.3); /* #ffd700 */
+  --awareness-green: oklch(0.876 0.228 152.5); /* #00ff88 */
+
+  /* --- Semantic surfaces ------------------------------------------------- */
+  --bg: var(--void-black);
+  --bg-deep: oklch(0.09 0.022 299.6);
+  --surface: oklch(0.19 0.042 305);
+  --surface-raised: oklch(0.24 0.05 308);
+
+  /* --- Semantic text ----------------------------------------------------- */
+  --text: oklch(0.96 0.006 300); /* 19:1 on --bg */
+  --text-muted: oklch(0.76 0.028 305); /* 9.5:1 — still AA for body */
+  --text-dim: oklch(0.60 0.028 305); /* 4.6:1 — AA floor, captions only */
+
+  /* --- Semantic accents -------------------------------------------------- */
+  --accent: var(--mystic-cyan);
+  --accent-warm: var(--sacred-gold);
+  --success: var(--awareness-green);
+  --danger: oklch(0.65 0.21 25);
+  --warning: var(--sacred-gold);
+
+  /* --- Glass (v2) -------------------------------------------------------- */
+  --glass-bg: oklch(0.20 0.05 315 / 0.7);
+  --glass-border: oklch(1 0 0 / 0.1);
+  --glass-shadow: 0 8px 32px oklch(0 0 0 / 0.37);
+  --glass-blur: 12px;
+
+  /* --- Territory --------------------------------------------------------- */
+  --cell-own-fill: oklch(0.324 0.118 315.4 / 0.35);
+  --cell-own-stroke: oklch(0.45 0.14 315.4 / 0.9);
+  --cell-contested: var(--danger);
+
+  /* --- Spacing scale ----------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- Type scale (AI-Koulu ch.2 modular scale) -------------------------- */
+  --text-h1: clamp(2rem, 5vw, 3.5rem);
+  --text-h2: clamp(1.5rem, 3.5vw, 2.5rem);
+  --text-h3: clamp(1.2rem, 2.5vw, 1.75rem);
+  --text-body: clamp(1rem, 1.5vw, 1.125rem);
+  --text-sm: clamp(0.8rem, 1.2vw, 0.9rem);
+
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.55;
+
+  /* --- Font stacks. Every face has a real fallback. ---------------------- */
+  --font-display: 'Cinzel', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-numeric: 'Orbitron', 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* --- Radii ------------------------------------------------------------- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* --- Touch (WCAG 2.2 target size) -------------------------------------- */
+  --touch-min: 44px;
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.15s;
+  --dur: 0.2s;
+  --dur-slow: 0.4s;
+  --dur-ritual: 1.2s; /* sacred-geometry reveals */
+
+  /* --- Z-index scale. Never invent a value outside this. ----------------- */
+  --z-map: 0;
+  --z-territory: 10;
+  --z-trail: 20;
+  --z-hud: 100;
+  --z-modal: 1000;
+  --z-tooltip: 10000;
+}
+
+/* Themes are one [data-theme] block each. Only cosmic is built.
+   Void and Mystic values live in docs/backlog/themes.md. */
+[data-theme='cosmic'] {
+  /* identical to :root — declared so the attribute is always meaningful */
+}
+
+/* =============================================================================
+   Reset — minimal, not opinionated
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: var(--leading-tight);
+  margin: 0;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-h1);
+  font-weight: var(--weight-black);
+}
+h2 {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+}
+h3 {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* =============================================================================
+   Focus — visible on every interactive element.
+   `outline: none` is banned (AI-Koulu ch.4).
+   ========================================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* =============================================================================
+   Utility primitives
+   ========================================================================== */
+
+.es-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.es-numeric {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.es-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* =============================================================================
+   Motion preference — 0.01ms, not 0, so transitionend still fires
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =============================================================================
+   Forced colours — Windows high contrast mode
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .es-glass {
+    border: 1px solid CanvasText;
+    backdrop-filter: none;
+  }
+}
+
+/* =============================================================================
+   Keyframes — every one of them neutralised by prefers-reduced-motion above
+   ========================================================================== */
+
+@keyframes es-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes es-twinkle {
+  0%,
+  100% {
+    opacity: var(--o, 0.5);
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes es-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.06);
+  }
+  50% {
+    transform: translate3d(-1.5%, 1%, 0) scale(1.06);
+  }
+  to {
+    transform: translate3d(0, 0, 0) scale(1.06);
+  }
+}
+
+@keyframes es-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes es-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* =============================================================================
+   Components
+   ========================================================================== */
+
+.es-panel {
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* --- Button ---------------------------------------------------------------
+   Touch target is the floor, not the visual size: min-height 44px per WCAG 2.2.
+   Colour is never the only signal — the border and the label carry state too. */
+
+.es-btn {
+  --btn-accent: var(--accent);
+  position: relative;
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  padding: var(--space-3) var(--space-8);
+  border: 1px solid color-mix(in oklch, var(--btn-accent) 55%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--btn-accent) 12%, transparent);
+  color: var(--btn-accent);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    transform var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.es-btn:hover {
+  background: color-mix(in oklch, var(--btn-accent) 22%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px color-mix(in oklch, var(--btn-accent) 30%, transparent);
+}
+
+.es-btn:active {
+  transform: translateY(0);
+}
+
+.es-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.es-btn--ghost {
+  --btn-accent: var(--text-muted);
+  background: transparent;
+}
+
+.es-btn__label {
+  display: inline-block;
+}
+
+/* --- Ornament slot -------------------------------------------------------- */
+
+.es-sigil {
+  color: var(--accent);
+  opacity: 0.75;
+}
+
+.es-sigil--breathing {
+  animation: es-breathe 6s var(--ease) infinite;
+}

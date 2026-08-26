@@ -1,0 +1,99 @@
+/* Title screen layout. Every value comes from a token — no raw colours here. */
+
+.title {
+  position: relative;
+  z-index: var(--z-hud);
+  min-height: 100dvh;
+  display: grid;
+  /* minmax(0, 1fr) is load-bearing: a plain grid track sizes to its item's
+     min-content, so a long word would push the panel wider than the screen. */
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-items: center;
+  /* Gutters shrink with the viewport, not with the root font size. At 200% text
+     zoom a rem-based gutter would eat half a phone screen. */
+  padding: max(min(var(--space-6), 5vw), env(safe-area-inset-top)) min(var(--space-4), 4vw)
+    max(min(var(--space-6), 5vw), env(safe-area-inset-bottom));
+}
+
+.title__panel {
+  width: 100%;
+  max-width: 34rem;
+  min-width: 0;
+  padding: min(var(--space-8), 7vw) min(var(--space-6), 5vw);
+  text-align: center;
+  gap: var(--space-4);
+  animation: es-rise var(--dur-ritual) var(--ease-out) both;
+}
+
+.title__sigil {
+  margin-bottom: calc(var(--space-2) * -1);
+}
+
+.title__name {
+  color: var(--text);
+  /* Cap by viewport as well as by the type scale. At 200% text zoom the scale's
+     2rem floor becomes 64px, which is wider than a phone can show "SANCTUARY" —
+     so it would break mid-word. 10vw still enlarges under zoom (36px vs 32px),
+     but keeps the break on the space where a reader expects it. */
+  font-size: min(var(--text-h1), 10vw);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  /* WCAG 1.4.10 Reflow: at 200% zoom the title must break, not overflow.
+     `anywhere`, not `break-word` — only `anywhere` also shrinks the element's
+     min-content width, which is what actually stops the layout expanding. */
+  overflow-wrap: anywhere;
+  /* Sunlight: the title is the one thing that must be readable at a glance. */
+  text-shadow: 0 0 32px color-mix(in oklch, var(--accent) 35%, transparent);
+}
+
+/* Narrow phones break the title across two lines rather than shrinking it. */
+.title__break {
+  display: inline;
+}
+
+@media (max-width: 24rem) {
+  .title__break {
+    display: block;
+    height: 0;
+  }
+}
+
+.title__divider {
+  color: var(--accent);
+  opacity: 0.5;
+}
+
+.title__tagline {
+  max-width: 30ch;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  text-wrap: balance;
+}
+
+.title__notice {
+  max-width: 34ch;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid color-mix(in oklch, var(--warning) 45%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--warning) 10%, transparent);
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.title__cta {
+  margin-top: var(--space-2);
+  /* Same reflow rule: the label wraps to a second line before the button
+     pushes the page sideways. */
+  max-width: 100%;
+  padding-inline: min(var(--space-8), 6vw);
+  white-space: normal;
+}
+
+.title__phase {
+  color: var(--text-dim);
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
