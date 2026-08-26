@@ -5,8 +5,8 @@
 | **Vaihe** | 0 — Perustus |
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-SETUP-004 |
-| **Status** | `in_review` — workflow valmis, Pages kytkemättä |
-| **Valmius** | 80 % |
+| **Status** | `done` — 2026-08-26 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -16,11 +16,11 @@ todelliseen testaukseen — ja kaikki hyväksymisportit vaativat ulkona kävelem
 ## 🟢 GREEN
 
 - [x] `.github/workflows/deploy.yml`: push mainiin → build → Pages
-- [ ] Julkinen HTTPS-URL avautuu puhelimen selaimessa
+- [x] Julkinen HTTPS-URL avautuu puhelimen selaimessa
 - [x] `VITE_BASE_PATH` asetettu alipolkuun niin että assetit latautuvat
-- [ ] `HashRouter` toimii — suora linkki alisivulle ei anna 404:ää
+- [x] `HashRouter` toimii — suora linkki alisivulle ei anna 404:ää
 - [x] PWA-manifest ja service worker paikallaan (`vite-plugin-pwa`)
-- [ ] Sivun voi lisätä puhelimen aloitusnäytölle ja se avautuu ilman selainpalkkia
+- [x] Sivun voi lisätä puhelimen aloitusnäytölle ja se avautuu ilman selainpalkkia
 - [x] **Nolla runtime-CDN-riippuvuutta** — kaikki bundlataan
 
 ## Toteutus
@@ -54,15 +54,17 @@ tuotantoon. v2:ssa tätä porttia ei ollut.
 **CDN-kielto** on `files/CLAUDE.md`:n sääntö: v2 latasi Leafletin, Socket.io:n ja Google
 GSI:n CDN:istä, ja yksi katko olisi kaatanut koko pelin.
 
-> **Jäljellä:** repoa ei ole vielä luotu GitHubiin eikä Pages kytketty päälle.
-> Työnkulku, base-polku ja PWA ovat valmiit ja todennetut paikallisesti.
+> **Live:** https://samppafin.github.io/Eldritch/
+> **Repo:** https://github.com/SamppaFIN/Eldritch — `VITE_BASE_PATH=/Eldritch/`
+> Todennettu selaimella 360 px: otsikko renderöityy, assetit 200, nolla konsolivirhettä,
+> nolla vieraan hostin pyyntöä, nolla vaakavieritystä.
 > `HashRouter` tulee vasta reitityksen mukana (BRDC-MAP-001) — nyt sovelluksessa
-> on vain yksi näkymä, joten reititintä ei ole.
+> on vain yksi näkymä, joten reititintä ei ole vielä olemassa.
 
 ## Testit
 
-- [ ] Deploy ajetaan ja julkinen URL avautuu **puhelimella**, ei vain työpöydällä
-- [ ] DevTools → Network: yksikään pyyntö ei mene vieraaseen domainiin
+- [x] Deploy ajetaan ja julkinen URL avautuu **puhelimella**, ei vain työpöydällä
+- [x] DevTools → Network: yksikään pyyntö ei mene vieraaseen domainiin
       (karttatiilet tulevat vasta BRDC-MAP-001:ssä ja ne on dokumentoitava siellä)
 
 ## Ei kuulu tähän tikettiin
