@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-SETUP-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-26 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -17,14 +17,14 @@ rikki (`MapSystem.js:922`).
 
 ## 🟢 GREEN
 
-- [ ] MapLibre GL JS renderöi kartan WebGL:llä
-- [ ] Karttatyyli on **tumma ja sävytetty `--void-black`iin** — ei saa näyttää OSM:ltä
-- [ ] Tyyli on omassa tiedostossaan `apps/game/src/features/map/style.ts`, jotta sitä
+- [x] MapLibre GL JS renderöi kartan WebGL:llä
+- [x] Karttatyyli on **tumma ja sävytetty `--void-black`iin** — ei saa näyttää OSM:ltä
+- [x] Tyyli on omassa tiedostossaan `apps/game/src/features/map/style.ts`, jotta sitä
       on helppo virittää
-- [ ] Kartta täyttää ruudun, HUD kelluu sen päällä
-- [ ] Pelaajan sijaintimarkkeri: hehkuva piste + tarkkuusympyrä
-- [ ] 360 px viewportilla kartta on käytettävä yhdellä peukalolla
-- [ ] Verkkokatko: kartta ei kaadu, taustaksi jää tumma väri ja HUD toimii
+- [x] Kartta täyttää ruudun, HUD kelluu sen päällä
+- [x] Pelaajan sijaintimarkkeri: hehkuva piste + tarkkuusympyrä
+- [x] 360 px viewportilla kartta on käytettävä yhdellä peukalolla
+- [x] Verkkokatko: kartta ei kaadu, taustaksi jää tumma väri ja HUD toimii
 
 ## Toteutus
 
@@ -47,10 +47,30 @@ teoreettinen vaatimus.
 
 ## Testit
 
-- [ ] Kartta renderöityy Playwrightissa ja `map.isStyleLoaded()` on tosi
-- [ ] Tiilipyynnöt estettynä → sivu ei kaadu, HUD näkyy
-- [ ] 360 px viewport ajetaan ensin
-- [ ] Sijaintimarkkeri liikkuu simuloidun sijainnin mukana
+- [x] Kartta renderöityy Playwrightissa ja `map.isStyleLoaded()` on tosi
+- [x] Tiilipyynnöt estettynä → sivu ei kaadu, HUD näkyy
+- [x] 360 px viewport ajetaan ensin
+- [x] Sijaintimarkkeri liikkuu simuloidun sijainnin mukana
+
+> **Kolme bugia, jotka e2e-testit löysivät ja jotka jäivät testeiksi:**
+>
+> 1. **MapLibren worker ei latautunut.** MapLibre 6 etsii tiiliparserinsa
+>    `new URL('./maplibre-gl-worker.mjs', import.meta.url)`illa. Rollup ei näe
+>    merkkijonosta koottua URLia, joten tiedostoa ei emitoitu; worker haki SPA-fallback-
+>    HTML:n ja kuoli jäsentäessään sitä. **Vika oli täysin hiljainen:** tyyli latautui,
+>    TileJSON latautui, virhettä ei tullut — eikä yhtään tiiltä koskaan pyydetty.
+>    Korjaus: `vite.config.ts`:n oma plugin emitoi workerin ja sen `maplibre-gl-shared.mjs`:n.
+> 2. **Tarkkuusympyrä oli 256× liian suuri.** Metriä/pikseli -kaavassa oli ylimääräinen
+>    `+ 8`, joka kuuluu saman identiteetin tiilipikselimuotoon. 12 m tarkkuus piirsi
+>    5 386 px ympyrän.
+> 3. **Markkeri oli 9 px pielessä** eli puolet omasta leveydestään. `es-breathe`-animaatio
+>    asetti `transform: scale()`, joka korvasi keskityksen `translate(-50%, -50%)`.
+>    Korjaus: animaatio käyttää erillistä `scale`-ominaisuutta, joka ei kosketa `transform`ia.
+>
+> **Muutos suunnitelmaan:** verkkokatkolla **ei vaihdeta tyyliä**. Tausta on jo
+> `--void-black`, joten `createVoidStyle` olisi heittänyt layerit pois turhaan. Sen
+> sijaan tila raportoidaan HUDissa ja palautuu itsestään kun peitto palaa
+> (`sourcedata`). Katutason katoaminen kerrotaan sanoin, ei värillä.
 
 ## Ei kuulu tähän tikettiin
 

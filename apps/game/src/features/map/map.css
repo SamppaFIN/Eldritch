@@ -1,0 +1,85 @@
+/* Map surface and player marker. Tokens only — no raw colours. */
+
+.es-map {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-map);
+  background: var(--bg);
+}
+
+/* MapLibre's own chrome, brought into the palette.
+   Lifted clear of the HUD, which docks to the bottom of the screen. */
+.es-map .maplibregl-ctrl-bottom-right,
+.es-map .maplibregl-ctrl-bottom-left {
+  bottom: calc(var(--hud-height, 4.5rem) + env(safe-area-inset-bottom));
+}
+
+.es-map .maplibregl-ctrl-attrib {
+  background: var(--glass-bg);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  border-radius: var(--radius-sm) 0 0 0;
+}
+
+.es-map .maplibregl-ctrl-attrib a {
+  color: var(--text-muted);
+}
+
+/* MapLibre draws its own focus ring; ours is the one in tokens.css. */
+.es-map .maplibregl-ctrl button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- Player marker -------------------------------------------------------
+   Two parts: a metre-accurate accuracy ring, and a fixed-size core. The ring
+   tells the truth about the signal; the core stays findable at any zoom. */
+
+.es-player {
+  position: relative;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/*
+ * Both parts centre themselves on the anchor.
+ *
+ * MapLibre positions a custom marker with translate(-50%, -50%) of the element's own
+ * size — which is zero here, so it cannot do the centring for us. Grid centring inside
+ * a 0x0 box does not do it either: the children land at the corner, putting the marker
+ * exactly half its own width off true. Each child therefore offsets itself.
+ */
+.es-player__accuracy,
+.es-player__core {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-full);
+}
+
+.es-player__accuracy {
+  width: 0;
+  height: 0;
+  border: 1px solid color-mix(in oklch, var(--accent) 40%, transparent);
+  background: color-mix(in oklch, var(--accent) 8%, transparent);
+  transition: width var(--dur-slow) var(--ease), height var(--dur-slow) var(--ease);
+}
+
+.es-player__core {
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in oklch, var(--bg) 70%, transparent),
+    0 0 20px 4px color-mix(in oklch, var(--accent) 60%, transparent);
+  animation: es-breathe 3s var(--ease) infinite;
+}
+
+.es-map[data-basemap='void'] .es-player__core {
+  background: var(--warning);
+  box-shadow:
+    0 0 0 3px color-mix(in oklch, var(--bg) 70%, transparent),
+    0 0 20px 4px color-mix(in oklch, var(--warning) 60%, transparent);
+}

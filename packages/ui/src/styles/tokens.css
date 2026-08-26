@@ -274,15 +274,18 @@ svg {
   }
 }
 
+/* Animates the standalone `scale` property, not `transform`.
+   An element that is positioned with a transform (a map marker centring itself on its
+   anchor) would otherwise have that transform silently replaced by the animation. */
 @keyframes es-breathe {
   0%,
   100% {
     opacity: 0.5;
-    transform: scale(1);
+    scale: 1;
   }
   50% {
     opacity: 0.85;
-    transform: scale(1.03);
+    scale: 1.03;
   }
 }
 

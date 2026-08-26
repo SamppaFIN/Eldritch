@@ -12,11 +12,12 @@
   "dependencies": {
     "@es3/core": "workspace:*",
     "@es3/ui": "workspace:*",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "@fontsource/cinzel": "^5.1.0",
+    "@fontsource/inter": "^5.1.0",
     "@fontsource/orbitron": "^5.1.0",
-    "@fontsource/inter": "^5.1.0"
+    "maplibre-gl": "^6.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
