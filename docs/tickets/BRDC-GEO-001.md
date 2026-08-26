@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-SETUP-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-26 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -16,11 +16,11 @@ sijainnit vastaan sellaisenaan ja kirjoitti ne suoraan tilaan.
 
 ## 🟢 GREEN
 
-- [ ] `packages/core/geo/haversine.ts` — etäisyys kahden pisteen välillä metreinä
-- [ ] `packages/core/geo/speed.ts` — nopeus segmentistä (m/s)
-- [ ] `packages/core/geo/filter.ts` — pisteiden suodatus vakioita vasten
-- [ ] Kaikki funktiot ovat **puhtaita** — ei DOM:ia, ei verkkoa, ei `Date.now()`ta
-- [ ] Jokaisella funktiolla on Vitest-testi. **Testaamaton ei mene läpi**
+- [x] `packages/core/geo/haversine.ts` — etäisyys kahden pisteen välillä metreinä
+- [x] `packages/core/geo/speed.ts` — nopeus segmentistä (m/s)
+- [x] `packages/core/geo/filter.ts` — pisteiden suodatus vakioita vasten
+- [x] Kaikki funktiot ovat **puhtaita** — ei DOM:ia, ei verkkoa, ei `Date.now()`ta
+- [x] Jokaisella funktiolla on Vitest-testi. **Testaamaton ei mene läpi**
       (`files/CLAUDE.md` sääntö 3)
 
 ## Toteutus
@@ -60,13 +60,18 @@ sama syy kirjataan palvelimella.
 
 ## Testit
 
-- [ ] `haversine` tunnettuja etäisyyksiä vasten (Tampere → Helsinki ≈ 161 km)
-- [ ] `haversine` samalle pisteelle = 0
-- [ ] Piste jonka `accuracy` 51 → hylätään, 49 → hyväksytään
-- [ ] Kaksi pistettä 3 m päässä → `consolidated`
-- [ ] Kaksi pistettä 100 m päässä 5 s välein (20 m/s) → `speed`
-- [ ] Kaksi pistettä 2 s välein → `interval`
-- [ ] Ensimmäinen piste ilman edeltäjää → hyväksytään aina
+- [x] `haversine` tunnettuja etäisyyksiä vasten (Tampere → Helsinki ≈ 161 km)
+- [x] `haversine` samalle pisteelle = 0
+- [x] Piste jonka `accuracy` 51 → hylätään, 49 → hyväksytään
+- [x] Kaksi pistettä 3 m päässä → `consolidated`
+- [x] Kaksi pistettä 100 m päässä 5 s välein (20 m/s) → `speed`
+- [x] Kaksi pistettä 2 s välein → `interval`
+- [x] Ensimmäinen piste ilman edeltäjää → hyväksytään aina
+
+> **Lisäksi toteutettu:** `filterTrail(previous, points)` ajaa erän läpi ja tuottaa
+> `TrailResult`in. `prev` etenee vain hyväksytyistä pisteistä — yksi villi fix keskellä
+> hyvää kävelyä pudotetaan, ja seuraava oikea piste mitataan viimeisestä *luotetusta*
+> sijainnista, ei poikkeamasta. Tätä TRAIL-001 tarvitsee sellaisenaan.
 
 ## Ei kuulu tähän tikettiin
 
