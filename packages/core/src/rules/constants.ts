@@ -12,8 +12,14 @@
 export const H3_RES_OWNERSHIP = 11;
 /** Realtime channel shard (Phase 3). ~36 km². */
 export const H3_RES_REGION = 6;
-/** Approximate area of one res-11 cell, for HUD readouts. */
-export const CELL_AREA_M2 = 2150;
+/**
+ * Nominal res-11 cell area, for rough estimates only.
+ *
+ * H3 cells are not equal-area: 2150 m² is the global mean, but at Tampere's latitude
+ * (61°N) a res-11 cell measures ~1622 m² — a 25% difference. Any figure shown to a
+ * player must come from `h3.cellArea(cell, 'm2')` on the cells they actually own.
+ */
+export const CELL_AREA_M2_NOMINAL = 2150;
 
 /* --- GPS validation (anti-cheat; never weaken without being asked) -------- */
 

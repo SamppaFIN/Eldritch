@@ -11,6 +11,10 @@
     "./rules": "./src/rules/index.ts",
     "./types": "./src/types/index.ts",
     "./persist": "./src/persist/index.ts",
-    "./sim": "./src/sim/index.ts"
+    "./sim": "./src/sim/index.ts",
+    "./data": "./src/data/index.ts"
+  },
+  "dependencies": {
+    "h3-js": "^4.5.0"
   }
 }

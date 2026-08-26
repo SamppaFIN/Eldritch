@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-SETUP-003, BRDC-PERSIST-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-26 (2 kohtaa siirretty) |
+| **Valmius** | 85 % |
 
 ## 🔴 RED
 
@@ -16,15 +16,17 @@ peli on pelattava ennen kuin kantaa on olemassa.
 
 ## 🟢 GREEN
 
-- [ ] `MockRepository` toteuttaa `GameRepository`-rajapinnan kokonaan
-- [ ] Tallennus IndexedDB:hen: `runs`, `trail_points`, `cells`, `profile`
-- [ ] **Peli toimii lentokonetilassa.** Ei verkkopyyntöjä, ei kirjautumista
-- [ ] Siemendata: **3 kuvitteellista naapuripelaajaa** omine alueineen, jotta kartta
+- [~] `MockRepository` toteuttaa rajapinnan; `closeLoop` ja `runDecay` ovat
+      **rehellisiä tynkiä** (`{ closed: false }`, `{ weakened: [], released: [] }`)
+      kunnes CLAIM-004 ja CLAIM-005 tuovat säännöt. Ne eivät teeskentele tekevänsä mitään.
+- [x] Tallennus IndexedDB:hen: `runs`, `trail_points`, `cells`, `profile`
+- [x] **Peli toimii lentokonetilassa.** Ei verkkopyyntöjä, ei kirjautumista
+- [x] Siemendata: **3 kuvitteellista naapuripelaajaa** omine alueineen, jotta kartta
       ei ole tyhjä ensimmäisellä käynnistyksellä
-- [ ] Naapureiden alueet generoidaan pelaajan **ensimmäisen sijainnin ympärille** —
+- [x] Naapureiden alueet generoidaan pelaajan **ensimmäisen sijainnin ympärille** —
       ei kovakoodattuihin koordinaatteihin
-- [ ] Repository valitaan yhdestä paikasta (`createRepository()`), ei komponenteissa
-- [ ] Sääntölogiikka **ei ole** täällä — `MockRepository` kutsuu `packages/core/rules`in
+- [x] Repository valitaan yhdestä paikasta (`createRepository()`), ei komponenteissa
+- [x] Sääntölogiikka **ei ole** täällä — `MockRepository` kutsuu `packages/core/rules`in
       puhtaita funktioita
 
 ## Toteutus
@@ -53,11 +55,27 @@ on 5 MB ja synkroninen — se olisi sama virhe kuin v2:n `eldritch_stepMarkers`.
 
 ## Testit
 
-- [ ] `startRun` → `submitTrail` → `getActiveRun` palauttaa pisteet oikeassa järjestyksessä
-- [ ] Sivun uudelleenlataus säilyttää aktiivisen runin ja jäljen
-- [ ] Ensimmäinen käynnistys luo siemennaapurit; toinen käynnistys **ei luo niitä uudelleen**
-- [ ] `MockRepository` täyttää `GameRepository`-tyypin (käännösaikainen tarkistus)
-- [ ] Testi ajetaan `fake-indexeddb`illä, ei oikeassa selaimessa
+- [x] `startRun` → `submitTrail` → `getActiveRun` palauttaa pisteet oikeassa järjestyksessä
+- [~] Reload-säilyvyys **todennetaan BRDC-TRAIL-001:ssä** Playwrightilla oikealla
+      IndexedDB:llä. `MemoryStore` ei säily instanssien yli, joten sitä ei voi väittää tässä.
+- [x] Ensimmäinen käynnistys luo siemennaapurit; toinen käynnistys **ei luo niitä uudelleen**
+- [x] `MockRepository` täyttää `GameRepository`-tyypin (käännösaikainen tarkistus)
+- [~] **Poikkeama:** `fake-indexeddb`iä ei asennettu. Sen sijaan `KeyValueStore`-portti
+      + `MemoryStore` testeissä, `IdbStore` selaimessa. IndexedDB:n oma oikeellisuus ei ole
+      meidän testattavaamme; ajonaikainen käytös on.
+
+> **Lisäksi toteutettu:**
+> - `rules/level.ts` — `levelForXp` katkaisulla. Profiili tarvitsi sen, ja se on
+>   REGRESSION-000 kohta 2. **Roskasyöte putoaa lattiaan, ei kattoon:** `NaN`,
+>   `-500` ja `Infinity` antavat kaikki tason 1. Korruptoituneen XP:n lukeminen
+>   "hyvin korkeaksi" on täsmälleen v2:n taso-118-reitti.
+> - `data/kv.ts` — `KeyValueStore`-portti + `MemoryStore`.
+> - `apps/game/src/data/IdbStore.ts` + `createRepository.ts` — selainadapteri ja
+>   ainoa paikka jossa repository valitaan. `durable: false` kertoo kun tallennus
+>   ei ole käytettävissä, jotta sovellus voi sanoa sen ääneen.
+> - `CELL_AREA_M2` → `CELL_AREA_M2_NOMINAL`. H3-solut eivät ole tasapinta-alaisia:
+>   2150 m² on globaali keskiarvo, mutta Tampereen leveydellä res-11 on **1622 m²**.
+>   Pelaajalle näytettävä luku on laskettava `h3.cellArea`lla.
 
 ## Ei kuulu tähän tikettiin
 
