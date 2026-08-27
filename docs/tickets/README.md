@@ -112,7 +112,7 @@ Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
 | **1** Kartta ja ley-line | 🔨 koodattu, portti odottaa | 7/7 |
 | **2** Aluevaltaus | ⬜ ei aloitettu — **V1-portti ensin** | 0/7 |
 
-Testejä: **220 yksikkö** + **69 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
+Testejä: **220 yksikkö** + **73 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
 Sääntö `claude.md` §5: jos portti ei mene läpi, seuraava vaihe ei ala.
 
 ---
