@@ -5,7 +5,14 @@
  * comparable between players and storable at all. Resolution 11 is fixed in
  * supabase/migrations/0001_init.sql, so it is not a knob: changing it means a migration.
  */
-import { cellArea, cellToParent, gridDisk, latLngToCell, polygonToCells } from 'h3-js';
+import {
+  cellArea,
+  cellToBoundary,
+  cellToParent,
+  gridDisk,
+  latLngToCell,
+  polygonToCells,
+} from 'h3-js';
 import { H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
 import type { H3Index, LatLng } from '../types/domain.js';
 
@@ -60,4 +67,17 @@ export function totalAreaM2(cells: readonly H3Index[]): number {
   let total = 0;
   for (const cell of cells) total += cellArea(cell, 'm2');
   return total;
+}
+
+/**
+ * The hexagon's corners, in GeoJSON order.
+ *
+ * h3-js returns `[lat, lng]`; GeoJSON wants `[lng, lat]`. Swapping it here, once, keeps
+ * the mistake from being made again in every renderer — and getting it wrong draws the
+ * whole territory somewhere off the coast of Africa rather than raising an error.
+ *
+ * This also means nothing outside packages/core needs to depend on h3-js.
+ */
+export function cellBoundary(cell: H3Index): Array<[number, number]> {
+  return cellToBoundary(cell).map(([lat, lng]) => [lng, lat] as [number, number]);
 }

@@ -12,19 +12,35 @@
 }
 
 .hud__panel {
+  /*
+   * Fixed density, not body copy.
+   *
+   * The type scale grows with the viewport, which is right for prose and wrong for an
+   * instrument panel: on a wide, short desktop window it inflated the HUD past the
+   * share of the screen the map is entitled to. A readout is read at a glance, and its
+   * job is to stay out of the way.
+   */
+  font-size: 1rem;
   pointer-events: auto;
   width: min(100%, 30rem);
   margin-inline: auto;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-2);
   align-items: stretch;
   text-align: left;
 }
 
-.hud__row {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
+.hud__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1) var(--space-4);
+}
+
+/* Four across as soon as the panel is wide enough to read them. */
+@media (min-width: 34rem) {
+  .hud__stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .hud__stat {
@@ -33,8 +49,17 @@
   min-width: 0;
 }
 
-.hud__stat--right {
+.hud__stat:nth-child(even) {
   text-align: right;
+}
+
+@media (min-width: 34rem) {
+  .hud__stat:nth-child(even) {
+    text-align: left;
+  }
+  .hud__stat:last-child {
+    text-align: right;
+  }
 }
 
 .hud__label {
@@ -46,8 +71,28 @@
 
 .hud__value {
   color: var(--text);
-  font-size: var(--text-body);
+  font-size: 1rem;
   overflow-wrap: anywhere;
+}
+
+.hud__sub {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+/* A closure is the game's one moment of reward. It gets the accent colour and
+   the sacred-gold tick, and nothing else in the HUD does. */
+.hud__claim {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent-warm);
+  font-size: 0.85rem;
+  animation: es-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.hud__note--loss {
+  color: color-mix(in oklch, var(--danger) 70%, var(--text));
 }
 
 /* --- XP ------------------------------------------------------------------ */
@@ -70,11 +115,14 @@
    never the only one — the player is outdoors, in daylight, at arm's length. */
 
 .hud__signal {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   color: var(--text-muted);
-  font-size: var(--text-sm);
+  font-size: 0.85rem;
+  text-wrap: pretty;
 }
 
 .hud__dot {
@@ -104,7 +152,7 @@
 
 .hud__note {
   color: var(--text-dim);
-  font-size: var(--text-sm);
+  font-size: 0.8rem;
 }
 
 .hud__note--dev {
@@ -113,6 +161,14 @@
   text-transform: uppercase;
 }
 
+.hud__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .hud__withdraw {
-  align-self: flex-end;
+  /* Never squeezed by a long signal message; the target size is a floor, not a hint. */
+  flex: 0 0 auto;
+  padding-inline: var(--space-4);
 }

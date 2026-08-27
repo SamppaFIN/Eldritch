@@ -12,6 +12,7 @@ import { levelState, msToKmh } from '@es3/core';
 import type { PlayerProfile, RejectReason } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
+import type { ClaimEvent } from '../territory/useTerritory.js';
 import './hud.css';
 
 export interface HudProps {
@@ -23,7 +24,40 @@ export interface HudProps {
   source: PositionSource;
   lastRejection: RejectReason | null;
   basemapVoid: boolean;
+  ownedCells?: number;
+  ownedAreaM2?: number;
+  strongest?: number;
+  lastClaim?: ClaimEvent | null;
+  released?: string[];
   onWithdraw: () => void;
+}
+
+/**
+ * What a closed loop just did, in lore rather than in code words.
+ *
+ * `claim` is "Awakening the Ground", `steal` is "Corruption" — the domain model in
+ * claude.md, used consistently so the interface and the fiction are the same language.
+ */
+function claimLine(claim: ClaimEvent): string {
+  const count = (kind: string) => claim.outcomes.filter((o) => o.kind === kind).length;
+  const parts: string[] = [];
+
+  const awakened = count('claimed');
+  const corrupted = count('taken');
+  const reinforced = count('reinforced');
+  const damaged = count('damaged');
+
+  if (awakened) parts.push(`${awakened} awakened`);
+  if (corrupted) parts.push(`${corrupted} corrupted`);
+  if (reinforced) parts.push(`${reinforced} reinforced`);
+  if (damaged) parts.push(`${damaged} weakened`);
+
+  return parts.length > 0 ? parts.join(' · ') : 'The ground did not stir';
+}
+
+function formatArea(m2: number): string {
+  if (m2 <= 0) return '0 m²';
+  return m2 < 1_000_000 ? `${Math.round(m2)} m²` : `${(m2 / 1_000_000).toFixed(2)} km²`;
 }
 
 type Quality = 'good' | 'weak' | 'rejected' | 'none';
@@ -79,6 +113,11 @@ export function Hud({
   source,
   lastRejection,
   basemapVoid,
+  ownedCells = 0,
+  ownedAreaM2 = 0,
+  strongest = 0,
+  lastClaim = null,
+  released = [],
   onWithdraw,
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
@@ -87,16 +126,45 @@ export function Hud({
   return (
     <div className="hud">
       <GlassPanel as="section" className="hud__panel" aria-label="Status">
-        <div className="hud__row">
+        {lastClaim ? (
+          <p className="hud__claim" role="status">
+            <span aria-hidden>◈</span> {claimLine(lastClaim)}
+          </p>
+        ) : null}
+
+        {released.length > 0 ? (
+          <p className="hud__note hud__note--loss" role="status">
+            The Void reclaims {released.length}{' '}
+            {released.length === 1 ? 'warded cell' : 'warded cells'}
+          </p>
+        ) : null}
+
+        {/* One grid: two columns on a phone, four where there is width for them.
+            Stacking these as separate rows cost the map a tenth of the screen on a
+            wide, short window for no reason other than markup. */}
+        <div className="hud__stats">
           <div className="hud__stat">
             <span className="hud__label">Consciousness</span>
             <span className="hud__value es-numeric">
               {level.level} · {level.name}
             </span>
           </div>
-          <div className="hud__stat hud__stat--right">
+          <div className="hud__stat">
             <span className="hud__label">Ley-line</span>
             <span className="hud__value es-numeric">{formatDistance(distanceM)}</span>
+          </div>
+          <div className="hud__stat">
+            <span className="hud__label">Warded cells</span>
+            <span className="hud__value es-numeric">
+              {ownedCells}
+              {ownedCells > 0 ? (
+                <span className="hud__sub"> · {formatArea(ownedAreaM2)}</span>
+              ) : null}
+            </span>
+          </div>
+          <div className="hud__stat">
+            <span className="hud__label">Strongest</span>
+            <span className="hud__value es-numeric">{Math.round(strongest)}</span>
           </div>
         </div>
 
@@ -111,14 +179,6 @@ export function Hud({
           <div className="hud__xp-fill" style={{ inlineSize: `${level.progress * 100}%` }} />
         </div>
 
-        <p className="hud__signal" data-quality={q} role="status">
-          <span className="hud__dot" aria-hidden />
-          {signalLine(status, q, accuracyM, lastRejection)}
-          {speedMs != null && q !== 'none' ? (
-            <span className="hud__speed es-numeric"> · {msToKmh(speedMs).toFixed(1)} km/h</span>
-          ) : null}
-        </p>
-
         {basemapVoid ? (
           <p className="hud__note" role="status">
             The streets are unreachable. Your line is still being drawn.
@@ -129,9 +189,21 @@ export function Hud({
           <p className="hud__note hud__note--dev">Simulated walk · WASD</p>
         ) : null}
 
-        <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>
-          Withdraw
-        </RitualButton>
+        {/* Signal and Withdraw share a row. The HUD has to leave the map most of the
+            screen, and this game is read at a glance while walking. */}
+        <div className="hud__foot">
+          <p className="hud__signal" data-quality={q} role="status">
+            <span className="hud__dot" aria-hidden />
+            {signalLine(status, q, accuracyM, lastRejection)}
+            {speedMs != null && q !== 'none' ? (
+              <span className="hud__speed es-numeric"> · {msToKmh(speedMs).toFixed(1)} km/h</span>
+            ) : null}
+          </p>
+
+          <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>
+            Withdraw
+          </RitualButton>
+        </div>
       </GlassPanel>
     </div>
   );

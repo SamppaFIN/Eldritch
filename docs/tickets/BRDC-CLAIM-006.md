@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-005, BRDC-MAP-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -15,15 +15,15 @@ projektista pelin — ilman sitä Vaihe 2 ei ole todennettavissa.
 
 ## 🟢 GREEN
 
-- [ ] Omat solut: `--cosmic-purple`, täyttö 0.35, viiva 0.9
-- [ ] Muiden pelaajien solut: generoitu sävy, **desaturoituna palettiin päin**
-- [ ] **Strength näkyy opasiteettina** — heikko solu on himmeämpi
-- [ ] Uudet solut animoituvat esiin lenkin sulkeutuessa
-- [ ] Piiritetty solu (vahinkoa saanut) **pulssaa**
-- [ ] Vapautunut solu häviää animaatiolla, tapahtuma "The Void reclaims"
-- [ ] **Yksi GeoJSON-lähde**, päivitys `setData()`llä
-- [ ] 5 000 heksaa renderöityy sujuvasti puhelimella
-- [ ] Animaatiot pois `prefers-reduced-motion: reduce` -tilassa
+- [x] Omat solut: `--cosmic-purple`, täyttö 0.35, viiva 0.9
+- [x] Muiden pelaajien solut: generoitu sävy, **desaturoituna palettiin päin**
+- [x] **Strength näkyy opasiteettina** — heikko solu on himmeämpi
+- [x] Uudet solut animoituvat esiin lenkin sulkeutuessa
+- [x] Piiritetty solu (vahinkoa saanut) **pulssaa**
+- [x] Vapautunut solu häviää animaatiolla, tapahtuma "The Void reclaims"
+- [x] **Yksi GeoJSON-lähde**, päivitys `setData()`llä
+- [x] 5 000 heksaa renderöityy sujuvasti puhelimella
+- [x] Animaatiot pois `prefers-reduced-motion: reduce` -tilassa
 
 ## Toteutus
 
@@ -53,13 +53,26 @@ alueesta.
 
 ## Testit
 
-- [ ] `square.json`-lenkki → heksat ilmestyvät kartalle
-- [ ] Solu strength 50 on selvästi himmeämpi kuin strength 500
-- [ ] Naapurin solu renderöityy eri värillä
-- [ ] Layerien määrä pysyy vakiona kun soluja lisätään
-- [ ] 5 000 solun renderöinti, mitattu ruudunpäivitys
-- [ ] `prefers-reduced-motion` → ei pulssia, ei ilmestymisanimaatiota
-- [ ] 360 px viewport ajetaan ensin
+- [x] `square.json`-lenkki → heksat ilmestyvät kartalle
+- [x] Solu strength 50 on selvästi himmeämpi kuin strength 500
+- [x] Naapurin solu renderöityy eri värillä
+- [x] Layerien määrä pysyy vakiona kun soluja lisätään
+- [x] 5 000 solun renderöinti, mitattu ruudunpäivitys
+- [x] `prefers-reduced-motion` → ei pulssia, ei ilmestymisanimaatiota
+- [x] 360 px viewport ajetaan ensin
+
+> **Täytön läpinäkyvyys ei ole lineaarinen.** Suora ramppi nollasta jätti juuri
+> vallatun solun (voima 100/500) arvoon 0,17 lähes mustaa vasten — se on lähes
+> näkymätön palkinto pelin ainoasta palkitsevasta hetkestä. Käyrä nousee nyt nopeasti
+> perusvoimaan ja sitten loivemmin.
+>
+> **Piiritetty solu saa katkoviivan**, ei vain eri värin. Väri ei koskaan yksin kanna
+> merkitystä (AI-Koulu luku 4), ja tämä on se karttatila jonka pelaajan pitää lukea
+> yhdellä silmäyksellä päivänvalossa.
+>
+> `cellBoundary` siirrettiin `@es3/core`en: h3 palauttaa `[lat, lng]`, GeoJSON haluaa
+> päinvastoin, ja väärinpäin koko alue piirtyy Afrikan rannikolle **ilman virhettä**.
+> Nyt vaihto tehdään kerran, eikä mikään `packages/core`n ulkopuolella riipu h3-js:stä.
 
 ## Ei kuulu tähän tikettiin
 

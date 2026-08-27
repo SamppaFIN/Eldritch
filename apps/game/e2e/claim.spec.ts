@@ -1,0 +1,175 @@
+import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
+/**
+ * BRDC-CLAIM-005, CLAIM-006 and HUD-002.
+ *
+ * Phase 2's gate in the form a browser can run: walk a block, watch it fill.
+ * The outdoor half — tomorrow reinforces, twenty days releases — is the dev time
+ * machine's job and is exercised through the clock rather than by waiting.
+ */
+const START = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
+const BLOCK_M = 140;
+const STEP_MS = 5_300;
+
+const dLat = (m: number) => m / 111_320;
+const dLng = (m: number) => m / 53_000;
+
+test.use({ permissions: ['geolocation'], geolocation: START });
+
+async function openMap(page: Page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+}
+
+/** Walk one lap of a square block, four fixes per side. */
+async function walkBlock(page: Page) {
+  const legs: Array<[number, number]> = [];
+  const q = BLOCK_M / 4;
+  for (let i = 1; i <= 4; i++) legs.push([dLat(q * i), 0]);
+  for (let i = 1; i <= 4; i++) legs.push([dLat(BLOCK_M), dLng(q * i)]);
+  for (let i = 1; i <= 4; i++) legs.push([dLat(BLOCK_M - q * i), dLng(BLOCK_M)]);
+  for (let i = 1; i <= 4; i++) legs.push([0, dLng(BLOCK_M - q * i)]);
+
+  for (const [lat, lng] of legs) {
+    await page.context().setGeolocation({
+      latitude: START.latitude + lat,
+      longitude: START.longitude + lng,
+      accuracy: 8,
+    });
+    await page.waitForTimeout(STEP_MS);
+  }
+  // One batch window plus a margin, so the closing fix has been submitted.
+  await page.waitForTimeout(13_000);
+}
+
+async function cellsOnMap(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const map = (
+      globalThis as unknown as {
+        __esMap?: {
+          getSource: (id: string) => { serialize?: () => { data?: unknown } } | undefined;
+        };
+      }
+    ).__esMap;
+    const data = map?.getSource('cells')?.serialize?.().data as
+      | { features?: unknown[] }
+      | undefined;
+    return data?.features?.length ?? 0;
+  });
+}
+
+test('walking a block claims the ground inside it', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openMap(page);
+  await walkBlock(page);
+
+  // The HUD is the player's evidence that anything happened at all.
+  await expect(page.locator('.hud__claim')).toContainText(/awakened/i, { timeout: 30_000 });
+
+  const warded = page.locator('.hud__value').nth(2);
+  await expect(warded).not.toHaveText(/^0/);
+
+  // And the hexagons are actually drawn, not merely counted.
+  expect(await cellsOnMap(page)).toBeGreaterThan(0);
+});
+
+test('the claim survives whatever the batch timing does', async ({ page }) => {
+  // Regression guard. Two versions of this lost a completed lap silently: one dropped
+  // a closure attempt that arrived while another was in flight, and one cancelled the
+  // in-flight attempt on cleanup — after closeLoop had already written. The ground was
+  // taken, XP was paid, and the HUD went on showing zero.
+  test.setTimeout(180_000);
+  await openMap(page);
+  await walkBlock(page);
+
+  const stored = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('es3', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const all = await new Promise<unknown[]>((resolve) => {
+      const request = db.transaction('kv', 'readonly').objectStore('kv').getAll();
+      request.onsuccess = () => resolve(request.result);
+    });
+    const profile = all.find(
+      (v): v is { id: string; xp: number } =>
+        typeof v === 'object' && v !== null && 'colorHue' in v,
+    );
+    const mine = all.filter(
+      (v): v is { ownerId: string } =>
+        typeof v === 'object' && v !== null && 'ownerId' in v &&
+        (v as { ownerId: string }).ownerId === profile?.id,
+    );
+    return { xp: profile?.xp ?? 0, owned: mine.length };
+  });
+
+  expect(stored.owned).toBeGreaterThan(0);
+  expect(stored.xp).toBeGreaterThan(0);
+
+  // What is on disk must be what is on screen. The whole bug was these two disagreeing.
+  const warded = await page.locator('.hud__value').nth(2).innerText();
+  expect(Number.parseInt(warded, 10)).toBe(stored.owned);
+});
+
+test('a walk that encloses nothing claims nothing', async ({ page }) => {
+  // Out and back along one line. It ends where it started, so a proximity test would
+  // hand over territory for a trip to the shop.
+  test.setTimeout(180_000);
+  await openMap(page);
+
+  for (let i = 1; i <= 6; i++) {
+    await page.context().setGeolocation({
+      latitude: START.latitude + dLat(30 * i),
+      longitude: START.longitude,
+      accuracy: 8,
+    });
+    await page.waitForTimeout(STEP_MS);
+  }
+  for (let i = 5; i >= 0; i--) {
+    await page.context().setGeolocation({
+      latitude: START.latitude + dLat(30 * i),
+      longitude: START.longitude,
+      accuracy: 8,
+    });
+    await page.waitForTimeout(STEP_MS);
+  }
+  await page.waitForTimeout(13_000);
+
+  await expect(page.locator('.hud__claim')).toHaveCount(0);
+  await expect(page.locator('.hud__value').nth(2)).toHaveText(/^0/);
+});
+
+test('the territory layers stay at three however much is claimed', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openMap(page);
+  await walkBlock(page);
+
+  const layers = await page.evaluate(() => {
+    const map = (
+      globalThis as unknown as { __esMap?: { getStyle: () => { layers: Array<{ id: string }> } } }
+    ).__esMap;
+    return map?.getStyle().layers.filter((l) => l.id.startsWith('cells-')).length ?? 0;
+  });
+  expect(layers).toBe(3);
+});
+
+test('claimed ground survives a reload', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openMap(page);
+  await walkBlock(page);
+
+  const before = await page.locator('.hud__value').nth(2).innerText();
+  expect(Number.parseInt(before, 10)).toBeGreaterThan(0);
+
+  await page.reload();
+  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+
+  await expect
+    .poll(async () => Number.parseInt(await page.locator('.hud__value').nth(2).innerText(), 10), {
+      timeout: 30_000,
+    })
+    .toBeGreaterThan(0);
+});

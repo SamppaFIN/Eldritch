@@ -8,6 +8,7 @@ export { detectLoop, detectLoops, maxLoopAreaM2 } from './loopDetection.js';
 export type { Loop, LoopOptions, LoopRejection, LoopResult } from './loopDetection.js';
 export {
   cellAreaM2,
+  cellBoundary,
   cellAt,
   neighboursOf,
   regionOf,

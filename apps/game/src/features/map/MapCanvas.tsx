@@ -8,8 +8,13 @@
  */
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
-import type { LatLng, TrailPoint } from '@es3/core';
+import type { BBox, Cell, LatLng, PlayerId, TrailPoint } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
+import {
+  ensureTerritoryLayers,
+  removeTerritoryLayers,
+  setTerritoryData,
+} from '../territory/TerritoryLayer.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -24,6 +29,11 @@ export interface MapCanvasProps {
   accuracyM?: number | undefined;
   /** The ley-line so far. */
   trail?: readonly TrailPoint[];
+  /** Visible territory. */
+  cells?: readonly Cell[];
+  playerId?: PlayerId | null;
+  /** Called when the viewport settles, so the caller can query that region. */
+  onViewportChange?: (bbox: BBox) => void;
   /** Keep the camera on the player. False once they pan away by hand. */
   follow?: boolean;
   onBasemapChange?: (state: BasemapState) => void;
@@ -34,8 +44,11 @@ export function MapCanvas({
   position,
   accuracyM,
   trail,
+  cells,
+  playerId = null,
   follow = true,
   onBasemapChange,
+  onViewportChange,
 }: MapCanvasProps) {
   const { containerRef, map, ready, basemap } = useMap({ centre: initialCentre });
   const markerRef = useRef<Marker | null>(null);
@@ -71,15 +84,44 @@ export function MapCanvas({
     };
   }, [map, ready, initialCentre]);
 
-  // The trail is a GeoJSON source, created once the map is ready and updated in place.
+  // Territory first, then the trail: the ley-line the player is drawing right now
+  // must never be buried under the ground they already hold.
   useEffect(() => {
     if (!map || !ready) return;
+    ensureTerritoryLayers(map);
     ensureTrailLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
-      if (map.loaded()) removeTrailLayers(map);
+      if (map.loaded()) {
+        removeTrailLayers(map);
+        removeTerritoryLayers(map);
+      }
     };
   }, [map, ready]);
+
+  useEffect(() => {
+    if (!map || !ready || !cells) return;
+    setTerritoryData(map, cells, playerId);
+  }, [map, ready, cells, playerId]);
+
+  // Report the viewport once it settles, so the caller loads only what is on screen.
+  useEffect(() => {
+    if (!map || !ready || !onViewportChange) return;
+    const report = () => {
+      const b = map.getBounds();
+      onViewportChange({
+        west: b.getWest(),
+        south: b.getSouth(),
+        east: b.getEast(),
+        north: b.getNorth(),
+      });
+    };
+    report();
+    map.on('moveend', report);
+    return () => {
+      map.off('moveend', report);
+    };
+  }, [map, ready, onViewportChange]);
 
   useEffect(() => {
     if (!map || !ready || !trail) return;

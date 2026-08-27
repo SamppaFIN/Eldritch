@@ -69,6 +69,15 @@ export const NEIGHBOUR_BONUS_CAP = 90;
 export const ANCHOR_BONUS = 200; // Phase 6
 export const LEVEL_STRENGTH_BONUS = 5;
 
+/* --- XP -------------------------------------------------------------------
+   New to v3. v2's XP came from discoveries; here the primary source is ground.
+   Taking a cell from someone is worth more than finding empty land, because it
+   cost more walks. Tunable — nothing else depends on the exact numbers. */
+
+export const XP_PER_CELL_CLAIMED = 10;
+export const XP_PER_CELL_TAKEN = 25;
+export const XP_PER_CELL_REINFORCED = 2;
+
 /* --- Decay --------------------------------------------------------------- */
 
 export const DECAY_GRACE_HOURS = 48;

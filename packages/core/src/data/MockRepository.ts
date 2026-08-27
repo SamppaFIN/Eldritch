@@ -12,8 +12,11 @@
  */
 import { cellToLatLng, latLngToCell } from 'h3-js';
 import { filterTrail } from '../geo/filter.js';
+import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
+import { sweepDecay } from '../rules/decay.js';
 import { levelForXp } from '../rules/level.js';
+import { cellsToLoad, planClaim } from './claiming.js';
 import type {
   BBox,
   Cell,
@@ -151,27 +154,68 @@ export class MockRepository implements GameRepository {
 
   /* --- Territory -------------------------------------------------------- */
 
-  async getCells(bbox: BBox, _now: number): Promise<Cell[]> {
-    // Decay is applied at read time from BRDC-CLAIM-004 onward; until those rules
-    // exist this returns stored state unchanged rather than pretending to age it.
-    const all = await this.allCells();
-    return all.filter((cell) => inBBox(cell, bbox));
+  /**
+   * Cells in view, aged to `now`.
+   *
+   * The projection is for rendering and is never written back — see projectCell. The
+   * one thing that IS persisted here is release: a cell that has reached zero is
+   * genuinely unowned again, and leaving it on disk would keep a ghost nobody can take.
+   */
+  async getCells(bbox: BBox, now: number): Promise<Cell[]> {
+    const visible = (await this.allCells()).filter((cell) => inBBox(cell, bbox));
+    const sweep = sweepDecay(visible, now);
+    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
+    return sweep.cells;
   }
 
-  async getOwnedCells(_now: number): Promise<Cell[]> {
+  async getOwnedCells(now: number): Promise<Cell[]> {
     const me = await this.getProfile();
-    return (await this.allCells()).filter((c) => c.ownerId === me.id);
+    const mine = (await this.allCells()).filter((c) => c.ownerId === me.id);
+    const sweep = sweepDecay(mine, now);
+    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
+    return sweep.cells;
   }
 
-  async closeLoop(_runId: RunId, _now: number): Promise<ClaimResult> {
-    // BRDC-CLAIM-005 wires loop detection, rasterisation and capture together here.
-    // Reporting "not closed" is the honest answer while that is true.
-    return { closed: false };
+  /**
+   * Close the run's loop, if it has one, and take what it encloses.
+   *
+   * Loads the cells the ring covers *and their neighbours*, so siege bonuses are
+   * counted against the ground held before this walk rather than against cells claimed
+   * moments earlier in the same lap.
+   */
+  async closeLoop(runId: RunId, now: number): Promise<ClaimResult> {
+    const points = await this.getTrailPoints(runId);
+    const profile = await this.getProfile();
+
+    const detected = detectLoop(points, { level: profile.level });
+    if (!detected.closed) return { closed: false };
+
+    const known = new Map<string, Cell>();
+    for (const h3 of cellsToLoad(detected.loop)) {
+      const stored = await this.store.get<Cell>(K.cell(h3));
+      // Aged first: besieging a cell that has already rotted away should find
+      // empty ground, not a defender who stopped existing last week.
+      if (stored) {
+        const [alive] = sweepDecay([stored], now).cells;
+        if (alive) known.set(h3, alive);
+        else await this.store.delete(K.cell(h3));
+      }
+    }
+
+    const plan = planClaim(detected.loop, { id: profile.id, level: profile.level }, known, now);
+    for (const cell of plan.cells) await this.store.set(K.cell(cell.h3), cell);
+    if (plan.xp > 0) await this.addXp(plan.xp);
+
+    // The ring is spent. Keeping it would let the next fix close the same loop again.
+    await this.store.set(K.trail(runId), points.slice(detected.loop.endIndex));
+
+    return { closed: true, outcomes: plan.outcomes, areaM2: plan.areaM2 };
   }
 
-  async runDecay(_now: number): Promise<DecayResult> {
-    // BRDC-CLAIM-004.
-    return { weakened: [], released: [] };
+  async runDecay(now: number): Promise<DecayResult> {
+    const sweep = sweepDecay(await this.allCells(), now);
+    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
+    return { weakened: sweep.weakened, released: sweep.released };
   }
 
   /* --- Maintenance ------------------------------------------------------ */

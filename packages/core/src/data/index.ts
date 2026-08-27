@@ -4,3 +4,5 @@ export { MemoryStore } from './kv.js';
 export type { KeyValueStore } from './kv.js';
 export { SEED_NEIGHBOURS, seedCells } from './seed.js';
 export type { SeedNeighbour } from './seed.js';
+export { cellsToLoad, planClaim } from './claiming.js';
+export type { ClaimPlan } from './claiming.js';
