@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
-import type { BBox, Cell, LatLng, PlayerId, RevealedPlace, TrailPoint } from '@es3/core';
+import type { BBox, Cell, H3Index, LatLng, PlayerId, RevealedPlace, TrailPoint } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import {
   ensureTerritoryLayers,
@@ -20,6 +20,13 @@ import {
   removePlaceLayers,
   setPlaceData,
 } from '../territory/PlaceMarkers.js';
+import {
+  AWAKENING_MS,
+  ensureAwakeningLayers,
+  removeAwakeningLayers,
+  setAwakeningCells,
+  setAwakeningProgress,
+} from '../territory/AwakeningLayer.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -39,6 +46,13 @@ export interface MapCanvasProps {
   playerId?: PlayerId | null;
   /** Cells the game has worked out are places. */
   places?: readonly RevealedPlace[];
+  /**
+   * Cells a closure has just taken, and when.
+   *
+   * The timestamp is what makes a second claim of the same ground animate again — the
+   * cell list alone can be identical two laps running.
+   */
+  awakening?: { cells: readonly H3Index[]; at: number } | null;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
@@ -56,6 +70,7 @@ export function MapCanvas({
   cells,
   playerId = null,
   places,
+  awakening = null,
   initialZoom,
   follow = true,
   onBasemapChange,
@@ -107,9 +122,12 @@ export function MapCanvas({
     ensureTrailLayers(map);
     // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
+    // Above everything: this is a moment, and it is over in two seconds.
+    ensureAwakeningLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
       if (map.loaded()) {
+        removeAwakeningLayers(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
         removeTerritoryLayers(map);
@@ -150,6 +168,43 @@ export function MapCanvas({
     if (!map || !ready || !places) return;
     setPlaceData(map, places);
   }, [map, ready, places]);
+
+  /*
+   * The ground wakes up.
+   *
+   * The claim is already painted by the time this runs — the reveal is a gold flare over
+   * the top of it, rippling out from the middle of what was taken. Driven frame by frame
+   * rather than by CSS, because the shapes are on the GPU and not in the DOM.
+   */
+  useEffect(() => {
+    if (!map || !ready || !awakening || awakening.cells.length === 0) return;
+
+    setAwakeningCells(map, awakening.cells);
+
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    if (reduced) {
+      // Still say something happened, without the sweep across the screen.
+      setAwakeningProgress(map, 1.2);
+      const timer = setTimeout(() => setAwakeningProgress(map, 0), 600);
+      return () => clearTimeout(timer);
+    }
+
+    let frame = 0;
+    const started = performance.now();
+    const tick = (t: number) => {
+      // 0 → 2: one unit of stagger across the cells, one of flare for each of them.
+      const progress = ((t - started) / AWAKENING_MS) * 2;
+      setAwakeningProgress(map, Math.min(progress, 2));
+      if (progress < 2) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      // Leaving it mid-flare would freeze a gold wash over the map until the next claim.
+      if (map.loaded()) setAwakeningProgress(map, 0);
+    };
+  }, [map, ready, awakening]);
 
   // Move the marker and the camera on each fix.
   useEffect(() => {

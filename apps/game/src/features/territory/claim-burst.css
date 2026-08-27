@@ -6,29 +6,87 @@
   z-index: calc(var(--z-hud) - 1);
   display: grid;
   place-items: center;
+  /* The map keeps working underneath; only the panel itself takes taps. */
   pointer-events: none;
 }
 
-/* The count sits below the mandala rather than inside its innermost ring, where
-   the strokes cut straight through the digits. */
-.claim-burst__count {
-  translate: 0 9.5rem;
+.claim-burst__sigil-wrap {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
 }
 
 .claim-burst__sigil {
-  grid-area: 1 / 1;
   color: var(--accent-warm);
   filter: drop-shadow(0 0 24px color-mix(in oklch, var(--accent-warm) 55%, transparent));
-  animation: es-burst 1.8s var(--ease-out) both;
+  animation: es-burst 2.4s var(--ease-out) both;
 }
 
-.claim-burst__count {
+.claim-burst__panel {
   grid-area: 1 / 1;
+  inline-size: min(30rem, 88vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  border: 1px solid color-mix(in oklch, var(--accent-warm) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 60px color-mix(in oklch, var(--accent-warm) 18%, transparent);
+  color: inherit;
+  text-align: center;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: es-burst-panel 5.2s var(--ease-out) both;
+}
+
+.claim-burst__eyebrow {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.claim-burst__title {
+  /* min() rather than the raw clamp: at 200% zoom on a 360px phone the longest title
+     would otherwise set the panel's min-content width and push the page sideways. */
   color: var(--accent-warm);
-  font-size: var(--text-h2);
+  font-family: var(--font-display);
+  font-size: min(var(--text-h2), 9vw);
   font-weight: var(--weight-bold);
-  text-shadow: 0 0 20px color-mix(in oklch, var(--accent-warm) 60%, transparent);
-  animation: es-burst-count 1.8s var(--ease-out) both;
+  line-height: 1.15;
+  text-shadow: 0 0 26px color-mix(in oklch, var(--accent-warm) 45%, transparent);
+  text-wrap: balance;
+}
+
+.claim-burst__body {
+  max-inline-size: 34ch;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  text-wrap: pretty;
+}
+
+.claim-burst__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-block-start: var(--space-2);
+}
+
+.claim-burst__stat dt {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.claim-burst__stat dd {
+  color: var(--text);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
 }
 
 @keyframes es-burst {
@@ -36,29 +94,48 @@
     opacity: 0;
     scale: 0.4;
   }
-  35% {
-    opacity: 0.95;
+  30% {
+    opacity: 0.9;
   }
   to {
     opacity: 0;
-    scale: 1.35;
+    scale: 1.4;
   }
 }
 
-@keyframes es-burst-count {
+/* Arrives fast, sits still long enough to read, then leaves without being dismissed. */
+@keyframes es-burst-panel {
   from {
     opacity: 0;
-    scale: 0.7;
+    scale: 0.92;
   }
-  30% {
+  8% {
     opacity: 1;
     scale: 1;
   }
-  70% {
+  88% {
     opacity: 1;
+    scale: 1;
   }
   to {
     opacity: 0;
-    scale: 1.1;
+    scale: 1.02;
+  }
+}
+
+/*
+ * `animation-duration: 0.01ms` — the project's usual reduced-motion answer — is wrong
+ * here. These keyframes end at opacity 0, so collapsing them makes the announcement
+ * flash out of existence instead of being shown. The panel simply appears; the timer
+ * that already removes it does the rest.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .claim-burst__sigil {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .claim-burst__panel {
+    animation: none;
   }
 }

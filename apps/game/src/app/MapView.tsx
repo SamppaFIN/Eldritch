@@ -123,6 +123,19 @@ export function MapView({ onLeave }: MapViewProps) {
     saveNow('opening-zoom', ZOOM_WALKING);
   }, [repository, territory.lastClaim]);
 
+  /*
+   * What the map should light up, derived rather than stored: a claim is already in
+   * hand, and the reveal is only the cells that changed hands in it.
+   */
+  const awakening = useMemo(() => {
+    const claim = territory.lastClaim;
+    if (!claim) return null;
+    const cells = claim.outcomes
+      .filter((o) => o.kind === 'claimed' || o.kind === 'taken')
+      .map((o) => o.h3);
+    return cells.length > 0 ? { cells, at: claim.at } : null;
+  }, [territory.lastClaim]);
+
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
 
   /*
@@ -163,6 +176,7 @@ export function MapView({ onLeave }: MapViewProps) {
         cells={territory.cells}
         playerId={profile?.id ?? null}
         places={places}
+        awakening={awakening}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}
         onViewportChange={onViewportChange}

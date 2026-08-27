@@ -36,7 +36,20 @@ export interface KeepAliveState {
 }
 
 /**
- * One second of a tone at roughly -60 dB, 8 kHz mono.
+ * The Solfeggio chord the Vigil breathes.
+ *
+ * 396 · 528 · 639 Hz — the "liberation", "miracle" and "connection" tones. They are not
+ * doing anything to the player; nobody can hear them at this amplitude. They are here
+ * because the thing humming in your pocket for an hour should be part of the game's own
+ * language rather than an arbitrary test tone, and because these three sit together as
+ * something close to a major chord.
+ *
+ * Whole numbers of cycles fit exactly into one second, so the loop seam does not click.
+ */
+const SOLFEGGIO = [396, 528, 639];
+
+/**
+ * One second of that chord at roughly -60 dB, 8 kHz mono.
  *
  * Not pure silence: a silent track is a candidate for being treated as inaudible, and
  * the whole point is to look like playback. At this amplitude, times the element volume
@@ -65,8 +78,11 @@ function quietLoop(): string {
   view.setUint32(40, samples * 2, true);
 
   for (let i = 0; i < samples; i += 1) {
-    // A whole number of cycles, so the loop seam does not click.
-    view.setInt16(44 + i * 2, Math.round(Math.sin((i / rate) * 220 * 2 * Math.PI) * 24), true);
+    const t = i / rate;
+    let sample = 0;
+    for (const hz of SOLFEGGIO) sample += Math.sin(t * hz * 2 * Math.PI);
+    // Divided by the voice count, so three tones are no louder than one was.
+    view.setInt16(44 + i * 2, Math.round((sample / SOLFEGGIO.length) * 24), true);
   }
 
   let binary = '';
