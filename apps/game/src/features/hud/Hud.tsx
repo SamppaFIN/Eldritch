@@ -106,8 +106,8 @@ function signalLine(
   if (q === 'rejected') return 'Signal too weak — the Ley-line cannot form';
   if (rejection === 'speed') return 'Moving too fast to be walking';
   if (rejection === 'consolidated') return 'Holding still — the line waits';
-  if (q === 'weak') return `Signal uncertain · ±${Math.round(accuracyM ?? 0)} m`;
-  return `Signal clear · ±${Math.round(accuracyM ?? 0)} m`;
+  if (q === 'weak') return `Signal uncertain · ±${Math.round(accuracyM ?? 0)} m`;
+  return `Signal clear · ±${Math.round(accuracyM ?? 0)} m`;
 }
 
 function formatDistance(m: number): string {
@@ -213,10 +213,15 @@ export function Hud({
         <div className="hud__foot">
           <p className="hud__signal" data-quality={q} role="status">
             <span className="hud__dot" aria-hidden />
-            {signalLine(status, q, accuracyM, lastRejection)}
-            {speedMs != null && q !== 'none' ? (
-              <span className="hud__speed es-numeric"> · {msToKmh(speedMs).toFixed(1)} km/h</span>
-            ) : null}
+            {/* One text item, not three. Bare text inside a flex container becomes an
+                anonymous flex item and wraps on its own, which turned
+                "Signal clear · ±8 m · 23.8 km/h" into scrambled fragments. */}
+            <span className="hud__signal-text">
+              {signalLine(status, q, accuracyM, lastRejection)}
+              {speedMs != null && q !== 'none' ? (
+                <span className="hud__speed es-numeric"> · {msToKmh(speedMs).toFixed(1)} km/h</span>
+              ) : null}
+            </span>
           </p>
 
           <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>

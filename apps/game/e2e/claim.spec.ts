@@ -173,3 +173,74 @@ test('claimed ground survives a reload', async ({ page }) => {
     })
     .toBeGreaterThan(0);
 });
+
+test('five thousand hexagons do not stall the main thread', async ({ page }) => {
+  // CLAIM-006. An evening of walking is a few hundred cells; five thousand is a
+  // month of them, and the reason this is cheap is that it is one GeoJSON source
+  // rather than five thousand DOM nodes.
+  test.setTimeout(120_000);
+  await openMap(page);
+
+  const elapsed = await page.evaluate(() => {
+    const map = (
+      globalThis as unknown as {
+        __esMap?: {
+          getSource: (id: string) => { setData?: (d: unknown) => void };
+          getCenter: () => { lat: number; lng: number };
+        };
+      }
+    ).__esMap;
+    if (!map) return -1;
+
+    const c = map.getCenter();
+    // A rough hex lattice; the exact geometry does not matter, the count does.
+    const features = Array.from({ length: 5000 }, (_, i) => {
+      const row = Math.floor(i / 70);
+      const col = i % 70;
+      const lat = c.lat + row * 0.00035;
+      const lng = c.lng + col * 0.0007 + (row % 2) * 0.00035;
+      const r = 0.00018;
+      const ring = Array.from({ length: 7 }, (_, k) => {
+        const a = (Math.PI / 3) * k;
+        return [lng + r * Math.cos(a) * 2, lat + r * Math.sin(a)];
+      });
+      return {
+        type: 'Feature',
+        properties: { strength: 100, mine: true, contested: false, color: '#4a1a5c' },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      };
+    });
+
+    const started = performance.now();
+    map.getSource('cells')?.setData?.({ type: 'FeatureCollection', features });
+    return performance.now() - started;
+  });
+
+  expect(elapsed).toBeGreaterThanOrEqual(0);
+  expect(elapsed).toBeLessThan(400);
+
+  await expect(page.locator('.es-player__core')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Withdraw' })).toBeEnabled();
+});
+
+test('per-cell strokes are dropped when zoomed out', async ({ page }) => {
+  // Below zoom 13 a res-11 cell is smaller than a fingertip, so the strokes stop
+  // being information and become cost.
+  await openMap(page);
+
+  const minzooms = await page.evaluate(() => {
+    const map = (
+      globalThis as unknown as {
+        __esMap?: { getStyle: () => { layers: Array<{ id: string; minzoom?: number }> } };
+      }
+    ).__esMap;
+    return (map?.getStyle().layers ?? [])
+      .filter((l) => l.id.startsWith('cells-'))
+      .map((l) => [l.id, l.minzoom ?? 0] as const);
+  });
+
+  const byId = new Map(minzooms);
+  expect(byId.get('cells-fill')).toBe(0);
+  expect(byId.get('cells-line')).toBe(13);
+  expect(byId.get('cells-contested')).toBe(13);
+});

@@ -47,7 +47,7 @@ Tampereen leveydellä ~1 622 m², ei 2 150 m².
 ## Testit
 
 - [x] Solumäärä päivittyy lenkin sulkeuduttua
-- [~] Tulosviesti testattu `awakened`-tapaukselle. Muut kolme **vain yksikkötesteissä**
+- [~] Tulosviesti testattu `awakened`-tapaukselle e2e:ssä. Muut kolme yksikkötesteissä
 - [x] Kellon kelaus +10 vrk → varoitus ilmestyy (e2e `decay.spec.ts`)
 - [x] Kellon kelaus +16 vrk → solut vapautuvat, HUD putoaa nollaan (e2e)
 - [x] 360 px viewport ajetaan ensin

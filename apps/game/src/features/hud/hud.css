@@ -150,8 +150,15 @@
   background: var(--danger);
 }
 
+.hud__signal-text {
+  min-width: 0;
+  text-wrap: pretty;
+}
+
 .hud__speed {
   color: var(--text-dim);
+  /* Never split "23.8" from "km/h". */
+  white-space: nowrap;
 }
 
 .hud__note {

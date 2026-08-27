@@ -15,6 +15,7 @@ import { useInitialPosition } from '../features/map/useInitialPosition.js';
 import { usePositionSource } from '../features/trail/usePositionSource.js';
 import { useTrail } from '../features/trail/useTrail.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
+import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { Hud } from '../features/hud/Hud.js';
 import { createRepository } from '../data/createRepository.js';
@@ -118,6 +119,8 @@ export function MapView({ onLeave }: MapViewProps) {
         onBasemapChange={setBasemap}
         onViewportChange={onViewportChange}
       />
+
+      <ClaimBurst claim={territory.lastClaim} />
 
       {!durable ? (
         <p className="mapview__warning" role="status">

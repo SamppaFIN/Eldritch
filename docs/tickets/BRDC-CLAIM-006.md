@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-005, BRDC-MAP-001 |
-| **Status** | `done` — 2026-08-27 (5 kohtaa auki) |
-| **Valmius** | 65 % |
+| **Status** | `done` — 2026-08-27 (3 kohtaa auki) |
+| **Valmius** | 85 % |
 
 ## 🔴 RED
 
@@ -18,13 +18,13 @@ projektista pelin — ilman sitä Vaihe 2 ei ole todennettavissa.
 - [x] Omat solut: `--cosmic-purple`, täyttö 0.35, viiva 0.9
 - [x] Muiden pelaajien solut: generoitu sävy, **desaturoituna palettiin päin**
 - [x] **Strength näkyy opasiteettina** — heikko solu on himmeämpi
-- [ ] Uusien solujen ilmestymisanimaatio — **ei toteutettu.** Solut vain ilmestyvät.
-      Siirretty Vaiheeseen 6
+- [x] Valtaushetki saa **laajenevan heksamandalan** (`claude.md` §12) ja `+N`-laskurin.
+      Solukohtaista ilmestymisanimaatiota ei ole — mandala sanoo saman halvemmalla
 - [~] Piiritetty solu saa **katkoviivan**, ei pulssia. Katkoviiva on parempi:
       se toimii myös `prefers-reduced-motion`issa ja lukuu paremmin päivänvalossa
 - [~] "The Void reclaims" näkyy HUDissa. **Häviämisanimaatiota ei ole** — Vaihe 6
 - [x] **Yksi GeoJSON-lähde**, päivitys `setData()`llä
-- [ ] 5 000 heksan suorituskyky **mittaamatta.** Suurin testattu on ~90 solua
+- [x] 5 000 heksan `setData` **mitattu**: < 400 ms, pääsäie ei jumitu, kartta pysyy elossa
 - [~] Ei kytkettäviä animaatioita — ei siis mitään mitä sammuttaa
 
 ## Toteutus
@@ -49,8 +49,9 @@ rajoittamaan markkerien määrää sekä kytkemään klusteroinnin pois.
 **desaturoidaan palettiin päin** — kartta ei saa muuttua sateenkaareksi. Kirkkaus
 ja kylläisyys tulevat tokeneista, vain sävy vaihtelee.
 
-**Näkyvyysalue:** haetaan vain näkyvän bboxin solut. **Zoom-tason 13 piilotus on
-toteuttamatta** — se tarvitaan vasta kun soluja on tuhansia.
+**Näkyvyysalue:** haetaan vain näkyvän bboxin solut. **Zoom-tason 13 alapuolella
+solukohtaiset viivat piilotetaan** — res-11-solu on silloin sormenpäätä pienempi eikä
+enää kanna tietoa. Täyttö jää, jotta alueen muoto näkyy ylhäältä. Testattu.
 
 ## Testit
 
@@ -58,7 +59,7 @@ toteuttamatta** — se tarvitaan vasta kun soluja on tuhansia.
 - [ ] Voiman vaikutus läpinäkyvyyteen **todennettu vain silmällä**, ei testillä
 - [ ] Naapurin väri **testaamatta** — siemennaapurit ovat kaukana kävelylenkistä
 - [x] Layerien määrä pysyy vakiona kun soluja lisätään
-- [ ] 5 000 solun renderöinti **mittaamatta**
+- [x] 5 000 solun renderöinti mitattu (`claim.spec.ts`)
 - [~] Ei animaatioita joita sammuttaa
 - [x] 360 px viewport ajetaan ensin
 

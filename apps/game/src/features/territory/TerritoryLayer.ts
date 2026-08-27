@@ -15,6 +15,14 @@ export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 
+/**
+ * Below this, individual res-11 cells are smaller than a finger and stop being
+ * information: a city block's worth collapses into a purple smudge. The fill stays so
+ * the shape of a territory is still readable from above; the per-cell strokes go, which
+ * is most of the drawing cost.
+ */
+export const CELL_DETAIL_MINZOOM = 13;
+
 /** --cosmic-purple, inlined: MapLibre parses CSS colours but not `var()`. */
 const OWN = '#4a1a5c';
 const OWN_STROKE = '#8b3fb8';
@@ -95,6 +103,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_LINE_LAYER,
     type: 'line',
     source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
     paint: {
       'line-color': ['case', ['get', 'mine'], OWN_STROKE, ['get', 'color']],
       'line-width': ['case', ['get', 'mine'], 1.4, 0.8],
@@ -112,6 +121,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_CONTESTED_LAYER,
     type: 'line',
     source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
     filter: ['get', 'contested'],
     paint: {
       'line-color': CONTESTED,

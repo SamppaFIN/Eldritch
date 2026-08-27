@@ -1,0 +1,64 @@
+/* The reward moment. Centred on the map, above it, below the HUD. */
+
+.claim-burst {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-hud) - 1);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* The count sits below the mandala rather than inside its innermost ring, where
+   the strokes cut straight through the digits. */
+.claim-burst__count {
+  translate: 0 9.5rem;
+}
+
+.claim-burst__sigil {
+  grid-area: 1 / 1;
+  color: var(--accent-warm);
+  filter: drop-shadow(0 0 24px color-mix(in oklch, var(--accent-warm) 55%, transparent));
+  animation: es-burst 1.8s var(--ease-out) both;
+}
+
+.claim-burst__count {
+  grid-area: 1 / 1;
+  color: var(--accent-warm);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  text-shadow: 0 0 20px color-mix(in oklch, var(--accent-warm) 60%, transparent);
+  animation: es-burst-count 1.8s var(--ease-out) both;
+}
+
+@keyframes es-burst {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+  35% {
+    opacity: 0.95;
+  }
+  to {
+    opacity: 0;
+    scale: 1.35;
+  }
+}
+
+@keyframes es-burst-count {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+  30% {
+    opacity: 1;
+    scale: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.1;
+  }
+}
