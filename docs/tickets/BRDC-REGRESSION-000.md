@@ -5,8 +5,8 @@
 | **Vaihe** | läpileikkaava |
 | **Effort** | M (päivä, jaettuna vaiheisiin) |
 | **Riippuvuudet** | BRDC-SETUP-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — 9/12 katettu |
+| **Valmius** | 75 % |
 
 ## 🔴 RED
 
@@ -32,6 +32,26 @@ Jokainen alla oleva testi on kirjoitettu **ennen** vastaavaa ominaisuutta ja on 
 | 10 | Coverage-raportti julkaistiin **nollalla osumalla** | Kattavuus tulee oikeasta testiajosta; CI epäonnistuu jos kattavuus on 0 | BRDC-SETUP-005 |
 | 11 | Kolme kuollutta askelmittaritoteutusta (2 033 riviä lataamatonta koodia) | Yksi toteutus, lähde valitaan ajossa. CI varoittaa moduulista, johon ei viitata | Vaihe 5 |
 | 12 | Kolme eri versionumeroa (1.4.0 / 1.6.0 / 4.0.0) | Yksi versio, luetaan juuren `package.json`ista | BRDC-SETUP-001 |
+
+> **Tilanne 2026-08-27 — 9/12 katettu:**
+>
+> | # | Tila | Missä |
+> |---|---|---|
+> | 1 | ✅ | `save.test.ts` — 16 testiä, mm. v2-muotoinen tallennus |
+> | 2 | ✅ | `level.test.ts` — `NaN`, `-500` ja `Infinity` antavat kaikki tason 1 |
+> | 3 | ⬜ | Boot on deterministinen `await`-ketju, mutta **100 kertaa -testiä ei ole** |
+> | 4 | ✅ | `claim.spec.ts` — 5 000 heksaa, < 400 ms |
+> | 5 | ✅ | 360 px on Playwrightin ensimmäinen projekti |
+> | 6 | ⬜ | Vaihe 6 |
+> | 7 | ⬜ | Vaihe 6 |
+> | 8 | ✅ | `es3:*`, yksi `SAVE_VERSION` |
+> | 9 | ✅ | `title.spec.ts` / `map.spec.ts` vartioivat vieraita hosteja |
+> | 10 | ✅ | CI ajaa testit ennen buildia; kattavuuskynnys `vitest.config.ts`:ssä |
+> | 11 | ✅ | Yksi sijaintilähde; simulaattori todennettu poissa tuotantobundlesta |
+> | 12 | ✅ | Yksi versio juuren `package.json`issa |
+>
+> **Kohta 3 on tärkein auki oleva.** v2:n vaikein bugi ei ollut vaikea koodata väärin —
+> se oli vaikea *huomata*, koska mikään ei kaatunut. Testi on halpa ja se puuttuu yhä.
 
 ## Toteutus
 

@@ -109,11 +109,27 @@ Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
 | Vaihe | Tila | Tikettejä |
 |---|---|---|
 | **0** Perustus | ✅ portti läpi | 6/6 |
-| **1** Kartta ja ley-line | 🔨 koodattu, portti odottaa | 7/7 |
-| **2** Aluevaltaus | ⬜ ei aloitettu — **V1-portti ensin** | 0/7 |
+| **1** Kartta ja ley-line | 🔨 koodattu, ulkoportti odottaa | 7/7 |
+| **2** Aluevaltaus | 🔨 portti läpi selaimessa, ulkoportti odottaa | 7/7 |
+| **3** Supabase ja moninpeli | ⬜ ei aloitettu — vaatii avaimet | 0/? |
+
+**Ulkoportti on yhä auki.** Kaikki on todennettu selaimessa ja simuloidulla GPS:llä,
+mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on Vaiheiden
+1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta.
 
 Testejä: **220 yksikkö** + **73 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
-Sääntö `claude.md` §5: jos portti ei mene läpi, seuraava vaihe ei ala.
+
+**Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
+
+```
+100 %  SETUP-001..005 · GEO-001 · SIM-001 · MAP-001 · CLAIM-001..004
+ 95 %  MOCK-001 · TRAIL-001 · HUD-001 · CLAIM-005
+ 90 %  HUD-002
+ 85 %  PERSIST-001 · TRAIL-002 · CLAIM-006
+```
+
+Auki jääneet kohdat on merkitty tiketteihin `[ ]` tai `[~]` perusteluineen — ei
+piilotettu prosenttilukuun.
 
 ---
 
