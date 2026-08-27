@@ -12,15 +12,20 @@
  */
 import { cellToLatLng, latLngToCell } from 'h3-js';
 import { filterTrail } from '../geo/filter.js';
+import { revealPlaces } from '../rules/dwell.js';
+import type { DwellMap, DwellReading } from '../rules/dwell.js';
+import { planWalk, walkNeighbourhood } from './walking.js';
 import { detectLoop } from '../geo/loopDetection.js';
-import { H3_RES_OWNERSHIP } from '../rules/constants.js';
+import { H3_RES_OWNERSHIP, XP_PER_CELL_CLAIMED } from '../rules/constants.js';
 import { sweepDecay } from '../rules/decay.js';
 import { levelForXp } from '../rules/level.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import type {
   BBox,
+  CaptureOutcome,
   Cell,
   LatLng,
+  RevealedPlace,
   ClaimResult,
   DecayResult,
   GameRepository,
@@ -40,6 +45,8 @@ const K = {
   run: (id: RunId) => `run:${id}`,
   trail: (id: RunId) => `trail:${id}`,
   cell: (h3: string) => `cell:${h3}`,
+  dwell: 'dwell',
+  lastReading: 'reading:last',
 } as const;
 
 const CELL_PREFIX = 'cell:';
@@ -131,18 +138,55 @@ export class MockRepository implements GameRepository {
     // Validation happens here, not in the caller. A repository that trusts its input
     // is exactly what v2's position:update handler was.
     const { accepted, result } = filterTrail(previous, points);
+    if (accepted.length === 0) return result;
 
-    if (accepted.length > 0) {
-      await this.store.set(K.trail(runId), [...existing, ...accepted]);
-      await this.store.set(K.run(runId), {
-        ...run,
-        pointCount: run.pointCount + accepted.length,
-        distanceM: run.distanceM + result.distanceM,
-      });
-      await this.ensureSeeded(accepted[0] as TrailPoint);
+    await this.store.set(K.trail(runId), [...existing, ...accepted]);
+    await this.store.set(K.run(runId), {
+      ...run,
+      pointCount: run.pointCount + accepted.length,
+      distanceM: run.distanceM + result.distanceM,
+    });
+    await this.ensureSeeded(accepted[0] as TrailPoint);
+
+    /*
+     * Walking is not only a line any more.
+     *
+     * Each accepted fix grows the territory into the cell underfoot — if it touches
+     * ground already held — and credits time to the cell just left. A cell that
+     * accumulates enough time stops being ground and becomes a place.
+     */
+    const profile = await this.getProfile();
+    const known = new Map<string, Cell>();
+    for (const h3 of walkNeighbourhood(accepted)) {
+      const stored = await this.store.get<Cell>(K.cell(h3));
+      if (stored) known.set(h3, stored);
     }
 
-    return result;
+    const plan = planWalk(accepted, {
+      attacker: { id: profile.id, level: profile.level },
+      known,
+      dwell: (await this.store.get<DwellMap>(K.dwell)) ?? {},
+      previous: (await this.store.get<DwellReading | null>(K.lastReading)) ?? null,
+      hasTerritory: await this.hasGround(profile.id),
+    });
+
+    for (const step of plan.steps) {
+      if (step.cell) await this.store.set(K.cell(step.cell.h3), step.cell);
+    }
+    await this.store.set(K.dwell, plan.dwell);
+    const last = plan.steps[plan.steps.length - 1];
+    if (last) {
+      await this.store.set<DwellReading>(K.lastReading, {
+        h3: last.h3,
+        t: (accepted[accepted.length - 1] as TrailPoint).t,
+      });
+    }
+
+    const grown = plan.steps.map((s) => s.outcome).filter((o): o is CaptureOutcome => o !== null);
+    const xp = grown.filter((o) => o.kind === 'claimed' || o.kind === 'taken').length;
+    if (xp > 0) await this.addXp(xp * XP_PER_CELL_CLAIMED);
+
+    return { ...result, grown, revealed: plan.revealed, unobservedMs: plan.unobservedMs };
   }
 
   async endRun(runId: RunId): Promise<void> {
@@ -155,6 +199,25 @@ export class MockRepository implements GameRepository {
 
   async seedAround(position: LatLng, now: number): Promise<void> {
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
+  }
+
+  /* --- Places ----------------------------------------------------------- */
+
+  async getPlaces(): Promise<RevealedPlace[]> {
+    return revealPlaces((await this.store.get<DwellMap>(K.dwell)) ?? {});
+  }
+
+  async getDwellFor(h3: string): Promise<number> {
+    return ((await this.store.get<DwellMap>(K.dwell)) ?? {})[h3] ?? 0;
+  }
+
+  /** Does the player hold anything at all? The seed exception turns on this. */
+  private async hasGround(playerId: string): Promise<boolean> {
+    for (const key of await this.store.keys(CELL_PREFIX)) {
+      const cell = await this.store.get<Cell>(key);
+      if (cell?.ownerId === playerId) return true;
+    }
+    return false;
   }
 
   /* --- Territory -------------------------------------------------------- */

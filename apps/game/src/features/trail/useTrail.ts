@@ -8,7 +8,13 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TRAIL_BATCH_MS } from '@es3/core';
-import type { GameRepository, RejectReason, RunId, TrailPoint } from '@es3/core';
+import type {
+  GameRepository,
+  RejectReason,
+  RevealedPlace,
+  RunId,
+  TrailPoint,
+} from '@es3/core';
 
 export interface TrailState {
   runId: RunId | null;
@@ -16,6 +22,15 @@ export interface TrailState {
   distanceM: number;
   /** Why the most recent batch dropped fixes, if it did. Drives the HUD. */
   lastRejection: RejectReason | null;
+  /**
+   * Time this run spent with the page frozen, and therefore blind.
+   *
+   * Kept because it is the honest answer to "why is my border wrong": nothing was
+   * recorded for these minutes, and the Vigil is what prevents them.
+   */
+  unobservedMs: number;
+  /** Places that named themselves in the most recent batch. Drives the reveal. */
+  revealed: RevealedPlace[];
   /** True once an existing run has been restored or a new one opened. */
   ready: boolean;
 }
@@ -59,6 +74,8 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
     points: [],
     distanceM: 0,
     lastRejection: null,
+    unobservedMs: 0,
+    revealed: [],
     ready: false,
   });
 
@@ -87,6 +104,8 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
         points,
         distanceM: existing?.distanceM ?? 0,
         lastRejection: null,
+        unobservedMs: 0,
+        revealed: [],
         ready: true,
       });
     })();
@@ -120,6 +139,10 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
       points,
       distanceM: s.distanceM + result.distanceM,
       lastRejection: actionableRejection(result.rejected),
+      unobservedMs: s.unobservedMs + result.unobservedMs,
+      // Replaced, not appended: this is "what is news right now", and an empty batch
+      // clearing it is what lets the reveal fire again for the next place.
+      revealed: result.revealed,
     }));
   }, [repository]);
 

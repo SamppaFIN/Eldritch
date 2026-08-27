@@ -8,13 +8,18 @@
  */
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
-import type { BBox, Cell, LatLng, PlayerId, TrailPoint } from '@es3/core';
+import type { BBox, Cell, LatLng, PlayerId, RevealedPlace, TrailPoint } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import {
   ensureTerritoryLayers,
   removeTerritoryLayers,
   setTerritoryData,
 } from '../territory/TerritoryLayer.js';
+import {
+  ensurePlaceLayers,
+  removePlaceLayers,
+  setPlaceData,
+} from '../territory/PlaceMarkers.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -32,6 +37,8 @@ export interface MapCanvasProps {
   /** Visible territory. */
   cells?: readonly Cell[];
   playerId?: PlayerId | null;
+  /** Cells the game has worked out are places. */
+  places?: readonly RevealedPlace[];
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
@@ -48,6 +55,7 @@ export function MapCanvas({
   trail,
   cells,
   playerId = null,
+  places,
   initialZoom,
   follow = true,
   onBasemapChange,
@@ -97,9 +105,12 @@ export function MapCanvas({
     if (!map || !ready) return;
     ensureTerritoryLayers(map);
     ensureTrailLayers(map);
+    // Last, so a place is never buried under the ground it sits in.
+    ensurePlaceLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
       if (map.loaded()) {
+        removePlaceLayers(map);
         removeTrailLayers(map);
         removeTerritoryLayers(map);
       }
@@ -134,6 +145,11 @@ export function MapCanvas({
     if (!map || !ready || !trail) return;
     setTrailData(map, trail);
   }, [map, ready, trail]);
+
+  useEffect(() => {
+    if (!map || !ready || !places) return;
+    setPlaceData(map, places);
+  }, [map, ready, places]);
 
   // Move the marker and the camera on each fix.
   useEffect(() => {

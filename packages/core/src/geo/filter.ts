@@ -87,6 +87,10 @@ export function filterTrail(previous: TrailPoint | null, points: readonly TrailP
       accepted: accepted.length,
       rejected: [...counts].map(([reason, count]) => ({ reason, count })),
       distanceM,
+      // Filled in by the repository, which is what knows about ground and places.
+      grown: [],
+      revealed: [],
+      unobservedMs: 0,
     },
   };
 }

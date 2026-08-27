@@ -152,7 +152,7 @@ describe('submitTrail', () => {
   it('survives an empty batch', async () => {
     const id = await repo.startRun(T0);
     const result = await repo.submitTrail(id, []);
-    expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0 });
+    expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0, grown: [], revealed: [], unobservedMs: 0 });
   });
 });
 
@@ -167,23 +167,29 @@ describe('seeded neighbours', () => {
     expect(cells.length).toBeGreaterThan(30);
   });
 
-  it('are three distinct rivals, none of them the player', async () => {
+  it('are three distinct rivals', async () => {
+    // The player owns ground too now — walking takes it (BRDC-GROW-001) — so the
+    // assertion is about who the neighbours are, not that nobody else exists.
     const me = await repo.getProfile();
     const id = await repo.startRun(T0);
     await repo.submitTrail(id, walk());
 
-    const owners = new Set((await repo.getCells(around(ORIGIN, 5), T0)).map((c) => c.ownerId));
-    expect(owners).toEqual(new Set(SEED_NEIGHBOURS.map((n) => n.id)));
-    expect(owners.has(me.id)).toBe(false);
+    const cells = await repo.getCells(around(ORIGIN, 5), T0);
+    const rivals = new Set(cells.map((c) => c.ownerId).filter((o) => o !== me.id));
+    expect(rivals).toEqual(new Set(SEED_NEIGHBOURS.map((n) => n.id)));
   });
 
   it('seed only once, however many batches arrive', async () => {
+    const me = await repo.getProfile();
+    const rivalCount = async () =>
+      (await repo.getCells(around(ORIGIN, 5), T0)).filter((c) => c.ownerId !== me.id).length;
+
     const id = await repo.startRun(T0);
     await repo.submitTrail(id, walk());
-    const first = (await repo.getCells(around(ORIGIN, 5), T0)).length;
+    const first = await rivalCount();
 
     await repo.submitTrail(id, walk(600_000));
-    expect((await repo.getCells(around(ORIGIN, 5), T0)).length).toBe(first);
+    expect(await rivalCount()).toBe(first);
   });
 
   it('place territory relative to the player, not at fixed coordinates', async () => {
@@ -239,10 +245,14 @@ describe('viewport and ownership queries', () => {
     expect(await repo.getCells(around({ lat: -33.8, lng: 151.2 }, 5), T0)).toEqual([]);
   });
 
-  it('reports no owned cells before the player has claimed anything', async () => {
+  it('gives ground for walking, before any loop closes', async () => {
+    // BRDC-GROW-001. A walk that closes nothing used to give nothing at all, and
+    // most walks close nothing.
     const id = await repo.startRun(T0);
-    await repo.submitTrail(id, walk());
-    expect(await repo.getOwnedCells(T0)).toEqual([]);
+    const result = await repo.submitTrail(id, walk());
+
+    expect(result.grown.length).toBeGreaterThan(0);
+    expect((await repo.getOwnedCells(T0)).length).toBeGreaterThan(0);
   });
 });
 

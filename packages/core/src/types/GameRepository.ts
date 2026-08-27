@@ -15,7 +15,9 @@ import type {
   LatLng,
   ClaimResult,
   DecayResult,
+  H3Index,
   PlayerProfile,
+  RevealedPlace,
   Run,
   RunId,
   TrailPoint,
@@ -51,6 +53,12 @@ export interface GameRepository {
   /** Applies decay at read time, then returns what survives in the viewport. */
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;
+
+  /* --- Places ----------------------------------------------------------- */
+  /** Cells that have earned a name, Anchor first. */
+  getPlaces(): Promise<RevealedPlace[]>;
+  /** Time accumulated in the cell the player is standing in, for a progress readout. */
+  getDwellFor(h3: H3Index): Promise<number>;
 
   /* --- Maintenance ------------------------------------------------------ */
   runDecay(now: number): Promise<DecayResult>;

@@ -193,6 +193,6 @@ describe('filterTrail', () => {
   it('handles an empty batch', () => {
     const { accepted, result } = filterTrail(null, []);
     expect(accepted).toEqual([]);
-    expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0 });
+    expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0, grown: [], revealed: [], unobservedMs: 0 });
   });
 });

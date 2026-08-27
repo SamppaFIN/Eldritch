@@ -26,6 +26,17 @@ export const CELL_AREA_M2_NOMINAL = 2150;
 export const MAX_ACCURACY_M = 50;
 /** ~29 km/h. Faster than a person can run, slower than a bus. */
 export const MAX_SPEED_MS = 8;
+/**
+ * No fixes for this long means the game stopped watching, not that the player teleported.
+ *
+ * A browser freezes a backgrounded tab, so a phone in a pocket produces exactly this:
+ * silence, then a fix from somewhere else entirely. Treating that as a jump strands the
+ * player — every step after it fails the adjacency test and the walk claims nothing at
+ * all. Treating it as a resume lets them start growing again from where they really are,
+ * which is no more than walking there would have given them anyway.
+ */
+export const OBSERVATION_GAP_MS = 2 * 60_000;
+
 export const MIN_POINT_INTERVAL_MS = 5_000;
 /** v2 PathMarkerService: points closer than this merged instead of adding a row. */
 export const CONSOLIDATE_RADIUS_M = 5;

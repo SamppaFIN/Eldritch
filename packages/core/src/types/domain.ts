@@ -63,6 +63,31 @@ export interface TrailResult {
   accepted: number;
   rejected: Array<{ reason: RejectReason; count: number }>;
   distanceM: number;
+  /** Cells taken, reinforced or damaged by walking through them. */
+  grown: CaptureOutcome[];
+  /** Places that crossed a threshold during this batch, and so are news. */
+  revealed: RevealedPlace[];
+  /**
+   * Time in this batch during which the page was frozen and nothing was recorded.
+   *
+   * Surfaced rather than hidden: it is the difference between a border the player can
+   * trust and one with holes in it, and it is the only thing that tells them the
+   * keepalive is worth turning on.
+   */
+  unobservedMs: number;
+}
+
+/**
+ * A cell that has stopped being ground and become a place.
+ *
+ * Nothing is chosen from a menu: the game works out where you spend your life and says
+ * so once it is sure.
+ */
+export interface RevealedPlace {
+  h3: H3Index;
+  kind: 'anchor' | 'temple';
+  dwellMs: number;
+  rank: number;
 }
 
 export type CaptureOutcomeKind =

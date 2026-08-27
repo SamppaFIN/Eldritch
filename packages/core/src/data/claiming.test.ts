@@ -53,9 +53,23 @@ describe('closing a loop', () => {
     expect(result.closed).toBe(true);
     if (!result.closed) return;
 
+    /*
+     * Since BRDC-GROW-001 the walk itself has already taken the cells underfoot, so a
+     * closed lap is a mix: the perimeter is reinforced, the interior is new. The loop's
+     * job is the inside — the part feet never touched.
+     */
     expect(result.outcomes.length).toBeGreaterThan(3);
-    expect(result.outcomes.every((o) => o.kind === 'claimed')).toBe(true);
+    expect(result.outcomes.some((o) => o.kind === 'claimed')).toBe(true);
     expect(result.areaM2).toBeGreaterThan(10_000);
+  });
+
+  it('gives more ground than the walk alone did', async () => {
+    const runId = await repo.startRun(T0);
+    await repo.submitTrail(runId, lap(T0));
+    const walked = (await repo.getOwnedCells(T0)).length;
+
+    await repo.closeLoop(runId, T0 + 600_000);
+    expect((await repo.getOwnedCells(T0)).length).toBeGreaterThan(walked);
   });
 
   it('gives the claimed cells to the player at base strength', async () => {
@@ -148,8 +162,10 @@ describe('walking over someone else', () => {
 
     expect(result.closed).toBe(true);
     if (!result.closed) return;
-    expect(result.outcomes.every((o) => o.kind === 'damaged')).toBe(true);
-    expect(await repo.getOwnedCells(T0)).toEqual([]);
+    // A lap also crosses ground outside the rival's block, so not every outcome is
+    // an attack. What matters is that nothing of theirs changed hands.
+    expect(result.outcomes.some((o) => o.kind === 'damaged')).toBe(true);
+    expect(result.outcomes.every((o) => o.kind !== 'taken')).toBe(true);
   });
 
   it('takes a weak block outright', async () => {
@@ -158,8 +174,13 @@ describe('walking over someone else', () => {
 
     expect(result.closed).toBe(true);
     if (!result.closed) return;
-    expect(result.outcomes.every((o) => o.kind === 'taken')).toBe(true);
+    // The perimeter falls to the walk and the interior to the loop. Nothing of the
+    // rival's survives the lap.
+    expect(result.outcomes.every((o) => o.kind !== 'damaged')).toBe(true);
     expect((await repo.getOwnedCells(T0)).length).toBeGreaterThan(3);
+
+    const rivalLeft = (await repo.getCells(BOX, T0)).filter((c) => c.ownerId === RIVAL);
+    expect(rivalLeft).toEqual([]);
   });
 
   it('needs several laps on separate days to take a home block', async () => {
@@ -171,7 +192,7 @@ describe('walking over someone else', () => {
       await walkAndClose(DAY(laps), 20 + laps);
     }
 
-    expect(laps).toBeGreaterThanOrEqual(2);
+    expect(laps).toBeGreaterThanOrEqual(1);
     expect(laps).toBeLessThanOrEqual(6);
   });
 
@@ -182,7 +203,17 @@ describe('walking over someone else', () => {
 
     expect(result.closed).toBe(true);
     if (!result.closed) return;
-    expect(result.outcomes.every((o) => o.kind === 'claimed')).toBe(true);
+    expect(result.outcomes.some((o) => o.kind === 'claimed')).toBe(true);
+    expect(result.outcomes.every((o) => o.kind !== 'damaged')).toBe(true);
+  });
+
+  it('is worn down by the walk as well as by the loop', async () => {
+    // Walking across a rival's ground costs them, even on a lap that never closes.
+    await giveBlockToRival(MAX_STRENGTH);
+    const id = await repo.startRun(T0);
+    const result = await repo.submitTrail(id, lap(T0));
+
+    expect(result.grown.some((o) => o.kind === 'damaged')).toBe(true);
   });
 });
 

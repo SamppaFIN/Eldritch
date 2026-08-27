@@ -1,0 +1,58 @@
+/* The reveal. Fills the screen briefly, then leaves. */
+
+.reveal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: min(var(--space-6), 6vw);
+  pointer-events: none;
+  text-align: center;
+  background: radial-gradient(
+    circle at 50% 45%,
+    color-mix(in oklch, var(--bg) 70%, transparent),
+    color-mix(in oklch, var(--bg) 92%, transparent) 60%
+  );
+  animation: es-reveal-in 3.6s var(--ease-out) both;
+}
+
+.reveal__sigil {
+  color: var(--accent-warm);
+  filter: drop-shadow(0 0 26px color-mix(in oklch, var(--accent-warm) 45%, transparent));
+  margin-bottom: var(--space-2);
+}
+
+.reveal__name {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 28px color-mix(in oklch, var(--accent-warm) 35%, transparent);
+}
+
+.reveal__line {
+  max-width: 30ch;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  text-wrap: balance;
+}
+
+.reveal__meta {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Held long enough to read, gone before it is in the way of walking. */
+@keyframes es-reveal-in {
+  from { opacity: 0; }
+  12% { opacity: 1; }
+  80% { opacity: 1; }
+  to { opacity: 0; }
+}

@@ -7,15 +7,17 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { clearAll, load, saveNow, speedMs } from '@es3/core';
-import type { BBox, GameRepository, PlayerProfile, TrailPoint } from '@es3/core';
+import type { BBox, GameRepository, PlayerProfile, RevealedPlace, TrailPoint } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { MapCanvas } from '../features/map/MapCanvas.js';
 import type { BasemapState } from '../features/map/useMap.js';
 import { useInitialPosition } from '../features/map/useInitialPosition.js';
 import { usePositionSource } from '../features/trail/usePositionSource.js';
 import { useTrail } from '../features/trail/useTrail.js';
+import { useKeepAlive } from '../features/trail/useKeepAlive.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
+import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
@@ -36,6 +38,16 @@ export function MapView({ onLeave }: MapViewProps) {
   const [simulate, setSimulate] = useState(false);
   const [bbox, setBbox] = useState<BBox | null>(null);
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
+  const [places, setPlaces] = useState<RevealedPlace[]>([]);
+
+  /*
+   * Held open by the player, never by default.
+   *
+   * It keeps the screen lit and a near-silent loop playing, which is the only way a web
+   * page keeps receiving fixes once it stops being looked at. It costs battery, so the
+   * game asks rather than assumes.
+   */
+  const keepAlive = useKeepAlive();
 
   const clock = useGameClock();
 
@@ -81,6 +93,15 @@ export function MapView({ onLeave }: MapViewProps) {
   }, [repository, point, clock]);
 
   const trail = useTrail({ repository, point, collecting: true });
+
+  /*
+   * Places are re-read whenever one reveals itself, and once at start so a returning
+   * player's Anchor is on the map before they have walked a step.
+   */
+  useEffect(() => {
+    if (!repository || !trail.ready) return;
+    void repository.getPlaces().then(setPlaces);
+  }, [repository, trail.ready, trail.revealed]);
 
   const territory = useTerritory({
     repository,
@@ -141,12 +162,15 @@ export function MapView({ onLeave }: MapViewProps) {
         trail={trail.points}
         cells={territory.cells}
         playerId={profile?.id ?? null}
+        places={places}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}
         onViewportChange={onViewportChange}
       />
 
       <ClaimBurst claim={territory.lastClaim} />
+
+      <PlaceReveal revealed={trail.revealed} />
 
       <FirstLook
         show={territory.owned.length === 0 && territory.lastClaim === null}
@@ -182,6 +206,8 @@ export function MapView({ onLeave }: MapViewProps) {
         fading={territory.fading}
         fadingInHours={territory.fadingInHours}
         released={territory.released}
+        keepAlive={keepAlive}
+        unobservedMs={trail.unobservedMs}
         onWithdraw={() => setConfirming('withdraw')}
         onReset={() => setConfirming('reset')}
       />

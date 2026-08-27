@@ -13,6 +13,8 @@ import type { PlayerProfile, RejectReason } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
+import type { KeepAliveState } from '../trail/useKeepAlive.js';
+import { Vigil } from './Vigil.js';
 import './hud.css';
 
 export interface HudProps {
@@ -31,6 +33,8 @@ export interface HudProps {
   fading?: number;
   fadingInHours?: number | null;
   released?: string[];
+  keepAlive: KeepAliveState;
+  unobservedMs?: number;
   onWithdraw: () => void;
   onReset: () => void;
 }
@@ -131,6 +135,8 @@ export function Hud({
   fading = 0,
   fadingInHours = null,
   released = [],
+  keepAlive,
+  unobservedMs = 0,
   onWithdraw,
   onReset,
 }: HudProps) {
@@ -199,6 +205,8 @@ export function Hud({
         >
           <div className="hud__xp-fill" style={{ inlineSize: `${level.progress * 100}%` }} />
         </div>
+
+        <Vigil keepAlive={keepAlive} unobservedMs={unobservedMs} />
 
         {basemapVoid ? (
           <p className="hud__note" role="status">
