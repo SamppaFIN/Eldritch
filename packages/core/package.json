@@ -12,7 +12,8 @@
     "./types": "./src/types/index.ts",
     "./persist": "./src/persist/index.ts",
     "./sim": "./src/sim/index.ts",
-    "./data": "./src/data/index.ts"
+    "./data": "./src/data/index.ts",
+    "./sim/fixtures/*": "./src/sim/fixtures/*"
   },
   "dependencies": {
     "h3-js": "^4.5.0"

@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-TRAIL-001 |
-| **Status** | `done` — 2026-08-27 (4 kohtaa auki, ks. alla) |
-| **Valmius** | 70 % |
+| **Status** | `done` — 2026-08-27 (2 kohtaa auki, ks. alla) |
+| **Valmius** | 85 % |
 
 ## 🔴 RED
 
@@ -21,7 +21,7 @@ maailmaan piirtyy jotain — se on koko pelin ydinpalkinto.
 - [ ] Uusi segmentti animoituu esiin — **ei toteutettu.** Jälki päivittyy kerralla
       `setData`lla. Siirretty Vaiheeseen 6 (kiillotus)
 - [x] Animaatiot pois `prefers-reduced-motion: reduce` -tilassa
-- [ ] 2 000 pisteen suorituskyky **mittaamatta.** Pisin testattu jälki on ~10 pistettä
+- [x] 2 000 pisteen `setData` **mitattu**: pääsäie ei jumitu (< 250 ms), kartta pysyy elossa
 - [x] Käyttöliittymässä jälki on **"Ley-line"**, ei "trail"
 
 ## Toteutus
@@ -43,7 +43,7 @@ v2:n virhe markkereissa ja johti tuhansiin DOM-elementteihin.
 
 ## Testit
 
-- [ ] `gps-noise.json`-fixture renderöityy — **ei ajettu**, e2e käyttää synteettistä kävelyä
+- [x] `gps-noise.json` syötetään renderöijälle ja kaikki 69 pistettä päätyvät lähteeseen
 - [x] Layerien määrä pysyy vakiona kun pisteitä lisätään (ei kasva)
 - [x] `prefers-reduced-motion` → ei animaatioita
 - [ ] **Puhelimella ulkona tarkistamatta** — se on Vaiheen 1 hyväksymisportti, ei minun ajettavissani

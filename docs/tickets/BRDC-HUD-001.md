@@ -6,7 +6,7 @@
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-TRAIL-001 |
 | **Status** | `done` — 2026-08-27 |
-| **Valmius** | 80 % |
+| **Valmius** | 95 % |
 
 ## 🔴 RED
 
@@ -23,7 +23,7 @@ pelin olevan rikki.
 - [x] Kun pisteitä hylätään, HUD kertoo syyn ihmiskielellä
       ("Signal too weak — the Ley-line cannot form")
 - [x] Jokainen kosketuskohde vähintään `--touch-min` (44 px)
-- [ ] HUDin korkeusosuus **mittaamatta** 360 px viewportilla
+- [x] HUD vie alle 30 % ruudun korkeudesta 360 px viewportilla — mitattu
 - [x] Kolme yläreunan safe-area-inset huomioitu (notch)
 
 ## Toteutus
@@ -47,8 +47,9 @@ ilman tarkkuusnäyttöä ei voi erottaa rikkinäistä koodia huonosta satelliitt
 
 ## Testit
 
-- [ ] XP-palkin päivittyminen **testaamatta** — XP on aina 0 ennen valtausta (Vaihe 2)
-- [~] Tarkkuus 42 testattu ("uncertain"). **Tarkkuus 80 (hylkäysraja) testaamatta**
+- [~] XP-palkki on `role="progressbar"` oikeilla ARIA-arvoilla (testattu). **Sen
+      liikkuminen** näkyy vasta kun valtaus tuottaa XP:tä — Vaihe 2
+- [x] Tarkkuus 80 → "Signal too weak — the Ley-line cannot form", `data-quality="rejected"`
 - [x] Taso ei ylitä katkaisurajaa — 23 yksikkötestiä `rules/level.test.ts`:ssä
 - [x] 360 px viewport ajetaan ensin
 - [x] Näppäimistönavigointi: jokainen painike saa `:focus-visible`-kehyksen

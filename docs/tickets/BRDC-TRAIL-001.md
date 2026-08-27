@@ -6,7 +6,7 @@
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-GEO-001, BRDC-MOCK-001, BRDC-MAP-001 |
 | **Status** | `done` — 2026-08-27 |
-| **Valmius** | 90 % |
+| **Valmius** | 95 % |
 
 ## 🔴 RED
 
@@ -51,8 +51,8 @@ kuluessa — pelaaja lopettaa sen tai lenkki sulkeutuu (BRDC-CLAIM-001).
 - [x] Reload kesken runin → jälki ja run palautuvat
 - [x] Lupa evätty → virheviesti näkyy, ei konsolivirhettä
 - [x] Hylätty piste (accuracy 80) ei päädy jälkeen
-- [ ] Batch-kutsujen määrää **ei ole vielä väitetty testissä.** Ajastin on 10 s,
-      mutta kutsulaskuria ei mitata
+- [x] Eräajo todennettu ulkoapäin: ~45 s kävelyä kasvattaa jälkeä enintään 6 kertaa,
+      ei kerran per fix (`trail-detail.spec.ts`)
 - [x] 360 px viewport ajetaan ensin
 
 > **Lisäksi toteutettu / muutokset:**
