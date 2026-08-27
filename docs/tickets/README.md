@@ -44,7 +44,7 @@ sääntö 6 ja MASTERPLANin §4.
 | [BRDC-SETUP-005](BRDC-SETUP-005.md) | GitHub Pages -deploy (CI) | S | SETUP-004 |
 | [BRDC-PERSIST-001](BRDC-PERSIST-001.md) | `es3:*`-nimiavaruus ja `SAVE_VERSION` | S | SETUP-003 |
 
-**Portti V0:** deployattu sivu avautuu puhelimella ja näyttää oikealta.
+**Portti V0:** ✅ **läpi** — https://samppafin.github.io/Eldritch/
 
 ### 🗺️ Vaihe 1 — Kartta ja ley-line
 
@@ -58,7 +58,9 @@ sääntö 6 ja MASTERPLANin §4.
 | [BRDC-TRAIL-002](BRDC-TRAIL-002.md) | Ley-linen renderöinti hehkulla | S | TRAIL-001 |
 | [BRDC-HUD-001](BRDC-HUD-001.md) | HUD: taso, XP, matka, GPS-tarkkuus | S | TRAIL-001 |
 
-**Portti V1:** kävele ulkona 10 min **lentokonetilassa**. Jälki seuraa ja säilyy reloadin yli.
+**Portti V1:** ⏳ **odottaa** — kävele ulkona 10 min **lentokonetilassa**. Jälki seuraa ja
+säilyy reloadin yli. *Tätä ei voi ajaa koneelta: se vaatii puhelimen ja ulko-oven.*
+Kaikki seitsemän tikettiä on koodattu ja todennettu siltä osin kuin selain voi todentaa.
 
 ### 🔷 Vaihe 2 — Aluevaltaus
 
@@ -97,6 +99,19 @@ ei jälkeen.
 
 Vaiheen 6 sisältö on **jäissä**, ei peruttu. Se on `docs/backlog/`issa datana valmiina.
 Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
+
+---
+
+## Edistyminen 2026-08-27
+
+| Vaihe | Tila | Tikettejä |
+|---|---|---|
+| **0** Perustus | ✅ portti läpi | 6/6 |
+| **1** Kartta ja ley-line | 🔨 koodattu, portti odottaa | 7/7 |
+| **2** Aluevaltaus | ⬜ ei aloitettu — **V1-portti ensin** | 0/7 |
+
+Testejä: **118 yksikkö** + **56 Playwright** (360 px ajetaan ensin).
+Sääntö `claude.md` §5: jos portti ei mene läpi, seuraava vaihe ei ala.
 
 ---
 
