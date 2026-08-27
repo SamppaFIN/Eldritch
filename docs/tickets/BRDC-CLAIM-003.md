@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-CLAIM-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -15,13 +15,13 @@ voisi varastaa yhdellä lenkillä — ja yksi väärennetty reitti riittäisi mi
 
 ## 🟢 GREEN
 
-- [ ] `packages/core/rules/capture.ts` — puhtaat funktiot, aika parametrina
-- [ ] **Vapaa solu** → valtaus, `strength = BASE_STRENGTH`
-- [ ] **Oma solu** → `registerVisit`: kerran per kalenteripäivä, streak jos eilenkin
-- [ ] **Vieras solu** → `strength -= attackPower`; **omistaja vaihtuu vasta nollassa**
-- [ ] Omistajan vaihtuessa `strength` resetoituu arvoon `BASE_STRENGTH`
-- [ ] Jokaisesta omistajuuden muutoksesta syntyy historiarivi
-- [ ] Vitest-testit kaikille kolmelle haaralle
+- [x] `packages/core/rules/capture.ts` — puhtaat funktiot, aika parametrina
+- [x] **Vapaa solu** → valtaus, `strength = BASE_STRENGTH`
+- [x] **Oma solu** → `registerVisit`: kerran per kalenteripäivä, streak jos eilenkin
+- [x] **Vieras solu** → `strength -= attackPower`; **omistaja vaihtuu vasta nollassa**
+- [x] Omistajan vaihtuessa `strength` resetoituu arvoon `BASE_STRENGTH`
+- [x] Jokaisesta omistajuuden muutoksesta syntyy historiarivi
+- [x] Vitest-testit kaikille kolmelle haaralle
 
 ## Toteutus
 
@@ -64,15 +64,29 @@ Ilman tätä päivävahvistusta ja streakia ei voi testata odottamatta oikeita v
 
 ## Testit
 
-- [ ] Vapaa solu → omistaja asetetaan, strength 100
-- [ ] Oma solu, ensimmäinen käynti tänään → +25
-- [ ] Oma solu, toinen käynti **samana päivänä** → +0
-- [ ] Oma solu, käynti myös eilen → +50 (streak)
-- [ ] Strength ei ylitä 500:aa
-- [ ] Vieras solu strength 300, attackPower 150 → strength 150, **omistaja ei vaihdu**
-- [ ] Vieras solu strength 100, attackPower 150 → omistaja vaihtuu, strength 100
-- [ ] Naapuribonus: 8 omistettua naapuria → bonus 90 (katto), ei 120
-- [ ] Historiarivi syntyy vain omistajuuden vaihtuessa, ei jokaisesta käynnistä
+- [x] Vapaa solu → omistaja asetetaan, strength 100
+- [x] Oma solu, ensimmäinen käynti tänään → +25
+- [x] Oma solu, toinen käynti **samana päivänä** → +0
+- [x] Oma solu, käynti myös eilen → +50 (streak)
+- [x] Strength ei ylitä 500:aa
+- [x] Vieras solu strength 300, attackPower 150 → strength 150, **omistaja ei vaihdu**
+- [x] Vieras solu strength 100, attackPower 150 → omistaja vaihtuu, strength 100
+- [x] Naapuribonus: 8 omistettua naapuria → bonus 90 (katto), ei 120
+- [x] Historiarivi syntyy vain omistajuuden vaihtuessa, ei jokaisesta käynnistä
+
+> **Kaksi asiaa, jotka eivät olleet tiketissä mutta ovat sääntöjä:**
+>
+> 1. **Hyökkäys ei suojaa solua rappeutumiselta.** `lastVisitedAt` ei etene kun
+>    vierasta solua vahingoitetaan — puolustaja ei ollut paikalla, hyökkääjä oli.
+>    Muuten piirittäminen pitäisi solun hengissä sen omistajalle, mikä on juuri väärin päin.
+> 2. **`visitDays` säilyttää vain eilisen ja tämän päivän.** Streak-sääntö ei tarvitse
+>    muuta, ja vuoden kävelty työmatkareitti keräisi muuten 365 merkkijonoa per solu.
+>
+> **Toinen käynti samana päivänä lasketaan silti käynniksi** rappeutumisen kannalta,
+> vaikka se ei anna voimaa. Iltapäivälenkki ei saa jättää solua mätänemään.
+>
+> Testit väittävät myös tempon: katto saavutetaan **8–15 päivässä** päivittäisellä
+> kävelyllä, ja maksimivahvan solun valtaus vaatii **2–5 erillistä käyntiä**.
 
 ## Ei kuulu tähän tikettiin
 
