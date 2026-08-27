@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-GEO-001, BRDC-SIM-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -19,12 +19,12 @@ ilman että mitään on kierretty.
 
 ## 🟢 GREEN
 
-- [ ] `packages/core/geo/loopDetection.ts` on **puhdas funktio**
-- [ ] Signatuuri: `TrailPoint[]` → `{ closed: true, loop: TrailPoint[] } | null`
-- [ ] Palauttaa **vain sulkeutuneen osuuden**, ei koko jälkeä
-- [ ] Kaikki **viisi fixturea** antavat odotetun tuloksen (taulukko alla)
-- [ ] Validointi: `MIN_LOOP_POINTS`, `MAX_LOOP_AREA_M2`, `MAX_LOOP_DURATION_MS`
-- [ ] Ei DOM:ia, ei verkkoa, ei `Date.now()`ta
+- [x] `packages/core/geo/loopDetection.ts` on **puhdas funktio**
+- [x] Signatuuri: `TrailPoint[]` → `{ closed: true, loop: TrailPoint[] } | null`
+- [x] Palauttaa **vain sulkeutuneen osuuden**, ei koko jälkeä
+- [x] Kaikki **viisi fixturea** antavat odotetun tuloksen (taulukko alla)
+- [x] Validointi: `MIN_LOOP_POINTS`, `MAX_LOOP_AREA_M2`, `MAX_LOOP_DURATION_MS`
+- [x] Ei DOM:ia, ei verkkoa, ei `Date.now()`ta
 
 ## Toteutus
 
@@ -64,12 +64,30 @@ joten metriluokan tarkkuus riittää — geodeettista tarkkuutta ei tarvita.
 
 ## Testit
 
-- [ ] Kaikki viisi fixturea, taulukon mukaisesti
-- [ ] Alle `MIN_LOOP_POINTS` pistettä → `null` vaikka etäisyys täsmäisi
-- [ ] Yli `MAX_LOOP_AREA_M2` → hylätään (autolla ajettu "lenkki")
-- [ ] Yli `MAX_LOOP_DURATION_MS` → hylätään
-- [ ] Tason vaikutus pinta-alarajaan: taso 10 → raja 1,5-kertainen
-- [ ] Tyhjä syöte ja yhden pisteen syöte → `null`, ei kaadu
+- [x] Kaikki viisi fixturea, taulukon mukaisesti
+- [x] Alle `MIN_LOOP_POINTS` pistettä → `null` vaikka etäisyys täsmäisi
+- [x] Yli `MAX_LOOP_AREA_M2` → hylätään (autolla ajettu "lenkki")
+- [x] Yli `MAX_LOOP_DURATION_MS` → hylätään
+- [x] Tason vaikutus pinta-alarajaan: taso 10 → raja 1,5-kertainen
+- [x] Tyhjä syöte ja yhden pisteen syöte → `null`, ei kaadu
+
+> **Kaksi asiaa, jotka fixturet pakottivat muuttamaan:**
+>
+> 1. **Pinta-ala projisoidaan renkaan keskileveydelle**, ei ensimmäiselle pisteelle.
+>    Ensimmäiseen pisteeseen sidottuna sama lenkki mittautuu eri kokoiseksi sen mukaan
+>    mistä kulmasta kävelijä lähti. Pieni ero — ja väärä.
+> 2. **`MIN_LOOP_AREA_M2` = 5 000, ei 1 000.** `gps-noise.json` sulki 1 278 m²:n
+>    haamusilmukan pisteessä 32, ennen kuin kävelijä oli kiertänyt korttelia jota oli
+>    kiertämässä. 5 000 m² on ~70 m neliö eli noin kolme res-11-solua: pienempi rengas
+>    ei ansaitsisi solua lainkaan, joten sen sulkeminen ei ole kävelyn keskeyttämisen arvoista.
+>
+> **Perimetri ei kelpaa erottelijaksi**, houkuttelevalta kuin se näyttääkin: kohina
+> paisuttaa sitä paljon enemmän kuin pinta-alaa. Sama 120 m kortteli on 480 m puhtaana
+> ja **1 489 m** 12 m:n hajonnalla — joten jokainen perimetriin nojaava testi, myös
+> isoperimetrinen suhde, arvioi oikean lenkin huonommaksi kuin haamun.
+>
+> **Suurin rengas voittaa:** `detectLoop` etsii *varhaisimman* pisteen sulkeutumissäteen
+> sisältä. Iso lenkki kävellyt pelaaja saa ison lenkin, ei sen viimeistä mutkaa.
 
 ## Ei kuulu tähän tikettiin
 

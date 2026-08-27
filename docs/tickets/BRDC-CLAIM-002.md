@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-CLAIM-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ verrata pelaajien välillä ilman diskreettiä ruudukkoa.
 
 ## 🟢 GREEN
 
-- [ ] `packages/core/geo/polygonToCells.ts` — puhdas funktio
-- [ ] `TrailPoint[]` → `H3Index[]`, resoluutio **11** (~2 150 m² / solu)
-- [ ] Reunasolut mukaan johdonmukaisella säännöllä (dokumentoitu)
-- [ ] `regionOf(h3)` palauttaa res-6 vanhemman realtime-sharditusta varten (Vaihe 3)
-- [ ] Vitest-testit
+- [x] `packages/core/geo/polygonToCells.ts` — puhdas funktio
+- [x] `TrailPoint[]` → `H3Index[]`, resoluutio **11** (~2 150 m² / solu)
+- [x] Reunasolut mukaan johdonmukaisella säännöllä (dokumentoitu)
+- [x] `regionOf(h3)` palauttaa res-6 vanhemman realtime-sharditusta varten (Vaihe 3)
+- [x] Vitest-testit
 
 ## Toteutus
 
@@ -48,11 +48,17 @@ erilleen SQL-toteutuksesta ja rikkoisi Vaiheen 3 golden fixture -testit.
 
 ## Testit
 
-- [ ] `square.json` → soluja > 0, kaikki uniikkeja
-- [ ] Sama syöte → sama tulos joka ajolla (deterministinen)
-- [ ] Pieni lenkki (30 m × 30 m) → vähintään 1 solu
-- [ ] `regionOf` palauttaa saman res-6-vanhemman vierekkäisille res-11-soluille
-- [ ] Degeneroitunut monikulmio (kaikki pisteet samassa kohdassa) → tyhjä lista, ei kaadu
+- [x] `square.json` → soluja > 0, kaikki uniikkeja
+- [x] Sama syöte → sama tulos joka ajolla (deterministinen)
+- [x] Pieni lenkki (30 m × 30 m) → vähintään 1 solu
+- [x] `regionOf` palauttaa saman res-6-vanhemman vierekkäisille res-11-soluille
+- [x] Degeneroitunut monikulmio (kaikki pisteet samassa kohdassa) → tyhjä lista, ei kaadu
+
+> **Lisäksi:** `cellAreaM2` ja `totalAreaM2` mittaavat solun todellisen pinta-alan
+> `h3.cellArea`lla. Nimellinen 2 150 m² on globaali keskiarvo; Tampereen leveydellä
+> res-11-solu on ~1 622 m². `neighboursOf` suodattaa solun itsensä pois — `gridDisk(c,1)`
+> palauttaa seitsemän, ja unohdus antaisi jokaiselle solulle yhden ylimääräisen
+> naapuribonuksen omasta itsestään.
 
 ## Ei kuulu tähän tikettiin
 

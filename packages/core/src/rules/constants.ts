@@ -34,6 +34,24 @@ export const CONSOLIDATE_RADIUS_M = 5;
 
 export const LOOP_CLOSE_RADIUS_M = 25;
 export const MIN_LOOP_POINTS = 8;
+
+/**
+ * A ring must enclose at least this much to count. About 70 m square.
+ *
+ * Expressed in the game's own terms: roughly three H3 cells at res 11. A ring smaller
+ * than that would be granted one cell or none, so closing it is not worth interrupting
+ * a walk for.
+ *
+ * It is also the guard against phantom loops. On a bad sky the recorded trail crosses
+ * itself constantly, and `gps-noise.json` closed a 1278 m² squiggle at point 32 —
+ * before the walker had finished the block they were actually circling.
+ *
+ * Perimeter is not the discriminator here, tempting as it looks: noise inflates it far
+ * more than it inflates area. The same 120 m block measures 480 m of perimeter clean
+ * and 1489 m through 12 m of scatter, so every perimeter-based test — including the
+ * isoperimetric ratio — rates the real loop worse than the phantom.
+ */
+export const MIN_LOOP_AREA_M2 = 5_000;
 /** Scaled by (1 + level/10) at call time. */
 export const MAX_LOOP_AREA_M2 = 50_000;
 export const MAX_LOOP_DURATION_MS = 90 * 60_000;
