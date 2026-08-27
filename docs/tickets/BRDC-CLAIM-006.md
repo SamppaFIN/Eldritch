@@ -81,9 +81,11 @@ enää kanna tietoa. Täyttö jää, jotta alueen muoto näkyy ylhäältä. Test
 > `territoryFeatures.ts`:ssä, jossa ne testataan ilman selainta. Layeriin jäi
 > MapLibre-putkitus. 16 uutta testiä.
 >
-> Yksi niistä paljasti oikean vian: **vapautunut solu sai generoidun kilpailijasävyn**,
-> koska `ownerId === null` putosi väärään haaraan. Voidin palauttama maa näytti siis
-> jonkun toisen alueelta. Nyt se piirtyy vapaana.
+> Testit paljastivat yhden pienen vian, mutta **eivät sitä jonka ensin väitin**:
+> vapautuneen solun väri oli jo oikein. Todellinen löytö oli `mine`-lippu — vanha
+> `cell.ownerId === me` antoi `null === null` → **tosi**, joten ennen profiilin
+> latautumista jokainen vapaa solu piirtyi hetken pelaajan omana. Nyt `mine` vaatii
+> omistajan.
 >
 > Auki: solujen häviämisanimaatio (Vaihe 6).
 
