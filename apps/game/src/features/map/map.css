@@ -25,10 +25,24 @@
   color: var(--text-muted);
 }
 
-/* MapLibre draws its own focus ring; ours is the one in tokens.css. */
-.es-map .maplibregl-ctrl button:focus-visible {
-  outline: 2px solid var(--accent);
+/*
+ * MapLibre ships its own controls, and it sets `outline: none` on them.
+ *
+ * The attribution toggle is a real, tabbable button that a keyboard user reaches
+ * before anything else on the map — and it had no focus ring at all. Ours is not a
+ * decoration on top of MapLibre's; it is the only one.
+ *
+ * The selector has to be broad, and `button` is not enough: the attribution toggle is
+ * a <summary> inside a <details>, so a rule written for buttons sailed straight past
+ * the one control that had no ring in the first place.
+ */
+.es-map button:focus-visible,
+.es-map summary:focus-visible,
+.es-map [role='button']:focus-visible,
+.es-map a:focus-visible {
+  outline: 2px solid var(--accent) !important;
   outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* --- Player marker -------------------------------------------------------
