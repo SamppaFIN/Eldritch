@@ -34,6 +34,8 @@ export interface MapCanvasProps {
   playerId?: PlayerId | null;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
+  /** Opening zoom. Wider on a first launch, so the world is not empty. */
+  initialZoom?: number;
   /** Keep the camera on the player. False once they pan away by hand. */
   follow?: boolean;
   onBasemapChange?: (state: BasemapState) => void;
@@ -46,11 +48,16 @@ export function MapCanvas({
   trail,
   cells,
   playerId = null,
+  initialZoom,
   follow = true,
   onBasemapChange,
   onViewportChange,
 }: MapCanvasProps) {
-  const { containerRef, map, ready, basemap } = useMap({ centre: initialCentre });
+  const { containerRef, map, ready, basemap } = useMap(
+    initialZoom === undefined
+      ? { centre: initialCentre }
+      : { centre: initialCentre, zoom: initialZoom },
+  );
   const markerRef = useRef<Marker | null>(null);
   const accuracyRef = useRef<HTMLDivElement | null>(null);
 

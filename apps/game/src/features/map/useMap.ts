@@ -25,7 +25,23 @@ export interface UseMapOptions {
   zoom?: number;
 }
 
-export function useMap({ centre, zoom = 16 }: UseMapOptions): UseMapResult {
+/**
+ * Walking zoom. A city block fills a good part of the screen, which is what you want
+ * while you are in one.
+ */
+export const ZOOM_WALKING = 16;
+
+/**
+ * Opening zoom for a player who owns nothing yet.
+ *
+ * At walking zoom a first launch is one dot in an empty void — the rivals are a few
+ * hundred metres off and the map says nothing about what kind of game this is. Opening
+ * wider puts somebody else's territory on screen straight away, which is the whole
+ * premise stated without a word of tutorial.
+ */
+export const ZOOM_FIRST_LOOK = 14.6;
+
+export function useMap({ centre, zoom = ZOOM_WALKING }: UseMapOptions): UseMapResult {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [ready, setReady] = useState(false);

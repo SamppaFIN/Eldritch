@@ -79,8 +79,15 @@ export function seedCells(origin: LatLng, now: number, seed = 20260826): Cell[] 
       cells.push({
         h3,
         ownerId: neighbour.id,
-        // ±15% so the territory has soft spots to probe.
-        strength: Math.round(plan.strength * (0.85 + rnd() * 0.3)),
+        /*
+         * Varied upward only, never below the plan's strength.
+         *
+         * A ±15% spread put roughly half of every rival's home ground under
+         * BASE_STRENGTH, which is what the map draws as contested — so a first
+         * launch showed three neighbourhoods apparently under siege before anyone
+         * had taken a step. The soft spots are supposed to be earned.
+         */
+        strength: Math.round(plan.strength * (1 + rnd() * 0.35)),
         lastVisitedAt: now,
         visitDays: [],
       });

@@ -1,0 +1,41 @@
+/* Sits above the HUD, out of the thumb's way, gone once it is no longer true. */
+
+.first-look {
+  position: fixed;
+  z-index: var(--z-hud);
+  left: 0;
+  right: 0;
+  bottom: 12.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: min(var(--space-4), 5vw);
+  pointer-events: none;
+  text-align: center;
+  animation: es-rise var(--dur-ritual) var(--ease-out) both;
+}
+
+.first-look__rule {
+  color: var(--accent-warm);
+  opacity: 0.45;
+}
+
+.first-look__line {
+  max-width: 26ch;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  /* Legible over whatever the map happens to be showing underneath. */
+  text-shadow:
+    0 0 12px var(--bg),
+    0 0 24px var(--bg);
+}
+
+.first-look__sub {
+  max-width: 26ch;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-shadow: 0 0 12px var(--bg);
+}

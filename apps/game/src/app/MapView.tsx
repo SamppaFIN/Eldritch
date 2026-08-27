@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { clearAll, speedMs } from '@es3/core';
+import { clearAll, load, saveNow, speedMs } from '@es3/core';
 import type { BBox, GameRepository, PlayerProfile, TrailPoint } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { MapCanvas } from '../features/map/MapCanvas.js';
@@ -17,8 +17,10 @@ import { useTrail } from '../features/trail/useTrail.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { useGameClock } from '../features/time/useGameClock.js';
+import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
 import { ResetDialog, WithdrawDialog } from '../features/hud/Sanctum.js';
+import { FirstLook } from '../features/hud/FirstLook.js';
 import { createRepository } from '../data/createRepository.js';
 import './mapview.css';
 
@@ -71,6 +73,13 @@ export function MapView({ onLeave }: MapViewProps) {
     simulate,
   });
 
+  // The world exists as soon as the game knows where you are, not once a batch of
+  // trail points has been written.
+  useEffect(() => {
+    if (!repository || !point) return;
+    void repository.seedAround(point, clock.now());
+  }, [repository, point, clock]);
+
   const trail = useTrail({ repository, point, collecting: true });
 
   const territory = useTerritory({
@@ -81,15 +90,29 @@ export function MapView({ onLeave }: MapViewProps) {
     trailVersion: trail.points.length,
     bbox,
     now: clock.now,
+    position: point,
   });
 
   // Profile is re-read after a claim: XP and level change with the ground.
   useEffect(() => {
     if (!repository || !territory.lastClaim) return;
     void repository.getProfile().then(setProfile);
+    // Remembered, so the next session opens at walking zoom rather than explaining
+    // the game again to someone who has already played it.
+    saveNow('opening-zoom', ZOOM_WALKING);
   }, [repository, territory.lastClaim]);
 
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
+
+  /*
+   * A player who owns nothing has never seen the game do anything, so the map opens
+   * wide enough to show someone else's territory. Once they hold ground, walking zoom.
+   *
+   * Read once: the camera must not lurch outward the moment a claim decays away.
+   */
+  const [openingZoom] = useState(() =>
+    load<number>('opening-zoom', 0) > 0 ? ZOOM_WALKING : ZOOM_FIRST_LOOK,
+  );
 
   const pace = useMemo(() => {
     const pts = trail.points;
@@ -118,11 +141,18 @@ export function MapView({ onLeave }: MapViewProps) {
         trail={trail.points}
         cells={territory.cells}
         playerId={profile?.id ?? null}
+        initialZoom={openingZoom}
         onBasemapChange={setBasemap}
         onViewportChange={onViewportChange}
       />
 
       <ClaimBurst claim={territory.lastClaim} />
+
+      <FirstLook
+        show={territory.owned.length === 0 && territory.lastClaim === null}
+        rivalCells={territory.cells.length}
+        rivalBearing={territory.rivalBearing}
+      />
 
       {!durable ? (
         <p className="mapview__warning" role="status">

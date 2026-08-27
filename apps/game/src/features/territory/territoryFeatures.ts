@@ -31,17 +31,27 @@ export interface CellProperties {
 }
 
 /**
- * A stable hue per rival, desaturated toward the palette.
+ * The arc of hue a rival can be given: cyan through blue and purple to magenta.
  *
- * Fully saturated per-player colours turn a contested neighbourhood into a fruit bowl
- * and stop it reading as the same world as everything else. Lightness and saturation are
- * fixed; only the hue moves. The hash is deterministic so a rival keeps their colour
- * between sessions without anything being stored.
+ * Fixing lightness and saturation was not enough. The full circle includes olive,
+ * mustard and brown, and a rival painted olive on a purple-and-cyan map does not look
+ * like another player — it looks like a rendering fault. Restricting the arc keeps
+ * every rival unmistakably part of the same world while staying easy to tell apart
+ * from the player's own --cosmic-purple.
+ */
+export const HUE_MIN = 185;
+export const HUE_MAX = 335;
+
+/**
+ * A stable hue per rival, inside the palette's arc.
+ *
+ * Deterministic from the id, so a rival keeps their colour between sessions without
+ * anything being stored or synced.
  */
 export function hueFor(id: PlayerId): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  return `hsl(${hash % 360}, 38%, 42%)`;
+  return `hsl(${HUE_MIN + (hash % (HUE_MAX - HUE_MIN))}, 38%, 46%)`;
 }
 
 export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties {

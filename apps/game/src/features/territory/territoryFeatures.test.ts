@@ -3,6 +3,8 @@ import { cellAt } from '@es3/core';
 import type { Cell } from '@es3/core';
 import {
   CONTESTED_BELOW,
+  HUE_MAX,
+  HUE_MIN,
   OWN_FILL,
   cellProperties,
   cellToFeature,
@@ -41,7 +43,17 @@ describe('ownership colour', () => {
     // A neighbourhood of fully saturated hues stops reading as the same world.
     // Only the hue moves; lightness and saturation are fixed.
     for (const id of [RIVAL, OTHER, 'x', 'a-very-long-player-identifier-indeed']) {
-      expect(hueFor(id)).toMatch(/^hsl\(\d{1,3}, 38%, 42%\)$/);
+      expect(hueFor(id)).toMatch(/^hsl\(\d{1,3}, 38%, 46%\)$/);
+    }
+  });
+
+  it('never hands a rival a colour from outside the cosmic arc', () => {
+    // The full hue circle includes olive, mustard and brown. A rival painted olive
+    // on a purple-and-cyan map does not read as another player; it reads as a fault.
+    for (let i = 0; i < 500; i++) {
+      const hue = Number(/hsl\((\d+)/.exec(hueFor(`player-${i}`))?.[1]);
+      expect(hue).toBeGreaterThanOrEqual(HUE_MIN);
+      expect(hue).toBeLessThan(HUE_MAX);
     }
   });
 

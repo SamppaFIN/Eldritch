@@ -12,6 +12,7 @@
 import type {
   BBox,
   Cell,
+  LatLng,
   ClaimResult,
   DecayResult,
   PlayerProfile,
@@ -31,6 +32,18 @@ export interface GameRepository {
   submitTrail(runId: RunId, points: TrailPoint[]): Promise<TrailResult>;
   getTrailPoints(runId: RunId): Promise<TrailPoint[]>;
   endRun(runId: RunId): Promise<void>;
+
+  /**
+   * Build the starting neighbourhood around a position, once.
+   *
+   * Seeding used to happen on the first accepted trail point, which meant the world
+   * did not exist until a batch had been submitted — ten seconds of empty map on every
+   * first launch, which is the whole first impression. The game knows where the player
+   * is the moment it has a fix; that is when the world should be there.
+   *
+   * Idempotent: calling it again does nothing.
+   */
+  seedAround(position: LatLng, now: number): Promise<void>;
 
   /* --- Territory -------------------------------------------------------- */
   /** Runs loop detection on the run's points; a no-op result if it has not closed. */

@@ -234,7 +234,7 @@ export function Hud({
               aria-label="Return everything to the Void"
               title="Return everything to the Void"
             >
-              <span aria-hidden>◌</span>
+              <span aria-hidden>⬡</span>
             </RitualButton>
             <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>
               Withdraw

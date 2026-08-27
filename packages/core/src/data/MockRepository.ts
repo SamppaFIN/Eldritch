@@ -20,6 +20,7 @@ import { cellsToLoad, planClaim } from './claiming.js';
 import type {
   BBox,
   Cell,
+  LatLng,
   ClaimResult,
   DecayResult,
   GameRepository,
@@ -150,6 +151,10 @@ export class MockRepository implements GameRepository {
     if ((await this.store.get<RunId>(K.activeRun)) === runId) {
       await this.store.delete(K.activeRun);
     }
+  }
+
+  async seedAround(position: LatLng, now: number): Promise<void> {
+    await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
   }
 
   /* --- Territory -------------------------------------------------------- */

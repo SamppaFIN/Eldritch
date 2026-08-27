@@ -7,7 +7,7 @@
  * moment it is supposed to feel good.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { cellAreaM2, hoursUntilReleased, totalAreaM2 } from '@es3/core';
+import { bearing, cellAreaM2, cellBoundary, hoursUntilReleased, totalAreaM2 } from '@es3/core';
 import type { BBox, CaptureOutcome, Cell, GameRepository, RunId } from '@es3/core';
 
 export interface ClaimEvent {
@@ -29,11 +29,15 @@ export interface TerritoryState {
   /** Hours until the first of them goes, or null if nothing is close. */
   fadingInHours: number | null;
   released: string[];
+  /** Bearing from the player to the nearest rival ground, or null if there is none. */
+  rivalBearing: number | null;
   refresh: () => Promise<void>;
 }
 
 export interface UseTerritoryOptions {
   repository: GameRepository | null;
+  /** Where the player is, for working out which way the rivals are. */
+  position?: { lat: number; lng: number } | null;
   runId: RunId | null;
   /** Bumped whenever the trail changes, to trigger a closure attempt. */
   trailVersion: number;
@@ -47,6 +51,7 @@ export function useTerritory({
   trailVersion,
   bbox,
   now,
+  position = null,
 }: UseTerritoryOptions): TerritoryState {
   const [cells, setCells] = useState<Cell[]>([]);
   const [owned, setOwned] = useState<Cell[]>([]);
@@ -156,6 +161,7 @@ export function useTerritory({
   return {
     cells,
     owned,
+    rivalBearing: nearestRivalBearing(cells, owned, position),
     ownedAreaM2: totalAreaM2(owned.map((c) => c.h3)),
     strongest: owned.reduce((max, c) => Math.max(max, c.strength), 0),
     lastClaim,
@@ -164,6 +170,30 @@ export function useTerritory({
     released,
     refresh,
   };
+}
+
+/** Which way the nearest ground somebody else holds actually lies. */
+function nearestRivalBearing(
+  cells: readonly Cell[],
+  owned: readonly Cell[],
+  position: { lat: number; lng: number } | null,
+): number | null {
+  if (!position) return null;
+  const mine = new Set(owned.map((c) => c.h3));
+
+  let best: { bearing: number; distance: number } | null = null;
+  for (const cell of cells) {
+    if (cell.ownerId === null || mine.has(cell.h3)) continue;
+    const ring = cellBoundary(cell.h3);
+    const first = ring[0];
+    if (!first) continue;
+    const centre = { lat: first[1], lng: first[0] };
+    const distance = Math.hypot(centre.lat - position.lat, centre.lng - position.lng);
+    if (!best || distance < best.distance) {
+      best = { bearing: bearing(position, centre), distance };
+    }
+  }
+  return best?.bearing ?? null;
 }
 
 /**
