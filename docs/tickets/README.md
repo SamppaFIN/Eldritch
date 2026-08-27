@@ -117,7 +117,7 @@ Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
 mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on Vaiheiden
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta.
 
-Testejä: **224 yksikkö** + **73 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
+Testejä: **224 yksikkö** + **91 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
 
@@ -125,7 +125,8 @@ Testejä: **224 yksikkö** + **73 Playwright** (360 px ajetaan ensin, 3 vaatii d
 100 %  SETUP-001..005 · GEO-001 · SIM-001 · MAP-001 · CLAIM-001..004
  95 %  MOCK-001 · TRAIL-001 · HUD-001 · CLAIM-005
  90 %  HUD-002
- 85 %  PERSIST-001 · TRAIL-002 · CLAIM-006
+ 90 %  PERSIST-001
+ 85 %  TRAIL-002 · CLAIM-006
 ```
 
 Auki jääneet kohdat on merkitty tiketteihin `[ ]` tai `[~]` perusteluineen — ei

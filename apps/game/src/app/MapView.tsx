@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { speedMs } from '@es3/core';
+import { clearAll, speedMs } from '@es3/core';
 import type { BBox, GameRepository, PlayerProfile, TrailPoint } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { MapCanvas } from '../features/map/MapCanvas.js';
@@ -18,6 +18,7 @@ import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { Hud } from '../features/hud/Hud.js';
+import { ResetDialog, WithdrawDialog } from '../features/hud/Sanctum.js';
 import { createRepository } from '../data/createRepository.js';
 import './mapview.css';
 
@@ -32,6 +33,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const [basemap, setBasemap] = useState<BasemapState>('loading');
   const [simulate, setSimulate] = useState(false);
   const [bbox, setBbox] = useState<BBox | null>(null);
+  const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
 
   const clock = useGameClock();
 
@@ -150,7 +152,31 @@ export function MapView({ onLeave }: MapViewProps) {
         fading={territory.fading}
         fadingInHours={territory.fadingInHours}
         released={territory.released}
-        onWithdraw={onLeave}
+        onWithdraw={() => setConfirming('withdraw')}
+        onReset={() => setConfirming('reset')}
+      />
+
+      <WithdrawDialog
+        open={confirming === 'withdraw'}
+        ownedCells={territory.owned.length}
+        distanceM={trail.distanceM}
+        onConfirm={onLeave}
+        onCancel={() => setConfirming(null)}
+      />
+
+      <ResetDialog
+        open={confirming === 'reset'}
+        onConfirm={() => {
+          void (async () => {
+            await repository.resetAll();
+            // A full reload rather than clearing React state by hand: after a wipe
+            // there is nothing to preserve, and rebuilding from boot is the one path
+            // already tested a hundred times over.
+            clearAll();
+            window.location.reload();
+          })();
+        }}
+        onCancel={() => setConfirming(null)}
       />
     </main>
   );

@@ -20,7 +20,7 @@ export function GlassPanel({ as: Tag = 'div', children, className, ...rest }: Gl
 }
 
 export interface RitualButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'ghost';
+  variant?: 'primary' | 'ghost' | 'danger';
   children: ReactNode;
 }
 

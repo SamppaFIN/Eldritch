@@ -103,6 +103,11 @@ test('the withdraw control is a real button, thumb-sized and focusable', async (
 
   await withdraw.focus();
   await expect(withdraw).toBeFocused();
+
+  // Withdrawing is destructive — it ends the walk — so it asks first.
+  // The confirmation flow itself is covered in dialogs.spec.ts.
   await withdraw.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });

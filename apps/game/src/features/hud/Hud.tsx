@@ -32,6 +32,7 @@ export interface HudProps {
   fadingInHours?: number | null;
   released?: string[];
   onWithdraw: () => void;
+  onReset: () => void;
 }
 
 /**
@@ -131,6 +132,7 @@ export function Hud({
   fadingInHours = null,
   released = [],
   onWithdraw,
+  onReset,
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
@@ -224,9 +226,20 @@ export function Hud({
             </span>
           </p>
 
-          <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>
-            Withdraw
-          </RitualButton>
+          <div className="hud__actions">
+            <RitualButton
+              variant="ghost"
+              className="hud__icon-btn"
+              onClick={onReset}
+              aria-label="Return everything to the Void"
+              title="Return everything to the Void"
+            >
+              <span aria-hidden>◌</span>
+            </RitualButton>
+            <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>
+              Withdraw
+            </RitualButton>
+          </div>
         </div>
       </GlassPanel>
     </div>

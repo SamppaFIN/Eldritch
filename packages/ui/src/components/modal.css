@@ -1,0 +1,57 @@
+/* Native <dialog>, brought into the palette. */
+
+.es-modal {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  max-inline-size: min(100% - 2rem, 26rem);
+  max-block-size: calc(100dvh - 4rem);
+}
+
+.es-modal::backdrop {
+  background: oklch(0.05 0.02 300 / 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.es-modal__panel {
+  padding: var(--space-6) var(--space-5, var(--space-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.es-modal__title {
+  font-size: var(--text-h3);
+  color: var(--text);
+}
+
+.es-modal__body {
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.es-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* Destructive actions look destructive — but quiet. Red says what it does; the
+   filled treatment is reserved for the option that does not lose anything. */
+.es-btn--danger {
+  --btn-accent: var(--danger);
+}
+
+.es-btn--quiet {
+  background: transparent;
+}
+
+.es-btn--quiet:hover {
+  background: color-mix(in oklch, var(--btn-accent) 14%, transparent);
+}

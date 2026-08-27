@@ -178,6 +178,22 @@
   gap: var(--space-3);
 }
 
+.hud__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* An icon button is still a button: the label lives in aria-label, and the
+   target is the full 44px whatever the glyph measures. */
+.hud__icon-btn {
+  min-inline-size: var(--touch-min);
+  padding-inline: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 .hud__withdraw {
   /* Never squeezed by a long signal message; the target size is a floor, not a hint. */
   flex: 0 0 auto;

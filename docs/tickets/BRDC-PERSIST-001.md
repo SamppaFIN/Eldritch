@@ -6,7 +6,7 @@
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-SETUP-003 |
 | **Status** | `done` — 2026-08-26 (3 kohtaa siirretty BRDC-MOCK-001:een) |
-| **Valmius** | 85 % |
+| **Valmius** | 90 % |
 
 ## 🔴 RED
 
@@ -27,8 +27,9 @@ Todennettu: `ANALYSIS.md` §2.1, §8 kohta 2.
 - [x] Tallennus on debounced: enintään 1 kirjoitus / 2 s
 - [~] `QuotaExceededError` käsitellään: `saveNow` palauttaa `'quota'` eikä heitä.
       **Historian karsinta jää BRDC-MOCK-001:een** — jälkihistoria elää IndexedDB:ssä, ei täällä
-- [~] `clearAll()` tyhjentää `es3:*`-avaimet; `Saver.cancel()` tyhjentää ajastimen.
-      **Yhtenäinen `resetAll()` kootaan BRDC-MOCK-001:ssä**, kun on muutakin nollattavaa
+- [x] `resetAll()` pelaajan ulottuvilla: HUDin ◌-painike → vahvistusdialogi →
+      `repository.resetAll()` + `clearAll()` + reload. v2:ssa ainoa neuvo
+      korruptoituneelle tallennukselle oli "avaa konsoli ja aja localStorage.clear()"
 - [~] Työnjako päätetty ja dokumentoitu; IndexedDB-toteutus on BRDC-MOCK-001
 
 ## Toteutus
@@ -66,6 +67,14 @@ IndexedDB = kaikki mikä kasvaa (jälkipisteet, solut) — se on `MockRepository
 - [x] Quota-virhe simuloituna → ei heitä ulos
 - [x] **v2-muotoinen tallennus** (`eldritch_game_state`) ei kaada peliä
       → ks. BRDC-REGRESSION-000
+
+> **Resetointi on pelaajan käytettävissä, ei vain rajapinnassa.** `claude.md` §14
+> vaatii vahvistuksen tuhoavalle toiminnolle, ja v2:n taso-118-pelaaja oli jumissa
+> savensa kanssa — korjaamiseen ei ollut mitään keinoa pelin sisällä.
+>
+> Dialogissa **turvallinen valinta on visuaalisesti hallitseva.** Punainen täytetty
+> painike on tapa saada silmä osumaan tuhoavaan vaihtoehtoon ensin, mikä on huono tapa
+> kunnioittaa sääntöä joka on olemassa hidastaakseen ihmistä.
 
 ## Ei kuulu tähän tikettiin
 
