@@ -117,7 +117,7 @@ Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
 mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on Vaiheiden
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta.
 
-Testejä: **220 yksikkö** + **73 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
+Testejä: **224 yksikkö** + **73 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
 

@@ -5,8 +5,8 @@
 | **Vaihe** | läpileikkaava |
 | **Effort** | M (päivä, jaettuna vaiheisiin) |
 | **Riippuvuudet** | BRDC-SETUP-001 |
-| **Status** | `in_progress` — 9/12 katettu |
-| **Valmius** | 75 % |
+| **Status** | `in_progress` — 10/12 katettu |
+| **Valmius** | 85 % |
 
 ## 🔴 RED
 
@@ -33,13 +33,13 @@ Jokainen alla oleva testi on kirjoitettu **ennen** vastaavaa ominaisuutta ja on 
 | 11 | Kolme kuollutta askelmittaritoteutusta (2 033 riviä lataamatonta koodia) | Yksi toteutus, lähde valitaan ajossa. CI varoittaa moduulista, johon ei viitata | Vaihe 5 |
 | 12 | Kolme eri versionumeroa (1.4.0 / 1.6.0 / 4.0.0) | Yksi versio, luetaan juuren `package.json`ista | BRDC-SETUP-001 |
 
-> **Tilanne 2026-08-27 — 9/12 katettu:**
+> **Tilanne 2026-08-27 — 10/12 katettu:**
 >
 > | # | Tila | Missä |
 > |---|---|---|
 > | 1 | ✅ | `save.test.ts` — 16 testiä, mm. v2-muotoinen tallennus |
 > | 2 | ✅ | `level.test.ts` — `NaN`, `-500` ja `Infinity` antavat kaikki tason 1 |
-> | 3 | ⬜ | Boot on deterministinen `await`-ketju, mutta **100 kertaa -testiä ei ole** |
+> | 3 | ✅ | `boot.test.ts` — 100 alustusta, ei puuttuvia; sama siemen tuottaa saman maailman |
 > | 4 | ✅ | `claim.spec.ts` — 5 000 heksaa, < 400 ms |
 > | 5 | ✅ | 360 px on Playwrightin ensimmäinen projekti |
 > | 6 | ⬜ | Vaihe 6 |
@@ -50,8 +50,13 @@ Jokainen alla oleva testi on kirjoitettu **ennen** vastaavaa ominaisuutta ja on 
 > | 11 | ✅ | Yksi sijaintilähde; simulaattori todennettu poissa tuotantobundlesta |
 > | 12 | ✅ | Yksi versio juuren `package.json`issa |
 >
-> **Kohta 3 on tärkein auki oleva.** v2:n vaikein bugi ei ollut vaikea koodata väärin —
-> se oli vaikea *huomata*, koska mikään ei kaatunut. Testi on halpa ja se puuttuu yhä.
+> **Kohta 3 kirjoitettu.** v2:n vaikein bugi ei ollut vaikea koodata väärin — se oli
+> vaikea *huomata*, koska mikään ei kaatunut: shrinet vain eivät ilmestyneet, joskus.
+> `boot.test.ts` alustaa maailman **100 kertaa** ja väittää joka kerta että profiili,
+> run, jälki ja naapurit ovat kaikki olemassa. Lisäksi: sama lenkki tuottaa aina saman
+> solumäärän, ja päällekkäiset erälähetykset eivät kylvä naapureita kahdesti.
+>
+> Auki jää vain kaksi kohtaa, molemmat Vaiheessa 6 (kohtaamiset, audio opt-in).
 
 ## Toteutus
 
