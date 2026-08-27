@@ -1,0 +1,118 @@
+/* HUD. Bottom-docked: one-thumb reach is the whole layout constraint. */
+
+.hud {
+  position: fixed;
+  z-index: var(--z-hud);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: min(var(--space-3), 3vw);
+  padding-bottom: max(min(var(--space-3), 3vw), env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.hud__panel {
+  pointer-events: auto;
+  width: min(100%, 30rem);
+  margin-inline: auto;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  align-items: stretch;
+  text-align: left;
+}
+
+.hud__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.hud__stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hud__stat--right {
+  text-align: right;
+}
+
+.hud__label {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hud__value {
+  color: var(--text);
+  font-size: var(--text-body);
+  overflow-wrap: anywhere;
+}
+
+/* --- XP ------------------------------------------------------------------ */
+
+.hud__xp {
+  block-size: 3px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+
+.hud__xp-fill {
+  block-size: 100%;
+  background: linear-gradient(90deg, var(--cosmic-purple), var(--accent));
+  transition: inline-size var(--dur-slow) var(--ease);
+}
+
+/* --- Signal --------------------------------------------------------------
+   Quality is carried by the words. The dot and colour are a second channel,
+   never the only one — the player is outdoors, in daylight, at arm's length. */
+
+.hud__signal {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.hud__dot {
+  flex: 0 0 auto;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--radius-full);
+  background: var(--text-dim);
+}
+
+.hud__signal[data-quality='good'] .hud__dot {
+  background: var(--success);
+  box-shadow: 0 0 8px color-mix(in oklch, var(--success) 70%, transparent);
+}
+
+.hud__signal[data-quality='weak'] .hud__dot {
+  background: var(--warning);
+}
+
+.hud__signal[data-quality='rejected'] .hud__dot {
+  background: var(--danger);
+}
+
+.hud__speed {
+  color: var(--text-dim);
+}
+
+.hud__note {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.hud__note--dev {
+  font-family: var(--font-numeric);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hud__withdraw {
+  align-self: flex-end;
+}

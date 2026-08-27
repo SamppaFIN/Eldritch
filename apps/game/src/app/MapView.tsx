@@ -1,15 +1,21 @@
 /**
- * The map screen.
+ * The map screen: position source, trail, map and HUD wired together.
  *
- * BRDC-MAP-001 scope: the surface, the camera and the player marker. Continuous
- * tracking, the ley-line and the full HUD arrive with TRAIL-001, TRAIL-002 and
- * HUD-001 — this screen deliberately shows only what it can honestly show.
+ * The wiring is a deterministic chain — repository, then position, then trail, then
+ * render — with every stage carrying an explicit ready flag. v2 wired this through an
+ * event bus, spawned entities before the map was listening, and lost them silently.
  */
-import { useState } from 'react';
-import { GlassPanel, RitualButton } from '@es3/ui';
+import { useEffect, useMemo, useState } from 'react';
+import { speedMs } from '@es3/core';
+import type { GameRepository, PlayerProfile, TrailPoint } from '@es3/core';
+import { GlassPanel } from '@es3/ui';
 import { MapCanvas } from '../features/map/MapCanvas.js';
 import type { BasemapState } from '../features/map/useMap.js';
 import { useInitialPosition } from '../features/map/useInitialPosition.js';
+import { usePositionSource } from '../features/trail/usePositionSource.js';
+import { useTrail } from '../features/trail/useTrail.js';
+import { Hud } from '../features/hud/Hud.js';
+import { createRepository } from '../data/createRepository.js';
 import './mapview.css';
 
 export interface MapViewProps {
@@ -17,12 +23,55 @@ export interface MapViewProps {
 }
 
 export function MapView({ onLeave }: MapViewProps) {
-  const { centre, settled, permission } = useInitialPosition();
+  const [repository, setRepository] = useState<GameRepository | null>(null);
+  const [durable, setDurable] = useState(true);
+  const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
+  const [simulate, setSimulate] = useState(false);
 
-  // Mounting the map before the one-shot fix settles would open the camera on the
-  // fallback and then jump — a bad first impression, and a wasted tile fetch.
-  if (!settled) {
+  // Only the opening camera position comes from here; live permission state is
+  // reported by usePositionSource, which is the thing actually watching.
+  const { centre, settled } = useInitialPosition();
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const handle = await createRepository();
+      if (cancelled) return;
+      setRepository(handle.repository);
+      setDurable(handle.durable);
+      setProfile(await handle.repository.getProfile());
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Dev-only simulated walking, so the mechanic can be exercised without going outside.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'g') setSimulate((v) => !v);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const { point, status, source } = usePositionSource({
+    enabled: settled,
+    origin: centre,
+    simulate,
+  });
+
+  const trail = useTrail({ repository, point, collecting: true });
+
+  const pace = useMemo(() => {
+    const pts = trail.points;
+    if (pts.length < 2) return null;
+    return speedMs(pts[pts.length - 2] as TrailPoint, pts[pts.length - 1] as TrailPoint);
+  }, [trail.points]);
+
+  if (!settled || !repository) {
     return (
       <main className="mapview mapview--waiting">
         <GlassPanel className="mapview__status">
@@ -38,35 +87,29 @@ export function MapView({ onLeave }: MapViewProps) {
     <main className="mapview">
       <MapCanvas
         initialCentre={centre}
-        position={permission === 'granted' ? centre : null}
-        accuracyM={permission === 'granted' ? 20 : undefined}
+        position={point}
+        accuracyM={point?.accuracy}
+        trail={trail.points}
         onBasemapChange={setBasemap}
       />
 
-      <div className="mapview__hud">
-        <GlassPanel className="mapview__panel">
-          <p className="mapview__line es-numeric">
-            {statusLine(permission, basemap)}
-          </p>
-          <RitualButton variant="ghost" onClick={onLeave}>
-            Withdraw
-          </RitualButton>
-        </GlassPanel>
-      </div>
+      {!durable ? (
+        <p className="mapview__warning" role="status">
+          This device will not keep your progress. The Void forgets between visits.
+        </p>
+      ) : null}
+
+      <Hud
+        profile={profile}
+        distanceM={trail.distanceM}
+        accuracyM={point?.accuracy ?? null}
+        speedMs={pace}
+        status={status}
+        source={source}
+        lastRejection={trail.lastRejection}
+        basemapVoid={basemap === 'void'}
+        onWithdraw={onLeave}
+      />
     </main>
   );
-}
-
-/**
- * One line of honest state.
- *
- * Never colour alone: each condition is spelled out in words, because the player is
- * outdoors in daylight and may not be able to tell a cyan dot from an amber one.
- */
-function statusLine(permission: string, basemap: BasemapState): string {
-  if (permission === 'denied') return 'LOCATION REFUSED · THE GROUND IS SILENT';
-  if (permission === 'unavailable') return 'NO LOCATION SENSOR · MAP ONLY';
-  if (basemap === 'void') return 'POSITION HELD · THE STREETS ARE UNREACHABLE';
-  if (basemap === 'loading') return 'THE VOID IS RESOLVING…';
-  return 'POSITION HELD';
 }

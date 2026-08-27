@@ -8,7 +8,8 @@
  */
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
-import type { LatLng } from '@es3/core';
+import type { LatLng, TrailPoint } from '@es3/core';
+import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -21,6 +22,8 @@ export interface MapCanvasProps {
   position: LatLng | null;
   /** Reported accuracy in metres, drawn as a ring. */
   accuracyM?: number | undefined;
+  /** The ley-line so far. */
+  trail?: readonly TrailPoint[];
   /** Keep the camera on the player. False once they pan away by hand. */
   follow?: boolean;
   onBasemapChange?: (state: BasemapState) => void;
@@ -30,6 +33,7 @@ export function MapCanvas({
   initialCentre,
   position,
   accuracyM,
+  trail,
   follow = true,
   onBasemapChange,
 }: MapCanvasProps) {
@@ -66,6 +70,21 @@ export function MapCanvas({
       accuracyRef.current = null;
     };
   }, [map, ready, initialCentre]);
+
+  // The trail is a GeoJSON source, created once the map is ready and updated in place.
+  useEffect(() => {
+    if (!map || !ready) return;
+    ensureTrailLayers(map);
+    return () => {
+      // Guard: React may run cleanup after the map has already been torn down.
+      if (map.loaded()) removeTrailLayers(map);
+    };
+  }, [map, ready]);
+
+  useEffect(() => {
+    if (!map || !ready || !trail) return;
+    setTrailData(map, trail);
+  }, [map, ready, trail]);
 
   // Move the marker and the camera on each fix.
   useEffect(() => {

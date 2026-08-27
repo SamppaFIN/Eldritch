@@ -11,7 +11,7 @@
    Lifted clear of the HUD, which docks to the bottom of the screen. */
 .es-map .maplibregl-ctrl-bottom-right,
 .es-map .maplibregl-ctrl-bottom-left {
-  bottom: calc(var(--hud-height, 4.5rem) + env(safe-area-inset-bottom));
+  bottom: calc(var(--hud-height, 8.5rem) + env(safe-area-inset-bottom));
 }
 
 .es-map .maplibregl-ctrl-attrib {

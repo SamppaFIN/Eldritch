@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { loadWith, saveNow } from '@es3/core';
+import { loadWith, remove, saveNow } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
 import './mapview.css';
@@ -28,7 +28,21 @@ export function App() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    const { outcome } = loadWith<Session | null>('session', null);
+    const { value, outcome } = loadWith<Session | null>('session', null);
+
+    /*
+     * Resume straight into the walk.
+     *
+     * A phone reloads a PWA whenever it feels like reclaiming memory, and it does that
+     * most readily when the screen has been off in a pocket for ten minutes — which is
+     * precisely what a walk is. Landing back on the title screen would strand the
+     * player mid-loop behind a button they have already pressed.
+     */
+    if (outcome === 'ok' && value) {
+      setView('map');
+      return;
+    }
+
     if (outcome === 'stale') {
       setNotice(
         'A sanctuary from an older age was found, and could not be read. It has returned to the Void.',
@@ -43,11 +57,17 @@ export function App() {
     setView('map');
   }, []);
 
+  /** Withdrawing is deliberate, so it ends the session rather than pausing it. */
+  const withdraw = useCallback(() => {
+    remove('session');
+    setView('title');
+  }, []);
+
   if (view === 'title') return <TitleScreen onBegin={begin} notice={notice} />;
 
   return (
     <Suspense fallback={<MapSkeleton />}>
-      <MapView onLeave={() => setView('title')} />
+      <MapView onLeave={withdraw} />
     </Suspense>
   );
 }

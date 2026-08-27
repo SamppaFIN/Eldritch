@@ -8,6 +8,9 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  // Walking tests move a real clock: MIN_POINT_INTERVAL_MS is five seconds and the
+  // fix timestamp comes from the browser, so a walk cannot be fast-forwarded.
+  timeout: 90_000,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 1 : 0,
   reporter: process.env['CI'] ? 'github' : 'list',

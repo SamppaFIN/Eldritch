@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-TRAIL-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 80 % |
 
 ## 🔴 RED
 
@@ -16,15 +16,15 @@ pelin olevan rikki.
 
 ## 🟢 GREEN
 
-- [ ] Lasipaneeli (`--glass-bg`) kartan päällä, Orbitron numeroille
-- [ ] **Consciousness Level** + XP-palkki
-- [ ] Matka nykyisellä runilla (m / km)
-- [ ] **GPS-tarkkuus metreinä ja sen tila**: hyvä / heikko / hylätään
-- [ ] Kun pisteitä hylätään, HUD kertoo syyn ihmiskielellä
+- [x] Lasipaneeli (`--glass-bg`) kartan päällä, Orbitron numeroille
+- [x] **Consciousness Level** + XP-palkki
+- [x] Matka nykyisellä runilla (m / km)
+- [x] **GPS-tarkkuus metreinä ja sen tila**: hyvä / heikko / hylätään
+- [x] Kun pisteitä hylätään, HUD kertoo syyn ihmiskielellä
       ("Signal too weak — the Ley-line cannot form")
-- [ ] Jokainen kosketuskohde vähintään `--touch-min` (44 px)
-- [ ] 360 px viewportilla HUD ei peitä karttaa yli 30 % korkeudesta
-- [ ] Kolme yläreunan safe-area-inset huomioitu (notch)
+- [x] Jokainen kosketuskohde vähintään `--touch-min` (44 px)
+- [ ] HUDin korkeusosuus **mittaamatta** 360 px viewportilla
+- [x] Kolme yläreunan safe-area-inset huomioitu (notch)
 
 ## Toteutus
 
@@ -47,12 +47,15 @@ ilman tarkkuusnäyttöä ei voi erottaa rikkinäistä koodia huonosta satelliitt
 
 ## Testit
 
-- [ ] XP-palkki päivittyy kun XP muuttuu
-- [ ] Tarkkuus 80 → HUD näyttää hylkäystilan ja syyn
-- [ ] Taso ei ylitä katkaisurajaa vaikka XP:tä syötetään paljon
-      → ks. BRDC-REGRESSION-000
-- [ ] 360 px viewport ajetaan ensin
-- [ ] Näppäimistönavigointi: jokainen painike saa `:focus-visible`-kehyksen
+- [ ] XP-palkin päivittyminen **testaamatta** — XP on aina 0 ennen valtausta (Vaihe 2)
+- [~] Tarkkuus 42 testattu ("uncertain"). **Tarkkuus 80 (hylkäysraja) testaamatta**
+- [x] Taso ei ylitä katkaisurajaa — 23 yksikkötestiä `rules/level.test.ts`:ssä
+- [x] 360 px viewport ajetaan ensin
+- [x] Näppäimistönavigointi: jokainen painike saa `:focus-visible`-kehyksen
+
+> **Lisäksi:** signaalirivi kertoo tilan **sanoin**, ei vain värillä — pelaaja on ulkona
+> päivänvalossa käsivarren mitan päässä ruudusta. Piste ja väri ovat toinen kanava,
+> eivät ainoa. XP-palkki on `role="progressbar"` oikeine arvoineen.
 
 ## Ei kuulu tähän tikettiin
 

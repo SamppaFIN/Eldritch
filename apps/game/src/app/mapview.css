@@ -22,36 +22,20 @@
   font-size: var(--text-body);
 }
 
-/* HUD docks to the bottom: the top of a phone is the hardest place to reach
-   with one thumb, and this game is played one-handed while walking. */
-.mapview__hud {
+.mapview__warning {
   position: fixed;
   z-index: var(--z-hud);
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: min(var(--space-4), 4vw);
-  padding-bottom: max(min(var(--space-4), 4vw), env(safe-area-inset-bottom));
-  pointer-events: none;
-}
-
-.mapview__panel {
-  pointer-events: auto;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-lg);
-  text-align: left;
-}
-
-.mapview__line {
-  flex: 1 1 auto;
-  min-width: 0;
-  color: var(--text-muted);
+  top: max(var(--space-3), env(safe-area-inset-top));
+  left: min(var(--space-3), 3vw);
+  right: min(var(--space-3), 3vw);
+  margin: 0 auto;
+  max-width: 30rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--warning) 45%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  color: var(--text);
   font-size: var(--text-sm);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
+  text-align: center;
 }

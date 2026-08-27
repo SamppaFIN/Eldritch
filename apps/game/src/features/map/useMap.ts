@@ -55,6 +55,19 @@ export function useMap({ centre, zoom = 16 }: UseMapOptions): UseMapResult {
     map.touchZoomRotate.disableRotation();
     mapRef.current = map;
 
+    /*
+     * Deliberate debug handle.
+     *
+     * The trail and the territory are WebGL, so an end-to-end test cannot assert on the
+     * DOM — "did the ley-line actually receive points" is only answerable from the map's
+     * own sources. This exposes the instance for Playwright, and for a console poke
+     * while standing in the rain wondering why nothing is drawing.
+     *
+     * There is nothing to protect: the client holds no secrets, and MapLibre is
+     * reachable from the page regardless. Naming the handle beats pretending otherwise.
+     */
+    (globalThis as unknown as { __esMap?: MapLibreMap }).__esMap = map;
+
     const onLoad = () => {
       setBasemap((b) => (b === 'void' ? b : 'ready'));
       setReady(true);
@@ -97,6 +110,7 @@ export function useMap({ centre, zoom = 16 }: UseMapOptions): UseMapResult {
       map.off('sourcedata', onSourceData);
       map.remove();
       mapRef.current = null;
+      delete (globalThis as unknown as { __esMap?: MapLibreMap }).__esMap;
       setReady(false);
       setBasemap('loading');
     };

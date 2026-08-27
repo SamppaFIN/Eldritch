@@ -19,7 +19,7 @@ async function openMap(page: import('@playwright/test').Page) {
 test('renders the map and places the player on it', async ({ page }) => {
   await openMap(page);
   await expect(page.locator('canvas')).toBeVisible();
-  await expect(page.locator('.mapview__line')).toContainText('POSITION HELD');
+  await expect(page.locator('.hud__signal')).toContainText(/Signal/i, { timeout: 20_000 });
 });
 
 test('the player marker sits exactly on the camera centre', async ({ page }) => {
@@ -80,7 +80,7 @@ test('survives with no tiles at all', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
 
-  await expect(page.locator('.mapview__line')).toContainText('UNREACHABLE', {
+  await expect(page.locator('.hud__note')).toContainText(/streets are unreachable/i, {
     timeout: 20_000,
   });
   await expect(page.locator('.es-player__core')).toBeVisible();

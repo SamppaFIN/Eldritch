@@ -61,6 +61,15 @@ export default defineConfig({
       },
     }),
   ],
+  /*
+   * Serve MapLibre straight from node_modules in dev.
+   *
+   * The dep optimiser rewrites it into .vite/deps, which breaks the sibling layout its
+   * worker resolution depends on — the same silent failure the build plugin above fixes
+   * for production. Dev matters here specifically: the WASD walk simulator only exists
+   * in dev builds, so a dev map that never loads means the simulator can never be used.
+   */
+  optimizeDeps: { exclude: ['maplibre-gl'] },
   // MapLibre parses tiles in a Web Worker built from ES modules. Without this the
   // worker is emitted as IIFE, dies on its first import, and the map goes quiet:
   // style loads, TileJSON loads, and then no tile is ever requested.

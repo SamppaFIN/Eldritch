@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-GEO-001, BRDC-MOCK-001, BRDC-MAP-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 90 % |
 
 ## 🔴 RED
 
@@ -14,14 +14,14 @@ Pelaajalla ei ole jälkeä. Kävely ei tuota mitään, eikä mikään säily rel
 
 ## 🟢 GREEN
 
-- [ ] `useGeolocation`-hookki käyttää `watchPosition`ia `enableHighAccuracy: true`
-- [ ] Jokainen piste kulkee `acceptPoint`-suodattimen läpi (BRDC-GEO-001)
-- [ ] Pisteet lähetetään **batchina 10 s välein**, ei yksitellen
-- [ ] "Begin the Awakening" käynnistää runin (`startRun`)
-- [ ] Jälki **säilyy sivun uudelleenlatauksen yli** ja jatkuu samasta runista
-- [ ] GPS-lupa evätty → selkeä viesti ja ohje, ei hiljaista kaatumista
-- [ ] Sijaintia ei saatavilla (sisätila) → HUD kertoo sen, peli ei jäädy
-- [ ] **Toimii lentokonetilassa** — GPS toimii ilman dataa
+- [x] `useGeolocation`-hookki käyttää `watchPosition`ia `enableHighAccuracy: true`
+- [x] Jokainen piste kulkee `acceptPoint`-suodattimen läpi (BRDC-GEO-001)
+- [x] Pisteet lähetetään **batchina 10 s välein**, ei yksitellen
+- [x] "Begin the Awakening" käynnistää runin (`startRun`)
+- [x] Jälki **säilyy sivun uudelleenlatauksen yli** ja jatkuu samasta runista
+- [x] GPS-lupa evätty → selkeä viesti ja ohje, ei hiljaista kaatumista
+- [x] Sijaintia ei saatavilla (sisätila) → HUD kertoo sen, peli ei jäädy
+- [x] **Toimii lentokonetilassa** — GPS toimii ilman dataa
 
 ## Toteutus
 
@@ -45,13 +45,33 @@ kuluessa — pelaaja lopettaa sen tai lenkki sulkeutuu (BRDC-CLAIM-001).
 
 ## Testit
 
-- [ ] Playwright overridaa sijainnin CDP:llä ja syöttää `square.json`-fixturen
-      → jälki piirtyy
-- [ ] Reload kesken runin → jälki ja run palautuvat
-- [ ] Lupa evätty → virheviesti näkyy, ei konsolivirhettä
-- [ ] Hylätty piste (accuracy 80) ei päädy jälkeen
-- [ ] Batch: 12 pistettä 60 s aikana → enintään 6 `submitTrail`-kutsua
-- [ ] 360 px viewport ajetaan ensin
+- [~] Playwright overridaa sijainnin ja jälki piirtyy. **Syöte on synteettinen kävely,
+      ei `square.json`** — fixture kytketään käyttöön BRDC-CLAIM-001:ssä, jossa sitä
+      oikeasti tarvitaan
+- [x] Reload kesken runin → jälki ja run palautuvat
+- [x] Lupa evätty → virheviesti näkyy, ei konsolivirhettä
+- [x] Hylätty piste (accuracy 80) ei päädy jälkeen
+- [ ] Batch-kutsujen määrää **ei ole vielä väitetty testissä.** Ajastin on 10 s,
+      mutta kutsulaskuria ei mitata
+- [x] 360 px viewport ajetaan ensin
+
+> **Lisäksi toteutettu / muutokset:**
+> - `usePositionSource` yhdistää laitteen ja (vain dev-buildissa) WASD-simulaation
+>   saman muodon taakse. Simulaattori ei päädy tuotantobundleen — todennettu grepillä.
+> - **Reload jatkaa suoraan kartalta.** Puhelin lataa PWA:n uudelleen aina kun se haluaa
+>   muistia takaisin, ja mieluiten silloin kun ruutu on ollut taskussa kymmenen minuuttia
+>   — eli juuri kesken kävelyn. Aloitusnäytölle palaaminen jättäisi pelaajan kesken lenkin
+>   napin taakse jonka hän on jo painanut. `Withdraw` on tarkoituksellinen ja päättää session.
+> - **`interval`-hylkäyksiä ei näytetä HUDissa.** Laite antaa fixin noin sekunnin välein,
+>   `MIN_POINT_INTERVAL_MS` on viisi — suurin osa hylätään joka erässä. Se on tarkoitettu
+>   harvennus (yksi piste / ~7 m), ei vika, ja HUDiin jäisi pysyvä valitus jolle pelaaja
+>   ei voi mitään. Näytetään vain `accuracy`, `speed` ja `consolidated`.
+> - Tyhjennys `pagehide`ssä, ei `beforeunload`issa: mobiiliselain jäädyttää taustavälilehden
+>   laukaisematta `beforeunload`ia, ja jokainen viestiin vastaaminen maksaisi 10 s kävelyä.
+>
+> **Bugi, jonka e2e löysi:** `repository as GameRepository` valehteli — `useTrail` kutsui
+> `getActiveRun`ia nullille ensimmäisellä renderillä. Cast korvattu rehellisellä
+> `GameRepository | null` -tyypillä.
 
 ## Ei kuulu tähän tikettiin
 

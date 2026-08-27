@@ -6,7 +6,7 @@
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-SETUP-003, BRDC-PERSIST-001 |
 | **Status** | `done` — 2026-08-26 (2 kohtaa siirretty) |
-| **Valmius** | 85 % |
+| **Valmius** | 95 % |
 
 ## 🔴 RED
 
@@ -56,7 +56,7 @@ on 5 MB ja synkroninen — se olisi sama virhe kuin v2:n `eldritch_stepMarkers`.
 ## Testit
 
 - [x] `startRun` → `submitTrail` → `getActiveRun` palauttaa pisteet oikeassa järjestyksessä
-- [~] Reload-säilyvyys **todennetaan BRDC-TRAIL-001:ssä** Playwrightilla oikealla
+- [x] Reload-säilyvyys todennettu TRAIL-001:ssä oikealla IndexedDB:llä Playwrightilla oikealla
       IndexedDB:llä. `MemoryStore` ei säily instanssien yli, joten sitä ei voi väittää tässä.
 - [x] Ensimmäinen käynnistys luo siemennaapurit; toinen käynnistys **ei luo niitä uudelleen**
 - [x] `MockRepository` täyttää `GameRepository`-tyypin (käännösaikainen tarkistus)

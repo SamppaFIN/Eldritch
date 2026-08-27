@@ -50,7 +50,7 @@ export function TitleScreen({ onBegin, notice }: TitleScreenProps) {
           </RitualButton>
 
           <p className="title__phase">
-            <span aria-hidden>◇</span> Phase 0 — foundation
+            <span aria-hidden>◇</span> Phase 1 — the ley-line
           </p>
         </GlassPanel>
       </main>

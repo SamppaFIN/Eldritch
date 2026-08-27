@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-GEO-001 |
-| **Status** | `done` — 2026-08-26 (2 kohtaa siirretty) |
-| **Valmius** | 85 % |
+| **Status** | `done` — 2026-08-27 |
+| **Valmius** | 100 % |
 
 ## 🔴 RED
 
@@ -22,9 +22,9 @@ lainkaan.
       eikä liian huonoa)
 - [x] Konfiguroitava GPS-kohina, jotta kohinankestoa voi testata
 - [x] `packages/core/sim/fixtures/` sisältää **viisi nauhoitettua reittiä**
-- [~] WASD-näppäinohjaus **siirretty BRDC-TRAIL-001:een** — se tarvitsee kartan ja
+- [x] WASD-näppäinohjaus (toteutettu TRAIL-001:ssä) — se tarvitsee kartan ja
       sijaintihookin, joita ei vielä ole. Simulaattori itse on valmis sitä varten.
-- [~] Tuotantobundlen tarkistus **siirretty BRDC-TRAIL-001:een** — mikään ei vielä
+- [x] Simulaattori ei ole tuotantobundlessa (todennettu TRAIL-001:ssä) — mikään ei vielä
       importtaa `sim`iä sovelluksesta, joten mitattavaa ei ole. Tarkistus tehdään kun on.
 
 ## Toteutus

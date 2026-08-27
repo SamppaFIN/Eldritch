@@ -5,8 +5,8 @@
 | **Vaihe** | 1 — Kartta ja ley-line |
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-TRAIL-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-27 (4 kohtaa auki, ks. alla) |
+| **Valmius** | 70 % |
 
 ## 🔴 RED
 
@@ -15,13 +15,14 @@ maailmaan piirtyy jotain — se on koko pelin ydinpalkinto.
 
 ## 🟢 GREEN
 
-- [ ] Jälki renderöityy MapLibren GeoJSON-lähteenä, ei DOM-elementteinä
-- [ ] Hehku on **kaksi päällekkäistä layeria**:
+- [x] Jälki renderöityy MapLibren GeoJSON-lähteenä, ei DOM-elementteinä
+- [x] Hehku on **kaksi päällekkäistä layeria**:
       leveä sumea `--cosmic-purple` + kapea kirkas `--sacred-gold`
-- [ ] Uusi segmentti animoituu esiin
-- [ ] Animaatiot pois `prefers-reduced-motion: reduce` -tilassa
-- [ ] 2 000 pisteen jälki renderöityy sujuvasti puhelimella (ei nykimistä)
-- [ ] Käyttöliittymässä jälki on **"Ley-line"**, ei "trail"
+- [ ] Uusi segmentti animoituu esiin — **ei toteutettu.** Jälki päivittyy kerralla
+      `setData`lla. Siirretty Vaiheeseen 6 (kiillotus)
+- [x] Animaatiot pois `prefers-reduced-motion: reduce` -tilassa
+- [ ] 2 000 pisteen suorituskyky **mittaamatta.** Pisin testattu jälki on ~10 pistettä
+- [x] Käyttöliittymässä jälki on **"Ley-line"**, ei "trail"
 
 ## Toteutus
 
@@ -42,10 +43,14 @@ v2:n virhe markkereissa ja johti tuhansiin DOM-elementteihin.
 
 ## Testit
 
-- [ ] `gps-noise.json`-fixture renderöityy ilman virhettä
-- [ ] Layerien määrä pysyy vakiona kun pisteitä lisätään (ei kasva)
-- [ ] `prefers-reduced-motion` → ei animaatioita
-- [ ] Visuaalinen tarkistus puhelimella: hehku näkyy myös kirkkaassa ulkovalossa
+- [ ] `gps-noise.json`-fixture renderöityy — **ei ajettu**, e2e käyttää synteettistä kävelyä
+- [x] Layerien määrä pysyy vakiona kun pisteitä lisätään (ei kasva)
+- [x] `prefers-reduced-motion` → ei animaatioita
+- [ ] **Puhelimella ulkona tarkistamatta** — se on Vaiheen 1 hyväksymisportti, ei minun ajettavissani
+
+> **Säätö:** hehkuväri on `--cosmic-purple` sävy pidettynä mutta vaaleus nostettuna
+> (`#a04ad4`). Token-arvolla `#4a1a5c` halo on tummempi kuin rakennukset joiden yli se
+> kulkee, eikä sitä yksinkertaisesti näy puhelimessa päivänvalossa.
 
 ## Ei kuulu tähän tikettiin
 
