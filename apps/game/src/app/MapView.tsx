@@ -144,6 +144,8 @@ export function MapView({ onLeave }: MapViewProps) {
         ownedAreaM2={territory.ownedAreaM2}
         strongest={territory.strongest}
         lastClaim={territory.lastClaim}
+        fading={territory.fading}
+        fadingInHours={territory.fadingInHours}
         released={territory.released}
         onWithdraw={onLeave}
       />

@@ -28,6 +28,8 @@ export interface HudProps {
   ownedAreaM2?: number;
   strongest?: number;
   lastClaim?: ClaimEvent | null;
+  fading?: number;
+  fadingInHours?: number | null;
   released?: string[];
   onWithdraw: () => void;
 }
@@ -53,6 +55,14 @@ function claimLine(claim: ClaimEvent): string {
   if (damaged) parts.push(`${damaged} weakened`);
 
   return parts.length > 0 ? parts.join(' · ') : 'The ground did not stir';
+}
+
+/** Hours, said the way a person would say them. */
+function formatHours(hours: number): string {
+  if (hours <= 1) return 'under an hour';
+  if (hours < 24) return `${Math.round(hours)} h`;
+  const days = Math.round(hours / 24);
+  return days === 1 ? 'a day' : `${days} days`;
 }
 
 function formatArea(m2: number): string {
@@ -117,6 +127,8 @@ export function Hud({
   ownedAreaM2 = 0,
   strongest = 0,
   lastClaim = null,
+  fading = 0,
+  fadingInHours = null,
   released = [],
   onWithdraw,
 }: HudProps) {
@@ -129,6 +141,13 @@ export function Hud({
         {lastClaim ? (
           <p className="hud__claim" role="status">
             <span aria-hidden>◈</span> {claimLine(lastClaim)}
+          </p>
+        ) : null}
+
+        {fading > 0 ? (
+          <p className="hud__note hud__note--warn" role="status">
+            {fading} {fading === 1 ? 'cell fades' : 'cells fade'}
+            {fadingInHours !== null ? ` in ${formatHours(fadingInHours)}` : ''} — walk them
           </p>
         ) : null}
 

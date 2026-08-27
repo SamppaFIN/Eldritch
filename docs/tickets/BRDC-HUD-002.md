@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | S (tunteja) |
 | **Riippuvuudet** | BRDC-CLAIM-006, BRDC-HUD-001 |
-| **Status** | `done` — 2026-08-27 |
-| **Valmius** | 100 % |
+| **Status** | `done` — 2026-08-27 (1 kohta auki) |
+| **Valmius** | 90 % |
 
 ## 🔴 RED
 
@@ -19,7 +19,8 @@ sulkeutuminen juuri teki. Ilman palautetta mekaniikka jää näkymättömäksi.
 - [x] Lenkin sulkeutuessa näytetään tulos lore-sävyisenä:
       *"12 cells awakened · 3 corrupted · 1 reinforced"*
 - [x] Vapautuvista soluista tulee tapahtuma **"The Void reclaims"**
-- [x] Solut, joiden rappeutuminen alkaa alle 48 h päästä, näytetään varoituksena
+- [x] Rappeutumisvaroitus: **48 h ennen vapautumista** HUD sanoo montako solua hiipuu
+      ja milloin ensimmäinen menee ("2 cells fade in 2 days — walk them")
 - [x] Käyttöliittymän sanasto on lore-sanastoa, ei koodisanastoa
 - [x] 360 px viewportilla HUD mahtuu ilman vieritystä
 
@@ -40,15 +41,15 @@ sulkeutuminen juuri teki. Ilman palautetta mekaniikka jää näkymättömäksi.
 "kävele säännöllisesti samoja reittejä". Jos pelaaja ei näe alueensa hiipuvan, hän
 huomaa menetyksen vasta kun se on tapahtunut — eikä palaa.
 
-Pinta-ala: solujen määrä × 2 150 m². Alle 1 km² näytetään neliömetreinä, sen yli
-kahden desimaalin km²:nä.
+Pinta-ala: **mitattu `h3.cellArea`lla**, ei kerrottu nimellisarvolla — res-11-solu on
+Tampereen leveydellä ~1 622 m², ei 2 150 m².
 
 ## Testit
 
 - [x] Solumäärä päivittyy lenkin sulkeuduttua
-- [x] Tulosviesti näyttää oikeat luvut kaikille neljälle lopputulostyypille
-- [x] Kellon kelaus (+19 vrk) → varoitus ilmestyy ennen vapautumista
-- [x] Kellon kelaus (+21 vrk) → "The Void reclaims" -tapahtuma
+- [~] Tulosviesti testattu `awakened`-tapaukselle. Muut kolme **vain yksikkötesteissä**
+- [x] Kellon kelaus +10 vrk → varoitus ilmestyy (e2e `decay.spec.ts`)
+- [x] Kellon kelaus +16 vrk → solut vapautuvat, HUD putoaa nollaan (e2e)
 - [x] 360 px viewport ajetaan ensin
 
 > **HUD kasvoi yli oman sääntönsä.** Aluetilastojen lisääminen vei sen 30,5 %:iin

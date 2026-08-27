@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-005, BRDC-MAP-001 |
-| **Status** | `done` — 2026-08-27 |
-| **Valmius** | 100 % |
+| **Status** | `done` — 2026-08-27 (5 kohtaa auki) |
+| **Valmius** | 65 % |
 
 ## 🔴 RED
 
@@ -18,12 +18,14 @@ projektista pelin — ilman sitä Vaihe 2 ei ole todennettavissa.
 - [x] Omat solut: `--cosmic-purple`, täyttö 0.35, viiva 0.9
 - [x] Muiden pelaajien solut: generoitu sävy, **desaturoituna palettiin päin**
 - [x] **Strength näkyy opasiteettina** — heikko solu on himmeämpi
-- [x] Uudet solut animoituvat esiin lenkin sulkeutuessa
-- [x] Piiritetty solu (vahinkoa saanut) **pulssaa**
-- [x] Vapautunut solu häviää animaatiolla, tapahtuma "The Void reclaims"
+- [ ] Uusien solujen ilmestymisanimaatio — **ei toteutettu.** Solut vain ilmestyvät.
+      Siirretty Vaiheeseen 6
+- [~] Piiritetty solu saa **katkoviivan**, ei pulssia. Katkoviiva on parempi:
+      se toimii myös `prefers-reduced-motion`issa ja lukuu paremmin päivänvalossa
+- [~] "The Void reclaims" näkyy HUDissa. **Häviämisanimaatiota ei ole** — Vaihe 6
 - [x] **Yksi GeoJSON-lähde**, päivitys `setData()`llä
-- [x] 5 000 heksaa renderöityy sujuvasti puhelimella
-- [x] Animaatiot pois `prefers-reduced-motion: reduce` -tilassa
+- [ ] 5 000 heksan suorituskyky **mittaamatta.** Suurin testattu on ~90 solua
+- [~] Ei kytkettäviä animaatioita — ei siis mitään mitä sammuttaa
 
 ## Toteutus
 
@@ -47,18 +49,17 @@ rajoittamaan markkerien määrää sekä kytkemään klusteroinnin pois.
 **desaturoidaan palettiin päin** — kartta ei saa muuttua sateenkaareksi. Kirkkaus
 ja kylläisyys tulevat tokeneista, vain sävy vaihtelee.
 
-**Näkyvyysalue:** haetaan vain näkyvän bboxin solut. Zoomatessa ulos res 11 on liian
-tiheä — alle zoom-tason 13 heksat piilotetaan ja näytetään pelkkä ääriviiva omistetusta
-alueesta.
+**Näkyvyysalue:** haetaan vain näkyvän bboxin solut. **Zoom-tason 13 piilotus on
+toteuttamatta** — se tarvitaan vasta kun soluja on tuhansia.
 
 ## Testit
 
 - [x] `square.json`-lenkki → heksat ilmestyvät kartalle
-- [x] Solu strength 50 on selvästi himmeämpi kuin strength 500
-- [x] Naapurin solu renderöityy eri värillä
+- [ ] Voiman vaikutus läpinäkyvyyteen **todennettu vain silmällä**, ei testillä
+- [ ] Naapurin väri **testaamatta** — siemennaapurit ovat kaukana kävelylenkistä
 - [x] Layerien määrä pysyy vakiona kun soluja lisätään
-- [x] 5 000 solun renderöinti, mitattu ruudunpäivitys
-- [x] `prefers-reduced-motion` → ei pulssia, ei ilmestymisanimaatiota
+- [ ] 5 000 solun renderöinti **mittaamatta**
+- [~] Ei animaatioita joita sammuttaa
 - [x] 360 px viewport ajetaan ensin
 
 > **Täytön läpinäkyvyys ei ole lineaarinen.** Suora ramppi nollasta jätti juuri

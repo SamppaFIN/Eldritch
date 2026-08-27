@@ -6,7 +6,7 @@
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-004, BRDC-MOCK-001 |
 | **Status** | `done` — 2026-08-27 |
-| **Valmius** | 100 % |
+| **Valmius** | 95 % |
 
 ## 🔴 RED
 
@@ -57,14 +57,17 @@ Pages-deployhin. Kelattu offset tallennetaan, jotta reload ei nollaa sitä keske
 
 ## Testit
 
-- [x] `square.json`-fixture → `closed: true`, soluja > 0, kaikki `claimed`
+- [~] Yksikkötestit käyttävät simuloitua lenkkiä, **eivät `square.json`ia**.
+      Fixture on `loopDetection.test.ts`:n kattama
 - [x] Sama lenkki uudelleen samana päivänä → kaikki `reinforced`, strength +25
 - [x] Sama lenkki kellon kelauksen jälkeen (+1 vrk) → `reinforced` streakilla, +50
 - [x] Naapurin solujen päälle kävely → `damaged`, omistaja ei vaihdu
 - [x] Kolme lenkkiä samojen solujen yli → omistaja vaihtuu jossain vaiheessa
-- [x] Kellon kelaus +20 vrk → heikot solut vapautuvat `getCells`issä
-- [x] `open-line.json` → `closed: false`, mitään ei tallennu
-- [x] Reload säilyttää solut ja kellon offsetin
+- [x] Kellon kelaus → solut vapautuvat, sekä yksikkötestissä että selaimessa
+      (`decay.spec.ts`, dev-serveriä vasten)
+- [~] Sulkeutumaton kävely → `closed: false` (yksikkö + e2e). Syöte on simuloitu
+      edestakainen kävely, ei `open-line.json`
+- [x] Reload säilyttää solut (e2e). Kellon offset tallennetaan; säilyvyys testaamatta
 
 > **Kaksi peräkkäistä bugia, jotka molemmat hukkasivat valmiin lenkin hiljaa:**
 >

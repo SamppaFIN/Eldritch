@@ -7,7 +7,7 @@
  * moment it is supposed to feel good.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { cellAreaM2, totalAreaM2 } from '@es3/core';
+import { cellAreaM2, hoursUntilReleased, totalAreaM2 } from '@es3/core';
 import type { BBox, CaptureOutcome, Cell, GameRepository, RunId } from '@es3/core';
 
 export interface ClaimEvent {
@@ -24,6 +24,10 @@ export interface TerritoryState {
   strongest: number;
   /** The most recent closure, for the HUD to announce. */
   lastClaim: ClaimEvent | null;
+  /** Cells within FADING_WARNING_HOURS of being reclaimed. */
+  fading: number;
+  /** Hours until the first of them goes, or null if nothing is close. */
+  fadingInHours: number | null;
   released: string[];
   refresh: () => Promise<void>;
 }
@@ -128,16 +132,47 @@ export function useTerritory({
     })();
   }, [repository, trailVersion, refresh, now]);
 
+  /*
+   * What is about to be lost.
+   *
+   * The core loop is "walk the same routes regularly". A player who only discovers a
+   * loss after it has happened does not go back for it; one told on Thursday that
+   * Saturday's route is fading goes for a walk. This is the single most useful number
+   * in the HUD once someone holds any ground at all.
+   */
+  const at = now();
+  let fadingInHours: number | null = null;
+  let fading = 0;
+
+  for (const cell of owned) {
+    const elapsed = (at - cell.lastVisitedAt) / 3_600_000;
+    const remaining = hoursUntilReleased(cell.strength) - elapsed;
+    if (remaining <= FADING_WARNING_HOURS) {
+      fading++;
+      if (fadingInHours === null || remaining < fadingInHours) fadingInHours = remaining;
+    }
+  }
+
   return {
     cells,
     owned,
     ownedAreaM2: totalAreaM2(owned.map((c) => c.h3)),
     strongest: owned.reduce((max, c) => Math.max(max, c.strength), 0),
     lastClaim,
+    fading,
+    fadingInHours,
     released,
     refresh,
   };
 }
+
+/**
+ * How much notice a player gets.
+ *
+ * Two days: long enough to fit a walk into a week, short enough that the warning still
+ * means something when it appears.
+ */
+export const FADING_WARNING_HOURS = 48;
 
 /** Area of a single cell, for callers that need one rather than a set. */
 export { cellAreaM2 };

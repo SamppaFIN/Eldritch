@@ -74,7 +74,9 @@ Kaikki seitsemän tikettiä on koodattu ja todennettu siltä osin kuin selain vo
 | [BRDC-CLAIM-006](BRDC-CLAIM-006.md) | Heksojen renderöinti kartalle | M | CLAIM-005, MAP-001 |
 | [BRDC-HUD-002](BRDC-HUD-002.md) | HUD: omistetut solut, vahvin alue | S | CLAIM-006, HUD-001 |
 
-**Portti V2:** kortteli täyttyy · huominen vahvistaa · 20 vrk vapauttaa. **Peli on olemassa.**
+**Portti V2:** ✅ **läpi selaimessa** — kortteli täyttyy (`claim.spec.ts`), huominen
+vahvistaa ja 16 vrk vapauttaa (`decay.spec.ts`, kellon kelauksella). **Peli on olemassa.**
+Ulkona kävelty todennus on yhä tekemättä, kuten V1:kin.
 
 ### 🧪 Läpileikkaava
 
@@ -110,7 +112,7 @@ Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
 | **1** Kartta ja ley-line | 🔨 koodattu, portti odottaa | 7/7 |
 | **2** Aluevaltaus | ⬜ ei aloitettu — **V1-portti ensin** | 0/7 |
 
-Testejä: **118 yksikkö** + **56 Playwright** (360 px ajetaan ensin).
+Testejä: **220 yksikkö** + **69 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
 Sääntö `claude.md` §5: jos portti ei mene läpi, seuraava vaihe ei ala.
 
 ---

@@ -91,6 +91,10 @@
   animation: es-rise var(--dur-slow) var(--ease-out) both;
 }
 
+.hud__note--warn {
+  color: var(--warning);
+}
+
 .hud__note--loss {
   color: color-mix(in oklch, var(--danger) 70%, var(--text));
 }
