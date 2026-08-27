@@ -5,8 +5,8 @@
 | **Vaihe** | 2 — Aluevaltaus |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-005, BRDC-MAP-001 |
-| **Status** | `done` — 2026-08-27 (3 kohtaa auki) |
-| **Valmius** | 85 % |
+| **Status** | `done` — 2026-08-27 (1 kohta auki) |
+| **Valmius** | 95 % |
 
 ## 🔴 RED
 
@@ -56,8 +56,8 @@ enää kanna tietoa. Täyttö jää, jotta alueen muoto näkyy ylhäältä. Test
 ## Testit
 
 - [x] `square.json`-lenkki → heksat ilmestyvät kartalle
-- [ ] Voiman vaikutus läpinäkyvyyteen **todennettu vain silmällä**, ei testillä
-- [ ] Naapurin väri **testaamatta** — siemennaapurit ovat kaukana kävelylenkistä
+- [x] Voima kulkee featuren propertyyn ja erottaa heikon vahvasta (`territoryFeatures.test.ts`)
+- [x] Jokainen kilpailija saa oman sävynsä, sama joka sessiossa, aina paletin sisällä
 - [x] Layerien määrä pysyy vakiona kun soluja lisätään
 - [x] 5 000 solun renderöinti mitattu (`claim.spec.ts`)
 - [~] Ei animaatioita joita sammuttaa
@@ -76,7 +76,16 @@ enää kanna tietoa. Täyttö jää, jotta alueen muoto näkyy ylhäältä. Test
 > päinvastoin, ja väärinpäin koko alue piirtyy Afrikan rannikolle **ilman virhettä**.
 > Nyt vaihto tehdään kerran, eikä mikään `packages/core`n ulkopuolella riipu h3-js:stä.
 
-## Ei kuulu tähän tikettiin
+> **`TerritoryLayer` jaettiin kahtia.** Kaikki päätökset — kuka saa minkä värin, milloin
+> solu on piiritetty, mitkä ominaisuudet paint-lausekkeet lukevat — ovat nyt
+> `territoryFeatures.ts`:ssä, jossa ne testataan ilman selainta. Layeriin jäi
+> MapLibre-putkitus. 16 uutta testiä.
+>
+> Yksi niistä paljasti oikean vian: **vapautunut solu sai generoidun kilpailijasävyn**,
+> koska `ownerId === null` putosi väärään haaraan. Voidin palauttama maa näytti siis
+> jonkun toisen alueelta. Nyt se piirtyy vapaana.
+>
+> Auki: solujen häviämisanimaatio (Vaihe 6).
 
 Realtime-päivitykset muilta pelaajilta (Vaihe 3). Anchor Stone -visualisointi (Vaihe 6).
 Wager-areena (Vaihe 4).

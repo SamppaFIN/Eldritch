@@ -1,14 +1,19 @@
 /**
- * Territory on the map.
+ * Territory on the map — MapLibre plumbing only.
  *
  * One GeoJSON source holding every visible cell, and three layers reading it with
  * data-driven paint. This is where MapLibre earns its place over Leaflet: five thousand
  * hexagons is nothing on the GPU, and would have been five thousand DOM nodes before.
+ *
+ * Every decision — who gets which colour, when a cell counts as contested — lives in
+ * territoryFeatures.ts, where it can be tested without a browser.
  */
 import type { FeatureCollection, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { cellBoundary, MAX_STRENGTH } from '@es3/core';
+import { MAX_STRENGTH } from '@es3/core';
 import type { Cell, PlayerId } from '@es3/core';
+import { CONTESTED_STROKE, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
+import type { CellProperties } from './territoryFeatures.js';
 
 export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
@@ -23,50 +28,11 @@ export const CELL_CONTESTED_LAYER = 'cells-contested';
  */
 export const CELL_DETAIL_MINZOOM = 13;
 
-/** --cosmic-purple, inlined: MapLibre parses CSS colours but not `var()`. */
-const OWN = '#4a1a5c';
-const OWN_STROKE = '#8b3fb8';
-const CONTESTED = '#d94a4a'; // --danger
-
-/**
- * A stable hue per rival, desaturated toward the palette.
- *
- * Fully saturated per-player colours turn a contested neighbourhood into a fruit bowl
- * and stop it reading as the same world as everything else. Lightness and saturation
- * come from the palette; only the hue moves.
- */
-function hueFor(id: PlayerId): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  return `hsl(${hash % 360}, 38%, 42%)`;
-}
-
-function toGeoJson(cells: readonly Cell[], me: PlayerId | null): FeatureCollection<Polygon> {
-  return {
-    type: 'FeatureCollection',
-    features: cells.map((cell) => ({
-      type: 'Feature',
-      id: cell.h3,
-      properties: {
-        strength: cell.strength,
-        mine: cell.ownerId === me,
-        // Below base strength means someone has been walking on it.
-        contested: cell.ownerId !== null && cell.strength < 100,
-        color: cell.ownerId === me ? OWN : cell.ownerId ? hueFor(cell.ownerId) : OWN,
-      },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [cellBoundary(cell.h3)],
-      },
-    })),
-  };
-}
-
 /** Idempotent. Safe to call whenever the map becomes ready. */
 export function ensureTerritoryLayers(map: MapLibreMap): void {
   if (map.getSource(CELL_SOURCE)) return;
 
-  map.addSource(CELL_SOURCE, { type: 'geojson', data: toGeoJson([], null) });
+  map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
 
   // Below the trail, which is added later and therefore sits on top: the ley-line is
   // what the player is drawing right now and must never be buried by their own ground.
@@ -124,7 +90,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['get', 'contested'],
     paint: {
-      'line-color': CONTESTED,
+      'line-color': CONTESTED_STROKE,
       'line-width': 2,
       'line-dasharray': [2, 2],
       'line-opacity': 0.85,
@@ -138,8 +104,8 @@ export function setTerritoryData(
   me: PlayerId | null,
 ): void {
   const source = map.getSource(CELL_SOURCE);
-  (source as { setData?: (d: FeatureCollection<Polygon>) => void })?.setData?.(
-    toGeoJson(cells, me),
+  (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
+    cellsToGeoJson(cells, me),
   );
 }
 
