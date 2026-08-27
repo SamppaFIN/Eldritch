@@ -54,6 +54,22 @@ export interface GameRepository {
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;
 
+  /* --- The Hearth ------------------------------------------------------- */
+  /**
+   * Accept the ground under the player as their starting place.
+   *
+   * The adventure opens with this: not a menu, not a name, just the cell they happen to
+   * be standing in when they agree to it. It is claimed on the spot — a player who has
+   * accepted a Hearth is never looking at an empty map — and it holds the Anchor Stone
+   * from then on.
+   *
+   * Idempotent in the sense that matters: calling it again moves the Hearth, which is
+   * what a deliberate reset needs, and nothing else calls it twice.
+   */
+  setHome(position: LatLng, now: number): Promise<H3Index>;
+  /** The Hearth cell, or null if the player has not accepted one yet. */
+  getHome(): Promise<H3Index | null>;
+
   /* --- Places ----------------------------------------------------------- */
   /** Cells that have earned a name, Anchor first. */
   getPlaces(): Promise<RevealedPlace[]>;

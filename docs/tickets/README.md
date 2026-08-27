@@ -85,6 +85,7 @@ hylätyt vaihtoehdot: [PIVOT-2026-08-27.md](PIVOT-2026-08-27.md).
 
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
+| [BRDC-HEARTH-001](BRDC-HEARTH-001.md) | Seikkailu alkaa kotipesän hyväksymisestä | M | GROW-001, DWELL-001 |
 | [BRDC-GROW-001](BRDC-GROW-001.md) | Vierekkäisyyskasvu: alue laajenee askelittain | M | CLAIM-003, CLAIM-005 |
 | [BRDC-DWELL-001](BRDC-DWELL-001.md) | Vietetty aika → Ankkurikivi ja temppelit | M | GROW-001 |
 | [BRDC-VIGIL-001](BRDC-VIGIL-001.md) | Vigil: raja pysyy totena taskussa | M | GROW-001, DWELL-001 |

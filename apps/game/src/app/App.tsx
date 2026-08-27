@@ -1,7 +1,9 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { loadWith, remove, saveNow } from '@es3/core';
+import { load, loadWith, remove, saveNow } from '@es3/core';
+import type { LatLng } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
+import { Hearth } from '../features/hearth/Hearth.js';
 import './mapview.css';
 
 /**
@@ -10,10 +12,22 @@ import './mapview.css';
  */
 const MapView = lazy(async () => ({ default: (await import('./MapView.js')).MapView }));
 
-type View = 'title' | 'map';
+type View = 'title' | 'hearth' | 'map';
 
 interface Session {
   startedAt: number;
+}
+
+/**
+ * The accepted Hearth, kept here rather than only in IndexedDB.
+ *
+ * App has no repository of its own — MapView opens it — and this is the one question it
+ * has to answer before deciding which screen to show. MapView writes the real thing
+ * through `setHome` on boot; this is the note that says the player has already agreed.
+ */
+interface HearthMark {
+  position: LatLng;
+  at: number;
 }
 
 /**
@@ -54,6 +68,13 @@ export function App() {
 
   const begin = useCallback(() => {
     saveNow<Session>('session', { startedAt: Date.now() });
+    // Someone who has already accepted a Hearth is not asked again — they are walking
+    // back into a sanctuary that exists, not founding a new one.
+    setView(load<HearthMark | null>('hearth', null) ? 'map' : 'hearth');
+  }, []);
+
+  const acceptHearth = useCallback((position: LatLng) => {
+    saveNow<HearthMark>('hearth', { position, at: Date.now() });
     setView('map');
   }, []);
 
@@ -64,6 +85,8 @@ export function App() {
   }, []);
 
   if (view === 'title') return <TitleScreen onBegin={begin} notice={notice} />;
+
+  if (view === 'hearth') return <Hearth onAccept={acceptHearth} />;
 
   return (
     <Suspense fallback={<MapSkeleton />}>

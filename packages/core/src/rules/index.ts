@@ -15,6 +15,7 @@ export {
   accrueAll,
   accrueDwell,
   anchorOf,
+  placesWithHome,
   revealPlaces,
   revealProgress,
 } from './dwell.js';

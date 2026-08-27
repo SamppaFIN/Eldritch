@@ -109,6 +109,35 @@ export function revealPlaces(dwell: DwellMap): Place[] {
   return places;
 }
 
+/**
+ * Places, when the player has already accepted a Hearth.
+ *
+ * The Hearth is chosen, not discovered: the adventure opens by asking the player to
+ * accept the ground they are standing on. So it is the Anchor by right, and time can
+ * only ever reveal temples afterwards — otherwise a long afternoon in a café would
+ * quietly take the title away from the place they agreed to start from.
+ *
+ * With no Hearth this is exactly `revealPlaces`, which is what a save from before this
+ * existed will hit.
+ */
+export function placesWithHome(dwell: DwellMap, home: H3Index | null): Place[] {
+  if (!home) return revealPlaces(dwell);
+
+  const temples = Object.entries(dwell)
+    .filter(([h3, ms]) => h3 !== home && ms >= TEMPLE_THRESHOLD_MS)
+    .sort((a, b) => b[1] - a[1]);
+
+  return [
+    { h3: home, kind: 'anchor', dwellMs: dwell[home] ?? 0, rank: 0 },
+    ...temples.map(([h3, dwellMs], i) => ({
+      h3,
+      kind: 'temple' as const,
+      dwellMs,
+      rank: i + 1,
+    })),
+  ];
+}
+
 /** The Anchor, if one has revealed itself. */
 export function anchorOf(places: readonly Place[]): Place | null {
   return places.find((p) => p.kind === 'anchor') ?? null;

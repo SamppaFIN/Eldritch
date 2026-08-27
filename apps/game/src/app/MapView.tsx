@@ -85,6 +85,24 @@ export function MapView({ onLeave }: MapViewProps) {
     simulate,
   });
 
+  /*
+   * Write the accepted Hearth through, once.
+   *
+   * App records the acceptance in localStorage because it has no repository; this is
+   * where it becomes a claimed cell and an Anchor Stone. Guarded on `getHome` rather
+   * than on the note, so a save that already has one is never overwritten.
+   */
+  useEffect(() => {
+    if (!repository) return;
+    const mark = load<{ position: { lat: number; lng: number } } | null>('hearth', null);
+    if (!mark) return;
+    void (async () => {
+      if (await repository.getHome()) return;
+      await repository.setHome(mark.position, clock.now());
+      setProfile(await repository.getProfile());
+    })();
+  }, [repository, clock]);
+
   // The world exists as soon as the game knows where you are, not once a batch of
   // trail points has been written.
   useEffect(() => {

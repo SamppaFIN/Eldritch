@@ -1,0 +1,88 @@
+/* The acceptance. One panel, centred, nothing else competing for attention. */
+
+.hearth {
+  min-block-size: 100dvb;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+
+.hearth__panel {
+  inline-size: min(32rem, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.hearth__sigil {
+  color: var(--accent-warm);
+}
+
+.hearth__title {
+  /* min() rather than the bare token: the panel must not set a min-content width wider
+     than a 360px phone at 200% zoom, which is a WCAG reflow failure. */
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: min(var(--text-h1), 11vw);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.hearth__body {
+  max-inline-size: 36ch;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  text-wrap: pretty;
+}
+
+.hearth__state {
+  color: var(--text-dim);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+/* Colour reinforces the words; it never replaces them. */
+.hearth__state[data-tier='usable'],
+.hearth__state[data-tier='sharp'] {
+  color: var(--accent);
+}
+
+.hearth__state--refused {
+  color: var(--warning);
+}
+
+.hearth__readout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-block: var(--space-1);
+}
+
+.hearth__readout dt {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hearth__readout dd {
+  color: var(--text);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.hearth__cta {
+  margin-block-start: var(--space-2);
+  min-block-size: var(--touch-min);
+}
+
+.hearth__hint {
+  max-inline-size: 38ch;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}

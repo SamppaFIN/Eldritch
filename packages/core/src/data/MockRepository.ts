@@ -12,12 +12,14 @@
  */
 import { cellToLatLng, latLngToCell } from 'h3-js';
 import { filterTrail } from '../geo/filter.js';
-import { revealPlaces } from '../rules/dwell.js';
+import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap, DwellReading } from '../rules/dwell.js';
 import { planWalk, walkNeighbourhood } from './walking.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP, XP_PER_CELL_CLAIMED } from '../rules/constants.js';
 import { sweepDecay } from '../rules/decay.js';
+import { emptyCell, resolveCapture } from '../rules/capture.js';
+import { cellAt } from '../geo/cells.js';
 import { levelForXp } from '../rules/level.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import type {
@@ -29,6 +31,7 @@ import type {
   ClaimResult,
   DecayResult,
   GameRepository,
+  H3Index,
   PlayerProfile,
   Run,
   RunId,
@@ -46,6 +49,7 @@ const K = {
   trail: (id: RunId) => `trail:${id}`,
   cell: (h3: string) => `cell:${h3}`,
   dwell: 'dwell',
+  home: 'home',
   lastReading: 'reading:last',
 } as const;
 
@@ -201,10 +205,36 @@ export class MockRepository implements GameRepository {
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
   }
 
+  /* --- The Hearth ------------------------------------------------------- */
+
+  async setHome(position: LatLng, now: number): Promise<H3Index> {
+    const h3 = cellAt(position);
+    const profile = await this.getProfile();
+
+    /*
+     * Claimed outright, adjacency waived.
+     *
+     * This is the seed the growth rule already allows for, made explicit: the player
+     * agreed to start here, so the ground is theirs before they take a step. Without it
+     * the Hearth would be a marker floating over land belonging to nobody.
+     */
+    const current = (await this.store.get<Cell>(K.cell(h3))) ?? emptyCell(h3);
+    const { cell } = resolveCapture(current, { id: profile.id, level: profile.level }, now);
+    await this.store.set(K.cell(h3), cell);
+
+    await this.store.set(K.home, h3);
+    await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
+    return h3;
+  }
+
+  async getHome(): Promise<H3Index | null> {
+    return (await this.store.get<H3Index>(K.home)) ?? null;
+  }
+
   /* --- Places ----------------------------------------------------------- */
 
   async getPlaces(): Promise<RevealedPlace[]> {
-    return revealPlaces((await this.store.get<DwellMap>(K.dwell)) ?? {});
+    return placesWithHome((await this.store.get<DwellMap>(K.dwell)) ?? {}, await this.getHome());
   }
 
   async getDwellFor(h3: string): Promise<number> {

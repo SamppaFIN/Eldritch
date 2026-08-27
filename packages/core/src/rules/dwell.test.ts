@@ -6,6 +6,7 @@ import {
   accrueAll,
   accrueDwell,
   anchorOf,
+  placesWithHome,
   revealPlaces,
   revealProgress,
 } from './dwell.js';
@@ -140,5 +141,38 @@ describe('revealProgress', () => {
   it('never runs past the end or below zero', () => {
     expect(revealProgress(TEMPLE_THRESHOLD_MS * 10, false)).toBe(1);
     expect(revealProgress(-5, false)).toBe(0);
+  });
+});
+
+describe('placesWithHome', () => {
+  it('is exactly revealPlaces when no Hearth has been accepted', () => {
+    // The path a save from before the Hearth existed takes.
+    const dwell = { [HOME]: min(200), [WORK]: min(120) };
+    expect(placesWithHome(dwell, null)).toEqual(revealPlaces(dwell));
+  });
+
+  it('keeps the Anchor on the accepted Hearth, however long the afternoon was', () => {
+    // The player agreed to start here. A café cannot quietly take the title away.
+    const places = placesWithHome({ [HOME]: min(50), [WORK]: min(600) }, HOME);
+    expect(places[0]).toMatchObject({ h3: HOME, kind: 'anchor', rank: 0 });
+    expect(places[1]).toMatchObject({ h3: WORK, kind: 'temple' });
+  });
+
+  it('names the Hearth even before any time has been spent in it', () => {
+    const [anchor] = placesWithHome({}, HOME);
+    expect(anchor).toMatchObject({ h3: HOME, kind: 'anchor', dwellMs: 0 });
+  });
+
+  it('never lists the Hearth twice', () => {
+    const places = placesWithHome({ [HOME]: min(600) }, HOME);
+    expect(places.filter((p) => p.h3 === HOME)).toHaveLength(1);
+  });
+
+  it('ranks temples by time and skips anything under the threshold', () => {
+    const places = placesWithHome(
+      { [HOME]: min(10), [WORK]: min(100), [SHOP]: min(200), 'cell-brief': min(50) },
+      HOME,
+    );
+    expect(places.map((p) => p.h3)).toEqual([HOME, SHOP, WORK]);
   });
 });
