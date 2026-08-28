@@ -17,9 +17,10 @@ import type { DwellMap, DwellReading } from '../rules/dwell.js';
 import { planWalk, walkNeighbourhood } from './walking.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP, XP_PER_CELL_CLAIMED } from '../rules/constants.js';
-import { sweepDecay } from '../rules/decay.js';
+import { projectCell, sweepDecay } from '../rules/decay.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { awardClaims, settlePouch } from './pouch.js';
+import { awardClaims, settlePouch, wardWith } from './pouch.js';
+import type { WardResult } from '../rules/ward.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
 import { cellAt } from '../geo/cells.js';
 import { levelForXp } from '../rules/level.js';
@@ -42,18 +43,8 @@ import type {
 import type { KeyValueStore } from './kv.js';
 import { MemoryStore } from './kv.js';
 import { seedCells } from './seed.js';
+import { K } from './keys.js';
 
-const K = {
-  profile: 'profile',
-  activeRun: 'run:active',
-  seeded: 'seeded',
-  run: (id: RunId) => `run:${id}`,
-  trail: (id: RunId) => `trail:${id}`,
-  cell: (h3: string) => `cell:${h3}`,
-  dwell: 'dwell',
-  home: 'home',
-  lastReading: 'reading:last',
-} as const;
 
 const CELL_PREFIX = 'cell:';
 
@@ -213,6 +204,20 @@ export class MockRepository implements GameRepository {
 
   async getResources(now: number): Promise<ResourcePool> {
     return (await settlePouch(this.store, await this.ownedIndexes(now), now)).pool;
+  }
+
+  async wardCell(h3: H3Index, now: number): Promise<WardResult> {
+    // Projected first, so a cell decay has already released cannot be propped up from
+    // the grave — and so the strength being paid to raise is the one on screen.
+    const stored = await this.store.get<Cell>(K.cell(h3));
+    const live = stored ? projectCell(stored, now) : null;
+    if (!live) return { warded: false, refused: 'not-yours' };
+
+    const me = await this.getProfile();
+    const owned = await this.ownedIndexes(now);
+    const result = await wardWith(this.store, live, me.id, owned, now);
+    if (result.warded) await this.store.set(K.cell(h3), result.cell);
+    return result;
   }
 
   private async ownedIndexes(now: number): Promise<H3Index[]> {

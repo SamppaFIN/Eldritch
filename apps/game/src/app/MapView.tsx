@@ -9,6 +9,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { clearAll, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
+  H3Index,
+  WardRefusal,
   GameRepository,
   PlayerProfile,
   ResourcePool,
@@ -24,6 +26,7 @@ import { useTrail } from '../features/trail/useTrail.js';
 import { useKeepAlive } from '../features/trail/useKeepAlive.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
+import { CellPanel } from '../features/territory/CellPanel.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
@@ -47,6 +50,8 @@ export function MapView({ onLeave }: MapViewProps) {
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [resources, setResources] = useState<ResourcePool | null>(null);
+  const [selected, setSelected] = useState<H3Index | null>(null);
+  const [refusal, setRefusal] = useState<WardRefusal | null>(null);
 
   /*
    * Held open by the player, never by default.
@@ -187,6 +192,34 @@ export function MapView({ onLeave }: MapViewProps) {
 
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
 
+  // A new selection starts with a clean slate: a refusal about the last cell has nothing
+  // to say about this one.
+  const onCellTap = useCallback((h3: H3Index) => {
+    setSelected(h3);
+    setRefusal(null);
+  }, []);
+
+  const selectedCell = useMemo(
+    () => territory.cells.find((c) => c.h3 === selected) ?? null,
+    [territory.cells, selected],
+  );
+
+  const onWard = useCallback(
+    (h3: H3Index) => {
+      if (!repository) return;
+      void (async () => {
+        const result = await repository.wardCell(h3, clock.now());
+        setRefusal(result.warded ? null : result.refused);
+        if (result.warded) {
+          setResources(result.pool);
+          // The strength on screen has to be the strength that was just paid for.
+          await territory.refresh();
+        }
+      })();
+    },
+    [repository, clock, territory],
+  );
+
   /*
    * A player who owns nothing has never seen the game do anything, so the map opens
    * wide enough to show someone else's territory. Once they hold ground, walking zoom.
@@ -228,12 +261,23 @@ export function MapView({ onLeave }: MapViewProps) {
         awakening={awakening}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}
+        onCellTap={onCellTap}
         onViewportChange={onViewportChange}
       />
 
       <ClaimBurst claim={territory.lastClaim} />
 
       <PlaceReveal revealed={trail.revealed} />
+
+      <CellPanel
+        cell={selectedCell}
+        me={profile?.id ?? null}
+        resources={resources}
+        now={clock.now()}
+        refusal={refusal}
+        onWard={onWard}
+        onClose={() => setSelected(null)}
+      />
 
       <FirstLook
         show={territory.owned.length === 0 && territory.lastClaim === null}

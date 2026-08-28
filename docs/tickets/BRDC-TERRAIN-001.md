@@ -5,8 +5,8 @@
 | **Vaihe** | 2.5 — suunnanmuutos |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-GROW-001 |
-| **Status** | `~` |
-| **Valmius** | 70 % |
+| **Status** | `done` |
+| **Valmius** | 100 % |
 | **Lähde** | `files/pelin-suunnittelumuistiinpanot.md` · Infinite 2026-08-27 |
 
 ## 🔴 RED
@@ -23,11 +23,10 @@ mitään — vain lukumäärä kasvaa.
 - [x] Omistetut solut tuottavat **hiljaista tuottoa**: `TRICKLE_PER_HOUR = 2` per
       tuottava solu, tilitys tasatunnein
 - [x] Resurssit näkyvät HUDissa, ja kartalla omien solujen keskellä värinuppina
-- [ ] Resursseilla voi **vahvistaa solua** ilman kävelyä — ensimmäinen käyttökohde
+- [x] Resursseilla voi **vahvistaa solua** ilman kävelyä — `BRDC-WARD-001`
 - [x] Puhdas funktio, testattu (17 yksikkötestiä + 7 repositoriotasolla)
 
-**Loppuosa:** resurssien *käyttö*. `spend` ja `canAfford` ovat olemassa ja testattu,
-mutta mikään ei vielä kuluta niitä. Se on rakentamisen ensimmäinen pala.
+Resurssien käyttö erkani omaksi tikettikseen ja on tehty: `BRDC-WARD-001`.
 
 ## Toteutus
 

@@ -24,6 +24,7 @@ import type {
   TrailResult,
 } from './domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
+import type { WardResult } from '../rules/ward.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -64,6 +65,13 @@ export interface GameRepository {
    * able to say so.
    */
   getResources(now: number): Promise<ResourcePool>;
+  /**
+   * Spend the pouch to raise one cell's strength.
+   *
+   * Refusals are values, not exceptions: "not yours", "already full" and "cannot afford"
+   * are all things the interface has to be able to say out loud to the player.
+   */
+  wardCell(h3: H3Index, now: number): Promise<WardResult>;
 
   /* --- The Hearth ------------------------------------------------------- */
   /**

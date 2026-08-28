@@ -1,0 +1,101 @@
+/* One cell, up close. Sits above the HUD, docked to the same edge. */
+
+.cell-panel {
+  position: fixed;
+  inset-inline: var(--space-3);
+  /* Top of the screen. The HUD owns the bottom, which is the half a thumb can reach —
+     and this panel is read, then dismissed, rather than operated while walking. */
+  inset-block-start: var(--space-3);
+  z-index: var(--z-hud);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  max-inline-size: 26rem;
+  margin-inline: auto;
+  animation: es-panel-in 0.2s var(--ease-out) both;
+}
+
+.cell-panel__head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cell-panel__ground {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.cell-panel__yield,
+.cell-panel__owner {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cell-panel__close {
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+}
+
+.cell-panel__bar {
+  block-size: 5px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+
+.cell-panel__bar-fill {
+  block-size: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: inline-size 0.3s var(--ease);
+}
+
+.cell-panel__strength {
+  color: var(--text);
+  font-size: var(--text-body);
+}
+
+.cell-panel__decay {
+  color: var(--warning);
+  font-size: var(--text-sm);
+}
+
+.cell-panel__ward {
+  min-block-size: var(--touch-min);
+  margin-block-start: var(--space-1);
+}
+
+.cell-panel__note,
+.cell-panel__refusal {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.cell-panel__refusal {
+  color: var(--warning);
+}
+
+@keyframes es-panel-in {
+  from {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell-panel {
+    animation: none;
+  }
+}

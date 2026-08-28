@@ -6,8 +6,10 @@
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
 import { EMPTY_POOL, addClaimYield, settleResources } from '../rules/terrain.js';
-import type { ResourceState } from '../rules/terrain.js';
-import type { CaptureOutcome, H3Index } from '../types/domain.js';
+import type { ResourcePool, ResourceState } from '../rules/terrain.js';
+import { ward } from '../rules/ward.js';
+import type { WardResult } from '../rules/ward.js';
+import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import type { KeyValueStore } from './kv.js';
 
 const KEY = 'resources';
@@ -54,4 +56,41 @@ export async function awardClaims(
   let pool = state.pool;
   for (const outcome of taken) pool = addClaimYield(pool, outcome.h3);
   await store.set<ResourceState>(KEY, { ...state, pool });
+}
+
+/**
+ * Write a pool back without touching the trickle clock.
+ *
+ * For spending. `since` belongs to the trickle and must survive a purchase — moving it
+ * would hand the player a free hour, or steal one, depending on which way it went.
+ */
+export async function writePouch(
+  store: KeyValueStore,
+  pool: ResourcePool,
+  now: number,
+): Promise<void> {
+  const state = await read(store, now);
+  await store.set<ResourceState>(KEY, { ...state, pool });
+}
+
+/**
+ * Spend the pouch to ward one cell.
+ *
+ * Settles first: the trickle owed up to this moment has to be in the pool before it is
+ * spent, or a player is refused a ward they had already earned the timber for.
+ *
+ * Returns the new cell rather than writing it — the cell store belongs to the repository
+ * and this module only owns the ledger.
+ */
+export async function wardWith(
+  store: KeyValueStore,
+  cell: Cell,
+  me: PlayerId,
+  owned: readonly H3Index[],
+  now: number,
+): Promise<WardResult> {
+  const state = await settlePouch(store, owned, now);
+  const result = ward(cell, state.pool, me);
+  if (result.warded) await writePouch(store, result.pool, now);
+  return result;
 }

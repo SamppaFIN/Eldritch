@@ -3,6 +3,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CLAIM_YIELD, TRICKLE_PER_HOUR, resourceOf } from '../rules/terrain.js';
+import { WARD_COST } from '../rules/ward.js';
 import { destination } from '../geo/project.js';
 import { cellAt } from '../geo/cells.js';
 import { MockRepository } from './MockRepository.js';
@@ -22,6 +23,13 @@ function walk(from = ORIGIN, startT = T0): TrailPoint[] {
     accuracy: 8,
   }));
 }
+
+const BOX = {
+  west: ORIGIN.lng - 0.02,
+  east: ORIGIN.lng + 0.02,
+  south: ORIGIN.lat - 0.02,
+  north: ORIGIN.lat + 0.02,
+};
 
 const total = (p: { water: number; wood: number; gold: number }) => p.water + p.wood + p.gold;
 
@@ -114,5 +122,89 @@ describe('resources', () => {
     await repo.submitTrail(id, walk());
     await repo.resetAll();
     expect(await repo.getResources(T0)).toEqual({ water: 0, wood: 0, gold: 0 });
+  });
+});
+
+describe('warding through the repository', () => {
+  let repo: MockRepository;
+
+  beforeEach(async () => {
+    repo = new MockRepository({ seed: 11 });
+  });
+
+  /**
+   * Walk out and back along four bearings, then hold the ground overnight.
+   *
+   * One straight leg is not enough: a ward costs both timber and water, so the walk has
+   * to cross more than one kind of ground. That is the terrain rule doing its job — a
+   * player who only ever walks one street cannot ward anything — and it means this
+   * fixture has to look like a real neighbourhood rather than a line.
+   */
+  const HELD_UNTIL = T_END + 30 * HOUR;
+
+  async function stocked() {
+    const id = await repo.startRun(T0);
+    let t = T0;
+    for (const bearing of [0, 90, 180, 270]) {
+      const out = Array.from({ length: 14 }, (_, i) => ({
+        ...destination(ORIGIN, bearing, i * 14),
+        t: (t += 10_000),
+        accuracy: 8,
+      }));
+      await repo.submitTrail(id, [...out, ...[...out].reverse().map((p) => ({ ...p, t: (t += 10_000) }))]);
+    }
+    await repo.getResources(HELD_UNTIL);
+    return repo.getOwnedCells(HELD_UNTIL);
+  }
+
+  it('raises the cell and takes the cost from the pouch', async () => {
+    const owned = await stocked();
+    // Not a full cell: a ward is refused outright at the cap, which is a different test.
+    const target = owned.find((c) => c.strength < 500) as { h3: string; strength: number };
+    const before = await repo.getResources(HELD_UNTIL);
+
+    const result = await repo.wardCell(target.h3, HELD_UNTIL);
+    expect(result).toMatchObject({ warded: true });
+    if (!result.warded) return;
+
+    expect(result.pool.wood).toBe(before.wood - (WARD_COST.wood ?? 0));
+    const after = (await repo.getOwnedCells(HELD_UNTIL)).find((c) => c.h3 === target.h3);
+    expect(after?.strength).toBeGreaterThan(target.strength);
+  });
+
+  it('refuses ground that is not the player\'s', async () => {
+    await stocked();
+    const rivals = (await repo.getCells(BOX, T_END)).filter((c) => c.ownerId?.startsWith('seed-'));
+    const result = await repo.wardCell((rivals[0] as { h3: string }).h3, HELD_UNTIL);
+    expect(result).toEqual({ warded: false, refused: 'not-yours' });
+  });
+
+  it('spends a real pouch down until it refuses', async () => {
+    // Warding is limited by what has been collected and by nothing else. Repeat it and
+    // the answer eventually has to become "cannot afford" rather than more strength.
+    const owned = await stocked();
+    const target = (owned.find((c) => c.strength < 500) as { h3: string }).h3;
+
+    let last = await repo.wardCell(target, HELD_UNTIL);
+    let wards = 0;
+    while (last.warded && wards < 50) {
+      wards += 1;
+      last = await repo.wardCell(target, HELD_UNTIL);
+    }
+
+    expect(wards).toBeGreaterThan(0);
+    expect(last.warded).toBe(false);
+    if (!last.warded) expect(['cannot-afford', 'already-full']).toContain(last.refused);
+  });
+
+  it('does not buy the cell out of decay', async () => {
+    // The rule the mechanic balances on, checked where it actually matters: through the
+    // store, after a write, with the decay sweep that reads it.
+    const owned = await stocked();
+    const target = (owned.find((c) => c.strength < 500) as { h3: string }).h3;
+    await repo.wardCell(target, HELD_UNTIL);
+
+    const survivors = await repo.getOwnedCells(HELD_UNTIL + 60 * 86_400_000);
+    expect(survivors.find((c) => c.h3 === target)).toBeUndefined();
   });
 });

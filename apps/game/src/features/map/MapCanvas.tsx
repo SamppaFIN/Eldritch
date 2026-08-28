@@ -8,9 +8,11 @@
  */
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
+import type { MapLayerMouseEvent } from 'maplibre-gl';
 import type { BBox, Cell, H3Index, LatLng, PlayerId, RevealedPlace, TrailPoint } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import {
+  CELL_FILL_LAYER,
   ensureTerritoryLayers,
   removeTerritoryLayers,
   setTerritoryData,
@@ -53,6 +55,8 @@ export interface MapCanvasProps {
    * cell list alone can be identical two laps running.
    */
   awakening?: { cells: readonly H3Index[]; at: number } | null;
+  /** Called when a hexagon is tapped, with its H3 index. */
+  onCellTap?: (h3: string) => void;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
@@ -74,6 +78,7 @@ export function MapCanvas({
   initialZoom,
   follow = true,
   onBasemapChange,
+  onCellTap,
   onViewportChange,
 }: MapCanvasProps) {
   const { containerRef, map, ready, basemap } = useMap(
@@ -139,6 +144,37 @@ export function MapCanvas({
     if (!map || !ready || !cells) return;
     setTerritoryData(map, cells, playerId);
   }, [map, ready, cells, playerId]);
+
+  /*
+   * Tapping a hexagon.
+   *
+   * Bound to the fill layer rather than to the map, so a tap on empty basemap does not
+   * open a panel about nothing. The feature id is the H3 index — set in cellToFeature —
+   * which is why nothing here has to convert a coordinate back into a cell.
+   */
+  useEffect(() => {
+    if (!map || !ready || !onCellTap) return;
+    const onClick = (e: MapLayerMouseEvent) => {
+      const id = e.features?.[0]?.id;
+      if (typeof id === 'string') onCellTap(id);
+    };
+    // Nothing else on this map responds to a tap, so a cell has to say that it does.
+    const enter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+    const leave = () => {
+      map.getCanvas().style.cursor = '';
+    };
+
+    map.on('click', [CELL_FILL_LAYER], onClick);
+    map.on('mouseenter', [CELL_FILL_LAYER], enter);
+    map.on('mouseleave', [CELL_FILL_LAYER], leave);
+    return () => {
+      map.off('click', [CELL_FILL_LAYER], onClick);
+      map.off('mouseenter', [CELL_FILL_LAYER], enter);
+      map.off('mouseleave', [CELL_FILL_LAYER], leave);
+    };
+  }, [map, ready, onCellTap]);
 
   // Report the viewport once it settles, so the caller loads only what is on screen.
   useEffect(() => {

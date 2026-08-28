@@ -34,3 +34,5 @@ export {
   trickle,
 } from './terrain.js';
 export type { ResourceKind, ResourcePool, ResourceState, TerrainKind } from './terrain.js';
+export { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
+export type { WardRefusal, WardResult } from './ward.js';
