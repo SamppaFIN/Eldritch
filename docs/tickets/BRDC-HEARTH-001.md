@@ -56,3 +56,12 @@ aloittamaan. Temppelit paljastuvat yhä ajasta.
 
 - Kotipesän siirto pelin sisältä. `setHome` osaa sen; käyttöliittymässä sitä ei ole.
 - Mitä kotipesä *antaa* rakentamisessa — `BRDC-TERRAIN-001`.
+
+## Korjattu jälkikäteen — 2026-08-28
+
+Kuvakaappaus pelistä: tyhjä kartta, 0 vallattua ruutua, eikä kotipesää kysytty.
+
+`App`:n paluulogiikka vei suoraan kartalle heti kun `session` löytyi tallennuksesta.
+Kuka tahansa jolla oli sessio *ennen kuin* kotipesä oli olemassa ei siis koskaan
+ehtinyt hyväksyä sellaista — täsmälleen se vanha kokemus jonka tämä tiketti poisti.
+Paluu tarkistaa nyt kotipesämerkin, ei pelkkää sessiota.

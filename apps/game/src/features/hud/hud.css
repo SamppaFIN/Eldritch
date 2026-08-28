@@ -36,8 +36,14 @@
   gap: var(--space-1) var(--space-4);
 }
 
-/* Four across as soon as the panel is wide enough to read them. */
-@media (min-width: 34rem) {
+/*
+ * Four across only when the labels genuinely fit.
+ *
+ * At 34rem a quarter-column is about 8rem and "CONSCIOUSNESS" is a single unbreakable
+ * word wider than that, so it spilled into the gap and ran straight into "LEY-LINE".
+ * The grid was not overflowing — the text was.
+ */
+@media (min-width: 44rem) {
   .hud__stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -53,7 +59,7 @@
   text-align: right;
 }
 
-@media (min-width: 34rem) {
+@media (min-width: 44rem) {
   .hud__stat:nth-child(even) {
     text-align: left;
   }
@@ -67,11 +73,19 @@
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  /* Last resort. A label that cannot fit breaks rather than covering its neighbour —
+     an unreadable word is recoverable, two words on top of each other are not. */
+  overflow-wrap: anywhere;
 }
 
 .hud__value {
   color: var(--text);
-  font-size: 1rem;
+  /*
+   * Orbitron's zero is a slashed zero, and at 1rem the slash closes the counter and it
+   * reads as a solid block. This is the HUD of a game played at arm's length in
+   * daylight; the numerals get the room to stay numerals.
+   */
+  font-size: 1.1rem;
   overflow-wrap: anywhere;
 }
 

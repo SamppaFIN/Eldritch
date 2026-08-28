@@ -53,7 +53,14 @@ export function App() {
      * player mid-loop behind a button they have already pressed.
      */
     if (outcome === 'ok' && value) {
-      setView('map');
+      /*
+       * A session can outlive the question it never asked.
+       *
+       * Resuming used to go straight to the map, which meant anyone already carrying a
+       * session from before the Hearth existed was never asked to accept one — they
+       * landed on an empty map owning nothing, exactly as before.
+       */
+      setView(load<HearthMark | null>('hearth', null) ? 'map' : 'hearth');
       return;
     }
 

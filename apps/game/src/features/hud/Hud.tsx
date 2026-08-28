@@ -116,8 +116,18 @@ function signalLine(
 }
 
 function formatDistance(m: number): string {
+  if (m < 1) return EMPTY;
   return m < 1_000 ? `${Math.round(m)} m` : `${(m / 1_000).toFixed(2)} km`;
 }
+
+/**
+ * Nothing yet, said as nothing.
+ *
+ * A row of zeroes is the first thing a new player reads, and it says "this is broken"
+ * rather than "you have not started". An em dash says the second one — and it sidesteps
+ * Orbitron's slashed zero, which at HUD size is the least legible glyph in the face.
+ */
+const EMPTY = '—';
 
 export function Hud({
   profile,
@@ -183,7 +193,7 @@ export function Hud({
           <div className="hud__stat">
             <span className="hud__label">Warded cells</span>
             <span className="hud__value es-numeric">
-              {ownedCells}
+              {ownedCells > 0 ? ownedCells : EMPTY}
               {ownedCells > 0 ? (
                 <span className="hud__sub"> · {formatArea(ownedAreaM2)}</span>
               ) : null}
@@ -191,7 +201,9 @@ export function Hud({
           </div>
           <div className="hud__stat">
             <span className="hud__label">Strongest</span>
-            <span className="hud__value es-numeric">{Math.round(strongest)}</span>
+            <span className="hud__value es-numeric">
+              {strongest > 0 ? Math.round(strongest) : EMPTY}
+            </span>
           </div>
         </div>
 

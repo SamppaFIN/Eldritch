@@ -86,3 +86,14 @@ Golden fixture -testit mock ≡ SQL (Vaihe 3).
 
 `PROMPTS.md` Vaihe 1 kohta 1 · `files/CLAUDE.md` §Data layer · `MASTERPLAN.md` §3.2,
 lukittu päätös 4
+
+## Korjattu jälkikäteen — 2026-08-28
+
+Kuvakaappauksessa naapureiden alueissa oli **reikiä keskellä**. Rosoisuusarvonta
+(`rnd() < 0.18`) koski jokaista solua, myös sisimpiä, ja kartta piirtää aukon
+täsmälleen samalla tavalla kuin maan johon joku on taistellut tiensä: kolme
+naapurustoa näytti puoliksi piiritetyiltä ennen kuin pelaaja oli ottanut askeltakaan.
+
+Arvonta koskee nyt vain uloimman renkaan soluja. `seed.test.ts` etsii aukkoja
+naapuruston sisältä ja vaatii ettei niitä ole — ja erikseen ettei reunoista tullut
+täydellisiä kiekkoja.

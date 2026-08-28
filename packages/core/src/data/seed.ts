@@ -67,6 +67,16 @@ export function seedCells(origin: LatLng, now: number, seed = 20260826): Cell[] 
     const centre = destination(origin, plan.bearingDeg, plan.distanceM);
     const centreCell = latLngToCell(centre.lat, centre.lng, H3_RES_OWNERSHIP);
 
+    /*
+     * Only the outermost ring is ragged.
+     *
+     * Skipping any cell at random punched holes through the middle of a rival's home
+     * ground, which the map draws exactly like ground somebody has fought their way
+     * into. A first launch showed three neighbourhoods that looked half-besieged before
+     * the player had taken a step.
+     */
+    const interior = new Set(plan.rings > 0 ? gridDisk(centreCell, plan.rings - 1) : []);
+
     for (const h3 of gridDisk(centreCell, plan.rings)) {
       // Overlapping disks would otherwise let a later neighbour silently annex an
       // earlier one's cells, which is the one thing seeding must not fake.
@@ -74,7 +84,7 @@ export function seedCells(origin: LatLng, now: number, seed = 20260826): Cell[] 
       taken.add(h3);
 
       // Ragged edges: a perfect hexagonal blob reads as generated, because it is.
-      if (rnd() < 0.18) continue;
+      if (!interior.has(h3) && rnd() < 0.3) continue;
 
       cells.push({
         h3,

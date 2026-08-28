@@ -71,3 +71,16 @@ Codex of Dominion -tulostaulu (Vaihe 3, vaatii moninpelin). Achievementit (Vaihe
 ## Lähde
 
 `PROMPTS.md` Vaihe 2 kohta 7 · `files/CLAUDE.md` §Domain model · `MASTERPLAN.md` §2.1
+
+## Korjattu jälkikäteen — 2026-08-28
+
+Kaksi lukukelpoisuusvirhettä, molemmat näkyvissä ensimmäisessä kuvakaappauksessa:
+
+1. **`CONSCIOUSNESSLEY-LINE`.** Neljän sarakkeen taite oli 34 rem, jolloin sarake on
+   noin 8 rem ja `CONSCIOUSNESS` on yksi katkeamaton sana sitä leveämpi. Ruudukko ei
+   vuotanut yli — teksti vuoti. Taite on nyt 44 rem, ja otsikko katkeaa ennemmin kuin
+   peittää naapurinsa.
+2. **Nolla luki laatikkona.** Ei tofua: Orbitronin nolla on *viivattu nolla*
+   (3 ääriviivaa, kun O:ssa on 2), ja 1 rem koossa viiva sulkee sisuksen. Lukuarvot
+   ovat nyt 1,1 rem, ja tyhjä tila piirretään ajatusviivana — rivi nollia sanoo
+   uudelle pelaajalle "rikki", ei "et ole vielä aloittanut".
