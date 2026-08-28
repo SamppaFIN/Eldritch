@@ -23,6 +23,7 @@ import type {
   TrailPoint,
   TrailResult,
 } from './domain.js';
+import type { ResourcePool } from '../rules/terrain.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -53,6 +54,16 @@ export interface GameRepository {
   /** Applies decay at read time, then returns what survives in the viewport. */
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;
+
+  /* --- Resources -------------------------------------------------------- */
+  /**
+   * The pouch, brought up to date.
+   *
+   * `now` is a parameter for the same reason it is everywhere else: the trickle from
+   * held ground is settled at read time, and a test that fast-forwards a week has to be
+   * able to say so.
+   */
+  getResources(now: number): Promise<ResourcePool>;
 
   /* --- The Hearth ------------------------------------------------------- */
   /**

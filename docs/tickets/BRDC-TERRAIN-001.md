@@ -5,8 +5,8 @@
 | **Vaihe** | 2.5 — suunnanmuutos |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-GROW-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `~` |
+| **Valmius** | 70 % |
 | **Lähde** | `files/pelin-suunnittelumuistiinpanot.md` · Infinite 2026-08-27 |
 
 ## 🔴 RED
@@ -16,13 +16,18 @@ mitään — vain lukumäärä kasvaa.
 
 ## 🟢 GREEN
 
-- [ ] Jokaisella solulla on **maastotyyppi**, deterministinen ja pysyvä
-- [ ] Maasto klusteroituu alueiksi, ei satunnaiskohinaa solu solulta
-- [ ] Maasto tuottaa **resurssin**: vesi, puu, kulta — kertapalkkio valtauksesta
-- [ ] Omistetut solut tuottavat **hiljaista tuottoa** ajan myötä
-- [ ] Resurssit näkyvät HUDissa
+- [x] Jokaisella solulla on **maastotyyppi**, deterministinen ja pysyvä
+- [x] Maasto klusteroituu alueiksi, ei satunnaiskohinaa solu solulta — todennettu
+      testillä joka mittaa naapurien yksimielisyyden (> 55 %, sattuma olisi ~25 %)
+- [x] Maasto tuottaa **resurssin**: vesi, puu, kulta — kertapalkkio `CLAIM_YIELD = 10`
+- [x] Omistetut solut tuottavat **hiljaista tuottoa**: `TRICKLE_PER_HOUR = 2` per
+      tuottava solu, tilitys tasatunnein
+- [x] Resurssit näkyvät HUDissa, ja kartalla omien solujen keskellä värinuppina
 - [ ] Resursseilla voi **vahvistaa solua** ilman kävelyä — ensimmäinen käyttökohde
-- [ ] Puhdas funktio, testattu
+- [x] Puhdas funktio, testattu (17 yksikkötestiä + 7 repositoriotasolla)
+
+**Loppuosa:** resurssien *käyttö*. `spend` ja `canAfford` ovat olemassa ja testattu,
+mutta mikään ei vielä kuluta niitä. Se on rakentamisen ensimmäinen pala.
 
 ## Toteutus
 
@@ -35,6 +40,20 @@ puiston ja rakennukset. Se on **oikeaa OSM-dataa ilman uutta rajapintaa tai avai
 koska tiilet ovat laitteella jo. Ratkaistaan solulle kerran ja tallennetaan.
 
 Rajapinta `terrainOf(h3) → Terrain` pysyy samana; vain toteutus vaihtuu.
+
+## Toteutuksen huomiot
+
+**Kaksi arvontaa, ei yhtä.** Ensimmäinen (res 9 -esivanhempi) päättää mistä koko seutu
+on tehty, toinen (solu itse) kysyy onko *tämä* solu oikeasti sitä. Pelkkä ensimmäinen
+antaisi kuusikulmioista rakennettuja blokkeja; pelkkä toinen antaisi kohinaa.
+
+**Bugi joka löytyi testillä:** ensimmäinen `settleResources` hyvitti koko kuluneen ajan
+mutta siirsi kelloa vain tasatunnein — jokainen tilittämätön minuutti maksettiin
+uudestaan seuraavalla lukemalla. HUD joka lukee pussin joka renderöinnillä olisi
+painanut rahaa. Nyt maksetaan tasatunnit ja kello siirtyy täsmälleen niillä.
+
+**`MockRepository` ylitti 400 riviä** tämän myötä. Sääntö on jakaa, ei nostaa rajaa:
+resurssikirjanpito on nyt `data/pouch.ts`.
 
 ## Ei kuulu tähän tikettiin
 

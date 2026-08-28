@@ -6,6 +6,7 @@
  * and decisions deserve tests. What is left in TerritoryLayer is MapLibre plumbing.
  */
 import type { Feature, FeatureCollection, Polygon } from 'geojson';
+import { resourceOf } from '@es3/core';
 import { cellBoundary } from '@es3/core';
 import type { Cell, PlayerId } from '@es3/core';
 
@@ -28,7 +29,23 @@ export interface CellProperties {
   mine: boolean;
   contested: boolean;
   color: string;
+  /** The colour of what this ground yields, or null where it yields nothing. */
+  yield: string | null;
 }
+
+/**
+ * One colour per resource, and none for plain ground.
+ *
+ * Terrain deliberately does not repaint the hexagons: ownership owns the fill, and a map
+ * where colour means two things at once means neither. It is a pip in the middle of a
+ * cell you hold — enough to see that this one is a lake, not enough to argue with the
+ * territory palette.
+ */
+export const YIELD_COLOUR: Readonly<Record<string, string>> = {
+  water: '#4fc3dc',
+  wood: '#7cbf63',
+  gold: '#e0b04a',
+};
 
 /**
  * The arc of hue a rival can be given: cyan through blue and purple to magenta.
@@ -63,6 +80,8 @@ export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties 
     // Unowned ground is drawn in the player's own colour at low strength, so a cell
     // released by the Void reads as available rather than as somebody else's.
     color: mine || cell.ownerId === null ? OWN_FILL : hueFor(cell.ownerId),
+    // Only on ground the player holds: what a rival's land produces is their business.
+    yield: mine ? (YIELD_COLOUR[resourceOf(cell.h3) ?? ''] ?? null) : null,
   };
 }
 

@@ -18,6 +18,8 @@ import { planWalk, walkNeighbourhood } from './walking.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP, XP_PER_CELL_CLAIMED } from '../rules/constants.js';
 import { sweepDecay } from '../rules/decay.js';
+import type { ResourcePool } from '../rules/terrain.js';
+import { awardClaims, settlePouch } from './pouch.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
 import { cellAt } from '../geo/cells.js';
 import { levelForXp } from '../rules/level.js';
@@ -189,6 +191,8 @@ export class MockRepository implements GameRepository {
     const grown = plan.steps.map((s) => s.outcome).filter((o): o is CaptureOutcome => o !== null);
     const xp = grown.filter((o) => o.kind === 'claimed' || o.kind === 'taken').length;
     if (xp > 0) await this.addXp(xp * XP_PER_CELL_CLAIMED);
+    const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
+    await awardClaims(this.store, await this.ownedIndexes(lastT), grown, lastT);
 
     return { ...result, grown, revealed: plan.revealed, unobservedMs: plan.unobservedMs };
   }
@@ -203,6 +207,16 @@ export class MockRepository implements GameRepository {
 
   async seedAround(position: LatLng, now: number): Promise<void> {
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
+  }
+
+  /* --- Resources -------------------------------------------------------- */
+
+  async getResources(now: number): Promise<ResourcePool> {
+    return (await settlePouch(this.store, await this.ownedIndexes(now), now)).pool;
+  }
+
+  private async ownedIndexes(now: number): Promise<H3Index[]> {
+    return (await this.getOwnedCells(now)).map((c) => c.h3);
   }
 
   /* --- The Hearth ------------------------------------------------------- */
@@ -303,6 +317,7 @@ export class MockRepository implements GameRepository {
     const plan = planClaim(detected.loop, { id: profile.id, level: profile.level }, known, now);
     for (const cell of plan.cells) await this.store.set(K.cell(cell.h3), cell);
     if (plan.xp > 0) await this.addXp(plan.xp);
+    await awardClaims(this.store, await this.ownedIndexes(now), plan.outcomes, now);
 
     // The ring is spent. Keeping it would let the next fix close the same loop again.
     await this.store.set(K.trail(runId), points.slice(detected.loop.endIndex));

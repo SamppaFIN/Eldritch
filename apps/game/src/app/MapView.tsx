@@ -7,7 +7,14 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { clearAll, load, saveNow, speedMs } from '@es3/core';
-import type { BBox, GameRepository, PlayerProfile, RevealedPlace, TrailPoint } from '@es3/core';
+import type {
+  BBox,
+  GameRepository,
+  PlayerProfile,
+  ResourcePool,
+  RevealedPlace,
+  TrailPoint,
+} from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { MapCanvas } from '../features/map/MapCanvas.js';
 import type { BasemapState } from '../features/map/useMap.js';
@@ -39,6 +46,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const [bbox, setBbox] = useState<BBox | null>(null);
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
+  const [resources, setResources] = useState<ResourcePool | null>(null);
 
   /*
    * Held open by the player, never by default.
@@ -131,6 +139,29 @@ export function MapView({ onLeave }: MapViewProps) {
     now: clock.now,
     position: point,
   });
+
+  /*
+   * The pouch, re-read whenever the ground changes and once a minute besides.
+   *
+   * Reading it settles the trickle, so this is also what pays the player for holding
+   * land — but the payment is computed from the clock, not from the polling, and asking
+   * more often does not earn more.
+   */
+  useEffect(() => {
+    if (!repository) return;
+    let alive = true;
+    const read = () => {
+      void repository.getResources(clock.now()).then((pool) => {
+        if (alive) setResources(pool);
+      });
+    };
+    read();
+    const timer = setInterval(read, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [repository, clock, territory.lastClaim, trail.points.length]);
 
   // Profile is re-read after a claim: XP and level change with the ground.
   useEffect(() => {
@@ -239,6 +270,7 @@ export function MapView({ onLeave }: MapViewProps) {
         fadingInHours={territory.fadingInHours}
         released={territory.released}
         keepAlive={keepAlive}
+        resources={resources}
         unobservedMs={trail.unobservedMs}
         onWithdraw={() => setConfirming('withdraw')}
         onReset={() => setConfirming('reset')}

@@ -19,6 +19,7 @@ export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
+export const CELL_YIELD_LAYER = 'cells-yield';
 
 /**
  * Below this, individual res-11 cells are smaller than a finger and stop being
@@ -96,6 +97,29 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
       'line-opacity': 0.85,
     },
   });
+
+  /*
+   * What this ground yields.
+   *
+   * A pip, not a repaint. Ownership owns the fill of a hexagon; if terrain took it over
+   * too, one colour would be answering two questions and a player could read neither.
+   * It appears at the zoom where individual cells are already legible — below that a
+   * city block is a smudge and a dot per cell is dirt on the screen.
+   */
+  map.addLayer({
+    id: CELL_YIELD_LAYER,
+    type: 'circle',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM + 2,
+    filter: ['all', ['get', 'mine'], ['has', 'yield'], ['!=', ['get', 'yield'], null]],
+    paint: {
+      'circle-color': ['get', 'yield'],
+      'circle-opacity': 0.85,
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 2, 17, 3.5, 19, 5],
+      'circle-stroke-color': '#0a0612',
+      'circle-stroke-width': 1,
+    },
+  });
 }
 
 export function setTerritoryData(
@@ -110,7 +134,7 @@ export function setTerritoryData(
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
-  for (const id of [CELL_CONTESTED_LAYER, CELL_LINE_LAYER, CELL_FILL_LAYER]) {
+  for (const id of [CELL_YIELD_LAYER, CELL_CONTESTED_LAYER, CELL_LINE_LAYER, CELL_FILL_LAYER]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);

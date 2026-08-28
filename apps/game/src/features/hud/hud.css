@@ -245,3 +245,33 @@
 .vigil__lost {
   color: var(--warning);
 }
+
+/* --- The pouch --------------------------------------------------------- */
+
+.hud__pouch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin-block-start: var(--space-1);
+  list-style: none;
+}
+
+.hud__pouch li {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* The same three colours the map uses for a cell's yield, so the pip in the HUD and
+   the pip on the hexagon are recognisably the same thing. */
+.hud__pip {
+  inline-size: 0.55em;
+  block-size: 0.55em;
+  border-radius: var(--radius-full);
+}
+
+.hud__pip--water { background: #4fc3dc; }
+.hud__pip--wood { background: #7cbf63; }
+.hud__pip--gold { background: #e0b04a; }

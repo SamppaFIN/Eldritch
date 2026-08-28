@@ -9,7 +9,7 @@
  * nothing here and players concluded the game had frozen.
  */
 import { levelState, msToKmh } from '@es3/core';
-import type { PlayerProfile, RejectReason } from '@es3/core';
+import type { PlayerProfile, RejectReason, ResourcePool } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
@@ -34,6 +34,7 @@ export interface HudProps {
   fadingInHours?: number | null;
   released?: string[];
   keepAlive: KeepAliveState;
+  resources?: ResourcePool | null;
   unobservedMs?: number;
   onWithdraw: () => void;
   onReset: () => void;
@@ -146,6 +147,7 @@ export function Hud({
   fadingInHours = null,
   released = [],
   keepAlive,
+  resources = null,
   unobservedMs = 0,
   onWithdraw,
   onReset,
@@ -206,6 +208,25 @@ export function Hud({
             </span>
           </div>
         </div>
+
+        {/* The pouch. Hidden until there is something in it — an empty row of icons on
+            a first launch is three more things to not understand. */}
+        {resources && resources.water + resources.wood + resources.gold > 0 ? (
+          <ul className="hud__pouch" aria-label="Resources">
+            <li>
+              <span className="hud__pip hud__pip--water" aria-hidden />
+              <span className="es-numeric">{resources.water}</span> water
+            </li>
+            <li>
+              <span className="hud__pip hud__pip--wood" aria-hidden />
+              <span className="es-numeric">{resources.wood}</span> timber
+            </li>
+            <li>
+              <span className="hud__pip hud__pip--gold" aria-hidden />
+              <span className="es-numeric">{resources.gold}</span> gold
+            </li>
+          </ul>
+        ) : null}
 
         <div
           className="hud__xp"

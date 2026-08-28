@@ -20,3 +20,17 @@ export {
   revealProgress,
 } from './dwell.js';
 export type { DwellMap, DwellReading, Place, PlaceKind } from './dwell.js';
+export {
+  CLAIM_YIELD,
+  EMPTY_POOL,
+  RESOURCE_OF,
+  TRICKLE_PER_HOUR,
+  addClaimYield,
+  canAfford,
+  resourceOf,
+  settleResources,
+  spend,
+  terrainOf,
+  trickle,
+} from './terrain.js';
+export type { ResourceKind, ResourcePool, ResourceState, TerrainKind } from './terrain.js';
