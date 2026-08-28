@@ -50,3 +50,17 @@ auki — fokusrengas, ESC, kosketuskohteet ≥ 44 px — mutta avaaminen ei ole.
 Korjaus kuuluu siihen tikettiin joka tuo "vahvista solu jossa seison" -toiminnon
 HUDiin: se on sekä näppäimistöpolku että se mitä kävelevä pelaaja oikeasti haluaa.
 Ei piiloteta — kirjataan.
+
+## Puute korjattu — 2026-08-28
+
+Näppäimistöpolku on nyt olemassa. HUDin **⬢ Here** avaa paneelin solusta jossa pelaaja
+seisoo: se on samalla se mitä kävelevä pelaaja oikeasti haluaa, yhdellä peukalolla
+karttaa katsomatta. Paneeli ottaa fokuksen auetessaan — ei fokusansaa, koska tämä ei ole
+modaali vaan avattava paneeli.
+
+Muiden solujen valinta on yhä osoitinele. Se on kartan luonne eikä sitä teeskennellä
+korjatuksi: tärkein solu on saavutettavissa näppäimistöltä, muut eivät.
+
+Lisäksi paneeli näyttää nyt **dwell-edistymän**: "stay longer and the ground learns you".
+`revealProgress` oli kirjoitettu ja testattu `BRDC-DWELL-001`:ssä muttei koskaan
+näkynyt missään — mekaniikka oli täysin näkymätön siihen asti kun se laukesi.

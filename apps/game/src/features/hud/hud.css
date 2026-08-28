@@ -6,8 +6,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: min(var(--space-3), 3vw);
-  padding-bottom: max(min(var(--space-3), 3vw), env(safe-area-inset-bottom));
+  /* Tight on purpose: on a short window 30% of the screen is 216px, and the panel
+     itself needs almost all of it. The gap above the glass is not where to spend it. */
+  padding: var(--space-1) min(var(--space-3), 3vw);
+  padding-bottom: max(var(--space-1), env(safe-area-inset-bottom));
   pointer-events: none;
 }
 
@@ -24,29 +26,25 @@
   pointer-events: auto;
   width: min(100%, 30rem);
   margin-inline: auto;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4) var(--space-2);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
   align-items: stretch;
   text-align: left;
 }
 
+/*
+ * Two columns, at every width. There is no four-column layout and there cannot be.
+ *
+ * The panel is capped at 30rem however wide the screen is, so a quarter column is at
+ * most 6rem — and the widest *value* here ("12 · 400 m²", or three resource counts) needs
+ * about nine. Chasing this with breakpoints produced a row of stats 88px tall on desktop
+ * and pushed the HUD past the 30% of the screen it is allowed. The labels were never the
+ * constraint; the numbers were.
+ */
 .hud__stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-1) var(--space-4);
-}
-
-/*
- * Four across only when the labels genuinely fit.
- *
- * At 34rem a quarter-column is about 8rem and "CONSCIOUSNESS" is a single unbreakable
- * word wider than that, so it spilled into the gap and ran straight into "LEY-LINE".
- * The grid was not overflowing — the text was.
- */
-@media (min-width: 44rem) {
-  .hud__stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 .hud__stat {
@@ -59,19 +57,18 @@
   text-align: right;
 }
 
-@media (min-width: 44rem) {
-  .hud__stat:nth-child(even) {
-    text-align: left;
-  }
-  .hud__stat:last-child {
-    text-align: right;
-  }
-}
 
 .hud__label {
   color: var(--text-dim);
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
+  /*
+   * Tracked tightly enough to fit one line in a quarter of the panel.
+   *
+   * At 0.14em, "CONSCIOUSNESS" needed 101px of a 99.5px column and wrapped — turning a
+   * single row of stats into a 89px block and pushing the HUD past the 30% of the
+   * screen it is allowed. Letter-spacing was costing the map more than it was worth.
+   */
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   /* Last resort. A label that cannot fit breaks rather than covering its neighbour —
      an unreadable word is recoverable, two words on top of each other are not. */
@@ -186,10 +183,22 @@
   text-transform: uppercase;
 }
 
+/*
+ * Signal above, controls below.
+ *
+ * Side by side, the signal text was squeezed into a column narrow enough to wrap onto
+ * two or three lines beside the buttons — 84px of panel for one sentence. Stacked, the
+ * sentence gets the full width and fits on one, and there are four controls now rather
+ * than two.
+ */
 .hud__foot {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.hud__foot .hud__actions {
+  align-self: flex-end;
 }
 
 .hud__actions {
@@ -216,62 +225,50 @@
 
 /* --- Vigil ------------------------------------------------------------- */
 
-.vigil {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-block-size: var(--touch-min);
-}
-
 .vigil__toggle {
   flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
   min-block-size: var(--touch-min);
-  padding-inline: var(--space-3);
-  white-space: nowrap;
-}
-
-.vigil__state {
-  min-inline-size: 0;
-  color: var(--text-dim);
-  font-size: var(--text-sm);
-  overflow-wrap: anywhere;
+  padding-inline: var(--space-2);
 }
 
 /* The state is spelled out in words as well; this only reinforces it. */
-.vigil__state[data-holding='true'] {
+.hud__vigil-state[data-holding='true'] {
   color: var(--accent);
-}
-
-.vigil__lost {
-  color: var(--warning);
 }
 
 /* --- The pouch --------------------------------------------------------- */
 
 .hud__pouch {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  margin-block-start: var(--space-1);
-  list-style: none;
-}
-
-.hud__pouch li {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.35em;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
+  gap: 0.3em;
 }
 
 /* The same three colours the map uses for a cell's yield, so the pip in the HUD and
    the pip on the hexagon are recognisably the same thing. */
 .hud__pip {
-  inline-size: 0.55em;
-  block-size: 0.55em;
+  inline-size: 0.5em;
+  block-size: 0.5em;
   border-radius: var(--radius-full);
+}
+
+/* Space before each pip except the first, so three numbers do not run together. */
+.hud__pouch .hud__pip + * {
+  margin-inline-end: 0.2em;
+}
+
+.hud__pouch .hud__pip:not(:first-child) {
+  margin-inline-start: 0.4em;
 }
 
 .hud__pip--water { background: #4fc3dc; }
 .hud__pip--wood { background: #7cbf63; }
 .hud__pip--gold { background: #e0b04a; }
+
+/* Shares the actions row. Still thumb-sized, and first in the row because it is the
+   thing a walking player reaches for. */
+.hud__here {
+  min-block-size: var(--touch-min);
+  white-space: nowrap;
+}

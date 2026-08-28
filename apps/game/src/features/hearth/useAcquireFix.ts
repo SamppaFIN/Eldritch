@@ -12,6 +12,11 @@ import type { Acquisition } from './acquisition.js';
 
 export type AcquireStatus = 'acquiring' | 'denied' | 'unavailable';
 
+/**
+ * `unavailable` means the browser has no geolocation API at all — a permanent, knowable
+ * fact. It is never inferred from a failed fix, which is a passing condition.
+ */
+
 export interface AcquireState extends Acquisition {
   status: AcquireStatus;
   /** Seconds spent waiting. The screen offers a way past after long enough. */
@@ -48,7 +53,19 @@ export function useAcquireFix(): AcquireState {
         );
       },
       (err) => {
-        setStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable');
+        /*
+         * Only a refusal is final.
+         *
+         * `POSITION_UNAVAILABLE` and `TIMEOUT` are ordinary weather: a phone indoors, a
+         * tunnel, a cold start under trees. The watch stays open and keeps delivering
+         * afterwards — but the first version latched on any error and left the screen
+         * reading "This device has no location sensor" for the rest of the session, with
+         * no button and no way back. One bad second bricked the opening of the game.
+         *
+         * When nothing ever arrives, the screen already says so after thirty seconds,
+         * and says what to check. That is the honest message; this was not.
+         */
+        if (err.code === err.PERMISSION_DENIED) setStatus('denied');
       },
       // maximumAge 0: a cached fix from the last time the phone was somewhere else is
       // precisely the thing that would hand out the wrong Hearth.

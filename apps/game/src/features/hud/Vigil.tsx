@@ -14,8 +14,6 @@ import type { KeepAliveState } from '../trail/useKeepAlive.js';
 
 export interface VigilProps {
   keepAlive: KeepAliveState;
-  /** Time already lost to a frozen page this run. */
-  unobservedMs: number;
 }
 
 function minutes(ms: number): string {
@@ -24,38 +22,42 @@ function minutes(ms: number): string {
 }
 
 /**
- * What is actually true right now, in one line.
+ * What is actually true right now, in a few words.
  *
- * "audio" is deliberately named rather than hidden behind a green dot: when it is the
- * half that is holding, the phone can go in a pocket, and when it is not, it cannot.
+ * "breath" is deliberately named rather than hidden behind a green dot: when the audio
+ * loop is the half that is holding, the phone can go in a pocket, and when it is not, it
+ * cannot. The player has no other way to know which.
+ *
+ * Said as a clause rather than a sentence, because it is appended to the signal readout.
+ * Vigil and signal answer the same question — how well is the game seeing you — and the
+ * panel had no room to ask it twice: its own row cost the map six per cent of a phone.
  */
-function vigilLine(state: KeepAliveState): string {
-  if (!state.wanted) return 'Vigil sleeping — pocket the phone and the line breaks';
-  if (state.audio && state.screen) return 'Vigil holds · screen and breath';
-  if (state.audio) return 'Vigil holds · the breath alone';
-  if (state.screen) return 'Vigil holds · screen only — keep it lit';
-  return 'Vigil could not take hold — keep the screen on';
+export function vigilLine(state: KeepAliveState, unobservedMs: number): string {
+  const held = !state.wanted
+    ? 'Vigil asleep'
+    : state.audio && state.screen
+      ? 'Vigil holds'
+      : state.audio
+        ? 'Vigil holds · breath'
+        : state.screen
+          ? 'Vigil holds · screen only'
+          : 'Vigil would not hold';
+
+  return unobservedMs > 0 ? `${held} · ${minutes(unobservedMs)} unseen` : held;
 }
 
-export function Vigil({ keepAlive, unobservedMs }: VigilProps) {
+/** The toggle alone. It lives in the HUD's actions row with the other controls. */
+export function Vigil({ keepAlive }: VigilProps) {
   return (
-    <div className="vigil">
-      <RitualButton
-        variant={keepAlive.wanted ? 'primary' : 'ghost'}
-        className="vigil__toggle"
-        onClick={keepAlive.toggle}
-        aria-pressed={keepAlive.wanted}
-        aria-label="Vigil — keep recording while the phone is pocketed"
-      >
-        <span aria-hidden>{keepAlive.wanted ? '◉' : '○'}</span> Vigil
-      </RitualButton>
-
-      <p className="vigil__state" data-holding={keepAlive.audio || keepAlive.screen} role="status">
-        {vigilLine(keepAlive)}
-        {unobservedMs > 0 ? (
-          <span className="vigil__lost"> · {minutes(unobservedMs)} unseen</span>
-        ) : null}
-      </p>
-    </div>
+    <RitualButton
+      variant={keepAlive.wanted ? 'primary' : 'ghost'}
+      className="vigil__toggle"
+      onClick={keepAlive.toggle}
+      aria-pressed={keepAlive.wanted}
+      aria-label="Vigil — keep recording while the phone is pocketed"
+      title="Vigil — keep recording while the phone is pocketed"
+    >
+      <span aria-hidden>{keepAlive.wanted ? '◉' : '○'}</span>
+    </RitualButton>
   );
 }

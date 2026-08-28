@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { acceptHearth, openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -16,9 +17,7 @@ const north = (metres: number) => metres / 111_320;
 test.use({ permissions: ['geolocation'], geolocation: START });
 
 async function openMap(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
-  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+  await open(page, START);
 }
 
 /**
@@ -71,23 +70,33 @@ test('the HUD reports signal quality in words, not only colour', async ({ page }
 });
 
 test('a weak signal is named as a weak signal', async ({ page }) => {
-  await page.context().setGeolocation({ ...START, accuracy: 42 });
+  // Founded on a good fix, then the sky closes. The Hearth will not accept 42 m — that
+  // is BRDC-HEARTH-001 doing its job — but a walk in progress has to survive it.
   await openMap(page);
+  await page.context().setGeolocation({ ...START, accuracy: 42 });
   await expect(page.locator('.hud__signal')).toContainText(/uncertain/i, { timeout: 20_000 });
 });
 
 test('a refused permission explains itself instead of freezing', async ({ browser }) => {
+  /*
+   * Refusing location now stops at the Hearth rather than at the HUD, and that is the
+   * right place for it: this is a game about where you are, and there is no honest way
+   * to hand someone a starting cell without knowing where they stand.
+   *
+   * What must not happen is silence. The screen says what was refused and what to do
+   * about it, and it offers no button, because there is nothing to accept.
+   */
   const context = await browser.newContext({ permissions: [] });
   const page = await context.newPage();
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
 
-  await expect(page.locator('.hud__signal')).toContainText(/refused|no location/i, {
+  await expect(page.getByRole('heading', { name: 'Your Hearth' })).toBeVisible();
+  await expect(page.locator('.hearth__state')).toContainText(/refused|no location sensor/i, {
     timeout: 25_000,
   });
-  // The map is still usable. The game does not end because the sky is closed.
-  await expect(page.getByRole('button', { name: 'Withdraw' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /ground/i })).toHaveCount(0);
   await context.close();
 });
 
@@ -102,7 +111,9 @@ test('the ley-line draws itself as the player walks', async ({ page }) => {
     .toBeGreaterThan(1);
 });
 
-test('the trail is one source and two layers, however far you walk', async ({ page }) => {
+test('the trail is one source and a fixed number of layers, however far you walk', async ({
+  page,
+}) => {
   // v2 added a marker per step and ended up capping how much it would draw.
   await openMap(page);
   await walk(page, 4);
@@ -113,7 +124,9 @@ test('the trail is one source and two layers, however far you walk', async ({ pa
     ).__esMap;
     return map?.getStyle().layers.filter((l) => l.id.startsWith('leyline')).length ?? 0;
   });
-  expect(layers).toBe(2);
+  // Three since BRDC-VIGIL-001: glow, core, and the dashed thread across a gap the
+  // game did not witness. Fixed, and independent of how far anyone walks.
+  expect(layers).toBe(3);
 });
 
 test('the walk survives a reload and continues the same run', async ({ page }) => {
@@ -148,6 +161,7 @@ test('works with no tiles — airplane mode is a supported state', async ({ page
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await acceptHearth(page, START);
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
   await walk(page, 4);

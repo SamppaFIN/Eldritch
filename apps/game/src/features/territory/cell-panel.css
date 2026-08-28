@@ -99,3 +99,15 @@
     animation: none;
   }
 }
+
+/* The dwell bar is a different thing from the strength bar and must not be mistaken
+   for it: warmer, and captioned in its own words. */
+.cell-panel__bar--dwell .cell-panel__bar-fill {
+  background: var(--accent-warm);
+}
+
+.cell-panel__dwell {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}

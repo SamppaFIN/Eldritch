@@ -8,8 +8,17 @@
  * Deliberately not a modal. The player is walking; a dialog that traps focus and demands
  * dismissal is the wrong shape for something you glance at and put away.
  */
-import { MAX_STRENGTH, WARD_COST, hoursUntilReleased, terrainOf } from '@es3/core';
+import {
+  ANCHOR_THRESHOLD_MS,
+  MAX_STRENGTH,
+  TEMPLE_THRESHOLD_MS,
+  WARD_COST,
+  hoursUntilReleased,
+  revealProgress,
+  terrainOf,
+} from '@es3/core';
 import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es3/core';
+import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import './cell-panel.css';
 
@@ -20,6 +29,12 @@ export interface CellPanelProps {
   now: number;
   /** Null while a ward is in flight, then the refusal if there was one. */
   refusal: WardRefusal | null;
+  /** True when this is the cell the player is standing in. */
+  here?: boolean;
+  /** Time accumulated in this cell, for the reveal progress. */
+  dwellMs?: number;
+  /** Whether an Anchor already exists, which decides what this cell could become. */
+  hasAnchor?: boolean;
   onWard: (h3: string) => void;
   onClose: () => void;
 }
@@ -62,7 +77,39 @@ function remaining(hours: number): string {
   return `The Void takes it in ${Math.round(hours / 24)} days`;
 }
 
-export function CellPanel({ cell, me, resources, now, refusal, onWard, onClose }: CellPanelProps) {
+/** Minutes, said the way someone standing in the rain would say them. */
+function spent(ms: number): string {
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 60) return `${minutes} min here`;
+  const hours = ms / 3_600_000;
+  return `${hours.toFixed(1)} h here`;
+}
+
+export function CellPanel({
+  cell,
+  me,
+  resources,
+  now,
+  refusal,
+  here = false,
+  dwellMs = 0,
+  hasAnchor = false,
+  onWard,
+  onClose,
+}: CellPanelProps) {
+  /*
+   * Focus follows the panel when it opens.
+   *
+   * Not a focus trap — this is a disclosure, not a modal, and the player is walking. But
+   * something that appears in response to a button has to be findable from the keyboard
+   * afterwards, and announced when it arrives.
+   */
+  const panelRef = useRef<HTMLElement>(null);
+  const h3 = cell?.h3 ?? null;
+  useEffect(() => {
+    if (h3) panelRef.current?.focus();
+  }, [h3]);
+
   if (!cell) return null;
 
   const terrain = terrainOf(cell.h3);
@@ -71,11 +118,20 @@ export function CellPanel({ cell, me, resources, now, refusal, onWard, onClose }
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
 
   return (
-    <GlassPanel as="section" className="cell-panel" aria-label="Selected cell">
+    <GlassPanel
+      as="section"
+      ref={panelRef}
+      className="cell-panel"
+      aria-label="Selected cell"
+      tabIndex={-1}
+    >
       <div className="cell-panel__head">
         <div>
           <p className="cell-panel__ground">{GROUND[terrain]}</p>
-          <p className="cell-panel__yield">{YIELD[terrain]}</p>
+          <p className="cell-panel__yield">
+            {here ? 'You are here · ' : ''}
+            {YIELD[terrain]}
+          </p>
         </div>
         <RitualButton
           variant="ghost"
@@ -105,6 +161,30 @@ export function CellPanel({ cell, me, resources, now, refusal, onWard, onClose }
             {Math.round(cell.strength)} / {MAX_STRENGTH}
           </p>
           <p className="cell-panel__decay">{remaining(hoursLeft(cell, now))}</p>
+        </>
+      ) : null}
+
+      {/*
+        "This place is becoming something" beats silence followed by a sudden crowning.
+        The dwell mechanic is otherwise entirely invisible until it fires, and a player
+        who never saw it coming does not understand what they did to cause it.
+      */}
+      {dwellMs > 0 ? (
+        <>
+          <div className="cell-panel__bar cell-panel__bar--dwell" aria-hidden>
+            <div
+              className="cell-panel__bar-fill"
+              style={{ inlineSize: `${revealProgress(dwellMs, hasAnchor) * 100}%` }}
+            />
+          </div>
+          <p className="cell-panel__dwell">
+            {spent(dwellMs)}
+            {dwellMs >= (hasAnchor ? TEMPLE_THRESHOLD_MS : ANCHOR_THRESHOLD_MS)
+              ? ' — this place has a name'
+              : hasAnchor
+                ? ' — stay longer and it becomes a temple'
+                : ' — stay longer and the ground learns you'}
+          </p>
         </>
       ) : null}
 

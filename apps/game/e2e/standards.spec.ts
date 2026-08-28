@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { acceptHearth, openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -17,9 +18,7 @@ test.use({ permissions: ['geolocation'], geolocation: HERE });
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 async function openMap(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
-  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+  await open(page, HERE);
 }
 
 function report(violations: Array<{ id: string; impact?: string | null; nodes: unknown[] }>) {
@@ -152,6 +151,7 @@ test('nothing shifts under the player as the map arrives', async ({ page }) => {
   // while a thumb is heading for it.
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await acceptHearth(page, HERE);
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
   const cls = await page.evaluate(

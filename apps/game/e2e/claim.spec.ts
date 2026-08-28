@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -18,9 +19,7 @@ const dLng = (m: number) => m / 53_000;
 test.use({ permissions: ['geolocation'], geolocation: START });
 
 async function openMap(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
-  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+  await open(page, START);
 }
 
 /** Walk one lap of a square block, four fixes per side. */
@@ -114,9 +113,15 @@ test('the claim survives whatever the batch timing does', async ({ page }) => {
   expect(Number.parseInt(warded, 10)).toBe(stored.owned);
 });
 
-test('a walk that encloses nothing claims nothing', async ({ page }) => {
-  // Out and back along one line. It ends where it started, so a proximity test would
-  // hand over territory for a trip to the shop.
+test('a walk that encloses nothing claims no interior', async ({ page }) => {
+  /*
+   * Out and back along one line. It ends where it started, so a proximity test would
+   * hand over territory for a trip to the shop.
+   *
+   * Since BRDC-GROW-001 the walk does take the cells it physically crossed — that is the
+   * point of adjacency growth, and most walks close nothing. What must not happen is a
+   * *claim*: no loop, no interior, no burst.
+   */
   test.setTimeout(180_000);
   await openMap(page);
 
@@ -138,8 +143,16 @@ test('a walk that encloses nothing claims nothing', async ({ page }) => {
   }
   await page.waitForTimeout(13_000);
 
+  // No loop closed, so no claim was announced.
   await expect(page.locator('.hud__claim')).toHaveCount(0);
-  await expect(page.locator('.hud__value').nth(2)).toHaveText(/^0/);
+
+  /*
+   * And no interior was taken. The line itself is a handful of cells wide; the area a
+   * 180-metre loop would enclose is dozens. The bound is what separates "walked over"
+   * from "claimed inside".
+   */
+  const warded = Number.parseInt(await page.locator('.hud__value').nth(2).innerText(), 10);
+  expect(warded).toBeLessThan(20);
 });
 
 test('the territory layers stay at three however much is claimed', async ({ page }) => {
@@ -153,7 +166,12 @@ test('the territory layers stay at three however much is claimed', async ({ page
     ).__esMap;
     return map?.getStyle().layers.filter((l) => l.id.startsWith('cells-')).length ?? 0;
   });
-  expect(layers).toBe(3);
+  /*
+   * Four since BRDC-TERRAIN-001 added the yield pip. The number is not the point — the
+   * point is that it does not grow with the amount of territory, which is exactly how
+   * v2 ended up with thousands of DOM markers and a cap on how much it would draw.
+   */
+  expect(layers).toBe(4);
 });
 
 test('claimed ground survives a reload', async ({ page }) => {

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 import gpsNoise from '@es3/core/sim/fixtures/gps-noise.json' with { type: 'json' };
 
@@ -15,9 +16,7 @@ const north = (metres: number) => metres / 111_320;
 test.use({ permissions: ['geolocation'], geolocation: START });
 
 async function openMap(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
-  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+  await open(page, START);
 }
 
 async function trailPointCount(page: Page): Promise<number> {
@@ -92,10 +91,15 @@ test('the HUD leaves the map most of the screen', async ({ page }) => {
 });
 
 test('a fix too poor to use says exactly that', async ({ page }) => {
-  // HUD-001. MAX_ACCURACY_M is 50, so 80 m is past the point of being usable.
-  // Silence here is what made v2 players think the game had frozen.
-  await page.context().setGeolocation({ ...START, accuracy: 80 });
+  /*
+   * HUD-001. MAX_ACCURACY_M is 50, so 80 m is past the point of being usable, and
+   * silence here is what made v2 players think the game had frozen.
+   *
+   * Founded on a good fix first: the Hearth will not accept 80 m, deliberately, and this
+   * is about what a walk already under way does when the sky closes over.
+   */
   await openMap(page);
+  await page.context().setGeolocation({ ...START, accuracy: 80 });
 
   const signal = page.locator('.hud__signal');
   await expect(signal).toContainText(/too weak|cannot form/i, { timeout: 20_000 });

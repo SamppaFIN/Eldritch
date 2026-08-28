@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -13,9 +14,7 @@ const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
 async function openMap(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
-  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+  await open(page, HERE);
 }
 
 test('withdrawing asks first', async ({ page }) => {

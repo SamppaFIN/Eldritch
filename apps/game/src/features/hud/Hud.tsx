@@ -14,7 +14,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
-import { Vigil } from './Vigil.js';
+import { Vigil, vigilLine } from './Vigil.js';
 import './hud.css';
 
 export interface HudProps {
@@ -28,13 +28,15 @@ export interface HudProps {
   basemapVoid: boolean;
   ownedCells?: number;
   ownedAreaM2?: number;
-  strongest?: number;
   lastClaim?: ClaimEvent | null;
   fading?: number;
   fadingInHours?: number | null;
   released?: string[];
   keepAlive: KeepAliveState;
   resources?: ResourcePool | null;
+  /** True once the game knows which cell the player is standing in. */
+  standing?: boolean;
+  onInspectHere?: () => void;
   unobservedMs?: number;
   onWithdraw: () => void;
   onReset: () => void;
@@ -141,13 +143,14 @@ export function Hud({
   basemapVoid,
   ownedCells = 0,
   ownedAreaM2 = 0,
-  strongest = 0,
   lastClaim = null,
   fading = 0,
   fadingInHours = null,
   released = [],
   keepAlive,
   resources = null,
+  standing = false,
+  onInspectHere,
   unobservedMs = 0,
   onWithdraw,
   onReset,
@@ -201,32 +204,33 @@ export function Hud({
               ) : null}
             </span>
           </div>
+          {/*
+            The pouch sits in the grid rather than in a row of its own.
+            
+            Its own row cost the map four per cent of a phone screen, and this panel has
+            a hard budget: thirty per cent, tested. What it replaces is "Strongest",
+            which was the least actionable number here — you cannot do anything with it,
+            and you can spend timber.
+          */}
           <div className="hud__stat">
-            <span className="hud__label">Strongest</span>
+            <span className="hud__label">Pouch</span>
             <span className="hud__value es-numeric">
-              {strongest > 0 ? Math.round(strongest) : EMPTY}
+              {resources && resources.water + resources.wood + resources.gold > 0 ? (
+                <span className="hud__pouch">
+                  <span className="hud__pip hud__pip--water" aria-hidden />
+                  {resources.water}
+                  <span className="hud__pip hud__pip--wood" aria-hidden />
+                  {resources.wood}
+                  <span className="hud__pip hud__pip--gold" aria-hidden />
+                  {resources.gold}
+                </span>
+              ) : (
+                EMPTY
+              )}
             </span>
           </div>
         </div>
 
-        {/* The pouch. Hidden until there is something in it — an empty row of icons on
-            a first launch is three more things to not understand. */}
-        {resources && resources.water + resources.wood + resources.gold > 0 ? (
-          <ul className="hud__pouch" aria-label="Resources">
-            <li>
-              <span className="hud__pip hud__pip--water" aria-hidden />
-              <span className="es-numeric">{resources.water}</span> water
-            </li>
-            <li>
-              <span className="hud__pip hud__pip--wood" aria-hidden />
-              <span className="es-numeric">{resources.wood}</span> timber
-            </li>
-            <li>
-              <span className="hud__pip hud__pip--gold" aria-hidden />
-              <span className="es-numeric">{resources.gold}</span> gold
-            </li>
-          </ul>
-        ) : null}
 
         <div
           className="hud__xp"
@@ -238,8 +242,6 @@ export function Hud({
         >
           <div className="hud__xp-fill" style={{ inlineSize: `${level.progress * 100}%` }} />
         </div>
-
-        <Vigil keepAlive={keepAlive} unobservedMs={unobservedMs} />
 
         {basemapVoid ? (
           <p className="hud__note" role="status">
@@ -264,10 +266,30 @@ export function Hud({
               {speedMs != null && q !== 'none' ? (
                 <span className="hud__speed es-numeric"> · {msToKmh(speedMs).toFixed(1)} km/h</span>
               ) : null}
+              {/* Vigil answers the same question as the signal — how well is the game
+                  seeing you — so it says so in the same breath rather than in a row of
+                  its own, which cost the map six per cent of a phone screen. */}
+              <span className="hud__vigil-state" data-holding={keepAlive.audio || keepAlive.screen}>
+                {' · '}
+                {vigilLine(keepAlive, unobservedMs)}
+              </span>
             </span>
           </p>
 
           <div className="hud__actions">
+            <Vigil keepAlive={keepAlive} />
+            {/*
+              The one verb a walking player needs, sharing the row rather than taking one.
+
+              It is also the keyboard path onto the map: selecting a hexagon by tapping it
+              is a pointer gesture with no equivalent, and the cell under your feet is the
+              one you most want anyway. A button makes both true at once.
+            */}
+            {standing && onInspectHere ? (
+              <RitualButton variant="ghost" className="hud__here" onClick={onInspectHere}>
+                <span aria-hidden>⬢</span> Here
+              </RitualButton>
+            ) : null}
             <RitualButton
               variant="ghost"
               className="hud__icon-btn"

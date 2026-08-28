@@ -84,3 +84,30 @@ Kaksi lukukelpoisuusvirhettä, molemmat näkyvissä ensimmäisessä kuvakaappauk
    (3 ääriviivaa, kun O:ssa on 2), ja 1 rem koossa viiva sulkee sisuksen. Lukuarvot
    ovat nyt 1,1 rem, ja tyhjä tila piirretään ajatusviivana — rivi nollia sanoo
    uudelle pelaajalle "rikki", ei "et ole vielä aloittanut".
+
+## Budjetti ylittyi ja korjattiin — 2026-08-28
+
+`trail-detail.spec.ts` mittaa että HUD jättää kartalle 70 % ruudusta. Vaiheen 2.5
+lisäykset veivät sen **42 %:iin**: pussi omalla rivillään, Vigil omallaan, "This ground"
+omallaan. Mitattuna, ei arvattuna — `HUD 299px / 780`.
+
+Korjaus kolmessa osassa:
+
+1. **Pussi siirtyi tilastoruudukkoon** ja korvasi kohdan *Strongest*. Tämä poistaa yhden
+   tämän tiketin GREEN-kohdista tietoisesti: vahvin alue on luku jolle ei voi tehdä
+   mitään, puu on luku jolla voi vahvistaa solun. Solukohtainen vahvuus näkyy nyt
+   `CellPanel`issa, jota ei ollut kun tämä tiketti kirjoitettiin.
+2. **Vigil hajosi kahtia:** kytkin meni toimintorivin painikkeeksi ja tila liitettiin
+   signaaliriviin. Ne vastaavat samaan kysymykseen — kuinka hyvin peli näkee sinut —
+   eikä paneelissa ollut tilaa kysyä sitä kahdesti.
+3. **Jalkarivi pinottiin:** signaali omalle riville, painikkeet alle. Vierekkäin
+   signaaliteksti puristui kahdelle-kolmelle riville painikkeiden viereen — 84px yhdestä
+   lauseesta.
+
+Lopputulos **205px / 780 (26 %)** puhelimessa ja **208px / 720 (29 %)** matalassa
+työpöytäikkunassa.
+
+**Neljän sarakkeen taite poistettiin kokonaan.** Se ei mahdu koskaan: paneeli on
+katkaistu 30 remiin, joten neljäsosasarake on enintään 6 rem, ja levein *arvo*
+("12 · 400 m²", tai kolme resurssilukua) tarvitsee noin yhdeksän. Otsikot eivät olleet
+rajoite — luvut olivat. Kaksi saraketta, joka leveydellä.

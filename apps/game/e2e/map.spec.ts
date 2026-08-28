@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { acceptHearth, openMap as open } from './hearth.js';
 
 /**
  * BRDC-MAP-001. The GREEN criteria from the ticket, asserted against a real browser.
@@ -10,10 +12,8 @@ const TILE_HOST = 'tiles.openfreemap.org';
 
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
-async function openMap(page: import('@playwright/test').Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
-  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+async function openMap(page: Page) {
+  await open(page, HERE);
 }
 
 test('renders the map and places the player on it', async ({ page }) => {
@@ -79,6 +79,8 @@ test('survives with no tiles at all', async ({ page }) => {
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  // The Hearth needs the sky, not the streets, so it works with no tiles at all.
+  await acceptHearth(page, HERE);
 
   await expect(page.locator('.hud__note')).toContainText(/streets are unreachable/i, {
     timeout: 20_000,
