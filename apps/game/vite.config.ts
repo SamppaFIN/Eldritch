@@ -58,6 +58,17 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: base,
         scope: base,
+        /*
+         * One SVG, marked maskable as well as any.
+         *
+         * The palette is fixed and the mark is a stroke drawing, so there is nothing a
+         * raster set would add except four more files to keep in step. Android will
+         * rasterise it when the game is added to a home screen.
+         */
+        icons: [
+          { src: `${base}icon.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: `${base}icon.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+        ],
       },
     }),
   ],

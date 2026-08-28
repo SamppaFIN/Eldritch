@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eldritch Sanctuary">
+  <!--
+    A tab icon has to survive sixteen pixels. The Flower of Life on the title screen
+    turns to mush at that size, so the mark is the shape the game is actually made of:
+    one hexagon, one ward inside it, one point at the centre. Stroke, never raster.
+  -->
+  <rect width="64" height="64" rx="14" fill="#0a0612"/>
+  <g fill="none" stroke="#ffd700" stroke-linejoin="round">
+    <path d="M32 8 55 20.5 55 45.5 32 58 9 45.5 9 20.5Z" stroke-width="4"/>
+    <path d="M32 20 44 26.5 44 39.5 32 46 20 39.5 20 26.5Z" stroke-width="2.5" opacity="0.55"/>
+  </g>
+  <circle cx="32" cy="33" r="4" fill="#00d4ff"/>
+</svg>

@@ -96,3 +96,30 @@ export function acquisitionLine(a: Acquisition): string {
   if (!a.ready) return 'Almost — hold still a moment';
   return a.tier === 'sharp' ? 'The ground is certain' : 'The ground is clear enough';
 }
+
+/** After this long, waiting longer is not going to help — indoors, it never will. */
+export const PATIENCE_S = 30;
+
+export type Acceptance =
+  /** Good fix, agreed on. The button means what it says. */
+  | 'ready'
+  /** Not good, but waiting has stopped helping. The player may accept it knowingly. */
+  | 'settle'
+  /** Still worth waiting. The button is disabled. */
+  | 'waiting'
+  /** Nothing has arrived at all, and patience has run out. There is nothing to accept. */
+  | 'nothing';
+
+/**
+ * Whether the player may accept this ground yet.
+ *
+ * Extracted because this is where the screen got stuck. A desktop browser reports ±87 m
+ * from wifi and then stops sending fixes entirely: `spread` never fills, `ready` is
+ * never true, and without the patience clause the button never enables. It did enable —
+ * and went on reading "Waiting for the ground…", which is the same thing as not enabling.
+ */
+export function acceptance(a: Acquisition, elapsedS: number): Acceptance {
+  if (a.ready) return 'ready';
+  if (elapsedS < PATIENCE_S) return 'waiting';
+  return a.fix === null ? 'nothing' : 'settle';
+}

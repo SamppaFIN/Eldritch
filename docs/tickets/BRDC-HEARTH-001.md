@@ -65,3 +65,24 @@ Kuvakaappaus pelistä: tyhjä kartta, 0 vallattua ruutua, eikä kotipesää kysy
 Kuka tahansa jolla oli sessio *ennen kuin* kotipesä oli olemassa ei siis koskaan
 ehtinyt hyväksyä sellaista — täsmälleen se vanha kokemus jonka tämä tiketti poisti.
 Paluu tarkistaa nyt kotipesämerkin, ei pelkkää sessiota.
+
+## Korjattu jälkikäteen — 2026-08-28 (toinen)
+
+Kuvakaappaus: **Waiting for the ground…**, ±87 m, Agreement —, Fixes 2. Jumissa.
+
+Työpöytäselain antaa sijainnin wifistä: ±87 m, kaksi fixiä, sitten hiljaisuus.
+Vakausikkuna (4 fixiä) ei täyty koskaan, joten `ready` ei voi muuttua todeksi eikä
+mikään muukaan enää muutu. Ulospääsy 30 s jälkeen oli olemassa — mutta nappi **säilytti
+tekstin "Waiting for the ground…"** vaikka se aktivoitui, mikä on käyttäjälle sama asia
+kuin ettei se aktivoituisi.
+
+- Napin teksti kertoo nyt mitä se tekee: `Accept this ground · ±87 m`
+- Odottaessa näkyy kauanko: "You can accept a rougher fix in 12 s"
+- Jos yhtään fixiä ei tule, ruutu neuvoo sijaintiluvat ja avoimen taivaan — nappia ei
+  ole, koska mitään ei ole hyväksyttävissä
+- Päätös irrotettiin puhtaaksi funktioksi `acceptance()` ja juuri tämä wifi-tapaus on
+  nyt regressiotesti
+
+Samalla konsolin 404: `/favicon.ico`. Sivulla ei ollut kuvaketta lainkaan. Nyt on
+SVG-sigil (heksa, sisäheksa, piste) joka kestää 16 pikseliä, ja se on myös manifestin
+ikoni — kotivalikkoon lisääminen ulkotestiä varten toimii nyt.
