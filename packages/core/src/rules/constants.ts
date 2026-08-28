@@ -147,3 +147,11 @@ export const ANCHOR = {
   maxCarrySteps: 100,
   stepMarkerInterval: 50,
 } as const;
+
+/**
+ * The wire format for a challenge carried by hand (BRDC-WAGER-JSON-001).
+ *
+ * Separate from SAVE_VERSION on purpose: a save and a message between two phones change
+ * for different reasons, and bumping one should not invalidate the other.
+ */
+export const CHALLENGE_VERSION = 1;

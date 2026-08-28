@@ -25,6 +25,7 @@ import type {
 } from './domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WardResult } from '../rules/ward.js';
+import type { ChallengeResult } from '../data/challenge.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -72,6 +73,22 @@ export interface GameRepository {
    * are all things the interface has to be able to say out loud to the player.
    */
   wardCell(h3: H3Index, now: number): Promise<WardResult>;
+
+  /* --- The Wager, carried by hand --------------------------------------- */
+  /**
+   * Everything a friend's game needs to hold you as a rival, as text.
+   *
+   * Phases 0-2 have no server, so this is what multiplayer is: a block of JSON sent
+   * through whatever app people already use, and read back by the other phone.
+   */
+  exportChallenge(now: number): Promise<string>;
+  /**
+   * Take a challenge someone sent and give them ground on your map.
+   *
+   * Refusals come back as named faults rather than exceptions — every one of them has to
+   * become a sentence the player can act on.
+   */
+  importChallenge(text: string, now: number): Promise<ChallengeResult>;
 
   /* --- The Hearth ------------------------------------------------------- */
   /**

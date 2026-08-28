@@ -21,8 +21,6 @@ import { projectCell, sweepDecay } from '../rules/decay.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
 import type { WardResult } from '../rules/ward.js';
-import { emptyCell, resolveCapture } from '../rules/capture.js';
-import { cellAt } from '../geo/cells.js';
 import { levelForXp } from '../rules/level.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import type {
@@ -44,6 +42,9 @@ import type { KeyValueStore } from './kv.js';
 import { MemoryStore } from './kv.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
+import { openChallenge, sealChallenge } from './wager.js';
+import { claimHearth } from './hearth.js';
+import type { ChallengeResult } from './challenge.js';
 
 
 const CELL_PREFIX = 'cell:';
@@ -224,24 +225,24 @@ export class MockRepository implements GameRepository {
     return (await this.getOwnedCells(now)).map((c) => c.h3);
   }
 
+  /* --- The Wager, carried by hand --------------------------------------- */
+
+  async exportChallenge(now: number): Promise<string> {
+    const profile = await this.getProfile();
+    // Projected, so what travels is the ground that is actually still standing.
+    return sealChallenge(profile, await this.getOwnedCells(now), await this.getHome(), now);
+  }
+
+  async importChallenge(text: string, now: number): Promise<ChallengeResult> {
+    const profile = await this.getProfile();
+    return openChallenge(this.store, text, profile.id, now);
+  }
+
   /* --- The Hearth ------------------------------------------------------- */
 
   async setHome(position: LatLng, now: number): Promise<H3Index> {
-    const h3 = cellAt(position);
     const profile = await this.getProfile();
-
-    /*
-     * Claimed outright, adjacency waived.
-     *
-     * This is the seed the growth rule already allows for, made explicit: the player
-     * agreed to start here, so the ground is theirs before they take a step. Without it
-     * the Hearth would be a marker floating over land belonging to nobody.
-     */
-    const current = (await this.store.get<Cell>(K.cell(h3))) ?? emptyCell(h3);
-    const { cell } = resolveCapture(current, { id: profile.id, level: profile.level }, now);
-    await this.store.set(K.cell(h3), cell);
-
-    await this.store.set(K.home, h3);
+    const h3 = await claimHearth(this.store, profile, position, now);
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
     return h3;
   }

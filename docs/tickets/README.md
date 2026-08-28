@@ -92,6 +92,7 @@ hylätyt vaihtoehdot: [PIVOT-2026-08-27.md](PIVOT-2026-08-27.md).
 | [BRDC-AWAKEN-001](BRDC-AWAKEN-001.md) | Sulkeutuminen on tapahtuma: ilmoitus + heksojen paljastus | S | CLAIM-006 |
 | [BRDC-TERRAIN-001](BRDC-TERRAIN-001.md) | Maasto → resurssit → alueen kehitys | L | GROW-001 |
 | [BRDC-WARD-001](BRDC-WARD-001.md) | Resurssien käyttö: solun vahvistaminen | M | TERRAIN-001, CLAIM-004 |
+| [BRDC-WAGER-JSON-001](BRDC-WAGER-JSON-001.md) | Haasta kaveri: moninpeli ilman palvelinta | M | CLAIM-005, HEARTH-001 |
 
 ### 🧪 Läpileikkaava
 

@@ -1,8 +1,10 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { load, loadWith, remove, saveNow } from '@es3/core';
-import type { LatLng } from '@es3/core';
+import type { GameRepository, LatLng } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
+import { WagerDialog } from '../features/wager/WagerDialog.js';
+import { createRepository } from '../data/createRepository.js';
 import { Hearth } from '../features/hearth/Hearth.js';
 import './mapview.css';
 
@@ -40,6 +42,16 @@ interface HearthMark {
 export function App() {
   const [view, setView] = useState<View>('title');
   const [notice, setNotice] = useState<string | null>(null);
+  const [wager, setWager] = useState(false);
+  /*
+   * Opened lazily, and only for the Wager.
+   *
+   * MapView owns its own handle; this one exists because sealing a challenge is done
+   * from the title screen, where there is otherwise no repository at all. Two handles
+   * over the same IndexedDB is not a problem — the store is the shared thing, and both
+   * read and write through it.
+   */
+  const [repository, setRepository] = useState<GameRepository | null>(null);
 
   useEffect(() => {
     const { value, outcome } = loadWith<Session | null>('session', null);
@@ -73,6 +85,12 @@ export function App() {
     }
   }, []);
 
+  const openWager = useCallback(() => {
+    setWager(true);
+    if (repository) return;
+    void createRepository().then((handle) => setRepository(handle.repository));
+  }, [repository]);
+
   const begin = useCallback(() => {
     saveNow<Session>('session', { startedAt: Date.now() });
     // Someone who has already accepted a Hearth is not asked again — they are walking
@@ -91,7 +109,14 @@ export function App() {
     setView('title');
   }, []);
 
-  if (view === 'title') return <TitleScreen onBegin={begin} notice={notice} />;
+  if (view === 'title') {
+    return (
+      <>
+        <TitleScreen onBegin={begin} onWager={openWager} notice={notice} />
+        <WagerDialog open={wager} repository={repository} onClose={() => setWager(false)} />
+      </>
+    );
+  }
 
   if (view === 'hearth') return <Hearth onAccept={acceptHearth} />;
 

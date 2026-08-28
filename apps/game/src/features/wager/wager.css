@@ -1,0 +1,49 @@
+/* The Wager dialog. Two halves: what you send, and what you were sent. */
+
+.wager__half {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+}
+
+.wager__heading {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.wager__text {
+  inline-size: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--bg) 60%, transparent);
+  color: var(--text-muted);
+  /* Monospace and small: this is a payload, not prose. It has to be selectable by hand
+     when the clipboard refuses, and legible enough to see that it is all there. */
+  font-family: ui-monospace, 'SFMono-Regular', 'Consolas', monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.wager__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.wager__row .es-btn {
+  min-block-size: var(--touch-min);
+}
+
+.wager__note {
+  color: var(--accent);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.wager__note--fault {
+  color: var(--warning);
+}
