@@ -111,3 +111,29 @@
   font-size: var(--text-sm);
   text-wrap: pretty;
 }
+
+/* What holding this ground is worth. Three figures, then the sentence they add up to. */
+.cell-panel__worth {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}
+
+.cell-panel__worth dt {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cell-panel__worth dd {
+  color: var(--text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.cell-panel__worth-note {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}

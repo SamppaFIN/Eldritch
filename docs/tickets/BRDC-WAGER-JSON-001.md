@@ -47,9 +47,9 @@ HUDilla on mitattu 30 %:n budjetti jonka viides painike rikkoisi.
 
 ## Tiedossa oleva rajoite
 
-Wageriin pääsee **kävelyn jälkeen, ei sen aikana** — nimikkoruutu on sen ainoa ovi ja
-sinne palataan Withdrawilla. Se on oikea järjestys useimmiten, muttei aina. Jos tästä
-tulee kitkaa ulkotestissä, seuraava askel on oma ovi kartalta.
+~~Wageriin pääsee vain kävelyn jälkeen.~~ **Korjattu `BRDC-INSPECT-001`:ssä:** oman
+kotipesän napauttaminen avaa läänin näkymän, ja Wagerin ovi on siellä. Seisominen omalla
+ankkurikivellään on parempi paikka tulla kysytyksi kuin nimikkoruutu.
 
 ## Ei tässä
 

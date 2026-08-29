@@ -94,6 +94,7 @@ hylätyt vaihtoehdot: [PIVOT-2026-08-27.md](PIVOT-2026-08-27.md).
 | [BRDC-WARD-001](BRDC-WARD-001.md) | Resurssien käyttö: solun vahvistaminen | M | TERRAIN-001, CLAIM-004 |
 | [BRDC-WAGER-JSON-001](BRDC-WAGER-JSON-001.md) | Haasta kaveri: moninpeli ilman palvelinta | M | CLAIM-005, HEARTH-001 |
 | [BRDC-WAGER-BATTLE-001](BRDC-WAGER-BATTLE-001.md) | Taistelu clientillä · muuri vai örkit | M | WAGER-JSON-001 |
+| [BRDC-INSPECT-001](BRDC-INSPECT-001.md) | Maan tieto: heksan popup ja klikattava kotipesä | M | WARD-001, TERRAIN-001 |
 
 ### 🧪 Läpileikkaava
 

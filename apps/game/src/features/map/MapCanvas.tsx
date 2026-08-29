@@ -18,6 +18,8 @@ import {
   setTerritoryData,
 } from '../territory/TerritoryLayer.js';
 import {
+  PLACE_CORE_LAYER,
+  PLACE_HALO_LAYER,
   ensurePlaceLayers,
   removePlaceLayers,
   setPlaceData,
@@ -57,6 +59,8 @@ export interface MapCanvasProps {
   awakening?: { cells: readonly H3Index[]; at: number } | null;
   /** Called when a hexagon is tapped, with its H3 index. */
   onCellTap?: (h3: string) => void;
+  /** Called when an Anchor Stone or temple marker is tapped. */
+  onPlaceTap?: (h3: string) => void;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
@@ -79,6 +83,7 @@ export function MapCanvas({
   follow = true,
   onBasemapChange,
   onCellTap,
+  onPlaceTap,
   onViewportChange,
 }: MapCanvasProps) {
   const { containerRef, map, ready, basemap } = useMap(
@@ -175,6 +180,26 @@ export function MapCanvas({
       map.off('mouseleave', [CELL_FILL_LAYER], leave);
     };
   }, [map, ready, onCellTap]);
+
+  /*
+   * Tapping a place.
+   *
+   * Registered after the cell handler and on layers drawn above it, so a tap on the
+   * Anchor Stone opens the sanctuary rather than the one cell it happens to sit in — the
+   * marker is the smaller, more deliberate target of the two.
+   */
+  useEffect(() => {
+    if (!map || !ready || !onPlaceTap) return;
+    const onClick = (e: MapLayerMouseEvent) => {
+      const id = e.features?.[0]?.id;
+      if (typeof id === 'string') onPlaceTap(id);
+    };
+    const layers = [PLACE_CORE_LAYER, PLACE_HALO_LAYER];
+    map.on('click', layers, onClick);
+    return () => {
+      map.off('click', layers, onClick);
+    };
+  }, [map, ready, onPlaceTap]);
 
   // Report the viewport once it settles, so the caller loads only what is on screen.
   useEffect(() => {

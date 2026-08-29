@@ -1,0 +1,96 @@
+/* The sanctuary, read standing still. Same dock as the cell panel — they never
+   both appear, so they share the space rather than competing for it. */
+
+.hearth-panel {
+  position: fixed;
+  inset-inline: var(--space-3);
+  inset-block-start: var(--space-3);
+  z-index: var(--z-hud);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  max-inline-size: 26rem;
+  margin-inline: auto;
+  animation: es-panel-in 0.2s var(--ease-out) both;
+}
+
+.hearth-panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hearth-panel__head > div {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.hearth-panel__sigil {
+  flex: 0 0 auto;
+  color: var(--accent-warm);
+}
+
+.hearth-panel__title {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.hearth-panel__sub {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.hearth-panel__close {
+  flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+}
+
+.hearth-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1) var(--space-4);
+}
+
+.hearth-panel__stats dt {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hearth-panel__stats dd {
+  color: var(--text);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.hearth-panel__line {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.hearth-panel__line--warn {
+  color: var(--warning);
+}
+
+.hearth-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+}
+
+.hearth-panel__actions .es-btn {
+  min-block-size: var(--touch-min);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hearth-panel {
+    animation: none;
+  }
+}

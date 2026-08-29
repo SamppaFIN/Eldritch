@@ -6,11 +6,9 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { cellAt, clearAll, emptyCell, load, saveNow, speedMs } from '@es3/core';
+import { cellAt, clearAll, levelState, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
-  H3Index,
-  WardRefusal,
   GameRepository,
   PlayerProfile,
   ResourcePool,
@@ -27,6 +25,9 @@ import { useKeepAlive } from '../features/trail/useKeepAlive.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
+import { HearthPanel } from '../features/territory/HearthPanel.js';
+import { useSelection } from '../features/territory/useSelection.js';
+import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
@@ -50,9 +51,6 @@ export function MapView({ onLeave }: MapViewProps) {
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [resources, setResources] = useState<ResourcePool | null>(null);
-  const [selected, setSelected] = useState<H3Index | null>(null);
-  const [refusal, setRefusal] = useState<WardRefusal | null>(null);
-  const [dwellMs, setDwellMs] = useState(0);
 
   /*
    * Held open by the player, never by default.
@@ -193,58 +191,25 @@ export function MapView({ onLeave }: MapViewProps) {
 
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
 
-  // A new selection starts with a clean slate: a refusal about the last cell has nothing
-  // to say about this one.
-  const onCellTap = useCallback((h3: H3Index) => {
-    setSelected(h3);
-    setRefusal(null);
-  }, []);
-
   /*
-   * A cell nobody has ever claimed is not in storage, so the viewport query does not
-   * return it — and "This ground" on open land would have opened nothing at all. An
-   * empty cell stands in for it: the terrain and the dwell are real either way, and the
-   * panel already knows how to say "Unclaimed".
+   * Everything about what the player is inspecting, in one place.
+   *
+   * Lifted out when MapView crossed four hundred lines. A real seam rather than a
+   * convenient cut: selection, the panels it opens and the one action they offer are one
+   * concern, and none of the rest of this file needs to know how it works.
    */
-  const selectedCell = useMemo(() => {
-    if (!selected) return null;
-    return territory.cells.find((c) => c.h3 === selected) ?? emptyCell(selected);
-  }, [territory.cells, selected]);
+  const inspect = useSelection({
+    repository,
+    cells: territory.cells,
+    places,
+    now: clock.now,
+    trailVersion: trail.points.length,
+    onWarded: setResources,
+    refreshTerritory: territory.refresh,
+  });
 
   /** The cell under the player's feet, which is the one they most often want. */
   const standingOn = useMemo(() => (point ? cellAt(point) : null), [point]);
-
-  // Read whenever the selection changes, and again as the trail grows: time spent in
-  // the cell you are standing in is accruing while the panel is open.
-  useEffect(() => {
-    if (!repository || !selected) {
-      setDwellMs(0);
-      return;
-    }
-    let alive = true;
-    void repository.getDwellFor(selected).then((ms) => {
-      if (alive) setDwellMs(ms);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [repository, selected, trail.points.length]);
-
-  const onWard = useCallback(
-    (h3: H3Index) => {
-      if (!repository) return;
-      void (async () => {
-        const result = await repository.wardCell(h3, clock.now());
-        setRefusal(result.warded ? null : result.refused);
-        if (result.warded) {
-          setResources(result.pool);
-          // The strength on screen has to be the strength that was just paid for.
-          await territory.refresh();
-        }
-      })();
-    },
-    [repository, clock, territory],
-  );
 
   /*
    * A player who owns nothing has never seen the game do anything, so the map opens
@@ -287,7 +252,8 @@ export function MapView({ onLeave }: MapViewProps) {
         awakening={awakening}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}
-        onCellTap={onCellTap}
+        onCellTap={inspect.onCellTap}
+        onPlaceTap={inspect.onPlaceTap}
         onViewportChange={onViewportChange}
       />
 
@@ -295,17 +261,33 @@ export function MapView({ onLeave }: MapViewProps) {
 
       <PlaceReveal revealed={trail.revealed} />
 
+      {inspect.sanctum ? (
+        <HearthPanel
+          owned={territory.owned}
+          resources={resources}
+          places={places.filter((p) => p.kind === 'temple').length}
+          level={levelState(profile?.xp ?? 0).level}
+          levelName={levelState(profile?.xp ?? 0).name}
+          now={clock.now()}
+          onWager={inspect.openWager}
+          onWeakest={inspect.onCellTap}
+          onClose={inspect.close}
+        />
+      ) : null}
+
+      <WagerDialog open={inspect.wager} repository={repository} onClose={inspect.closeWager} />
+
       <CellPanel
-        cell={selectedCell}
+        cell={inspect.cell}
         me={profile?.id ?? null}
         resources={resources}
         now={clock.now()}
-        refusal={refusal}
-        here={selected !== null && selected === standingOn}
-        dwellMs={dwellMs}
+        refusal={inspect.refusal}
+        here={inspect.selected !== null && inspect.selected === standingOn}
+        dwellMs={inspect.dwellMs}
         hasAnchor={places.some((p) => p.kind === 'anchor')}
-        onWard={onWard}
-        onClose={() => setSelected(null)}
+        onWard={inspect.onWard}
+        onClose={inspect.close}
       />
 
       <FirstLook
@@ -344,7 +326,7 @@ export function MapView({ onLeave }: MapViewProps) {
         keepAlive={keepAlive}
         resources={resources}
         standing={standingOn !== null}
-        onInspectHere={() => standingOn && onCellTap(standingOn)}
+        onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
         unobservedMs={trail.unobservedMs}
         onWithdraw={() => setConfirming('withdraw')}
         onReset={() => setConfirming('reset')}

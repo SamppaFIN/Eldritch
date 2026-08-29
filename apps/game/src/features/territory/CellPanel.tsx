@@ -10,10 +10,15 @@
  */
 import {
   ANCHOR_THRESHOLD_MS,
+  CLAIM_YIELD,
   MAX_STRENGTH,
+  NEIGHBOUR_BONUS,
   TEMPLE_THRESHOLD_MS,
+  TRICKLE_PER_HOUR,
   WARD_COST,
+  cellAreaM2,
   hoursUntilReleased,
+  resourceOf,
   revealProgress,
   terrainOf,
 } from '@es3/core';
@@ -51,6 +56,13 @@ const YIELD: Readonly<Record<TerrainKind, string>> = {
   forest: 'yields timber',
   market: 'yields gold',
   plain: 'yields nothing',
+};
+
+/** The resource a terrain gives, said the way the pouch says it. */
+const RESOURCE_NAME: Readonly<Record<string, string>> = {
+  water: 'water',
+  wood: 'timber',
+  gold: 'gold',
 };
 
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
@@ -113,6 +125,7 @@ export function CellPanel({
   if (!cell) return null;
 
   const terrain = terrainOf(cell.h3);
+  const resource = resourceOf(cell.h3);
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
@@ -145,6 +158,41 @@ export function CellPanel({
 
       <p className="cell-panel__owner">
         {mine ? 'Yours' : cell.ownerId === null ? 'Unclaimed' : 'Held by another'}
+      </p>
+
+      {/*
+        What holding it is worth.
+        
+        The panel used to describe a cell without ever saying why anyone should want it.
+        Terrain, area and the two bonuses are the whole answer, and the second one — that
+        a held cell strengthens claims on its neighbours — is invisible everywhere else
+        in the game despite being the reason territory is worth more than the sum of its
+        parts.
+      */}
+      <dl className="cell-panel__worth">
+        <div>
+          <dt>Ground</dt>
+          <dd className="es-numeric">{Math.round(cellAreaM2(cell.h3))} m²</dd>
+        </div>
+        <div>
+          <dt>Yields</dt>
+          <dd className="es-numeric">
+            {resource
+              ? `${CLAIM_YIELD} ${RESOURCE_NAME[resource]} · ${TRICKLE_PER_HOUR}/h`
+              : 'nothing'}
+          </dd>
+        </div>
+        <div>
+          <dt>Neighbours</dt>
+          <dd className="es-numeric">+{NEIGHBOUR_BONUS} each</dd>
+        </div>
+      </dl>
+
+      <p className="cell-panel__worth-note">
+        {resource
+          ? `Taking it pays ${CLAIM_YIELD} ${RESOURCE_NAME[resource]} once, then ${TRICKLE_PER_HOUR} an hour for as long as you hold it.`
+          : 'Plain ground pays nothing on its own.'}{' '}
+        Holding it adds {NEIGHBOUR_BONUS} to every claim you make on the six cells around it.
       </p>
 
       {cell.ownerId !== null ? (
