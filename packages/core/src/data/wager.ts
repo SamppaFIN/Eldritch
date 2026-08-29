@@ -10,12 +10,14 @@ import { buildChallenge, challengeToCells, encodeChallenge, parseChallenge } fro
 import type { ChallengeResult } from './challenge.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
+import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { Cell, H3Index, PlayerId, PlayerProfile } from '../types/domain.js';
 
 export function sealChallenge(
   profile: PlayerProfile,
   cells: readonly Cell[],
   home: H3Index | null,
+  defence: Defence,
   now: number,
 ): string {
   return encodeChallenge(
@@ -25,6 +27,7 @@ export function sealChallenge(
       level: profile.level,
       cells,
       home,
+      defence,
       now,
     }),
   );
@@ -56,4 +59,41 @@ export async function openChallenge(
     await store.set(K.cell(cell.h3), cell);
   }
   return result;
+}
+
+/**
+ * What the local player brings to a Wager.
+ *
+ * Assembled here rather than in the UI so that both halves of a duel are built the same
+ * way: the sender's side comes out of a challenge message, this side comes out of the
+ * store, and neither may drift from the other.
+ */
+export function ownCombatant(
+  profile: PlayerProfile,
+  cells: readonly Cell[],
+  home: H3Index | null,
+  defence: Defence,
+): Combatant {
+  return {
+    id: profile.id,
+    name: profile.name,
+    level: profile.level,
+    cells: cells.map((c) => ({ h3: c.h3, strength: Math.round(c.strength) })),
+    home,
+    defence,
+  };
+}
+
+/**
+ * What the player built on their border. A wall until they choose otherwise.
+ *
+ * The default matters more than it looks: an unset defence would make two phones compute
+ * different fights, so there is no such thing as unset — only "wall, so far".
+ */
+export async function readDefence(store: KeyValueStore): Promise<Defence> {
+  return (await store.get<Defence>(K.defence)) ?? 'wall';
+}
+
+export async function writeDefence(store: KeyValueStore, defence: Defence): Promise<void> {
+  await store.set(K.defence, defence);
 }

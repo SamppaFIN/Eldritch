@@ -16,5 +16,6 @@ export const K = {
   cell: (h3: string) => `cell:${h3}`,
   dwell: 'dwell',
   home: 'home',
+  defence: 'defence',
   lastReading: 'reading:last',
 } as const;

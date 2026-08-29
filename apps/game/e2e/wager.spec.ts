@@ -22,8 +22,22 @@ test('a challenge is sealed and can be copied out', async ({ page }) => {
 
   const text = await payload.inputValue();
   const parsed = JSON.parse(text);
-  expect(parsed).toMatchObject({ v: 1 });
+  expect(parsed).toMatchObject({ v: 2, defence: 'wall' });
   expect(typeof parsed.sum).toBe('string');
+});
+
+test('the border defence travels with the challenge', async ({ page }) => {
+  // Both phones compute the same fight from the same inputs, so a defence the other
+  // side cannot see would make the two of them disagree with no referee to ask.
+  await page.goto('/');
+  await page.getByRole('button', { name: 'The Wager' }).click();
+
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('radio', { name: 'Orcs' }).click();
+  await dialog.getByRole('button', { name: 'Seal my sanctuary' }).click();
+
+  const sealed = JSON.parse(await dialog.getByLabel('Your challenge').inputValue());
+  expect(sealed.defence).toBe('orcs');
 });
 
 test('a challenge from another sanctuary lands on the map', async ({ browser }) => {
@@ -66,6 +80,11 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
   await receiver.getByRole('button', { name: 'Accept the Wager' }).click();
 
   await expect(receiver.getByText(/Their ground is on your map/i)).toBeVisible();
+
+  // And the Wager resolves on this phone, from the message alone. No result is sent
+  // back, because a result is a claim and a claim is a thing to be lied about.
+  await expect(receiver.locator('.wager__verdict')).toBeVisible();
+  await expect(receiver.getByText(/Their game will read the same result/i)).toBeVisible();
   await receiverCtx.close();
 });
 

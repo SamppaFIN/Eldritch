@@ -47,3 +47,27 @@
 .wager__note--fault {
   color: var(--warning);
 }
+
+.wager__aside {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.wager__outcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--accent-warm) 35%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--bg) 55%, transparent);
+}
+
+.wager__verdict {
+  color: var(--accent-warm);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  text-wrap: balance;
+}

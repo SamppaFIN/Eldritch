@@ -153,5 +153,25 @@ export const ANCHOR = {
  *
  * Separate from SAVE_VERSION on purpose: a save and a message between two phones change
  * for different reasons, and bumping one should not invalidate the other.
+ *
+ * v2 added the sender's defence. Both phones have to compute the same fight from the
+ * same inputs, so a v1 message is genuinely unusable rather than merely older — and the
+ * refusal already says so in words.
  */
-export const CHALLENGE_VERSION = 1;
+export const CHALLENGE_VERSION = 2;
+
+/* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
+
+/**
+ * Rounds before a fight is called on points.
+ *
+ * Long enough that a small advantage compounds, short enough that a duel is a moment
+ * rather than a spectator sport — the result is read on a phone, standing up.
+ */
+export const WAGER_ROUNDS = 12;
+
+/** Orcs bite harder. This is what they add to a blow. */
+export const ORC_BITE = 60;
+
+/** A wall turns aside this percentage of every blow, and never tires. */
+export const WALL_GUARD = 35;

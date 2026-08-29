@@ -53,6 +53,5 @@ tulee kitkaa ulkotestissä, seuraava askel on oma ovi kartalta.
 
 ## Ei tässä
 
-- Taistelun ratkaisu ja tuloksen palautus. Muistiinpanot jättävät auki ratkaistaanko se
-  deterministisesti clientillä vai vahvistaako palvelin — **päätä ennen kuin rakennat**.
-- Muuri vs. örkit. Riippuu taistelusta.
+- Taistelun ratkaisu. Päätetty 2026-08-29 ja tehty: `BRDC-WAGER-BATTLE-001`.
+  Tulosta ei palauteta lainkaan — molemmat laskevat sen samoista syötteistä.

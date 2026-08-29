@@ -9,9 +9,10 @@
  * challenge is something done sitting down, and the walking HUD has a measured budget of
  * thirty per cent of the screen that a fifth control would break.
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
-import type { ChallengeFault, GameRepository } from '@es3/core';
+import { challengeToCombatant, resolveWager } from '@es3/core';
+import type { ChallengeFault, Defence, GameRepository, WagerOutcome } from '@es3/core';
 import './wager.css';
 
 export interface WagerDialogProps {
@@ -38,6 +39,26 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
   const [incoming, setIncoming] = useState('');
   const [fault, setFault] = useState<ChallengeFault | null>(null);
   const [took, setTook] = useState(0);
+  const [defence, setDefence] = useState<Defence>('wall');
+  const [outcome, setOutcome] = useState<{ result: WagerOutcome; me: string; them: string } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!repository || !open) return;
+    void repository.getDefence().then(setDefence);
+  }, [repository, open]);
+
+  const chooseDefence = useCallback(
+    (next: Defence) => {
+      setDefence(next);
+      // Written before it can be sealed into a challenge: a defence the other phone does
+      // not know about would make the two of them compute different fights.
+      void repository?.setDefence(next);
+      setPhase('idle');
+    },
+    [repository],
+  );
 
   const seal = useCallback(() => {
     if (!repository) return;
@@ -66,6 +87,20 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
         setTook(result.challenge.cells.length);
         setFault(null);
         setPhase('accepted');
+        /*
+         * Resolved here, on this phone, from the message alone.
+         *
+         * Their phone will compute the identical fight from the identical inputs — that
+         * is the whole point of the rules being deterministic. Nobody sends a result,
+         * because a result is a claim and a claim is a thing to be lied about.
+         */
+        void repository.getCombatant(Date.now()).then((mine) => {
+          setOutcome({
+            result: resolveWager(mine, challengeToCombatant(result.challenge)),
+            me: mine.id,
+            them: result.challenge.name,
+          });
+        });
       } else {
         setFault(result.fault);
         setPhase('refused');
@@ -84,6 +119,31 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
         There is no server. A challenge is a block of text: send yours to a friend, and
         their sanctuary appears on your map as ground to take.
       </p>
+
+      <section className="wager__half" aria-labelledby="wager-border">
+        <h3 id="wager-border" className="wager__heading">
+          Your border
+        </h3>
+        <p className="wager__aside">
+          Chosen before you know who you will face. A wall turns aside every blow; orcs
+          bite back harder and guard less.
+        </p>
+        {/* A radio group in behaviour, so arrow keys move between them and only the
+            chosen one is in the tab order. */}
+        <div className="wager__row" role="radiogroup" aria-label="Border defence">
+          {(['wall', 'orcs'] as const).map((kind) => (
+            <RitualButton
+              key={kind}
+              variant={defence === kind ? 'primary' : 'ghost'}
+              role="radio"
+              aria-checked={defence === kind}
+              onClick={() => chooseDefence(kind)}
+            >
+              {kind === 'wall' ? 'A wall' : 'Orcs'}
+            </RitualButton>
+          ))}
+        </div>
+      </section>
 
       <section className="wager__half" aria-labelledby="wager-send">
         <h3 id="wager-send" className="wager__heading">
@@ -137,6 +197,24 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
             Their ground is on your map — {took} {took === 1 ? 'cell' : 'cells'}. Walk it to
             take it.
           </p>
+        ) : null}
+
+        {outcome ? (
+          <div className="wager__outcome" role="status">
+            <p className="wager__verdict">
+              {outcome.result.winner === outcome.me
+                ? `You hold. ${outcome.them} is turned back.`
+                : `${outcome.them} breaks through.`}
+            </p>
+            <p className="wager__aside">
+              {outcome.result.onPoints
+                ? `Neither side broke in ${outcome.result.rounds.length} rounds — decided on what was left standing.`
+                : `Decided in ${outcome.result.rounds.length} rounds.`}
+            </p>
+            {/* Their phone computes this same line from the same message. There is
+                nothing to disagree about, and nothing to send back. */}
+            <p className="wager__aside">Their game will read the same result.</p>
+          </div>
         ) : null}
         {phase === 'refused' && fault ? (
           <p className="wager__note wager__note--fault" role="status">

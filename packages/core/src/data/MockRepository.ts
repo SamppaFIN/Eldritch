@@ -13,10 +13,10 @@
 import { cellToLatLng, latLngToCell } from 'h3-js';
 import { filterTrail } from '../geo/filter.js';
 import { placesWithHome } from '../rules/dwell.js';
-import type { DwellMap, DwellReading } from '../rules/dwell.js';
-import { planWalk, walkNeighbourhood } from './walking.js';
+import type { DwellMap } from '../rules/dwell.js';
+import { recordWalk } from './walkWriter.js';
 import { detectLoop } from '../geo/loopDetection.js';
-import { H3_RES_OWNERSHIP, XP_PER_CELL_CLAIMED } from '../rules/constants.js';
+import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { projectCell, sweepDecay } from '../rules/decay.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
@@ -25,7 +25,6 @@ import { levelForXp } from '../rules/level.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import type {
   BBox,
-  CaptureOutcome,
   Cell,
   LatLng,
   RevealedPlace,
@@ -42,7 +41,14 @@ import type { KeyValueStore } from './kv.js';
 import { MemoryStore } from './kv.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
-import { openChallenge, sealChallenge } from './wager.js';
+import {
+  openChallenge,
+  ownCombatant,
+  readDefence,
+  sealChallenge,
+  writeDefence,
+} from './wager.js';
+import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import type { ChallengeResult } from './challenge.js';
 
@@ -146,47 +152,18 @@ export class MockRepository implements GameRepository {
     });
     await this.ensureSeeded(accepted[0] as TrailPoint);
 
-    /*
-     * Walking is not only a line any more.
-     *
-     * Each accepted fix grows the territory into the cell underfoot — if it touches
-     * ground already held — and credits time to the cell just left. A cell that
-     * accumulates enough time stops being ground and becomes a place.
-     */
     const profile = await this.getProfile();
-    const known = new Map<string, Cell>();
-    for (const h3 of walkNeighbourhood(accepted)) {
-      const stored = await this.store.get<Cell>(K.cell(h3));
-      if (stored) known.set(h3, stored);
-    }
-
-    const plan = planWalk(accepted, {
-      attacker: { id: profile.id, level: profile.level },
-      known,
-      dwell: (await this.store.get<DwellMap>(K.dwell)) ?? {},
-      previous: (await this.store.get<DwellReading | null>(K.lastReading)) ?? null,
+    const walked = await recordWalk(this.store, accepted, {
+      id: profile.id,
+      level: profile.level,
       hasTerritory: await this.hasGround(profile.id),
     });
 
-    for (const step of plan.steps) {
-      if (step.cell) await this.store.set(K.cell(step.cell.h3), step.cell);
-    }
-    await this.store.set(K.dwell, plan.dwell);
-    const last = plan.steps[plan.steps.length - 1];
-    if (last) {
-      await this.store.set<DwellReading>(K.lastReading, {
-        h3: last.h3,
-        t: (accepted[accepted.length - 1] as TrailPoint).t,
-      });
-    }
-
-    const grown = plan.steps.map((s) => s.outcome).filter((o): o is CaptureOutcome => o !== null);
-    const xp = grown.filter((o) => o.kind === 'claimed' || o.kind === 'taken').length;
-    if (xp > 0) await this.addXp(xp * XP_PER_CELL_CLAIMED);
+    if (walked.xp > 0) await this.addXp(walked.xp);
     const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
-    await awardClaims(this.store, await this.ownedIndexes(lastT), grown, lastT);
+    await awardClaims(this.store, await this.ownedIndexes(lastT), walked.grown, lastT);
 
-    return { ...result, grown, revealed: plan.revealed, unobservedMs: plan.unobservedMs };
+    return { ...result, ...walked.trail };
   }
 
   async endRun(runId: RunId): Promise<void> {
@@ -228,14 +205,29 @@ export class MockRepository implements GameRepository {
   /* --- The Wager, carried by hand --------------------------------------- */
 
   async exportChallenge(now: number): Promise<string> {
-    const profile = await this.getProfile();
     // Projected, so what travels is the ground that is actually still standing.
-    return sealChallenge(profile, await this.getOwnedCells(now), await this.getHome(), now);
+    return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getHome(), await this.getDefence(), now);
   }
 
   async importChallenge(text: string, now: number): Promise<ChallengeResult> {
-    const profile = await this.getProfile();
-    return openChallenge(this.store, text, profile.id, now);
+    return openChallenge(this.store, text, (await this.getProfile()).id, now);
+  }
+
+  async getDefence(): Promise<Defence> {
+    return readDefence(this.store);
+  }
+
+  async setDefence(defence: Defence): Promise<void> {
+    await writeDefence(this.store, defence);
+  }
+
+  async getCombatant(now: number): Promise<Combatant> {
+    return ownCombatant(
+      await this.getProfile(),
+      await this.getOwnedCells(now),
+      await this.getHome(),
+      await this.getDefence(),
+    );
   }
 
   /* --- The Hearth ------------------------------------------------------- */

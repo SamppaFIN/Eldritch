@@ -13,5 +13,6 @@ export {
   checksum,
   encodeChallenge,
   parseChallenge,
+  challengeToCombatant,
 } from './challenge.js';
 export type { Challenge, ChallengeFault, ChallengeResult, ChallengeSource } from './challenge.js';

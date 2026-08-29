@@ -32,6 +32,7 @@ const source = (cells = ground(6)) => ({
   level: 4,
   cells,
   home: cells[0]?.h3 ?? null,
+  defence: 'orcs' as const,
   now: T0,
 });
 
@@ -51,7 +52,17 @@ describe('a challenge sent by hand', () => {
   it('carries only what the other player has to see', () => {
     // No trail, no dwell, no pouch. A challenge is ground and a name.
     const keys = Object.keys(buildChallenge(source())).sort();
-    expect(keys).toEqual(['cells', 'home', 'id', 'level', 'name', 'sentAt', 'sum', 'v']);
+    expect(keys).toEqual([
+      'cells',
+      'defence',
+      'home',
+      'id',
+      'level',
+      'name',
+      'sentAt',
+      'sum',
+      'v',
+    ]);
   });
 
   it('is refused when a chat app eats the end of it', () => {

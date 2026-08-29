@@ -26,6 +26,7 @@ import type {
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WardResult } from '../rules/ward.js';
 import type { ChallengeResult } from '../data/challenge.js';
+import type { Combatant, Defence } from '../rules/wagerBattle.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -82,6 +83,16 @@ export interface GameRepository {
    * through whatever app people already use, and read back by the other phone.
    */
   exportChallenge(now: number): Promise<string>;
+  /** What the player built on their border, and the choice of it. */
+  getDefence(): Promise<Defence>;
+  setDefence(defence: Defence): Promise<void>;
+  /**
+   * The local player as the battle rules see them.
+   *
+   * Both sides of a duel are assembled the same way — theirs from the message, this one
+   * from the store — because the two phones must agree on every input.
+   */
+  getCombatant(now: number): Promise<Combatant>;
   /**
    * Take a challenge someone sent and give them ground on your map.
    *

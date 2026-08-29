@@ -12,6 +12,7 @@
  * save.
  */
 import { CHALLENGE_VERSION } from '../rules/constants.js';
+import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 
 export interface Challenge {
@@ -24,6 +25,14 @@ export interface Challenge {
   cells: Array<{ h3: H3Index; strength: number }>;
   /** Their Anchor Stone, if they have one. */
   home: H3Index | null;
+  /**
+   * What they built on their border.
+   *
+   * It travels because both phones have to compute the same fight from the same inputs.
+   * A defence kept secret would mean sending the *result* instead — and a result is a
+   * claim, which on a client is a thing to be lied about.
+   */
+  defence: Defence;
   sentAt: number;
   /** Checksum over everything above. Not security — a torn message detector. */
   sum: string;
@@ -67,6 +76,7 @@ export interface ChallengeSource {
   level: number;
   cells: readonly Cell[];
   home: H3Index | null;
+  defence: Defence;
   now: number;
 }
 
@@ -82,6 +92,7 @@ export function buildChallenge(from: ChallengeSource): Challenge {
       .slice(0, MAX_CHALLENGE_CELLS)
       .map((c) => ({ h3: c.h3, strength: Math.round(c.strength) })),
     home: from.home,
+    defence: from.defence,
     sentAt: from.now,
   };
   return { ...payload, sum: checksum(payload) };
@@ -110,7 +121,12 @@ export function parseChallenge(text: string, mine: PlayerId): ChallengeResult {
   if (typeof raw !== 'object' || raw === null) return { ok: false, fault: 'not-a-challenge' };
   const c = raw as Partial<Challenge>;
 
-  if (typeof c.v !== 'number' || !Array.isArray(c.cells) || typeof c.id !== 'string') {
+  if (
+    typeof c.v !== 'number' ||
+    !Array.isArray(c.cells) ||
+    typeof c.id !== 'string' ||
+    (c.defence !== 'wall' && c.defence !== 'orcs')
+  ) {
     return { ok: false, fault: 'not-a-challenge' };
   }
   if (c.v !== CHALLENGE_VERSION) return { ok: false, fault: 'wrong-version' };
@@ -134,4 +150,16 @@ export function challengeToCells(challenge: Challenge, now: number): Cell[] {
     lastVisitedAt: now,
     visitDays: [],
   }));
+}
+
+/** The sender, as something the battle rules can fight. */
+export function challengeToCombatant(challenge: Challenge): Combatant {
+  return {
+    id: challenge.id,
+    name: challenge.name,
+    level: challenge.level,
+    cells: challenge.cells,
+    home: challenge.home,
+    defence: challenge.defence,
+  };
 }
