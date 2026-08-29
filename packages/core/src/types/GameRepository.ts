@@ -25,7 +25,7 @@ import type {
 } from './domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WardResult } from '../rules/ward.js';
-import type { ChallengeResult } from '../data/challenge.js';
+import type { ImportResult } from '../data/wager.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 
 export interface GameRepository {
@@ -94,12 +94,15 @@ export interface GameRepository {
    */
   getCombatant(now: number): Promise<Combatant>;
   /**
-   * Take a challenge someone sent and give them ground on your map.
+   * Accept a Wager: take their ground onto the map, fight it, and settle the spoils.
    *
-   * Refusals come back as named faults rather than exceptions — every one of them has to
+   * One call, because they are one act — a rival's territory that exists without the
+   * duel having happened is a state nothing should be able to observe.
+   *
+   * Refusals come back as named faults rather than exceptions: every one of them has to
    * become a sentence the player can act on.
    */
-  importChallenge(text: string, now: number): Promise<ChallengeResult>;
+  importChallenge(text: string, now: number): Promise<ImportResult>;
 
   /* --- The Hearth ------------------------------------------------------- */
   /**

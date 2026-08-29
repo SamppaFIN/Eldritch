@@ -48,9 +48,10 @@ import {
   sealChallenge,
   writeDefence,
 } from './wager.js';
+import type { ImportResult } from './wager.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
-import type { ChallengeResult } from './challenge.js';
+
 
 
 const CELL_PREFIX = 'cell:';
@@ -209,8 +210,17 @@ export class MockRepository implements GameRepository {
     return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getHome(), await this.getDefence(), now);
   }
 
-  async importChallenge(text: string, now: number): Promise<ChallengeResult> {
-    return openChallenge(this.store, text, (await this.getProfile()).id, now);
+  async importChallenge(text: string, now: number): Promise<ImportResult> {
+    // Their ground is projected out of the local player's own before the fight, so the
+    // muster reflects what is actually still standing rather than what once was.
+    return openChallenge(
+      this.store,
+      text,
+      await this.getProfile(),
+      await this.getOwnedCells(now),
+      await this.getHome(),
+      now,
+    );
   }
 
   async getDefence(): Promise<Defence> {

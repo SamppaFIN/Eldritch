@@ -11,8 +11,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
-import { challengeToCombatant, resolveWager } from '@es3/core';
-import type { ChallengeFault, Defence, GameRepository, WagerOutcome } from '@es3/core';
+import type { ChallengeFault, Defence, GameRepository, WagerReport } from '@es3/core';
 import './wager.css';
 
 export interface WagerDialogProps {
@@ -29,6 +28,7 @@ const FAULT: Readonly<Record<ChallengeFault, string>> = {
   damaged: 'The message was changed on the way. Ask for it again.',
   'too-large': 'That challenge carries more ground than a message can hold.',
   yourself: 'That is your own challenge. Send it to someone else.',
+  'already-fought': 'You have already fought this one. Ask them for a fresh challenge.',
 };
 
 type Phase = 'idle' | 'sealed' | 'copied' | 'accepted' | 'refused';
@@ -40,9 +40,7 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
   const [fault, setFault] = useState<ChallengeFault | null>(null);
   const [took, setTook] = useState(0);
   const [defence, setDefence] = useState<Defence>('wall');
-  const [outcome, setOutcome] = useState<{ result: WagerOutcome; me: string; them: string } | null>(
-    null,
-  );
+  const [outcome, setOutcome] = useState<{ report: WagerReport; me: string } | null>(null);
 
   useEffect(() => {
     if (!repository || !open) return;
@@ -82,30 +80,27 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
 
   const accept = useCallback(() => {
     if (!repository) return;
-    void repository.importChallenge(incoming, Date.now()).then((result) => {
-      if (result.ok) {
-        setTook(result.challenge.cells.length);
-        setFault(null);
-        setPhase('accepted');
-        /*
-         * Resolved here, on this phone, from the message alone.
-         *
-         * Their phone will compute the identical fight from the identical inputs — that
-         * is the whole point of the rules being deterministic. Nobody sends a result,
-         * because a result is a claim and a claim is a thing to be lied about.
-         */
-        void repository.getCombatant(Date.now()).then((mine) => {
-          setOutcome({
-            result: resolveWager(mine, challengeToCombatant(result.challenge)),
-            me: mine.id,
-            them: result.challenge.name,
-          });
-        });
-      } else {
+    void (async () => {
+      /*
+       * One call: their ground arrives, the Wager is fought and the spoils settle
+       * together. The fight is resolved on this phone from the message alone — theirs
+       * will compute the identical result from the identical inputs, which is the whole
+       * point of the rules being deterministic. Nobody sends a result, because a result
+       * is a claim and a claim is a thing to be lied about.
+       */
+      const result = await repository.importChallenge(incoming, Date.now());
+      if (!result.ok) {
         setFault(result.fault);
         setPhase('refused');
+        return;
       }
-    });
+
+      const me = await repository.getProfile();
+      setTook(result.report.challenge.cells.length);
+      setFault(null);
+      setPhase('accepted');
+      setOutcome({ report: result.report, me: me.id });
+    })();
   }, [repository, incoming]);
 
   return (
@@ -202,15 +197,26 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
         {outcome ? (
           <div className="wager__outcome" role="status">
             <p className="wager__verdict">
-              {outcome.result.winner === outcome.me
-                ? `You hold. ${outcome.them} is turned back.`
-                : `${outcome.them} breaks through.`}
+              {outcome.report.outcome.winner === outcome.me
+                ? `You hold. ${outcome.report.challenge.name} is turned back.`
+                : `${outcome.report.challenge.name} breaks through.`}
             </p>
             <p className="wager__aside">
-              {outcome.result.onPoints
-                ? `Neither side broke in ${outcome.result.rounds.length} rounds — decided on what was left standing.`
-                : `Decided in ${outcome.result.rounds.length} rounds.`}
+              {outcome.report.outcome.onPoints
+                ? `Neither side broke in ${outcome.report.outcome.rounds.length} rounds — decided on what was left standing.`
+                : `Decided in ${outcome.report.outcome.rounds.length} rounds.`}
             </p>
+            {outcome.report.weakened > 0 ? (
+              <p className="wager__aside">
+                Their border is softer for it — {outcome.report.weakened}{' '}
+                {outcome.report.weakened === 1 ? 'cell' : 'cells'} weakened. Walk them to
+                take them.
+              </p>
+            ) : (
+              <p className="wager__aside">
+                Their border stands exactly as it did. Ground is still taken on foot.
+              </p>
+            )}
             {/* Their phone computes this same line from the same message. There is
                 nothing to disagree about, and nothing to send back. */}
             <p className="wager__aside">Their game will read the same result.</p>

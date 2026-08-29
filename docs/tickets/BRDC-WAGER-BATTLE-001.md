@@ -53,8 +53,26 @@ Kun palvelin tulee: `resolveWager` on jo puhdas funktio jolla ei ole kelloa eik�
 satunnaisuutta, joten sama koodi ajetaan Postgresin puolella ja verrataan. Se on sama
 golden fixture -kuvio joka `claude.md` §16:ssa on jo luvattu säännöille.
 
+## Voiton seuraus — `spoils.ts`
+
+Kaksintaistelu joka ei muuta mitään on esittely, ei mekaniikka. Mutta palkinto ei voi
+olla heidän maansa: **maa otetaan kävelemällä**, ja se sääntö on koko pelin selkäranka.
+Joten voitto tekee sen ainoan asian joka mahtuu näiden väliin — se *pehmentää* heidän
+rajaansa sinun kartallasi. Solut menettävät vahvuutta; sinun on yhä mentävä seisomaan
+niiden päälle.
+
+- [x] Voitto vie `WAGER_SPOIL` vahvuutta vastustajan tuoduista soluista
+- [x] **Häviö ei maksa mitään.** Jos häviö vahingoittaisi maata jonka olet oikeasti
+      kävellyt, kaveri voisi jauhaa karttasi maahan haastamalla joka ilta
+- [x] Omistaja ei koskaan vaihdu — eikä vahvuus koskaan mene nollaan, koska nollattu
+      solu vapautuisi rappeutumissiivouksessa: se olisi omistajanvaihdos viestillä
+- [x] Oma maa ja valtaamaton maa jäävät koskematta
+- [x] **Haaste on kulutettu kun se on taisteltu.** Taistelu on deterministinen, joten
+      saman viestin tuonti uudestaan antaisi saman vastauksen — mutta korttelin kierto
+      välissä muuttaa voimaa, mikä muuttaa siementä. Häviäjä ei koskaan häviäisi.
+- [x] Tuonti, taistelu ja saalis ovat **yksi kutsu**: tila jossa vastustajan maa on
+      kartalla mutta kaksintaistelua ei ole käyty ei saa olla havaittavissa
+
 ## Ei tässä
 
 - Taistelun animaatio. Kierrosloki on olemassa; sen piirtäminen on oma työnsä.
-- Tuloksen vaikutus maahan. Voitto ei vielä ota vastustajan soluja — ne otetaan
-  kävelemällä, kuten kaikki muukin.

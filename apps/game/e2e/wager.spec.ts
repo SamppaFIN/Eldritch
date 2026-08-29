@@ -85,6 +85,12 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
   // back, because a result is a claim and a claim is a thing to be lied about.
   await expect(receiver.locator('.wager__verdict')).toBeVisible();
   await expect(receiver.getByText(/Their game will read the same result/i)).toBeVisible();
+
+  // And a challenge is spent once fought — otherwise a loser walks round the block,
+  // which changes the seed, and imports the same message until they win.
+  await receiver.getByRole('button', { name: 'Accept the Wager' }).click();
+  await expect(receiver.getByText(/already fought this one/i)).toBeVisible();
+
   await receiverCtx.close();
 });
 

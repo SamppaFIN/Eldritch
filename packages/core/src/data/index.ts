@@ -16,3 +16,4 @@ export {
   challengeToCombatant,
 } from './challenge.js';
 export type { Challenge, ChallengeFault, ChallengeResult, ChallengeSource } from './challenge.js';
+export type { ImportResult, WagerReport } from './wager.js';

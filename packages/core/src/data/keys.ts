@@ -17,5 +17,6 @@ export const K = {
   dwell: 'dwell',
   home: 'home',
   defence: 'defence',
+  fought: 'wager:fought',
   lastReading: 'reading:last',
 } as const;

@@ -175,3 +175,12 @@ export const ORC_BITE = 60;
 
 /** A wall turns aside this percentage of every blow, and never tires. */
 export const WALL_GUARD = 35;
+
+/**
+ * Strength a lost Wager costs the loser's cells on the winner's map.
+ *
+ * Roughly one and a half ordinary attacks — enough that winning saves a walk or two,
+ * not enough that a duel replaces walking. It never reaches zero: a cell emptied this
+ * way would be released by decay, and that is ownership changing hands by message.
+ */
+export const WAGER_SPOIL = 150;

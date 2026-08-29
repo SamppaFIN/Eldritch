@@ -47,7 +47,15 @@ export type ChallengeFault =
   | 'wrong-version'
   | 'damaged'
   | 'too-large'
-  | 'yourself';
+  | 'yourself'
+  /**
+   * Already fought.
+   *
+   * The fight is deterministic, so importing the same message twice gives the same
+   * answer — but walking a little first and importing it again would not. A challenge is
+   * spent the moment it is resolved, or the loser simply waits and tries again.
+   */
+  | 'already-fought';
 
 export type ChallengeResult =
   | { ok: true; challenge: Challenge }
