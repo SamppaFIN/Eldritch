@@ -71,3 +71,83 @@
   font-weight: var(--weight-bold);
   text-wrap: balance;
 }
+
+/* --- The fight --------------------------------------------------------- */
+
+.fight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fight__bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fight__bar-label {
+  display: block;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.fight__bar-track {
+  block-size: 8px;
+  margin-block-start: 0.25rem;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+
+.fight__bar-fill {
+  block-size: 100%;
+  border-radius: inherit;
+  /* Steps with the rounds rather than sliding continuously: the eye should be able to
+     count the blows, which is the whole reason this is a replay and not a number. */
+  transition: inline-size 0.22s var(--ease-out);
+}
+
+.fight__bar-fill[data-tone='mine'] {
+  background: var(--accent);
+}
+
+.fight__bar-fill[data-tone='theirs'] {
+  background: var(--danger);
+}
+
+.fight__round {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fight__verdict {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.fight__sigil {
+  flex: 0 0 auto;
+  color: var(--accent-warm);
+  filter: drop-shadow(0 0 14px color-mix(in oklch, var(--accent-warm) 45%, transparent));
+}
+
+.fight__verdict-line {
+  color: var(--accent-warm);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fight__bar-fill {
+    transition: none;
+  }
+}

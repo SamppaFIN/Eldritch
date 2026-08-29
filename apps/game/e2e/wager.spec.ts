@@ -83,7 +83,10 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
 
   // And the Wager resolves on this phone, from the message alone. No result is sent
   // back, because a result is a claim and a claim is a thing to be lied about.
-  await expect(receiver.locator('.wager__verdict')).toBeVisible();
+  // The duel is replayed round by round, with both sides' might as progress bars that
+  // carry their value to assistive tech rather than only to the eye.
+  await expect(receiver.locator('.fight__bar-track').first()).toBeVisible();
+  await expect(receiver.locator('.fight__verdict-line')).toBeVisible({ timeout: 15_000 });
   await expect(receiver.getByText(/Their game will read the same result/i)).toBeVisible();
 
   // And a challenge is spent once fought — otherwise a loser walks round the block,

@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
 import type { ChallengeFault, Defence, GameRepository, WagerReport } from '@es3/core';
+import { WagerFight } from './WagerFight.js';
 import './wager.css';
 
 export interface WagerDialogProps {
@@ -196,11 +197,9 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
 
         {outcome ? (
           <div className="wager__outcome" role="status">
-            <p className="wager__verdict">
-              {outcome.report.outcome.winner === outcome.me
-                ? `You hold. ${outcome.report.challenge.name} is turned back.`
-                : `${outcome.report.challenge.name} breaks through.`}
-            </p>
+            {/* The replay first, then what it cost. The fight was decided the moment the
+                message was accepted; this is a recounting, not a wait. */}
+            <WagerFight report={outcome.report} me={outcome.me} />
             <p className="wager__aside">
               {outcome.report.outcome.onPoints
                 ? `Neither side broke in ${outcome.report.outcome.rounds.length} rounds — decided on what was left standing.`

@@ -73,6 +73,25 @@ niiden päälle.
 - [x] Tuonti, taistelu ja saalis ovat **yksi kutsu**: tila jossa vastustajan maa on
       kartalla mutta kaksintaistelua ei ole käyty ei saa olla havaittavissa
 
-## Ei tässä
+## Toisto — `WagerFight.tsx`
 
-- Taistelun animaatio. Kierrosloki on olemassa; sen piirtäminen on oma työnsä.
+Kierrosloki oli olemassa eikä näkynyt missään: kaksintaistelu oli JSON-tapahtuma jonka
+lopputulos ilmestyi lauseena. Nyt se katsotaan.
+
+- [x] Kaksi voimapalkkia askeltavat kierros kerrallaan — kaksi lukua yhtä aikaa on
+      *tulos*, eikä tulos ole kaksintaistelu
+- [x] Kanoninen järjestys on id:n mukainen eikä merkitse pelaajalle mitään;
+      `fightFrames` kääntää sen muotoon *minä / he* — ja testi vaatii että kaksi
+      näkymää ovat **täsmälliset peilikuvat**, tai toinen niistä valehtelisi
+      taistelusta josta molemmat ovat samaa mieltä
+- [x] Palkit ovat `progressbar`eja jotka kertovat arvonsa avustavalle tekniikalle;
+      tuomio sanotaan sanoin
+- [x] Mandala ilmestyy kerran, lopussa — ei joka kierroksella (`claude.md` §12:
+      geometria on hetkiä varten, ei tapetiksi)
+- [x] `prefers-reduced-motion`: suoraan loppuun. Tuomio on tieto, askellus on draamaa
+
+Lähtövoimat eivät ole lopputuloksessa eikä niiden tarvitse olla: osapuolen voima ennen
+ensimmäistä kierrosta on se mitä sillä oli sen jälkeen plus se mikä siitä vietiin.
+Johtaminen voittaa lankaformaatin leventämisen edistymispalkin takia.
+
+## Ei tässä
