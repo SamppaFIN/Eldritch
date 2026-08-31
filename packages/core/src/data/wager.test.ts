@@ -136,9 +136,13 @@ describe('the Wager, carried by hand', () => {
     expect(JSON.parse(text).cells).toEqual([]);
   });
 
-  it('carries their Anchor Stone', async () => {
+  it('carries their Keep, never their Hearth', async () => {
+    // BRDC-CASTLE-001: the sender's real Hearth must not leave the device, even in a
+    // message sent to one chosen friend. `home` only ever gates the Anchor bonus (a
+    // null check, wagerBattle.ts) and never needs the real address to do that.
     const text = await sender.exportChallenge(T0);
-    expect(JSON.parse(text).home).toBe(await sender.getHome());
+    expect(JSON.parse(text).home).toBe(await sender.getCastle());
+    expect(JSON.parse(text).home).not.toBe(await sender.getHome());
   });
 
   it('decays on the receiver\'s clock, from the moment it landed', async () => {

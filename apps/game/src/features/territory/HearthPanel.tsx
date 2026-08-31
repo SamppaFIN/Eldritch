@@ -106,6 +106,12 @@ export function HearthPanel({
         </p>
       ) : null}
 
+      <p className="hearth-panel__line">
+        {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,
+            where a player already comes to ask "what have I built". */}
+        Other players will only ever see your Keep, never your Hearth.
+      </p>
+
       {d.weakest && d.firstLossInHours !== null ? (
         <p className={`hearth-panel__line${d.atRisk > 0 ? ' hearth-panel__line--warn' : ''}`}>
           {d.atRisk > 0

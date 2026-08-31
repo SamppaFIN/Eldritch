@@ -23,7 +23,11 @@ export interface Challenge {
   level: number;
   /** Ground held, at the moment of export. */
   cells: Array<{ h3: H3Index; strength: number }>;
-  /** Their Anchor Stone, if they have one. */
+  /**
+   * Their Keep, if they have one — never their Hearth (BRDC-CASTLE-001). Only ever
+   * read as a null check for the Anchor bonus (`wagerBattle.ts`), which is why the
+   * decoy location is exactly as good here as the real one.
+   */
   home: H3Index | null;
   /**
    * What they built on their border.

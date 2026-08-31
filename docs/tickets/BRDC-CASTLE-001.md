@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-HEARTH-001, BRDC-SHARE-001 |
-| **Status** | `in_progress` — tietokerros ja säännöt valmiit, kartta ja vienti auki |
-| **Valmius** | 65 % |
+| **Status** | `in_progress` — kaikki paitsi `world.json`-vienti valmis, ks. Toteutettu |
+| **Valmius** | 90 % |
 | **Lähde** | Infinite 2026-08-31: *"kotiosoitetta ei tarvi näyttää.. näytetään vain linna jossain lähellä"* |
 
 ## 🔴 RED
@@ -29,12 +29,16 @@ tiedostoon, jonka kuka tahansa voi ladata.
       (300–900 m), testattu 200 otoksella
 - [x] Linna **ei liiku** kerran arvottuaan, **kunhan kotipesä ei liiku** — ks. *Toteutus*,
       poikkeus on tarkoituksellinen ja perusteltu siellä
-- [ ] Linna renderöidään **omana merkkinään**, ei Ankkurikivenä *(ei tehty — kartan puoli,
-      `apps/game`)*
-- [ ] Pelaajalle **kerrotaan mitä julkaistaan** — yksi lause, ei asetussivu *(ei tehty)*
-- [ ] `exportChallenge` ja `world.json` sisältävät linnan, eivät kotipesää *(ei tehty —
-      `world.json` ei ole vielä olemassa, `BRDC-SHARE-001`; `exportChallenge` ei ole
-      vielä muutettu)*
+- [x] Linna renderöidään **omana merkkinään**, ei Ankkurikivenä — `CastleMarker.ts`,
+      sama halo+ydin+nimilappu-kieli kuin `PlaceMarkers.ts`illa, oma väri
+      (`--awareness-green`, ainoa käyttämätön teksti-kelpoinen tunnusväri)
+- [x] Pelaajalle **kerrotaan mitä julkaistaan** — yksi lause `HearthPanel.tsx`:ssä,
+      ei asetussivu: *"Other players will only ever see your Keep, never your Hearth."*
+- [x] `exportChallenge` sisältää linnan, ei kotipesää — ja **tämä koski enemmän kuin
+      tätä tikettiä oli tarkoitus muuttaa**, ks. *Sivulöytö* alla
+- [ ] `world.json` sisältää linnan *(ei vielä mahdollista — `world.json` ei ole
+      olemassa ennen `BRDC-SHARE-001`:tä; kun se rakennetaan, se lukee `getCastle()`in
+      eikä `getHome()`ia, täsmälleen sama sääntö kuin `exportChallenge`ssa)*
 - [x] Sijainninvalinta on puhdas funktio siemenestä; testattu sillä, että sama siemen
       antaa saman linnan ja eri siemenet eri linnan — `rules/castle.test.ts` (5 testiä),
       `data/castle.test.ts` (6 testiä)
@@ -101,16 +105,53 @@ alue on kasvanut sinne, missä kävelet. Kuka tahansa, joka katsoo läänisi muo
 mistä korttelista on kyse.
 
 Se on hyväksyttävä ja tarkoituksellinen — muuten koko jaettu kartta on tyhjä. Ratkaisu
-on **kaksi tarkkuustasoa**, ei enemmän piilottelua:
+on **kaksi tarkkuustasoa alueelle**, ei enemmän piilottelua — ja **yksi sääntö talolle**,
+joka ei vaihtele yleisön mukaan:
 
-| Kenelle | Tarkkuus | Missä |
-|---|---|---|
-| Kaikille, julkisesti | Linna + alue **res 8** -tarkkuudella (~0,56 km²) | `world.json`, `BRDC-ATLAS-001` |
-| Sille, jonka haastat | Koko lääni **res 11** | `exportChallenge`, lähetetty käsin |
+| Kenelle | Alueen tarkkuus | Talon sijainti | Missä |
+|---|---|---|---|
+| Kaikille, julkisesti | Linna + alue **res 8** -tarkkuudella (~0,56 km²) | Linna | `world.json`, `BRDC-ATLAS-001` |
+| Sille, jonka haastat | Koko lääni **res 11**, solu solulta | **Linna, ei kotipesä** | `exportChallenge` |
 
-Julkisella kartalla näkyy kaupunki. Yksityiskohdat näkee se, jolle ne lähetit itse.
-Se on sama malli kuin Civilizationissa: maailmankartalla näet rajat, kaupungin sisään
-näet vasta kun olet tekemisissä sen kanssa.
+**Talon sijainti ei koskaan ole kotipesä, ei edes sille jonka valitset haastaa.**
+Tämä oli tämän tiketin ensimmäisen version virhe: se hyväksyi kotipesän vuotamisen
+kaverille "koska lähetit sen itse tarkoituksella". Koodista löytyi parempi vastaus
+ennen kuin virhe ehti tuotantoon — ks. *Sivulöytö: Wager vuosi jo kotipesän* alla.
+
+Alueen res 11 -yksityiskohta on eri asia kuin talon sijainti eikä sitä muuteta: kaveri,
+jota haastat, näkee koko läänisi solu solulta, koska taistelu on laskettava samoista
+syötteistä molemmilla puhelimilla. Julkisella kartalla näkyy kaupunki. Alueen
+yksityiskohdat näkee se, jolle lähetit ne itse — mutta talon ovi ei ole koskaan
+niiden joukossa, ei julkisesti eikä kaverillekaan.
+
+## Sivulöytö: Wager vuosi jo kotipesän, ennen `world.json`:ia
+
+`Challenge.home` (`data/challenge.ts`) ja `Combatant.home` (`rules/wagerBattle.ts`)
+kuljettivat vastaanottajalle **oikean kotipesän** — `MockRepository.exportChallenge`
+luki `getHome()`in, ei `getCastle()`ta. Tämä ei ollut hypoteettinen, tuleva riski:
+se oli jo koodissa, jokaisessa lähetetyssä haasteessa, ennen tätä tikettiä.
+
+Koodi paljasti oman ratkaisunsa: `home`-kenttää **luetaan täsmälleen yhdessä paikassa**
+koko taistelulogiikassa —
+
+```ts
+// rules/wagerBattle.ts
+const anchor = c.home === null ? 0 : ANCHOR_BONUS;
+```
+
+— pelkkänä **null-tarkistuksena** Ankkuribonukselle. Sijaintia itseään ei lueta missään,
+ei taistelulaskennassa eikä käyttöliittymässä (tarkistettu koko koodikannasta). Linna on
+tismalleen yhtä hyvä tähän kuin kotipesä: molemmat ovat olemassa täsmälleen silloin kun
+kotipesä on hyväksytty, joten `null`-tarkistuksen tulos ei muutu kummalla tahansa.
+
+**Korjaus oli kolmen kutsukohdan vaihto** `MockRepository.ts`:ssä (`exportChallenge`,
+`importChallenge`, `getCombatant`): `getHome()` → `getCastle()`. Ei rajapintamuutosta,
+ei `CHALLENGE_VERSION`-nostoa — johdanto-langan muoto pysyy samana, vain se mistä
+paikallinen puoli lukee arvonsa muuttui. `wager.test.ts`:n *"carries their Anchor Stone"*
+päivitettiin nimeltään ja sisällöltään väittämään päinvastaista: linna kyllä, kotipesä ei.
+
+Tämä on syy, miksi *"Sille, jonka haastat"* -rivi yllä ei enää eroa julkisesta rivistä
+talon kohdalla — se oli suunniteltu eroamaan, kunnes koodi näytti ettei sen tarvitse.
 
 ## Ei tässä
 

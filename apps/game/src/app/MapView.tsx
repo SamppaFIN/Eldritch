@@ -10,6 +10,7 @@ import { cellAt, clearAll, levelState, load, saveNow, speedMs } from '@es3/core'
 import type {
   BBox,
   GameRepository,
+  H3Index,
   PlayerProfile,
   ResourcePool,
   RevealedPlace,
@@ -50,6 +51,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const [bbox, setBbox] = useState<BBox | null>(null);
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
+  const [castle, setCastle] = useState<H3Index | null>(null);
   const [resources, setResources] = useState<ResourcePool | null>(null);
 
   /*
@@ -75,6 +77,8 @@ export function MapView({ onLeave }: MapViewProps) {
       setRepository(handle.repository);
       setDurable(handle.durable);
       setProfile(await handle.repository.getProfile());
+      // A returning player already has a Keep; setHome below only fires for a fresh one.
+      setCastle(await handle.repository.getCastle());
     })();
     return () => {
       cancelled = true;
@@ -112,6 +116,7 @@ export function MapView({ onLeave }: MapViewProps) {
       if (await repository.getHome()) return;
       await repository.setHome(mark.position, clock.now());
       setProfile(await repository.getProfile());
+      setCastle(await repository.getCastle());
     })();
   }, [repository, clock]);
 
@@ -249,6 +254,7 @@ export function MapView({ onLeave }: MapViewProps) {
         cells={territory.cells}
         playerId={profile?.id ?? null}
         places={places}
+        castle={castle}
         awakening={awakening}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}

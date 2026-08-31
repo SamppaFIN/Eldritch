@@ -205,8 +205,10 @@ export class MockRepository implements GameRepository {
   /* --- The Wager, carried by hand --------------------------------------- */
 
   async exportChallenge(now: number): Promise<string> {
-    // Projected, so what travels is the ground that is actually still standing.
-    return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getHome(), await this.getDefence(), now);
+    // Projected, so what travels is the ground that is actually still standing. The
+    // Keep, not the Hearth: `home` here only ever gates the Anchor bonus (a null check,
+    // see wagerBattle.ts) and never needs the real address to do it (BRDC-CASTLE-001).
+    return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getCastle(), await this.getDefence(), now);
   }
 
   async importChallenge(text: string, now: number): Promise<ImportResult> {
@@ -217,7 +219,7 @@ export class MockRepository implements GameRepository {
       text,
       await this.getProfile(),
       await this.getOwnedCells(now),
-      await this.getHome(),
+      await this.getCastle(),
       now,
     );
   }
@@ -234,7 +236,7 @@ export class MockRepository implements GameRepository {
     return ownCombatant(
       await this.getProfile(),
       await this.getOwnedCells(now),
-      await this.getHome(),
+      await this.getCastle(),
       await this.getDefence(),
     );
   }

@@ -59,22 +59,22 @@ jo oikeus kirjoittaa repoon ilman että klientille annetaan yhtään avainta.
 omistavansa. Riitatilanteet ratkaistaan Wagerilla, ei tiedostolla — sama tietoinen
 kompromissi kuin `PIVOT-2026-08-27.md` §5:ssä tehtiin taistelun ratkaisusta.
 
-## 🔴 Ratkaistava ennen toteutusta
+## ✅ Ratkaistu — `BRDC-CASTLE-001`
 
-**Julkinen tiedosto sisältää oikeiden ihmisten kotihexat.** `world.json` on avoimessa
-URLissa, ja Hearth on määritelmän mukaan se ruutu, jossa pelaaja asuu. Res 11 -solu on
-~46 m leveä: se on osoite.
+**Julkinen tiedosto ei saa sisältää oikeiden ihmisten kotihexoja.** `world.json` on
+avoimessa URLissa, ja Hearth on määritelmän mukaan se ruutu, jossa pelaaja asuu. Res 11
+-solu on ~46 m leveä: se on osoite.
 
-Kolme vaihtoehtoa, ja tämä on Infiniten päätös:
+Tämän tiketin ensimmäinen versio esitti kolme vaihtoehtoa (karkeampi resoluutio, Hearth
+pois viennistä kokonaan, tai hyväksytään koska "peli on kavereiden kesken"). Kaikki
+kolme olivat vääriä kysymyksiä: ongelma ei ole *tarkkuus* vaan se, että Hearth itsessään
+ei saa koskaan olla julkaistava arvo, riippumatta resoluutiosta.
 
-1. **Julkinen data karkeammalla resoluutiolla** (res 8, ~0,7 km²). Alueen muoto näkyy,
-   koti ei
-2. **Hearth jätetään pois** julkisesta viennistä kokonaan
-3. **Hyväksytään** — peli on kavereiden kesken, ja he tietävät jo missä asut
-
-Kohta 3 on rehellinen valinta *kavereille* ja väärä valinta sillä hetkellä, kun peli
-jaetaan eteenpäin. Suosittelen kohtaa 1: se ei maksa mitään nyt ja poistaa ongelman
-ennen kuin se on olemassa.
+**Oikea ratkaisu on erillinen sijainti, ei karkeampi sama sijainti** — `BRDC-CASTLE-001`,
+tehty ja testattu: `getCastle()` arvotaan kerran laitteella `assignCastle`illa, ei ole
+johdettavissa Hearthista, ja se on ainoa asia, jonka `exportChallenge` julkaisee jo nyt
+(ks. sen oma *Sivulöytö*: sama vuoto oli olemassa Wagerissakin ennen korjausta). Kun
+`world.json` rakennetaan, sen on luettava `getCastle()`, ei `getHome()`ia — sama sääntö.
 
 ## Ei tässä
 
@@ -92,12 +92,13 @@ Ratkaisu ei ole res 8 -karkeistus vaan **erillinen julkinen sijainti**, joka arv
 kerran laitteella eikä ole johdettavissa kodista → `BRDC-CASTLE-001`. Kotipesä ei
 poistu puhelimesta koskaan.
 
-Kaksi tarkkuustasoa jää voimaan sen rinnalle:
+Kaksi tarkkuustasoa jää voimaan **alueelle**, mutta talon sijainti ei vaihtele
+kummallakaan rivillä — se on aina Linna:
 
-| Kenelle | Mitä | Missä |
-|---|---|---|
-| Julkisesti kaikille | Linna + alue res 8 | `world.json` |
-| Sille, jonka haastat | Koko lääni res 11 | `exportChallenge`, käsin lähetetty |
+| Kenelle | Alue | Talo | Missä |
+|---|---|---|---|
+| Julkisesti kaikille | Linna + alue res 8 | Linna | `world.json` |
+| Sille, jonka haastat | Koko lääni res 11 | **Linna, ei koskaan Hearth** | `exportChallenge`, käsin lähetetty |
 
 ### Sharding res 6:lla — heti, ei myöhemmin
 

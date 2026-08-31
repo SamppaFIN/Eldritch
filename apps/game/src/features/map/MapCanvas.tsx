@@ -24,6 +24,7 @@ import {
   removePlaceLayers,
   setPlaceData,
 } from '../territory/PlaceMarkers.js';
+import { ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import {
   AWAKENING_MS,
   ensureAwakeningLayers,
@@ -50,6 +51,8 @@ export interface MapCanvasProps {
   playerId?: PlayerId | null;
   /** Cells the game has worked out are places. */
   places?: readonly RevealedPlace[];
+  /** The public decoy near the Hearth — never the Hearth itself. Null before one exists. */
+  castle?: H3Index | null;
   /**
    * Cells a closure has just taken, and when.
    *
@@ -78,6 +81,7 @@ export function MapCanvas({
   cells,
   playerId = null,
   places,
+  castle = null,
   awakening = null,
   initialZoom,
   follow = true,
@@ -132,12 +136,15 @@ export function MapCanvas({
     ensureTrailLayers(map);
     // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
+    // The Keep alongside places: it is a marker of the same weight, not territory.
+    ensureCastleLayer(map);
     // Above everything: this is a moment, and it is over in two seconds.
     ensureAwakeningLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
       if (map.loaded()) {
         removeAwakeningLayers(map);
+        removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
         removeTerritoryLayers(map);
@@ -229,6 +236,11 @@ export function MapCanvas({
     if (!map || !ready || !places) return;
     setPlaceData(map, places);
   }, [map, ready, places]);
+
+  useEffect(() => {
+    if (!map || !ready) return;
+    setCastleData(map, castle);
+  }, [map, ready, castle]);
 
   /*
    * The ground wakes up.
