@@ -6,16 +6,42 @@
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
 import { EMPTY_POOL, addClaimYield, settleResources } from '../rules/terrain.js';
-import type { ResourcePool, ResourceState } from '../rules/terrain.js';
+import type { ResourceKind, ResourcePool, ResourceState } from '../rules/terrain.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
 import { research } from '../rules/tech.js';
 import type { ResearchResult, TechId } from '../rules/tech.js';
 import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
-import type { CaptureOutcome, Cell, PlayerId } from '../types/domain.js';
+import { placesWithHome } from '../rules/dwell.js';
+import type { DwellMap } from '../rules/dwell.js';
+import { manaBonus } from '../rules/mana.js';
+import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
+import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 
 const KEY = 'resources';
+
+/**
+ * The per-hour bonus `settleResources` adds on top of the raw trickle: building
+ * production (BRDC-BUILD-001) and mana from the places a player still holds
+ * (BRDC-MANA-001), merged additively. Each is dormancy-filtered by its own rule — kept
+ * here so `rules/terrain.ts` stays blind to both buildings and places.
+ */
+async function perHourBonus(
+  store: KeyValueStore,
+  owned: readonly Cell[],
+  now: number,
+): Promise<Partial<ResourcePool>> {
+  const merged: Partial<ResourcePool> = { ...buildingBonus(owned, now) };
+  const dwell = (await store.get<DwellMap>(K.dwell)) ?? {};
+  const home = (await store.get<H3Index>(K.home)) ?? null;
+  const expansions = (await store.get<Record<H3Index, number>>(K.expansions)) ?? {};
+  const mana = manaBonus(placesWithHome(dwell, home), expansions, owned, now);
+  for (const [k, v] of Object.entries(mana) as [ResourceKind, number][]) {
+    merged[k] = (merged[k] ?? 0) + v;
+  }
+  return merged;
+}
 
 /**
  * Read the stored pouch, or an empty one if there is nothing yet.
@@ -45,16 +71,17 @@ export async function settlePouch(
   now: number,
 ): Promise<ResourceState> {
   const stored = await read(store, now);
-  // Buildings feed in here, not inside settleResources: a Storehouse raises the ceiling,
-  // and everything with a `produces` line adds a flat per-hour bonus, dormancy-filtered
-  // (BRDC-BUILD-001). Keeping it here is what lets `rules/terrain.ts` stay building-blind.
+  // Buildings and places feed in here, not inside settleResources: a Storehouse raises
+  // the ceiling, and building production plus temple mana add a per-hour bonus, each
+  // dormancy-filtered (BRDC-BUILD-001, BRDC-MANA-001). Keeping it here is what lets
+  // `rules/terrain.ts` stay blind to both.
   const held = buildingsOf(owned);
   const settled = settleResources(
     stored,
     owned,
     now,
     storageCap(held),
-    buildingBonus(owned, now),
+    await perHourBonus(store, owned, now),
     buildingDayBonus(owned, now),
   );
   if (settled !== stored) await store.set(KEY, settled);

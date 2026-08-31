@@ -166,6 +166,10 @@ export interface RevealedPlace {
   kind: 'anchor' | 'temple';
   dwellMs: number;
   rank: number;
+  /** Temple expansion level, 0..MAX_TEMPLE_EXPANSION (BRDC-MANA-001). Absent until read. */
+  expansion?: number;
+  /** Mana per hour this place produces at its current expansion. Absent until computed. */
+  manaPerHour?: number;
 }
 
 export type CaptureOutcomeKind =

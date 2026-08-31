@@ -9,7 +9,7 @@
  * nothing here and players concluded the game had frozen.
  */
 import { levelState, msToKmh } from '@es3/core';
-import type { PlayerProfile, RejectReason, ResourcePool } from '@es3/core';
+import type { PlayerProfile, RejectReason, ResourcePool, RevealedPlace } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
@@ -34,6 +34,8 @@ export interface HudProps {
   released?: string[];
   keepAlive: KeepAliveState;
   resources?: ResourcePool | null;
+  /** Revealed places, for the mana source count (BRDC-MANA-001). */
+  places?: RevealedPlace[];
   /** True once the game knows which cell the player is standing in. */
   standing?: boolean;
   onInspectHere?: () => void;
@@ -149,6 +151,7 @@ export function Hud({
   released = [],
   keepAlive,
   resources = null,
+  places = [],
   standing = false,
   onInspectHere,
   unobservedMs = 0,
@@ -157,6 +160,7 @@ export function Hud({
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
+  const temples = places.filter((p) => p.kind === 'temple').length;
 
   return (
     <div className="hud">
@@ -215,7 +219,8 @@ export function Hud({
           <div className="hud__stat">
             <span className="hud__label">Pouch</span>
             <span className="hud__value es-numeric">
-              {resources && resources.food + resources.wood + resources.gold > 0 ? (
+              {resources &&
+              resources.food + resources.wood + resources.gold + resources.mana > 0 ? (
                 <span className="hud__pouch">
                   <span className="hud__pip hud__pip--food" aria-hidden />
                   {resources.food}
@@ -223,6 +228,16 @@ export function Hud({
                   {resources.wood}
                   <span className="hud__pip hud__pip--gold" aria-hidden />
                   {resources.gold}
+                  {resources.mana > 0 ? (
+                    <>
+                      <span className="hud__pip hud__pip--mana" aria-hidden />
+                      {resources.mana}
+                      <span className="hud__sub">
+                        {' '}
+                        · {temples > 0 ? `${temples} ${temples === 1 ? 'temple' : 'temples'}` : 'anchor'}
+                      </span>
+                    </>
+                  ) : null}
                 </span>
               ) : (
                 EMPTY

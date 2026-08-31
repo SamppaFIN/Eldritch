@@ -29,6 +29,7 @@ import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
+import type { ExpandOutcome } from '../data/templeStore.js';
 import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -169,10 +170,17 @@ export interface GameRepository {
   getCastle(): Promise<H3Index | null>;
 
   /* --- Places ----------------------------------------------------------- */
-  /** Cells that have earned a name, Anchor first. */
+  /** Cells that have earned a name, Anchor first; each carries its mana rate and expansion. */
   getPlaces(): Promise<RevealedPlace[]>;
   /** Time accumulated in the cell the player is standing in, for a progress readout. */
   getDwellFor(h3: H3Index): Promise<number>;
+  /**
+   * Spend stone and gold to raise a temple's mana output one step (BRDC-MANA-001).
+   *
+   * Refusals are named values — not a temple, at max, cannot afford — and on any of them
+   * nothing is written: the spend and the level change happen together or not at all.
+   */
+  expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome>;
 
   /* --- Maintenance ------------------------------------------------------ */
   runDecay(now: number): Promise<DecayResult>;

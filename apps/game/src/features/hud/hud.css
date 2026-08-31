@@ -265,6 +265,7 @@
 .hud__pip--food { background: #4fc3dc; }
 .hud__pip--wood { background: #7cbf63; }
 .hud__pip--gold { background: #e0b04a; }
+.hud__pip--mana { background: var(--mystic-cyan); }
 
 /* Shares the actions row. Still thumb-sized, and first in the row because it is the
    thing a walking player reaches for. */

@@ -12,12 +12,15 @@ import {
   ANCHOR_THRESHOLD_MS,
   CLAIM_YIELD,
   MAX_STRENGTH,
+  MAX_TEMPLE_EXPANSION,
   NEIGHBOUR_BONUS,
   TEMPLE_THRESHOLD_MS,
   TRICKLE_PER_HOUR,
   WARD_COST,
+  canAfford,
   cellAreaM2,
   daysBetween,
+  expansionCost,
   hoursUntilReleased,
   resourceForCell,
   revealProgress,
@@ -27,8 +30,10 @@ import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
-import type { BuildBinding } from './useSelection.js';
+import type { BuildBinding, PlaceBinding } from './useSelection.js';
 import './cell-panel.css';
+
+type ExpandFail = NonNullable<PlaceBinding['refusal']>;
 
 export interface CellPanelProps {
   cell: Cell | null;
@@ -39,10 +44,8 @@ export interface CellPanelProps {
   refusal: WardRefusal | null;
   /** True when this is the cell the player is standing in. */
   here?: boolean;
-  /** Time accumulated in this cell, for the reveal progress. */
-  dwellMs?: number;
-  /** Whether an Anchor already exists, which decides what this cell could become. */
-  hasAnchor?: boolean;
+  /** Dwell, reveal progress, and the cell's life as a place (BRDC-MANA-001). */
+  place: PlaceBinding;
   onWard: (h3: string) => void;
   /** The build sub-panel's bundle (BRDC-BUILD-001), from `useSelection`. */
   build?: BuildBinding;
@@ -112,6 +115,19 @@ const REFUSAL: Readonly<Record<WardRefusal, string>> = {
   'cannot-afford': `A ward costs ${WARD_COST.wood} timber. Claim woodland to gather it.`,
 };
 
+const EXPAND_REFUSAL: Readonly<Record<ExpandFail, string>> = {
+  'not-a-temple': 'Only a temple can be expanded.',
+  'at-max': 'This temple is already at its full strength.',
+  'cannot-afford': 'Not enough stone and gold. Hold hills and markets to gather them.',
+};
+
+/** "40 stone · 30 gold" from a cost map. */
+function costLine(cost: Partial<ResourcePool>): string {
+  return (Object.entries(cost) as [string, number][])
+    .map(([k, v]) => `${v} ${RESOURCE_NAME[k] ?? k}`)
+    .join(' · ');
+}
+
 /**
  * Hours left, counted from the last visit rather than from full strength.
  *
@@ -144,8 +160,7 @@ export function CellPanel({
   now,
   refusal,
   here = false,
-  dwellMs = 0,
-  hasAnchor = false,
+  place,
   onWard,
   build,
   onClose,
@@ -171,6 +186,8 @@ export function CellPanel({
   const history = historyLine(cell, me, now);
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
+  const nextCost = place.kind === 'temple' ? expansionCost(place.expansion + 1) : {};
+  const canExpand = resources !== null && canAfford(resources, nextCost);
 
   return (
     <GlassPanel
@@ -268,23 +285,51 @@ export function CellPanel({
       ) : null}
 
       {/*
+        A named place says what it produces, and — for a temple — offers the one thing
+        the resources are for. "Where mana comes from" is readable here, per source
+        (BRDC-MANA-001); the HUD carries the total.
+      */}
+      {place.kind ? (
+        <div className="cell-panel__place">
+          <p className="cell-panel__place-name">
+            {place.kind === 'anchor' ? 'Anchor Stone' : `Temple · rank ${place.rank}`}
+            <span className="es-numeric"> · Mana +{place.manaPerHour}/h</span>
+          </p>
+          {place.kind === 'temple' && place.expansion < MAX_TEMPLE_EXPANSION ? (
+            <RitualButton
+              className="cell-panel__expand"
+              disabled={!canExpand}
+              onClick={() => place.onExpand(cell.h3)}
+            >
+              Expand · {costLine(nextCost)}
+            </RitualButton>
+          ) : null}
+          {place.refusal ? (
+            <p className="cell-panel__refusal" role="status">
+              {EXPAND_REFUSAL[place.refusal]}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/*
         "This place is becoming something" beats silence followed by a sudden crowning.
         The dwell mechanic is otherwise entirely invisible until it fires, and a player
         who never saw it coming does not understand what they did to cause it.
       */}
-      {dwellMs > 0 ? (
+      {place.dwellMs > 0 ? (
         <>
           <div className="cell-panel__bar cell-panel__bar--dwell" aria-hidden>
             <div
               className="cell-panel__bar-fill"
-              style={{ inlineSize: `${revealProgress(dwellMs, hasAnchor) * 100}%` }}
+              style={{ inlineSize: `${revealProgress(place.dwellMs, place.hasAnchor) * 100}%` }}
             />
           </div>
           <p className="cell-panel__dwell">
-            {spent(dwellMs)}
-            {dwellMs >= (hasAnchor ? TEMPLE_THRESHOLD_MS : ANCHOR_THRESHOLD_MS)
+            {spent(place.dwellMs)}
+            {place.dwellMs >= (place.hasAnchor ? TEMPLE_THRESHOLD_MS : ANCHOR_THRESHOLD_MS)
               ? ' — this place has a name'
-              : hasAnchor
+              : place.hasAnchor
                 ? ' — stay longer and it becomes a temple'
                 : ' — stay longer and the ground learns you'}
           </p>

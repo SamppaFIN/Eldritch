@@ -99,6 +99,23 @@
   text-wrap: pretty;
 }
 
+/* A named place — Anchor or temple — and its mana (BRDC-MANA-001). */
+.cell-panel__place {
+  margin-block-start: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+  padding-block-start: var(--space-2);
+}
+
+.cell-panel__place-name {
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}
+
+.cell-panel__expand {
+  min-block-size: var(--touch-min);
+  margin-block-start: var(--space-1);
+}
+
 /* The build sub-panel (BRDC-BUILD-001). */
 .cell-panel__build {
   margin-block-start: var(--space-2);

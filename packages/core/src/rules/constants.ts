@@ -200,6 +200,25 @@ export const DEMOLISH_REFUND = 0.5;
 /** One day in ms — the fishery pays per calendar day, not per hour (BRDC-BUILD-002). */
 export const MS_PER_DAY = 86_400_000;
 
+/* --- Mana (BRDC-MANA-001) -------------------------------------------- */
+
+/**
+ * Mana per hour from the places a player holds.
+ *
+ * The Anchor — the ground you actually live on — is the strongest source at its base
+ * rate. A temple earns less the lower it ranks (`revealPlaces` ranks them by time spent,
+ * and that order is earned), and never nothing. Expansion buys a temple back up in steps,
+ * and a fully expanded one can out-produce the bare Anchor — that is what the resources
+ * were spent on. Whole units, like every other rate, for SQL parity in Phase 3.
+ */
+export const MANA_ANCHOR_RATE = 6;
+export const MANA_TEMPLE_RATE = 4;
+export const MANA_RANK_STEP = 1;
+export const MANA_TEMPLE_MIN = 1;
+export const MAX_TEMPLE_EXPANSION = 3;
+/** Each expansion level adds this fraction of the temple's base rate. */
+export const MANA_EXPANSION_STEP = 0.5;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**

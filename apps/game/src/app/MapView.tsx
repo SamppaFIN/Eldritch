@@ -311,8 +311,7 @@ export function MapView({ onLeave }: MapViewProps) {
         now={clock.now()}
         refusal={inspect.refusal}
         here={inspect.selected !== null && inspect.selected === standingOn}
-        dwellMs={inspect.dwellMs}
-        hasAnchor={places.some((p) => p.kind === 'anchor')}
+        place={inspect.place}
         onWard={inspect.onWard}
         build={inspect.build}
         onClose={inspect.close}
@@ -365,6 +364,7 @@ export function MapView({ onLeave }: MapViewProps) {
         released={territory.released}
         keepAlive={keepAlive}
         resources={resources}
+        places={places}
         standing={standingOn !== null}
         onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
         unobservedMs={trail.unobservedMs}

@@ -37,7 +37,9 @@ describe('the Hearth', () => {
     const h3 = await repo.setHome(ORIGIN, T0);
     // No time has been spent anywhere yet. The Hearth is an Anchor by agreement, not
     // by dwell, and a player must see it on the map on their first walk.
-    expect(await repo.getPlaces()).toEqual([{ h3, kind: 'anchor', dwellMs: 0, rank: 0 }]);
+    const places = await repo.getPlaces();
+    expect(places).toHaveLength(1);
+    expect(places[0]).toMatchObject({ h3, kind: 'anchor', dwellMs: 0, rank: 0 });
   });
 
   it('seeds the world, so rivals exist before the first step', async () => {

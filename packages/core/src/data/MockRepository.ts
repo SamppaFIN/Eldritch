@@ -13,6 +13,7 @@
 import { latLngToCell } from 'h3-js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
+import { placesWithMana } from '../rules/mana.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { projectCell } from '../rules/decay.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
@@ -24,6 +25,8 @@ import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
+import { expandTempleAt, readExpansions } from './templeStore.js';
+import type { ExpandOutcome } from './templeStore.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import { levelForXp } from '../rules/level.js';
@@ -268,11 +271,17 @@ export class MockRepository implements GameRepository {
   /* --- Places ----------------------------------------------------------- */
 
   async getPlaces(): Promise<RevealedPlace[]> {
-    return placesWithHome((await this.store.get<DwellMap>(K.dwell)) ?? {}, await this.getHome());
+    const dwell = (await this.store.get<DwellMap>(K.dwell)) ?? {};
+    const places = placesWithHome(dwell, await this.getHome());
+    return placesWithMana(places, await readExpansions(this.store));
   }
 
   async getDwellFor(h3: string): Promise<number> {
     return ((await this.store.get<DwellMap>(K.dwell)) ?? {})[h3] ?? 0;
+  }
+
+  async expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome> {
+    return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   }
 
   /* --- Territory -------------------------------------------------------- */
