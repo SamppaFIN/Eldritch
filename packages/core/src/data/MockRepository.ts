@@ -23,7 +23,10 @@ import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
+import { buildOn, demolishOn } from './buildStore.js';
+import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import type { TechId, TechResult } from '../rules/tech.js';
+import type { BuildingId } from '../rules/build.js';
 import { levelForXp } from '../rules/level.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import type {
@@ -76,20 +79,14 @@ export class MockRepository implements GameRepository {
   private readonly seed: number;
 
   constructor(opts: MockRepositoryOptions = {}) {
-    // Wrapped here, not in createRepository, so a store handed straight to the
-    // constructor — every test, and the offline fallback — is guarded too. This is the
-    // one wrap site; the raw store goes in, nothing double-wraps it.
+    // The one wrap site (BRDC-PERSIST-002): a raw store handed straight in — every test,
+    // the offline fallback — gets the schema gate too. Nothing double-wraps.
     this.store = versioned(opts.store ?? new MemoryStore());
     this.newId = opts.newId ?? (() => globalThis.crypto.randomUUID());
     this.seed = opts.seed ?? 20260826;
   }
 
-  /**
-   * Whether the store was wiped on open because its schema version did not match
-   * (BRDC-PERSIST-002). Off the `GameRepository` interface on purpose — a concrete-class
-   * extra like `toOwnershipCell`, read by `createRepository` to raise a notice. Awaiting
-   * it runs the one-time check if nothing has yet.
-   */
+  /** Was the store wiped on open for a schema mismatch? Read by `createRepository`. */
   async schemaOutcome(): Promise<SchemaOutcome> {
     return this.store.schema();
   }
@@ -218,7 +215,16 @@ export class MockRepository implements GameRepository {
     return result;
   }
 
-  /* --- Technology ----------------------------------------------------------- */
+  /* --- Buildings and technology ----------------------------------------- */
+
+  async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
+    const me = await this.getProfile();
+    return buildOn(this.store, h3, id, me.id, await this.getOwnedCells(now), await this.getResearched(), now);
+  }
+
+  async demolish(h3: H3Index, now: number): Promise<DemolishOutcome> {
+    return demolishOn(this.store, h3, await this.getOwnedCells(now), now);
+  }
 
   async getResearched(): Promise<TechId[]> {
     return readResearched(this.store);

@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-ECON-001, BRDC-TERRAIN-002, BRDC-TECH-001 |
-| **Status** | `in_progress` — puhdas ydin (`rules/build.ts`) tehty; repo (`build`/`demolish`) ja UI jäljellä |
-| **Valmius** | 55 % |
+| **Status** | `in_progress` — ydin + repo tehty; jäljellä `CellPanel`-rakenna-osio (committi 3) |
+| **Valmius** | 80 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §1.1, §6 (R1), §8.2 |
 
 ## 🔴 RED
@@ -25,15 +25,16 @@ Tämä on se tiketti.
 - [x] `canBuild(ctx, id, cell)` **puhdas**, vastaa *miksi ei* nimettynä arvona:
       `not-yours → occupied → wrong-terrain → locked → at-capacity → cannot-afford`,
       tarkistettu siinä järjestyksessä (fundamentaalisin ensin)
-- [~] `build()` veloittaa + kirjoittaa soluun — puhdas puoli (`buildCost`, `canBuild`) tehty;
-      veloitus + solun kirjoitus on **repo-committi 2** (`data/buildStore.ts`), `wardWith`:n mallilla
+- [x] `build()` veloittaa + kirjoittaa soluun; epäonnistuessa **mikään ei muutu** —
+      `data/buildStore.ts#buildOn` (`wardCell`:n malli: projisoi, `settlePouch`, `canBuild`,
+      `spend` + `store.set` yhdessä). `GameRepository.build`/`demolish`
 - [x] Solu kantaa rakennuksensa (`Cell.building?`, additiivinen); yksi solu, yksi rakennus
       (`canBuild` → `occupied`)
 - [x] **Neljä perusrakennusta**: Aitta (granary), Monumentti (monument), Varasto (storehouse), Tori (market)
 - [x] **Varasto nostaa kattoa** — `storageCap(buildings)`, `settleResources` sai valinnaisen
       `cap`-parametrin; olemassa olevat kutsujat ennallaan
-- [~] Purku **palauttaa puolet** — `refund(id)` (lattioitu per resurssi) tehty; repo-`demolish`
-      on committi 2
+- [x] Purku **palauttaa puolet** — `refund(id)` (lattioitu per resurssi), `demolishOn`
+      poistaa `cell.building`in ja hyvittää poolin (ei kattoa vasten, kuten `addClaimYield`)
 - [x] Jokainen sääntöfunktio testattu (`build.test.ts` 15 + `terrain.test.ts` +2); ei
       satunnaisuutta, `canBuild` ei ota `now`:ta (`ward.ts`:n tapaan)
 
@@ -48,9 +49,22 @@ Tämä on se tiketti.
   laskee `buildingBonus(owned, now)`:n (lepotilasuodatettu) ja syöttää sen. `terrain.ts` ei
   tunne rakennuksia.
 - `DORMANT_AFTER_MS` exportattu `terrain.ts`:stä (jaettu käsite nyt).
-- **Committi 2:** `data/buildStore.ts` (`buildOn`/`demolishOn`), `GameRepository.build`/
-  `demolish`, `settlePouch` syöttää katon+bonuksen. **Committi 3:** `CellPanel` rakenna-osio
-  (kytkee myös `TECH-001` GREEN 8 — lukittu rakennus nimeää teknologiansa), `[~]` selaimessa.
+## Committi 2/3 — repo (tehty 2026-09-01)
+
+- `data/buildStore.ts`: `buildOn` (projisoi solu, `settlePouch`, `canBuild`, `spend` +
+  `store.set` — mikään ei muutu ilman kaikkea), `demolishOn` (poistaa `building`in,
+  hyvittää). `GameRepository.build(h3, id, now)` / `demolish(h3, now)`.
+- `data/pouch.ts#settlePouch` syöttää `storageCap(buildingsOf(owned))`:n ja
+  `buildingBonus(owned, now)`:n `settleResources`:lle — `rules/terrain.ts` ei tunne rakennuksia.
+- Rakennukset ratsastavat `getCells`:llä (`projectCell` säilyttää `cell.building`in).
+- `build.repo.test.ts` (10). **541 vihreää.**
+
+**Committi 3:** `CellPanel` rakenna-osio (kytkee myös `TECH-001` GREEN 8 — lukittu
+rakennus nimeää teknologiansa `TECHS[BUILDINGS[id].tech]`:llä), `[~]` selaimessa.
+
+> ⚠️ **`MockRepository.ts` on 396/400.** Sitä on kavennettu tämän session aikana viisi
+> kertaa. `BRDC-BUILD-002`:n **ensimmäinen tehtävä on jakaa se** — ei enää kavennusta.
+> Isoin pala: `submitTrail` + `closeLoop` (~64 riviä orkestrointia) → `data/walkFlow.ts`.
 
 ## Toteutus
 

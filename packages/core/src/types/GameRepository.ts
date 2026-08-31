@@ -27,6 +27,8 @@ import type {
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult } from '../rules/tech.js';
+import type { BuildingId } from '../rules/build.js';
+import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
 import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -85,6 +87,16 @@ export interface GameRepository {
    * are all things the interface has to be able to say out loud to the player.
    */
   wardCell(h3: H3Index, now: number): Promise<WardResult>;
+
+  /* --- Buildings (BRDC-BUILD-001) ---------------------------------------- */
+  /**
+   * Put a building on a cell, paying from the pouch. Refusals are named values — wrong
+   * terrain, missing tech, at capacity, cannot afford — and on any of them nothing is
+   * written: the spend and the cell change happen together or not at all.
+   */
+  build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome>;
+  /** Demolish a cell's building and return half its cost. */
+  demolish(h3: H3Index, now: number): Promise<DemolishOutcome>;
 
   /* --- Technology (BRDC-TECH-001) ------------------------------------------ */
   /** Everything researched so far, in the order it was learned. */
