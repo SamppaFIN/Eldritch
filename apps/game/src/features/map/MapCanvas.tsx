@@ -58,7 +58,7 @@ export interface MapCanvasProps {
   playerId?: PlayerId | null;
   /** Cells the game has worked out are places. */
   places?: readonly RevealedPlace[];
-  /** The public decoy near the Hearth — never the Hearth itself. Null before one exists. */
+  /** The Keep — the published location, the Hearth cell (BRDC-CASTLE-001). Null before one exists. */
   castle?: H3Index | null;
   /**
    * Cells a closure has just taken, and when.

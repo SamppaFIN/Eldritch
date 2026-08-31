@@ -13,8 +13,8 @@
  * strength, and pretending otherwise would be worse than saying so; Phase 3's server is
  * where authority lives.
  *
- * Published locations are Keeps (`getCastle`), never Hearths — a Hearth is where someone
- * actually lives, and this file sits on an open URL (BRDC-CASTLE-001).
+ * Published locations are Keeps (`getCastle`). Since the BRDC-CASTLE-001 reversal the Keep
+ * is the Hearth cell — the game is among friends, and this file carries the real home.
  */
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { regionOf } from '../geo/cells.js';
@@ -24,7 +24,7 @@ import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 export interface WorldPlayer {
   id: PlayerId;
   name: string;
-  /** Their Keep — the public decoy, never the Hearth (BRDC-CASTLE-001). */
+  /** Their Keep — the Hearth cell, published (BRDC-CASTLE-001 reversal). */
   castle: H3Index | null;
   cells: Array<{ h3: H3Index; strength: number }>;
 }

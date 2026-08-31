@@ -1,13 +1,27 @@
-# BRDC-CASTLE-001 — Linna: julkinen kasvo, joka ei ole kotiovi
+# BRDC-CASTLE-001 — Linna: julkinen kasvo
 
 | | |
 |---|---|
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-HEARTH-001, BRDC-SHARE-001 |
-| **Status** | `in_progress` — kaikki paitsi `world.json`-vienti valmis, ks. Toteutettu |
-| **Valmius** | 90 % |
-| **Lähde** | Infinite 2026-08-31: *"kotiosoitetta ei tarvi näyttää.. näytetään vain linna jossain lähellä"* |
+| **Status** | `done` — 2026-09-01, **suunta käännetty** (ks. alla) |
+| **Valmius** | 100 % |
+| **Lähde** | Infinite 2026-08-31 → **käännetty 2026-09-01 selaintestissä:** *"haluan että keep luodaan kohtaan missä käyttäjä sanoo claim this land"* |
+
+## ⚠️ Suunnanmuutos 2026-09-01 — harha poistettu
+
+Alkuperäinen suunnittelu: Linna on **satunnainen harha** 300–900 m Hearthista, jottei
+`world.json` (julkinen URL) vuoda kotiosoitetta. Infinite testasi tätä selaimessa ja
+kumosi sen: peli pelataan kavereiden kesken, ja Linna jota pelaaja ei näe — usein ruudun
+ulkopuolella — claim-kohdan vieressä on huonompi kuin julkaistu solu.
+
+**Linna on nyt Hearth-solu itse.** `assignCastle(store, home)` tallentaa `cellAt(home)`:n.
+Poistettu: `rules/castle.ts` (`castlePosition`, `hash`), `CASTLE_MIN/MAX_RADIUS_M`,
+`rules/castle.test.ts`. `world.json` julkaisee siis oikean kotisolun — CASTLE-001:n
+alunperin hylkäämä vaihtoehto 3 ("hyväksytään koska peli on kavereiden kesken") on nyt
+valittu tie. `getCastle()` ja `getHome()` palauttavat saman h3:n; `getCastle()` säilyy
+"julkaistava sijainti" -merkityksellä (`sealChallenge`, `world.json`, `CastleMarker`).
 
 ## 🔴 RED
 

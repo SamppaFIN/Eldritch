@@ -24,9 +24,9 @@ export interface Challenge {
   /** Ground held, at the moment of export. */
   cells: Array<{ h3: H3Index; strength: number }>;
   /**
-   * Their Keep, if they have one — never their Hearth (BRDC-CASTLE-001). Only ever
-   * read as a null check for the Anchor bonus (`wagerBattle.ts`), which is why the
-   * decoy location is exactly as good here as the real one.
+   * Their Keep — the Hearth cell, since the BRDC-CASTLE-001 reversal. Only ever read as a
+   * null check for the Anchor bonus (`wagerBattle.ts`), so the exact cell never matters
+   * here.
    */
   home: H3Index | null;
   /**

@@ -163,9 +163,8 @@ export interface GameRepository {
 
   /* --- The Keep ----------------------------------------------------------- */
   /**
-   * The public decoy near the Hearth — the only location ever published
-   * (`BRDC-SHARE-001`). Assigned automatically whenever `setHome` is; there is no
-   * separate action to set it, and no way to read the Hearth back out of it.
+   * The location published for this player (`BRDC-SHARE-001`). Since the BRDC-CASTLE-001
+   * reversal it is the Hearth cell itself; assigned automatically whenever `setHome` is.
    */
   getCastle(): Promise<H3Index | null>;
 

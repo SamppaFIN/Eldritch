@@ -238,8 +238,8 @@ export class MockRepository implements GameRepository {
 
   async exportChallenge(now: number): Promise<string> {
     // Projected, so what travels is the ground that is actually still standing. The
-    // Keep, not the Hearth: `home` here only ever gates the Anchor bonus (a null check,
-    // see wagerBattle.ts) and never needs the real address to do it (BRDC-CASTLE-001).
+    // `home` here is the Keep (the Hearth cell since BRDC-CASTLE-001's reversal); it only
+    // gates the Anchor bonus, a null check in wagerBattle.ts.
     return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getCastle(), await this.getDefence(), now);
   }
 
@@ -282,7 +282,7 @@ export class MockRepository implements GameRepository {
   async setHome(position: LatLng, now: number): Promise<H3Index> {
     const profile = await this.getProfile();
     const h3 = await claimHearth(this.store, profile, position, now);
-    await assignCastle(this.store, position, this.newId());
+    await assignCastle(this.store, position);
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
     return h3;
   }

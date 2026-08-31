@@ -1,14 +1,13 @@
 /**
- * The Keep — a public decoy, drawn as its own marker, never as the Anchor.
+ * The Keep — the published location, drawn as its own marker.
  *
- * Kept apart from PlaceMarkers.ts on purpose. Anchor and Temple are things the game
- * worked out from how long the player stood somewhere (a `RevealedPlace`); the Keep is
- * assigned once, at random, and carries none of that meaning — folding it into
- * `RevealedPlace` would give it a `dwellMs` and a `rank` that mean nothing.
+ * Since the BRDC-CASTLE-001 reversal the Keep is the Hearth cell, so this marker now
+ * coincides with the Anchor Stone. It is still drawn separately (its own halo-plus-core,
+ * borrowed from PlaceMarkers) because the two carry different meaning; whether they
+ * should merge visually is a BRDC-ART-001 question, across every marker at once.
  *
- * Visually it borrows PlaceMarkers' halo-plus-core language rather than inventing new
- * art: BRDC-CASTLE-001 needs it to be visible and unmistakably not the Anchor, not
- * styled — that pass is BRDC-ART-001's, across every marker at once.
+ * Kept apart from PlaceMarkers.ts on purpose: Anchor and Temple come from a
+ * `RevealedPlace` with a `dwellMs` and a `rank`; the Keep has neither.
  */
 import type { FeatureCollection, Point } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';

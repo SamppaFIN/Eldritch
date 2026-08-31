@@ -1,29 +1,22 @@
 /**
- * The Keep — assigned once per Hearth, the storage half.
+ * The Keep — the one location published for this player (BRDC-SHARE-001), stored here.
  *
- * Split out the same way pouch.ts and hearth.ts were: a small, real seam rather than
- * another branch on MockRepository.
+ * BRDC-CASTLE-001 first made the Keep a random decoy 300–900 m from the Hearth, so
+ * `world.json` on an open URL would never carry a home address. Infinite reversed that on
+ * 2026-09-01 after testing it: the game is played among friends, and a Keep the player
+ * cannot see — often off-screen — next to where they just claimed is worse than
+ * publishing the cell. The Keep is now the Hearth cell itself.
  *
- * Re-assigned every time `setHome` is (which mirrors claimHearth exactly — see its own
- * "moves when set again" test): a fresh Hearth means a fresh secret to protect, and
- * there is nothing to average across an old Keep and a new one that share no Hearth in
- * common. What must never happen is the *same* Hearth producing a different Keep on a
- * later read — that would let two published snapshots of one player be averaged toward
- * the real address, which is the one failure `castlePosition`'s own docs warn against.
+ * Re-assigned every time `setHome` is, the same as the Hearth: a new home is a new
+ * published location, and there is nothing to carry across two that share no Hearth.
  */
 import { cellAt } from '../geo/cells.js';
-import { castlePosition } from '../rules/castle.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { H3Index, LatLng } from '../types/domain.js';
 
-/** Roll and store a new Keep near `home`. `seed` should be fresh entropy, not derived. */
-export async function assignCastle(
-  store: KeyValueStore,
-  home: LatLng,
-  seed: string,
-): Promise<H3Index> {
-  const h3 = cellAt(castlePosition(home, seed));
+export async function assignCastle(store: KeyValueStore, home: LatLng): Promise<H3Index> {
+  const h3 = cellAt(home);
   await store.set(K.castle, h3);
   return h3;
 }

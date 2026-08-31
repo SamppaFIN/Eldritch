@@ -1,10 +1,10 @@
 /**
  * The Keep, wired through the repository.
+ *
+ * Since 2026-09-01 the Keep is the Hearth cell itself — Infinite reversed the decoy after
+ * testing it (BRDC-CASTLE-001). It is now the published location, not a secret.
  */
 import { describe, expect, it } from 'vitest';
-import { haversine } from '../geo/haversine.js';
-import { cellToLatLng } from 'h3-js';
-import { CASTLE_MAX_RADIUS_M, CASTLE_MIN_RADIUS_M } from '../rules/constants.js';
 import { destination } from '../geo/project.js';
 import { MockRepository } from './MockRepository.js';
 
@@ -17,47 +17,33 @@ describe('the Keep', () => {
     expect(await repo.getCastle()).toBeNull();
   });
 
-  it('appears the moment a Hearth is accepted, near it but not on it', async () => {
+  it('is the Hearth cell, the moment a Hearth is accepted', async () => {
     const repo = new MockRepository({ seed: 7 });
-    await repo.setHome(ORIGIN, T0);
-
-    const castle = await repo.getCastle();
-    expect(castle).not.toBeNull();
-    if (!castle) return;
-
-    const [lat, lng] = cellToLatLng(castle);
-    const distance = haversine(ORIGIN, { lat, lng });
-    expect(distance).toBeGreaterThanOrEqual(CASTLE_MIN_RADIUS_M - 50);
-    expect(distance).toBeLessThanOrEqual(CASTLE_MAX_RADIUS_M + 50);
+    const home = await repo.setHome(ORIGIN, T0);
+    expect(await repo.getCastle()).toBe(home);
   });
 
   it('stays put across repeated reads of the same Hearth', async () => {
     const repo = new MockRepository({ seed: 7 });
     await repo.setHome(ORIGIN, T0);
-
-    const first = await repo.getCastle();
-    const second = await repo.getCastle();
-    expect(second).toBe(first);
+    expect(await repo.getCastle()).toBe(await repo.getCastle());
   });
 
-  it('gets a fresh Keep when the Hearth moves, same as the Hearth itself does', async () => {
+  it('moves with the Hearth', async () => {
     const repo = new MockRepository({ seed: 7 });
     await repo.setHome(ORIGIN, T0);
-    const firstCastle = await repo.getCastle();
+    const first = await repo.getCastle();
 
     await repo.setHome(destination(ORIGIN, 90, 5_000), T0);
-    const secondCastle = await repo.getCastle();
-
-    expect(secondCastle).not.toBe(firstCastle);
+    expect(await repo.getCastle()).not.toBe(first);
   });
 
-  it('two players standing in the same spot get different Keeps', async () => {
+  it('two players standing in the same spot share it — it is a place, not a secret', async () => {
     const a = new MockRepository({ seed: 7 });
-    const b = new MockRepository({ seed: 7 });
+    const b = new MockRepository({ seed: 9 });
     await a.setHome(ORIGIN, T0);
     await b.setHome(ORIGIN, T0);
-
-    expect(await a.getCastle()).not.toBe(await b.getCastle());
+    expect(await a.getCastle()).toBe(await b.getCastle());
   });
 
   it('is forgotten by a reset, same as the Hearth', async () => {
