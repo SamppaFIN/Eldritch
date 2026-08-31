@@ -37,6 +37,27 @@ export interface Run {
   distanceM: number;
 }
 
+/**
+ * What the ground under a cell is made of (BRDC-TERRAIN-002). Lives here rather than in
+ * rules/terrain.ts because `Cell` carries it and rules/terrain.ts imports `Cell`.
+ */
+export type TerrainKind =
+  | 'plain'
+  | 'forest'
+  | 'hill'
+  | 'mountain'
+  | 'lake'
+  | 'coast'
+  | 'market';
+
+/** Whether a cell's terrain was read from the map's vector tiles or stood in by a hash. */
+export type TerrainSource = 'tiles' | 'hash';
+
+export interface Terrain {
+  kind: TerrainKind;
+  source: TerrainSource;
+}
+
 export interface Cell {
   h3: H3Index;
   ownerId: PlayerId | null;
@@ -51,6 +72,12 @@ export interface Cell {
    * decayed or released locally. Absent means local — no migration needed.
    */
   imported?: boolean;
+  /**
+   * Resolved terrain, once the map's tiles have been read for this cell
+   * (BRDC-TERRAIN-002). Absent means "not resolved yet" — callers fall back to the hash
+   * (`terrainForCell`). Additive, so no save migration.
+   */
+  terrain?: Terrain;
 }
 
 export interface PlayerProfile {

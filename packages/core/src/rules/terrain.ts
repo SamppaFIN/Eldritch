@@ -6,17 +6,32 @@
  * You cannot choose where those are — they are where you live — so the map decides what
  * a walk is worth, which is the whole point of a game played outdoors.
  *
- * **The data source here is a placeholder and that is said out loud.** Terrain is a
- * deterministic hash of the H3 index, clustered so it forms woods and lakes rather than
- * per-cell noise. It is not real terrain; it is the shape real terrain will fill. The
- * interface — `terrainOf(h3)` — is what stays when the vector tiles already on the
- * device are read instead (PIVOT-2026-08-27 §3.1, BRDC-TERRAIN-002).
+ * Terrain has two sources now (BRDC-TERRAIN-002). Where the vector tiles already on the
+ * device say something — a lake, a park, a row of shops — that is used and marked
+ * `source: 'tiles'`. Where they say nothing, a deterministic hash of the H3 index stands
+ * in, clustered so it forms woods and hills rather than per-cell noise, marked
+ * `source: 'hash'`. The hash is not real terrain; it is the shape real terrain fills.
+ * `terrainOf(h3) → Terrain` is the interface BRDC-TERRAIN-001 locked; only the body and
+ * the `Terrain` shape have changed.
  */
 import { cellToParent } from 'h3-js';
 import { DECAY_GRACE_HOURS } from './constants.js';
-import type { Cell, H3Index } from '../types/domain.js';
+import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 
-export type TerrainKind = 'water' | 'forest' | 'market' | 'plain';
+export type { Terrain, TerrainKind, TerrainSource } from '../types/domain.js';
+
+/**
+ * What can be built on a terrain. The slugs are consumed by BRDC-BUILD-001; they live
+ * here because "which terrain allows which building" is a property of the ground.
+ */
+export type BuildSite =
+  | 'sawmill'
+  | 'quarry'
+  | 'mine'
+  | 'fishery'
+  | 'harbour'
+  | 'market'
+  | 'shrine';
 
 /**
  * Every resource the game knows about, in one place.
@@ -50,22 +65,24 @@ export const EMPTY_POOL: ResourcePool = Object.fromEntries(
 ) as ResourcePool;
 
 /**
- * What each terrain gives. Plain gives nothing, and most ground is plain.
+ * What each terrain gives, and what can be built on it. One table (BRDC-TERRAIN-002).
  *
- * Only three terrains produce anything, because only three terrains exist — forest,
- * market and water are all `terrainOf` can return until `BRDC-TERRAIN-002` adds
- * mountains, hills and the rest. The other six resources sit in the pool with nothing
- * feeding them yet, which is honest: a field nothing can earn is not the same problem
- * as a field that does not exist, and buildings that cost it can still be designed.
- *
- * Water gives `food`, not a `water` resource — the plan's own model (a fishing pier on
- * a lake gives fish) — so the pool never carries a resource nobody can ever spend.
+ * Water gives `food`, not a `water` resource — the plan's own model (a fishing pier on a
+ * lake gives fish) — so the pool never carries a resource nobody can spend. `wisdom`,
+ * `mana`, `culture` and `tokens` still have no terrain feeding them; that is honest and
+ * deliberate (a field nothing earns yet is not a field that does not exist), and the
+ * buildings that produce them are `BRDC-BUILD-001`'s problem.
  */
-export const RESOURCE_OF: Readonly<Record<TerrainKind, ResourceKind | null>> = {
-  water: 'food',
-  forest: 'wood',
-  market: 'gold',
-  plain: null,
+export const TERRAIN_TABLE: Readonly<
+  Record<TerrainKind, { resource: ResourceKind | null; buildSites: readonly BuildSite[] }>
+> = {
+  plain: { resource: null, buildSites: ['shrine'] },
+  forest: { resource: 'wood', buildSites: ['sawmill'] },
+  hill: { resource: 'stone', buildSites: ['quarry'] },
+  mountain: { resource: 'iron', buildSites: ['mine'] },
+  lake: { resource: 'food', buildSites: ['fishery'] },
+  coast: { resource: 'food', buildSites: ['fishery', 'harbour'] },
+  market: { resource: 'gold', buildSites: ['market'] },
 };
 
 /** Paid once, the moment a producing cell changes hands. Never capped — see spend below. */
@@ -107,28 +124,52 @@ function hash(s: string): number {
   return (h >>> 0) / 4294967296;
 }
 
+/** Region roll → kind. Plain keeps the largest share; the rest is split across the six. */
+function kindForRegion(region: number): TerrainKind {
+  if (region < 0.09) return 'lake';
+  if (region < 0.16) return 'coast';
+  if (region < 0.27) return 'forest';
+  if (region < 0.34) return 'hill';
+  if (region < 0.41) return 'mountain';
+  if (region < 0.48) return 'market';
+  return 'plain';
+}
+
 /**
- * The terrain of one cell.
+ * The terrain of one cell, from the hash. `source` is always `'hash'` here — a tile
+ * reading is resolved once and stored on the cell (`Cell.terrain`, `terrainForCell`).
  *
  * Two rolls, not one. The first picks what the surrounding region is made of; the second
  * asks whether this particular cell is really that, which frays the edges. A region of
  * uniform hexagons reads as generated, because it is.
  */
-export function terrainOf(h3: H3Index): TerrainKind {
-  const region = hash(`terrain:${cellToParent(h3, CLUSTER_RES)}`);
+export function terrainOf(h3: H3Index): Terrain {
+  const kind = kindForRegion(hash(`terrain:${cellToParent(h3, CLUSTER_RES)}`));
+  if (kind === 'plain') return { kind: 'plain', source: 'hash' };
+  return { kind: hash(`edge:${h3}`) < 0.72 ? kind : 'plain', source: 'hash' };
+}
 
-  const kind: TerrainKind =
-    region < 0.13 ? 'water' : region < 0.34 ? 'forest' : region < 0.44 ? 'market' : 'plain';
-
-  if (kind === 'plain') return 'plain';
-  return hash(`edge:${h3}`) < 0.72 ? kind : 'plain';
+/** The cell's resolved terrain if it has one, otherwise the hash. */
+export function terrainForCell(cell: Cell): Terrain {
+  return cell.terrain ?? terrainOf(cell.h3);
 }
 
 export function resourceOf(h3: H3Index): ResourceKind | null {
-  return RESOURCE_OF[terrainOf(h3)];
+  return TERRAIN_TABLE[terrainOf(h3).kind].resource;
 }
 
-/** Add the one-off yield for taking a cell. Returns a new pool; never mutates. */
+/** The resource for a cell, preferring its stored terrain over the hash. */
+export function resourceForCell(cell: Cell): ResourceKind | null {
+  return TERRAIN_TABLE[terrainForCell(cell).kind].resource;
+}
+
+/**
+ * Add the one-off yield for taking a cell. Returns a new pool; never mutates.
+ *
+ * Keyed on the h3 alone, so it reads the hash: at the moment ground changes hands its
+ * tile terrain may not be resolved yet. The trickle, which is handed whole cells, uses
+ * the resolved value once one exists (`resourceForCell`).
+ */
 export function addClaimYield(pool: ResourcePool, h3: H3Index): ResourcePool {
   const resource = resourceOf(h3);
   if (!resource) return pool;
@@ -154,7 +195,7 @@ export function trickle(cells: readonly Cell[], ms: number, now: number): Resour
   const pool = { ...EMPTY_POOL };
   for (const cell of cells) {
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
-    const resource = resourceOf(cell.h3);
+    const resource = resourceForCell(cell);
     if (resource) pool[resource] += TRICKLE_PER_HOUR * hours;
   }
 
@@ -198,7 +239,7 @@ export function settleResources(
   // dormant or non-producing ground builds up a debt of hours that pays out the
   // instant a lake is claimed, or an old cell is finally walked again.
   const producing = owned.some(
-    (c) => now - c.lastVisitedAt <= DORMANT_AFTER_MS && resourceOf(c.h3) !== null,
+    (c) => now - c.lastVisitedAt <= DORMANT_AFTER_MS && resourceForCell(c) !== null,
   );
   if (!producing) return { pool: state.pool, since: now };
 
@@ -223,4 +264,66 @@ export function spend(pool: ResourcePool, cost: Partial<ResourcePool>): Resource
   const next = { ...pool };
   for (const k of Object.keys(cost) as ResourceKind[]) next[k] -= cost[k] ?? 0;
   return next;
+}
+
+/* --- Real terrain from vector tiles (BRDC-TERRAIN-002) ------------------- */
+
+export interface TileFeature {
+  /** The tile source-layer, e.g. `water`, `landcover`, `landuse`, `poi`. */
+  sourceLayer?: string;
+  properties?: Record<string, unknown>;
+}
+
+const has = (set: readonly string[], value: unknown): boolean =>
+  typeof value === 'string' && set.includes(value);
+
+/**
+ * Read a kind out of the vector-tile features under a point, or `null` when the tiles say
+ * nothing and the hash should stand in.
+ *
+ * Tolerant of the common OpenMapTiles-style schema: a `sourceLayer` plus a `class` /
+ * `subclass` / `natural` / `landuse` property. Order matters — water and coastline are
+ * checked before land cover, because a shoreline feature carries both.
+ *
+ * Hill and mountain come from tags, not elevation — the tiles carry no height model
+ * (`BRDC-TERRAIN-002`: "ei korkeusdataa"). `natural=peak|cliff|ridge` is a mountain;
+ * scrub, heath and moor read as hill. It is a guess, and the hash covers where it is
+ * wrong.
+ */
+export function terrainFromTiles(features: readonly TileFeature[]): TerrainKind | null {
+  const tags = features.map((f) => ({
+    layer: f.sourceLayer ?? '',
+    p: f.properties ?? {},
+  }));
+
+  const any = (test: (t: { layer: string; p: Record<string, unknown> }) => boolean) =>
+    tags.some(test);
+
+  if (any(({ layer, p }) => layer === 'water' && has(['ocean', 'sea'], p.class)) ||
+      any(({ p }) => has(['coastline'], p.natural))) {
+    return 'coast';
+  }
+  if (any(({ layer, p }) => layer === 'water' || layer === 'waterway' || has(['water'], p.natural))) {
+    return 'lake';
+  }
+  if (any(({ p }) => has(['peak', 'cliff', 'ridge', 'rock', 'scree'], p.natural))) {
+    return 'mountain';
+  }
+  if (any(({ layer, p }) =>
+    (layer === 'landcover' || layer === 'landuse') && has(['wood', 'forest'], p.class ?? p.subclass) ||
+    has(['wood'], p.natural))) {
+    return 'forest';
+  }
+  if (any(({ p }) =>
+    has(['scrub', 'heath', 'fell', 'moor', 'grassland'], p.natural) ||
+    has(['meadow'], p.landuse ?? p.class))) {
+    return 'hill';
+  }
+  if (any(({ layer, p }) =>
+    layer === 'poi' && has(['marketplace'], p.class ?? p.subclass) ||
+    has(['commercial', 'retail'], p.landuse ?? p.class) ||
+    typeof p.shop === 'string')) {
+    return 'market';
+  }
+  return null;
 }

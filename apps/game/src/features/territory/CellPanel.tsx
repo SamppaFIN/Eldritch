@@ -18,9 +18,9 @@ import {
   WARD_COST,
   cellAreaM2,
   hoursUntilReleased,
-  resourceOf,
+  resourceForCell,
   revealProgress,
-  terrainOf,
+  terrainForCell,
 } from '@es3/core';
 import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es3/core';
 import { useEffect, useRef } from 'react';
@@ -45,23 +45,31 @@ export interface CellPanelProps {
 }
 
 const GROUND: Readonly<Record<TerrainKind, string>> = {
-  water: 'Still water',
-  forest: 'Old woodland',
-  market: 'A place of trade',
   plain: 'Plain ground',
+  forest: 'Old woodland',
+  hill: 'Bare hillside',
+  mountain: 'Broken rock',
+  lake: 'Still water',
+  coast: 'The shoreline',
+  market: 'A place of trade',
 };
 
 const YIELD: Readonly<Record<TerrainKind, string>> = {
-  water: 'yields food',
-  forest: 'yields timber',
-  market: 'yields gold',
   plain: 'yields nothing',
+  forest: 'yields timber',
+  hill: 'yields stone',
+  mountain: 'yields iron',
+  lake: 'yields food',
+  coast: 'yields food',
+  market: 'yields gold',
 };
 
 /** The resource a terrain gives, said the way the pouch says it. */
 const RESOURCE_NAME: Readonly<Record<string, string>> = {
   food: 'food',
   wood: 'timber',
+  stone: 'stone',
+  iron: 'iron',
   gold: 'gold',
 };
 
@@ -124,8 +132,8 @@ export function CellPanel({
 
   if (!cell) return null;
 
-  const terrain = terrainOf(cell.h3);
-  const resource = resourceOf(cell.h3);
+  const terrain = terrainForCell(cell);
+  const resource = resourceForCell(cell);
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
@@ -140,10 +148,16 @@ export function CellPanel({
     >
       <div className="cell-panel__head">
         <div>
-          <p className="cell-panel__ground">{GROUND[terrain]}</p>
+          <p className="cell-panel__ground">
+            {GROUND[terrain.kind]}
+            <span className="cell-panel__source">
+              {' '}
+              {terrain.source === 'tiles' ? '(from the map)' : '(estimated)'}
+            </span>
+          </p>
           <p className="cell-panel__yield">
             {here ? 'You are here · ' : ''}
-            {YIELD[terrain]}
+            {YIELD[terrain.kind]}
           </p>
         </div>
         <RitualButton

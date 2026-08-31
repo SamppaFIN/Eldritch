@@ -8,12 +8,15 @@ import {
   CLAIM_YIELD,
   EMPTY_POOL,
   RESOURCE_KINDS,
+  TERRAIN_TABLE,
   TRICKLE_PER_HOUR,
   addClaimYield,
   canAfford,
+  resourceForCell,
   resourceOf,
   settleResources,
   spend,
+  terrainFromTiles,
   terrainOf,
   trickle,
 } from './terrain.js';
@@ -45,14 +48,22 @@ function cellsAt(h3s: readonly string[], lastVisitedAt = T0): Cell[] {
 /** Sum across every resource, so a test does not have to name each of the nine fields. */
 const total = (p: ResourcePool) => RESOURCE_KINDS.reduce((sum, k) => sum + p[k], 0);
 
+const kindOf = (h3: string): TerrainKind => terrainOf(h3).kind;
+
 describe('terrainOf', () => {
   it('is the same every time it is asked', () => {
-    expect(terrainOf(HERE)).toBe(terrainOf(HERE));
+    expect(terrainOf(HERE)).toEqual(terrainOf(HERE));
+  });
+
+  it('always reports its source as the hash', () => {
+    expect(sample(50).every((h3) => terrainOf(h3).source === 'hash')).toBe(true);
   });
 
   it('produces every kind somewhere in a couple of kilometres', () => {
-    const kinds = new Set<TerrainKind>(sample().map(terrainOf));
-    expect(kinds).toEqual(new Set(['water', 'forest', 'market', 'plain']));
+    const kinds = new Set<TerrainKind>(sample(600).map(kindOf));
+    expect(kinds).toEqual(
+      new Set<TerrainKind>(['plain', 'forest', 'hill', 'mountain', 'lake', 'coast', 'market']),
+    );
   });
 
   it('leaves most ground plain, so a producing cell is worth walking to', () => {
@@ -73,7 +84,7 @@ describe('terrainOf', () => {
       for (const n of gridDisk(h3, 1)) {
         if (n === h3) continue;
         total_ += 1;
-        if (terrainOf(n) === terrainOf(h3)) agree += 1;
+        if (kindOf(n) === kindOf(h3)) agree += 1;
       }
     }
     expect(agree / total_).toBeGreaterThan(0.55);
@@ -82,17 +93,40 @@ describe('terrainOf', () => {
   it('frays at the edges — a region is not a solid block of hexagons', () => {
     // Every cell of a region being identical reads as generated, because it is.
     const cells = sample(300);
-    const mixed = cells.filter((h3) =>
-      gridDisk(h3, 1).some((n) => terrainOf(n) !== terrainOf(h3)),
-    );
+    const mixed = cells.filter((h3) => gridDisk(h3, 1).some((n) => kindOf(n) !== kindOf(h3)));
     expect(mixed.length).toBeGreaterThan(0);
   });
 });
 
-describe('resourceOf', () => {
-  it('gives food for water, not a water resource — the pool has no such field', () => {
-    const water = sample().find((h3) => terrainOf(h3) === 'water') as string;
-    expect(resourceOf(water)).toBe('food');
+describe('TERRAIN_TABLE', () => {
+  it('has a resource and build sites for every kind', () => {
+    const kinds: TerrainKind[] = ['plain', 'forest', 'hill', 'mountain', 'lake', 'coast', 'market'];
+    for (const k of kinds) {
+      expect(TERRAIN_TABLE[k]).toBeDefined();
+      expect(Array.isArray(TERRAIN_TABLE[k].buildSites)).toBe(true);
+    }
+    expect(TERRAIN_TABLE.plain.resource).toBeNull();
+    expect(TERRAIN_TABLE.mountain.resource).toBe('iron');
+  });
+});
+
+describe('resourceOf / resourceForCell', () => {
+  it('gives food for a lake, not a water resource — the pool has no such field', () => {
+    const lake = sample(600).find((h3) => kindOf(h3) === 'lake') as string;
+    expect(resourceOf(lake)).toBe('food');
+  });
+
+  it('prefers a cell\'s stored terrain over the hash', () => {
+    const plain = sample().find((h3) => resourceOf(h3) === null) as string;
+    const withMine: Cell = {
+      h3: plain,
+      ownerId: 'me',
+      strength: 100,
+      lastVisitedAt: T0,
+      visitDays: [],
+      terrain: { kind: 'mountain', source: 'tiles' },
+    };
+    expect(resourceForCell(withMine)).toBe('iron');
   });
 });
 
@@ -210,6 +244,46 @@ describe('settleResources', () => {
     const almostFull = { ...EMPTY_POOL, wood: BASE_STORAGE_CAP - 1 };
     const settled = settleResources({ pool: almostFull, since: T0 }, wood, T0 + HOUR);
     expect(settled.pool.wood).toBe(BASE_STORAGE_CAP);
+  });
+});
+
+describe('terrainFromTiles', () => {
+  it('reads a lake from a water layer', () => {
+    expect(terrainFromTiles([{ sourceLayer: 'water', properties: { class: 'lake' } }])).toBe('lake');
+    expect(terrainFromTiles([{ sourceLayer: 'waterway', properties: {} }])).toBe('lake');
+  });
+
+  it('reads the coast from ocean water or a coastline', () => {
+    expect(terrainFromTiles([{ sourceLayer: 'water', properties: { class: 'ocean' } }])).toBe('coast');
+    expect(terrainFromTiles([{ properties: { natural: 'coastline' } }])).toBe('coast');
+  });
+
+  it('reads woodland from land cover or a natural tag', () => {
+    expect(terrainFromTiles([{ sourceLayer: 'landcover', properties: { class: 'wood' } }])).toBe('forest');
+    expect(terrainFromTiles([{ properties: { natural: 'wood' } }])).toBe('forest');
+  });
+
+  it('reads rock as mountain and scrub as hill — tags, not elevation', () => {
+    expect(terrainFromTiles([{ properties: { natural: 'peak' } }])).toBe('mountain');
+    expect(terrainFromTiles([{ properties: { natural: 'scrub' } }])).toBe('hill');
+  });
+
+  it('reads a marketplace or shops as market', () => {
+    expect(terrainFromTiles([{ sourceLayer: 'landuse', properties: { class: 'commercial' } }])).toBe('market');
+    expect(terrainFromTiles([{ properties: { shop: 'bakery' } }])).toBe('market');
+  });
+
+  it('returns null when the tiles say nothing', () => {
+    expect(terrainFromTiles([])).toBeNull();
+    expect(terrainFromTiles([{ sourceLayer: 'building', properties: {} }])).toBeNull();
+  });
+
+  it('checks water before land cover when a feature carries both', () => {
+    const shoreline = [
+      { sourceLayer: 'landcover', properties: { class: 'wood' } },
+      { sourceLayer: 'water', properties: { class: 'ocean' } },
+    ];
+    expect(terrainFromTiles(shoreline)).toBe('coast');
   });
 });
 
