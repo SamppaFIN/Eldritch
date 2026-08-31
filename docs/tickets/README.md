@@ -164,6 +164,7 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
 | [BRDC-ART-001](BRDC-ART-001.md) | Lovecraft-grafiikka: heksat, liput, loitsuefektit | L | REVEAL-001, TERRAIN-002 |
+| [BRDC-TRAIL-003](BRDC-TRAIL-003.md) | Kävellyt ley-linet jäävät jäljiksi ja kuluvat tieksi | L | TRAIL-001, TRAIL-002, CLAIM-001 |
 | [BRDC-STATS-001](BRDC-STATS-001.md) | Tilastot ja tuotantoennuste | M | ECON-001, BUILD-002, INSPECT-001 |
 | [BRDC-WIKI-001](BRDC-WIKI-001.md) | Pelinsisäinen tietokirja | M | BUILD-001, TECH-001 |
 | [BRDC-TUTOR-001](BRDC-TUTOR-001.md) | Asteittainen opetus | M | BUILD-001, REVEAL-001, WIKI-001 |

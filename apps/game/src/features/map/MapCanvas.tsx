@@ -8,7 +8,8 @@
  */
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
-import type { MapLayerMouseEvent } from 'maplibre-gl';
+import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
+import { cellAt } from '@es3/core';
 import type { BBox, Cell, H3Index, LatLng, PlayerId, RevealedPlace, TrailPoint } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import {
@@ -169,19 +170,21 @@ export function MapCanvas({
   }, [map, ready, cells, playerId]);
 
   /*
-   * Tapping a hexagon.
+   * Tapping a hexagon — any hexagon, claimed or not.
    *
-   * Bound to the fill layer rather than to the map, so a tap on empty basemap does not
-   * open a panel about nothing. The feature id is the H3 index — set in cellToFeature —
-   * which is why nothing here has to convert a coordinate back into a cell.
+   * A rendered cell carries its H3 index as the feature id (`cellToFeature`); empty ground
+   * has no feature, so the index is derived from where the tap landed. Either way the
+   * panel gets a cell to talk about (`useSelection` fills in `emptyCell` for unclaimed).
    */
   useEffect(() => {
     if (!map || !ready || !onCellTap) return;
-    const onClick = (e: MapLayerMouseEvent) => {
-      const id = e.features?.[0]?.id;
-      if (typeof id === 'string') onCellTap(id);
+    const onClick = (e: MapMouseEvent) => {
+      const hit = map.getLayer(CELL_FILL_LAYER)
+        ? map.queryRenderedFeatures(e.point, { layers: [CELL_FILL_LAYER] })[0]
+        : undefined;
+      const id = hit?.id;
+      onCellTap(typeof id === 'string' ? id : cellAt({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
     };
-    // Nothing else on this map responds to a tap, so a cell has to say that it does.
     const enter = () => {
       map.getCanvas().style.cursor = 'pointer';
     };
@@ -189,11 +192,11 @@ export function MapCanvas({
       map.getCanvas().style.cursor = '';
     };
 
-    map.on('click', [CELL_FILL_LAYER], onClick);
+    map.on('click', onClick);
     map.on('mouseenter', [CELL_FILL_LAYER], enter);
     map.on('mouseleave', [CELL_FILL_LAYER], leave);
     return () => {
-      map.off('click', [CELL_FILL_LAYER], onClick);
+      map.off('click', onClick);
       map.off('mouseenter', [CELL_FILL_LAYER], enter);
       map.off('mouseleave', [CELL_FILL_LAYER], leave);
     };

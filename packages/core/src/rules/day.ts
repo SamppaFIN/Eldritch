@@ -17,7 +17,7 @@ export function previousDay(day: string): string {
   return utcDay(Date.parse(`${day}T00:00:00Z`) - 86_400_000);
 }
 
-/** Whole UTC days between two instants, as a positive count. */
+/** Whole days elapsed between two instants, as a non-negative integer. */
 export function daysBetween(fromMs: number, toMs: number): number {
-  return Math.abs(toMs - fromMs) / 86_400_000;
+  return Math.floor(Math.abs(toMs - fromMs) / 86_400_000);
 }
