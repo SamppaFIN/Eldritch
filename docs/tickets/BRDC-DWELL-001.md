@@ -51,3 +51,22 @@ vasta kun on varma. Se on täsmälleen tämän pelin lore: *maa oppii sinut*.
 
 Mitä Temppelit *tekevät* pelillisesti — muistiinpanot jättävät sen auki, ja niin jätän
 minäkin. Ensin tunnistus, sitten vaikutus.
+
+## Jatko — 2026-08-31
+
+> *"Mitä Temppelit tekevät pelillisesti — muistiinpanot jättävät sen auki, ja niin
+> jätän minäkin. Ensin tunnistus, sitten vaikutus."*
+
+Vaikutus on nyt päätetty. Temppeli on **manan lähde** ja **rakennuspaikka**, jota ei voi
+ostaa — sen antaa se, missä olet oikeasti ollut:
+
+| Mitä temppeli tekee | Tiketti |
+|---|---|
+| Tuottaa manaa, ja laajennus nostaa tuottoa | `BRDC-MANA-001` |
+| Avaa Kirjaston ja Temppelilehdon viereisyydellään | `BRDC-BUILD-003` |
+| Uskollisuus hidastaa rappeutumista ympärillä | `BRDC-BUILD-003` |
+| Mana maksaa loitsut | `BRDC-SPELL-001` |
+
+Tämän tiketin perusidea säilyy koskemattomana: **temppeliä ei valita, se paljastuu.**
+`MAX_DWELL_GAP_MS` on nyt tärkeämpi kuin koskaan — se on ainoa este sille, että
+puhelin taskussa tekee manatehtaan.

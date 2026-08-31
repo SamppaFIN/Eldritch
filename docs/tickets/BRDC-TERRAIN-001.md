@@ -57,3 +57,15 @@ resurssikirjanpito on nyt `data/pouch.ts`.
 ## Ei kuulu tähän tikettiin
 
 SimCity-rakentaminen. Kolmiulotteinen näkymä. Muuri vs. örkit.
+
+## Jatko — 2026-08-31
+
+Infiniten kehityssuunnitelma purkaa tämän tiketin molemmat rajaukset kerralla:
+
+- *"Ei kuulu tähän tikettiin: SimCity-rakentaminen"* → `BRDC-BUILD-001`, `-002`, `-003`
+- Maasto neljästä yhdeksään tyyppiin, ja **hash korvataan vektoritiilillä** — se on
+  tämän tiketin oma lupaus (*"the shape real terrain will fill"*) → `BRDC-TERRAIN-002`
+- Kolme resurssia kymmeneksi → `BRDC-ECON-001`
+
+`terrainOf(h3) → Terrain` -rajapinta pysyy. Se oli tämän tiketin tärkein päätös ja se
+kestää: vain toteutus vaihtuu, eikä pelisääntö muutu sen mukana.

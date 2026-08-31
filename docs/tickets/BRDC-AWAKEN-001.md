@@ -39,3 +39,17 @@ animaation — juuri silloin MapLibre rasteroi uusia heksoja muutenkin.
 
 - Saavutusten tallennus tai lista. Maa itse on rekisteri.
 - Mitä valtaus *antaa* rakentamisen kannalta — `BRDC-TERRAIN-001` ja sen jälkeen.
+
+## Jatko — 2026-08-31
+
+Tämä tiketti teki **lenkin sulkeutumisesta** tapahtuman. Kehityssuunnitelman §4 tekee
+saman **yksittäiselle heksalle**: sumu hälvenee, kortti kääntyy, harvinaisuus hehkuu →
+`BRDC-REVEAL-001`.
+
+Ne ovat sama mekanismi kahdessa mittakaavassa, ja REVEAL-001 rakentaa tämän päälle
+eikä ohi. Yksi lisäys on pakollinen: **paljastuksia niputetaan**, koska korttelin
+varrella niitä tulee kymmenen peräkkäin ja kymmenen korttia on este eikä palkinto.
+
+> *"Mitä valtaus antaa rakentamisen kannalta — `BRDC-TERRAIN-001` ja sen jälkeen."*
+
+Sen jälkeen on nyt kirjoitettu: `BRDC-ECON-001` → `BRDC-BUILD-001`.

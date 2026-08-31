@@ -55,3 +55,15 @@ ankkurikivellään on parempi paikka tulla kysytyksi kuin nimikkoruutu.
 
 - Taistelun ratkaisu. Päätetty 2026-08-29 ja tehty: `BRDC-WAGER-BATTLE-001`.
   Tulosta ei palauteta lainkaan — molemmat laskevat sen samoista syötteistä.
+
+## Jatko — 2026-08-31
+
+Käsin kannettu haaste toimii kahdella pelaajalla ja lakkaa toimimasta kolmella:
+jokainen pari vaihtaa datansa erikseen, eikä kukaan näe koko maailmaa.
+
+`BRDC-SHARE-001` kokoaa saman datan **cronilla yhdeksi `world.json`iksi** GitHub
+Pagesiin. Tämän tiketin muoto ja `CHALLENGE_VERSION`-checksum kelpaavat sellaisenaan
+— se on jo se tiedosto, joka tietää kaiken, vain yhdelle vastaanottajalle kerrallaan.
+
+Muuttumaton: **`world.json` on luettava tila, ei totuus.** Riidat ratkaistaan Wagerilla,
+kuten `PIVOT-2026-08-27.md` §5 päätti.

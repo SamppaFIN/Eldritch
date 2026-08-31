@@ -44,8 +44,8 @@ v2's most concrete failure was 112 markdown files with no source of truth.
   "versio": "0.1.0",
   "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
   "tila": "toteutus",
-  "vaihe": "1 — Kartta ja ley-line",
-  "edellinen_vaihe": "0 — Perustus (valmis 2026-08-26)",
+  "vaihe": "2.6 — Mobiilikokemus ja jaettu maailma",
+  "edellinen_vaihe": "2.5 — Suunnanmuutos (valmis 2026-08-30)",
   "juurihakemisto": "c:/Projects/Klitoritari-FinalFantasy",
   "kohdelaite": "Samsung S23 Ultra (mobile-first), desktop simulaatiotilassa",
   "jakelu": "Vaiheet 0-2: standalone GitHub Pages. Vaihe 5: allekirjoitettu APK.",
@@ -183,7 +183,7 @@ Se on tämän säännön koko olemassaolon syy.
 
 1. **The server owns the truth.** The client may render optimistically, but ownership,
    XP, and capture outcomes are decided only by Postgres RPC. Never write to `cells`,
-   `profiles`, or `wager_scores` from the client. *(Applies from Phase 3 on; Phases 0–2
+   `profiles`, or `wager_scores` from the client. *(Applies from Phase 5 on; Phases 0–4
    have no server and the rule functions in `packages/core` are the truth.)*
 2. **No file exceeds 400 lines.** When you hit the limit, split the file. Do not raise
    the limit. (v2's `MapSystem.js` was 4081 lines and became unmaintainable.)
@@ -192,14 +192,18 @@ Se on tämän säännön koko olemassaolon syy.
 4. **Never edit an existing file in `supabase/migrations/`.** Add a new numbered migration.
 5. **Do not read the legacy repos.** Everything worth keeping is already extracted into
    `packages/core/rules/constants.ts`, `supabase/seed/`, `docs/backlog/` and `ANALYSIS.md`.
-6. **Nothing from `docs/backlog/` gets built before Phase 5 ships.** This is the rule that
-   v2 broke. Quests, combat, health/sanity, TTS, procedural audio, OSM buildings, AI dialogue,
-   shrines, merchants, anchors — all parked. They are written down; they are not next.
+6. **`docs/backlog/` supplies content to finished mechanics, never features of its own.**
+   Amended 2026-08-31: Infinite's plan brings quests, events and OSM terrain into Phase 3, so
+   the blanket park no longer holds — but the reason for it does. The order is the rule:
+   `BRDC-EVENT-001` builds the event engine, and only then does backlog material fill it.
+   Still parked with no mechanic to land in: TTS, procedural audio, health/sanity, themes.
+   v2's failure was shipping the content *as* the system. Do not do that.
 7. **Run `pnpm test && pnpm typecheck` before declaring any task done.** No exceptions.
 8. Ask before adding a dependency.
-9. **No API keys, no secrets, no external accounts yet.** Phases 0–2 run entirely offline
-   on mock data. Supabase gets wired up in Phase 3, not before — and key rotation
-   (`BRDC-SEC-000`) happens then, not now.
+9. **No API keys, no secrets, no external accounts yet.** Phases 0–4 run entirely offline
+   on mock data; the shared world is a JSON file published by a cron job, which needs no key
+   on the client (`BRDC-SHARE-001`). Supabase gets wired up in Phase 5, not before — and key
+   rotation (`BRDC-SEC-000`) happens then, not now.
 
 ---
 
@@ -211,7 +215,7 @@ Se on tämän säännön koko olemassaolon syy.
 - h3-js on the client, `h3` + `h3_postgis` in Postgres
 - Zustand (client state) + TanStack Query (server state)
 - Supabase: Postgres + PostGIS + Realtime + Auth + RPC. **No separate Node server.**
-  **Not wired up until Phase 3** — see "Data layer" below.
+  **Not wired up until Phase 5** — see "Data layer" below.
 - Capacitor 6 for Android, same bundle as the web build
 - Vitest (core), Playwright (e2e with mocked geolocation)
 - No runtime CDN dependencies. Everything bundles. (v2 loaded Leaflet, Socket.io and Google
@@ -223,9 +227,9 @@ Se on tämän säännön koko olemassaolon syy.
 apps/game/          React PWA. Also Capacitor webDir. android/ lives here.
 packages/core/      geo/ rules/ sim/ types/ persist/ — pure TS, fully tested
 packages/ui/        shared components + tokens.css (ONE file, under 800 lines)
-supabase/           migrations/ seed/ functions/   (unused until Phase 3)
+supabase/           migrations/ seed/ functions/   (unused until Phase 5)
 docs/tickets/       BRDC tickets — the implementation plan
-docs/backlog/       parked v2 content — do not build from this before Phase 5
+docs/backlog/       v2 content — fills finished mechanics, never a feature of its own
 files/              MASTERPLAN, EXTRACTION, PROMPTS — strategy documents
 ```
 
@@ -238,13 +242,24 @@ files/              MASTERPLAN, EXTRACTION, PROMPTS — strategy documents
 | **0** | Monorepo, tokens, `GameRepository`, Pages deploy | — | Deployed page looks right on a phone |
 | **1** | MapLibre, GPS tracking, ley-line | **mock** | Walk 10 min in airplane mode; trail persists |
 | **2** | Loop detection, H3, capture, reinforcement, decay | **mock** | Block fills · tomorrow reinforces · 20 days releases |
-| **3** | Supabase, RPCs, golden fixtures, realtime, chat | Supabase | Golden fixtures green (mock ≡ SQL) |
-| **4** | The Wager — challenge code, arena, results | Supabase | Challenge a friend, 30 min, a winner |
-| **5** | Capacitor, foreground service, signed APK | Supabase | APK on a friend's phone, tracking with screen off |
+| **2.5** | Hearth, adjacency growth, dwell, terrain, warding, the Wager by hand | **mock** | ✅ all ten tickets `done` |
+| **2.6** | Mobile experience, and `world.json` shared by cron | **mock** | Walk a block on real GPS, screen off, battery measured |
+| **3** | Civilization: buildings, tech tree, mana and spells, reveal, wonders, city states | **mock** | Build a sawmill, research a tech, find a wonder — and the game explains all three |
+| **4** | Capacitor, foreground service, signed APK | **mock** | APK on a friend's phone, tracking with screen off |
+| **5** | Supabase: subscription data, chat, account persistence. Golden fixtures | Supabase | Golden fixtures green (mock ≡ SQL) |
 | **6** | Lore back: codex, discoveries, quest, anchors, audio | Supabase | — |
 
-**Phases 0–2 ship as a standalone static site on GitHub Pages. No backend, no account,
+**Renumbered 2026-08-31, on Infinite's direction.** Supabase is no longer Phase 3: it
+shrinks to subscription-model data and chat persistence, and moves behind the APK.
+Everything else — territory, buildings, the shared world — runs without it. Data is
+shared by a cron job that publishes one JSON file to Pages (`BRDC-SHARE-001`).
+
+**Phases 0–4 ship as a standalone static site on GitHub Pages. No backend, no account,
 no network.** If a gate does not pass, the next phase does not start.
+
+**Phase 2.6 is not optional and not a footnote.** Every gate above it says *walk outside*,
+and nobody has. The plan for Phase 3 is fifteen weeks long; building it on a core no one
+has taken out the door is v2's exact failure. See `docs/tickets/BRDC-MOBILE-001.md`.
 
 ---
 
@@ -260,6 +275,18 @@ no network.** If a gate does not pass, the next phase does not start.
 | duel | The Wager |
 | level | Consciousness Level |
 | leaderboard | Codex of Dominion |
+| castle (public marker) | The Keep |
+| national overview | The Atlas |
+| building | Work |
+| tech | Rite |
+
+Added 2026-08-31. **The Keep is not the Hearth.** The Hearth is the cell you live in and
+it never leaves the device; the Keep is a decoy nearby, and it is the only location that
+is ever published (`BRDC-CASTLE-001`). Code that confuses the two leaks an address.
+
+The reference frame for the shared world is **Civilization's two views**: the Atlas shows
+borders and cities across the country; a player's own cells are the city view, and a
+rival's detail is seen only when they send it to you.
 
 Consciousness levels from v2: 1 Dormant · 5 Awakening · 10 Aware · 15 Enlightened ·
 20 Transcendent. **Cap the level curve** — v2 let a player reach 118 and corrupted their save.
@@ -468,9 +495,9 @@ Do not put server data in Zustand.
 - Reject points with `accuracy > MAX_ACCURACY_M`
 - Reject segments implying speed > `MAX_SPEED_MS`
 - Reject points closer together than `MIN_POINT_INTERVAL_MS`
-- `close_loop` rate-limited to 20 calls/day/player *(Phase 3)*
+- `close_loop` rate-limited to 20 calls/day/player *(Phase 5)*
 - Every ownership change writes a `cell_history` row
-- Android: flag runs where `isFromMockProvider` is true *(Phase 5)*
+- Android: flag runs where `isFromMockProvider` is true *(Phase 4)*
 
 ---
 
@@ -480,15 +507,15 @@ Everything reads and writes through one interface, `GameRepository` (`packages/c
 Two implementations:
 
 - **`MockRepository`** — IndexedDB + seeded fake neighbours, running directly on the pure
-  rule functions in `packages/core/rules`. Used in Phases 0–2, in every test, and as the
+  rule functions in `packages/core/rules`. Used in Phases 0–4, in every test, and as the
   offline fallback.
-- **`SupabaseRepository`** — calls RPC. Introduced in Phase 3.
+- **`SupabaseRepository`** — calls RPC. Introduced in Phase 5.
 
 No component, hook, or store may import the Supabase client directly. If you find yourself
 wanting to, the interface is missing a method — add it there.
 
 **The divergence risk is real and must be tested.** The same rules exist twice: TypeScript in
-`packages/core/rules`, SQL in the RPCs. Phase 3 adds *golden fixture* tests: the same recorded
+`packages/core/rules`, SQL in the RPCs. Phase 5 adds *golden fixture* tests: the same recorded
 routes run against both repositories and the resulting cell state must match exactly. When they
 disagree, **SQL wins** and the TypeScript is corrected. These run in CI on every commit.
 
@@ -537,8 +564,8 @@ pnpm typecheck    # tsc -b, strict
 pnpm lint:lines   # 400-line limit, enforced not remembered
 pnpm e2e          # Playwright; the 360px project runs first
 
-supabase db push          # Phase 3+
-npx cap sync android      # Phase 5+
+supabase db push          # Phase 5+
+npx cap sync android      # Phase 4+
 ```
 
 Definition of done for any ticket: **`pnpm test && pnpm typecheck && pnpm lint:lines`
@@ -558,8 +585,8 @@ React 19 · Zustand · TanStack Query
 MapLibre GL JS 6 · h3-js            — Phase 1-2
 Vitest 3 · Playwright 1.5x
 @fontsource: cinzel · orbitron · inter   — self-hosted, no CDN
-Supabase (Postgres + PostGIS + h3_postgis + Realtime)  — Phase 3+
-Capacitor 6                                            — Phase 5+
+Supabase (Postgres + PostGIS + h3_postgis + Realtime)  — Phase 5+
+Capacitor 6                                            — Phase 4+
 GitHub Actions → GitHub Pages
 ```
 
@@ -574,7 +601,7 @@ Nothing else may run an install script.
 |---|---|---|
 | `claude.md` | **This file.** Identity, protocol, working rules, stack, constants, tokens | fi + en |
 | `docs/tickets/` | **The implementation plan.** One BRDC ticket per feature, RED → GREEN | fi |
-| `docs/backlog/` | Parked v2 content. Not built before Phase 5 ships | en |
+| `docs/backlog/` | v2 content. Fills finished mechanics from Phase 3 on, never a feature | en |
 | `files/MASTERPLAN.md` | Strategy and locked decisions | fi |
 | `files/EXTRACTION.md` | What comes across from v2 and what does not | fi |
 | `files/PROMPTS.md` | Per-phase prompts | fi |

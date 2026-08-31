@@ -19,9 +19,15 @@ Pagesissa ilman backendia**. Ei Supabasea, ei tilejä, ei verkkoa. Kaikki tila s
 > kävele korttelin ympäri → alue täyttyy. Kävele sama reitti huomenna → alue vahvistuu.
 > Kelaa aikaa 20 vrk → alue vapautuu. **Peli on olemassa.**
 
-Vaiheet 3–6 (Supabase, moninpeli, Wager, APK, lore) on listattu alla otsikkotasolla.
-Niitä **ei kirjoiteta auki ennen kuin Vaihe 2 on läpi** — se on `files/CLAUDE.md`:n
-sääntö 6 ja MASTERPLANin §4.
+Vaihe 2 on läpi selaimessa, ja Infinite avasi jatkon 2026-08-31: **4X-sisältö ennen
+Supabasea.** Vaihe 3 on nyt Sivilisaatio — rakennukset, teknologia, mana, ihmeet — ja se
+ajetaan yhä ilman backendia. Datan jako hoidetaan cronilla ja `world.json`illa
+(`BRDC-SHARE-001`). Supabase kutistuu tilausmallin dataan ja chattien persistointiin,
+ja se on nyt Vaihe 5.
+
+Ennen sitä on yksi portti, joka ei ole neuvoteltavissa: **`BRDC-MOBILE-001`.** Peli on
+todennettu selaimessa ja simuloidulla GPS:llä, eikä kukaan ole vielä kävellyt korttelia
+puhelin taskussa. 15 viikkoa sisältöä sellaisen rungon päälle on täsmälleen v2:n virhe.
 
 ---
 
@@ -96,6 +102,106 @@ hylätyt vaihtoehdot: [PIVOT-2026-08-27.md](PIVOT-2026-08-27.md).
 | [BRDC-WAGER-BATTLE-001](BRDC-WAGER-BATTLE-001.md) | Taistelu clientillä · muuri vai örkit | M | WAGER-JSON-001 |
 | [BRDC-INSPECT-001](BRDC-INSPECT-001.md) | Maan tieto: heksan popup ja klikattava kotipesä | M | WARD-001, TERRAIN-001 |
 
+### 📱 Vaihe 2.6 — Mobiili ja jaettu maailma
+
+Infiniten linjaus 2026-08-31: *"tällä hetkellä tärkeintä on saada mobiilikokemus
+täydelliseksi"*. Tämä vaihe menee kaiken 4X-sisällön edelle.
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-MOBILE-001](BRDC-MOBILE-001.md) | Mobiilikokemus täydelliseksi | L | koko Vaihe 2.5 |
+| [BRDC-SHARE-001](BRDC-SHARE-001.md) | Cron ja `world.json` — jaettu maailma ilman palvelinta | M | WAGER-JSON-001 |
+| [BRDC-CASTLE-001](BRDC-CASTLE-001.md) | Linna: julkinen kasvo, joka ei ole kotiovi | M | HEARTH-001, SHARE-001 |
+| [BRDC-ASCII-001](BRDC-ASCII-001.md) | Kartta ASCII-merkkeinä | M | TERRAIN-002, SHARE-001 |
+| [BRDC-SCALE-001](BRDC-SCALE-001.md) | Lukupolku on täysi skannaus — korjaus ennen jakamista | L | MOCK-001, CLAIM-005, CLAIM-006 |
+
+**Portti V2.6:** ⬜ kävele kortteli ympäri oikealla GPS:llä, näyttö välillä pois, ja
+kirjaa mitattu akunkulutus. Tämä on Vaiheiden 1 ja 2 ulkoportti, jota ei ole vielä ajettu.
+
+### 🏛️ Vaihe 3 — Sivilisaatio
+
+Lähde: **Infiniten kehityssuunnitelma 2026-08-31** (Eldritch 4X). Jokainen suunnitelman
+osio on alla tikettinä; suunnitelman omat tunnukset (R1–R3, M1–M4, …) on merkitty
+tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
+
+**Perusta** — nämä ensin, tai kaikki muu kirjoitetaan kahdesti:
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-ECON-001](BRDC-ECON-001.md) | Kymmenen resurssia ja tuotannon katto | L | TERRAIN-001, WARD-001 |
+| [BRDC-TERRAIN-002](BRDC-TERRAIN-002.md) | Maastokirjo 4 → 9, ja oikea data vektoritiilistä | L | TERRAIN-001, ECON-001 |
+| [BRDC-HEX-001](BRDC-HEX-001.md) | Heksan muisti: löytäjä, historia, päivittäinen omistajuus | M | CLAIM-003, INSPECT-001 |
+
+**Rakentaminen ja eteneminen:**
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-TECH-001](BRDC-TECH-001.md) | Teknologiapuu ja aikakaudet | M | ECON-001 |
+| [BRDC-BUILD-001](BRDC-BUILD-001.md) | Rakennusjärjestelmän ydin ja perusrakennukset | L | ECON-001, TERRAIN-002, TECH-001 |
+| [BRDC-BUILD-002](BRDC-BUILD-002.md) | Aluekohtaiset parannukset ja päivitysketjut | M | BUILD-001, TERRAIN-002 |
+| [BRDC-BUILD-003](BRDC-BUILD-003.md) | Vaikutusalueen rakennukset ja uskollisuus | M | BUILD-001, HEX-001, DWELL-001 |
+
+**Mystiikka:**
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-MANA-001](BRDC-MANA-001.md) | Mana ja temppelin laajennus | M | ECON-001, DWELL-001 |
+| [BRDC-SPELL-001](BRDC-SPELL-001.md) | Loitsut: tutkimus, valta, esto, suoja | L | MANA-001, WAGER-JSON-001 |
+
+**Maailma ja löytäminen:**
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-REVEAL-001](BRDC-REVEAL-001.md) | Heksan paljastus: sumu, kortti, harvinaisuus | M | AWAKEN-001, TERRAIN-002, HEX-001 |
+| [BRDC-WONDER-001](BRDC-WONDER-001.md) | Cthulhu-mytologian 12 ihmettä | M | REVEAL-001, TERRAIN-002, SPELL-001 |
+| [BRDC-CITY-001](BRDC-CITY-001.md) | Kaupunkivaltiot, kauppa ja liittoutumat | L | TERRAIN-002, ECON-001, HEX-001 |
+| [BRDC-EVENT-001](BRDC-EVENT-001.md) | Tapahtumaketjut, anomaliat, pimeät ajat | M | REVEAL-001, HEX-001 |
+| [BRDC-QUEST-001](BRDC-QUEST-001.md) | Seikkailut: järvenpuhdistus ja dialogi | M | EVENT-001, ART-001 |
+| [BRDC-ATLAS-001](BRDC-ATLAS-001.md) | Koko Suomi: kaupungit, rajat ja laajeneminen | L | SHARE-001, CASTLE-001, SCALE-001 |
+
+**Pelaajalle näkyvä:**
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-ART-001](BRDC-ART-001.md) | Lovecraft-grafiikka: heksat, liput, loitsuefektit | L | REVEAL-001, TERRAIN-002 |
+| [BRDC-STATS-001](BRDC-STATS-001.md) | Tilastot ja tuotantoennuste | M | ECON-001, BUILD-002, INSPECT-001 |
+| [BRDC-WIKI-001](BRDC-WIKI-001.md) | Pelinsisäinen tietokirja | M | BUILD-001, TECH-001 |
+| [BRDC-TUTOR-001](BRDC-TUTOR-001.md) | Asteittainen opetus | M | BUILD-001, REVEAL-001, WIKI-001 |
+| [BRDC-ACHIEVE-001](BRDC-ACHIEVE-001.md) | Saavutukset ja ilmoitukset | S | HEX-001, WONDER-001 |
+
+**Portti V3:** ⬜ rakenna saha kotimetsään, tutki teknologia, löydä ihme, ja **selitä
+kaikki kolme pelistä käsin** ilman että kukaan lukee koodia.
+
+#### Suunnitelman sprintit tikkeiksi
+
+Infiniten §7 antaa seitsemän sprinttiä. Alla sama järjestys, kaksi muutosta:
+**Sprint 0** on lisätty (mobiiliportti ensin), ja **perusta on siirretty Sprint 1:een**,
+koska talous ja maasto ovat kaiken muun alla.
+
+| Suunnitelman sprintti | Tiketit | Muutos |
+|---|---|---|
+| — | MOBILE-001, SHARE-001 | **lisätty:** ulkoportti ja jako ennen sisältöä |
+| 1 · B1, H1–H2 | ECON-001, TERRAIN-002, HEX-001 | **B1 poistettu — bugia ei ole**, ks. REGRESSION-000 #13. Tilalle talouden ja maaston perusta |
+| 2 · R1–R3, M1–M2 | TECH-001, BUILD-001…003, MANA-001 | ennallaan, + teknologiapuu joka avaa rakennukset |
+| 3 · P1–P3, G1–G2 | REVEAL-001, ART-001 | ennallaan |
+| 4 · C1–C4, M3–M4 | CITY-001, SPELL-001 | ennallaan |
+| 5 · I1–I12, A1–A2 | WONDER-001, ACHIEVE-001 | ennallaan |
+| 6 · S1–S2, W1–W2 | EVENT-001, QUEST-001, WIKI-001 | + tapahtumarunko, jota seikkailut tarvitsevat |
+| 7 · T1–T3 | STATS-001, TUTOR-001 | opetus viimeisenä, koska se opettaa kaiken edellisen |
+
+#### Päätökset — kaksi ratkaistu 2026-08-31, yksi auki
+
+| Kysymys | Missä | Tila |
+|---|---|---|
+| Kolme legendaarista ihmettä vaatii maastoa, jota Tampereella ei ole | `BRDC-WONDER-001` | ✅ **Vastineet.** Pyhäjärvi Härmälässä ajaa valtameren virkaa — R'lyeh on kävelymatkan päässä |
+| `world.json` julkaisisi oikeiden ihmisten kotiosoitteet | `BRDC-CASTLE-001` | ✅ **Linna.** Arvotaan kerran laitteella, koti ei poistu puhelimesta. Kaksi tarkkuustasoa |
+| Tuottaako ~20 rakennusta "+X/tunti" idle-pelin? | `BRDC-ECON-001` | 🔴 **auki.** Suositus: varastokatto + 48 h lepotila |
+| Onko ASCII näkymä vai siirtomuoto? | `BRDC-ASCII-001` | 🔴 **auki.** Suositus: näkymä. Kuva ihmiselle, JSON pelille, samassa viestissä |
+| Palvelinta ei tarvita ihmeiden ainutkertaisuuteen — miten? | `BRDC-WONDER-001` | ✅ **Rajattu argmax.** 12 ihmettä, 3 626 res 5 -solua, 107 ms, 0 törmäystä — mitattu |
+
+Lisäksi kaksi pienempää: asumiskapasiteetti ilman väestöä (`BRDC-BUILD-001`) ja
+Majakan liikkumisnopeus pelissä, jossa liikkuminen on omat jalat (`BRDC-BUILD-003`).
+
 ### 🧪 Läpileikkaava
 
 | ID | Nimi | Effort | Riippuvuudet |
@@ -108,34 +214,48 @@ ei jälkeen.
 
 ---
 
-## Vaiheet 3–6 — ei vielä auki kirjoitettuna
+## Vaiheet 4–6 — ei vielä auki kirjoitettuna
+
+Uudelleennumeroitu 2026-08-31. **Supabase ei ole enää Vaihe 3** vaan kutistuu siihen,
+mihin Infinite sen rajasi: *"tilausmallin datan ja chattien persistointiin"*. Kaikki
+muu — alueet, rakennukset, jaettu maailma — hoituu ilman sitä (`BRDC-SHARE-001`).
 
 | Vaihe | Sisältö | Tiketti | Avataan kun |
 |---|---|---|---|
-| **3** | Supabase, RPC:t, golden fixture -testit, realtime, chat | `BRDC-MULTI-003` | V2-portti läpi |
-| **4** | The Wager — haastekoodi, arena, tulossivu | `BRDC-WAGER-004` | V3-portti läpi |
-| **5** | Capacitor, foreground service, allekirjoitettu APK, `version.json` | `BRDC-ANDROID-005` | V4-portti läpi |
+| **4** | Capacitor, foreground service, allekirjoitettu APK, `version.json` | `BRDC-ANDROID-004` | V3-portti läpi |
+| **5** | Supabase: tilausmallin data, chat, tilien persistointi. Golden fixture -testit | `BRDC-MULTI-005` + `BRDC-SEC-000` | V4 tuotannossa |
 | **6** | Lore takaisin: codex, löydöt, Fuming Lake, Anchor, teemat, audio | `docs/backlog/` | V5 tuotannossa |
 
+**Vaihe 4 nousi Vaiheen 5 tilalle tarkoituksella.** APK ratkaisee taustaseurannan, ja
+`BRDC-MOBILE-001` mittaa juuri sen, kuinka pitkälle selaimella pääsee. Jos vastaus on
+"ei tarpeeksi pitkälle", APK on kiireellisempi kuin mikään 4X-sisältö — ja se tieto
+saadaan Vaiheessa 2.6, ei vuoden päästä.
+
 Vaiheen 6 sisältö on **jäissä**, ei peruttu. Se on `docs/backlog/`issa datana valmiina.
-Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti.
+Tämä on ainoa asia, joka erottaa v3:n v2:sta rakenteellisesti — ja `BRDC-EVENT-001`
+on ensimmäinen paikka, jossa sitä aineistoa saa käyttää: valmiiseen mekaniikkaan
+sisältönä, ei ominaisuutena.
 
 ---
 
-## Edistyminen 2026-08-27
+## Edistyminen 2026-08-31
 
 | Vaihe | Tila | Tikettejä |
 |---|---|---|
 | **0** Perustus | ✅ portti läpi | 6/6 |
 | **1** Kartta ja ley-line | 🔨 koodattu, ulkoportti odottaa | 7/7 |
 | **2** Aluevaltaus | 🔨 portti läpi selaimessa, ulkoportti odottaa | 7/7 |
-| **3** Supabase ja moninpeli | ⬜ ei aloitettu — vaatii avaimet | 0/? |
+| **2.5** Suunnanmuutos | ✅ kaikki `done` | 10/10 |
+| **2.6** Mobiili ja jaettu maailma | ⬜ ei aloitettu — **seuraava** | 0/5 |
+| **3** Sivilisaatio | ⬜ tiketit kirjoitettu, ei aloitettu | 0/18 |
 
 **Ulkoportti on yhä auki.** Kaikki on todennettu selaimessa ja simuloidulla GPS:llä,
 mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on Vaiheiden
-1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta.
+1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
+tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **240 yksikkö** + **91 Playwright** (360 px ajetaan ensin, 3 vaatii dev-serverin).
+Testejä: **415 yksikkö** (29 tiedostoa, ajettu 2026-08-31) + Playwright
+(360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
 
@@ -156,31 +276,35 @@ piilotettu prosenttilukuun.
 ## Yhteenveto
 
 ```
-Yhteensä 22 tikettiä — kaikki tuottavat GitHub-hostattavan version
-  Jäissä:         1   (SEC-000, Vaihe 3)
-  Vaihe 0:        6   (S×4, M×2)
-  Vaihe 1:        7   (S×2, M×5)
-  Vaihe 2:        7   (S×2, M×3, L×2)
-  Läpileikkaava:  1   (M, jaettuna muihin tiketteihin)
-Arvio: 6–9 työpäivää (MASTERPLAN §6: 1 + 2–3 + 3–5 pv)
+Yhteensä 57 tikettiä
+  Valmiit:       30   (Vaiheet 0, 1, 2, 2.5)
+  Kesken:         1   (REGRESSION-000, 10/12 + 1 todennettu ei-bugi)
+  Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
+  Vaihe 2.6:      5   (L×2, M×3)  ← seuraava
+  Vaihe 3:       18   (S×1, M×10, L×7)
+Arvio Vaiheelle 3: ~15 viikkoa (Infiniten §7 sprintit, +1 sprintti perustalle)
 ```
 
-**Kriittinen polku** — lyhin reitti "peli on olemassa" -hetkeen:
+**Kriittinen polku Vaiheessa 3** — mikään rakennus ei ole toteutettavissa ennen kuin
+lompakossa on oikeat kentät ja maastossa oikeat tyypit:
 
 ```
-SETUP-001 → SETUP-003 → PERSIST-001 → MOCK-001 ─┐
-                    → SETUP-002 → MAP-001 ────────────────┤
-                    → GEO-001 → SIM-001 ──────────────────┤
-                                                          ▼
-                                     TRAIL-001 → CLAIM-001 → CLAIM-002
-                                                → CLAIM-003 → CLAIM-004
-                                                → CLAIM-005 → CLAIM-006
+MOBILE-001 ──(ulkoportti)──┐
+                           ▼
+        ECON-001 → TERRAIN-002 ──┬─→ BUILD-001 → BUILD-002
+             │         │          │       └────→ BUILD-003
+             │         │          └─→ REVEAL-001 → WONDER-001
+             ├─→ TECH-001 ────────────→ BUILD-001         ↑
+             └─→ MANA-001 → SPELL-001 ────────────────────┘
+   HEX-001 ─────→ BUILD-003 · REVEAL-001 · EVENT-001 · STATS-001
 ```
 
-`SETUP-004`, `SETUP-005`, `TRAIL-002`, `HUD-001` ja `HUD-002` ovat polun ulkopuolella,
-mutta `SETUP-005` (Pages-deploy) kannattaa tehdä aikaisin: ilman julkista HTTPS-osoitetta
-yhtäkään hyväksymisporttia ei voi ajaa, koska ne kaikki vaativat puhelinta ja ulkona
-kävelemistä.
+`ART-001`, `WIKI-001`, `TUTOR-001`, `ACHIEVE-001`, `CITY-001` ja `QUEST-001` ovat polun
+ulkopuolella. `SHARE-001` on täysin riippumaton 4X-sisällöstä ja voi edetä rinnalla.
+
+**Kaksi tiedossa olevaa jakoa ennen ensimmäistä ominaisuutta:** `MockRepository.ts` on
+395/400 riviä ja `MapView.tsx` 359/400. Sääntö on jakaa, ei nostaa rajaa — ja se tehdään
+etukäteen, ei siinä vaiheessa kun portti kaatuu kesken tiketin.
 
 **Effort:** S = tunteja · M = päivä · L = 2–3 päivää
 

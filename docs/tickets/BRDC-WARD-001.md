@@ -64,3 +64,22 @@ korjatuksi: tärkein solu on saavutettavissa näppäimistöltä, muut eivät.
 Lisäksi paneeli näyttää nyt **dwell-edistymän**: "stay longer and the ground learns you".
 `revealProgress` oli kirjoitettu ja testattu `BRDC-DWELL-001`:ssä muttei koskaan
 näkynyt missään — mekaniikka oli täysin näkymätön siihen asti kun se laukesi.
+
+## Jatko — 2026-08-31
+
+Vahvistaminen oli **ensimmäinen** tapa käyttää resursseja. Kehityssuunnitelma tuo
+kuusitoista lisää (`BRDC-BUILD-001`…`-003`), ja tämä tiketti muuttuu niiden
+erikoistapaukseksi — ei kilpailijaksi.
+
+**Tämän tiketin tärkein rivi siirtyy sellaisenaan `BRDC-ECON-001`:een:**
+
+> *"Advancing the clock here would quietly turn a walking game into an idle one, which
+> is the single change most likely to hollow this out."*
+
+Suunnitelmassa on ~20 rakennusta, ja lähes jokainen tuottaa "+X / tunti". Sama vaara,
+kymmenkertaisena. `BRDC-ECON-001` lukitsee kaksi sääntöä sitä vastaan — varastokatto ja
+48 tunnin lepotila — ja ne käyttävät tämän tiketin logiikkaa: resurssit ostavat aikaa,
+eivät koskaan koskemattomuutta.
+
+Ja `WARD_COST`in oppi (*"a locked door"*, ei järveä 750 metrissä) siirtyy kahteen
+paikkaan, joissa se on vaarassa toistua: `BRDC-TERRAIN-002` ja `BRDC-WONDER-001`.
