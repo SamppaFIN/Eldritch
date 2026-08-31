@@ -11,16 +11,15 @@
  * (Phase 3) assert the two agree cell by cell.
  */
 import { latLngToCell } from 'h3-js';
-import { filterTrail } from '../geo/filter.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
-import { recordWalk } from './walkWriter.js';
-import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
-import { projectCell, sweepDecay } from '../rules/decay.js';
-import { allCells, cellsInBBox, hasGround, setStoredTerrain, sweepAndPersist } from './cellStore.js';
+import { projectCell } from '../rules/decay.js';
+import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { awardClaims, settlePouch, wardWith } from './pouch.js';
+import { settlePouch, wardWith } from './pouch.js';
+import { closeWalk, submitWalk } from './walkFlow.js';
+import type { WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
@@ -28,7 +27,6 @@ import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import { levelForXp } from '../rules/level.js';
-import { cellsToLoad, planClaim } from './claiming.js';
 import type {
   BBox,
   Cell,
@@ -150,37 +148,7 @@ export class MockRepository implements GameRepository {
   }
 
   async submitTrail(runId: RunId, points: TrailPoint[]) {
-    const run = await this.store.get<Run>(K.run(runId));
-    if (!run) throw new Error(`Unknown run: ${runId}`);
-
-    const existing = await this.getTrailPoints(runId);
-    const previous = existing.length > 0 ? (existing[existing.length - 1] as TrailPoint) : null;
-
-    // Validation happens here, not in the caller. A repository that trusts its input
-    // is exactly what v2's position:update handler was.
-    const { accepted, result } = filterTrail(previous, points);
-    if (accepted.length === 0) return result;
-
-    await this.store.set(K.trail(runId), [...existing, ...accepted]);
-    await this.store.set(K.run(runId), {
-      ...run,
-      pointCount: run.pointCount + accepted.length,
-      distanceM: run.distanceM + result.distanceM,
-    });
-    await this.ensureSeeded(accepted[0] as TrailPoint);
-
-    const profile = await this.getProfile();
-    const walked = await recordWalk(this.store, accepted, {
-      id: profile.id,
-      level: profile.level,
-      hasTerritory: await hasGround(this.store, profile.id),
-    });
-
-    if (walked.xp > 0) await this.addXp(walked.xp);
-    const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
-    await awardClaims(this.store, await this.getOwnedCells(lastT), walked.grown, lastT);
-
-    return { ...result, ...walked.trail };
+    return submitWalk(this.walkDeps(), runId, points);
   }
 
   async endRun(runId: RunId): Promise<void> {
@@ -330,41 +298,9 @@ export class MockRepository implements GameRepository {
     await setStoredTerrain(this.store, h3, terrain);
   }
 
-  /**
-   * Close the run's loop, if it has one, and take what it encloses.
-   *
-   * Loads the cells the ring covers *and their neighbours*, so siege bonuses are
-   * counted against the ground held before this walk rather than against cells claimed
-   * moments earlier in the same lap.
-   */
+  /** Close the run's loop, if it has one, and take what it encloses. See `walkFlow.js`. */
   async closeLoop(runId: RunId, now: number): Promise<ClaimResult> {
-    const points = await this.getTrailPoints(runId);
-    const profile = await this.getProfile();
-
-    const detected = detectLoop(points, { level: profile.level });
-    if (!detected.closed) return { closed: false };
-
-    const known = new Map<string, Cell>();
-    for (const h3 of cellsToLoad(detected.loop)) {
-      const stored = await this.store.get<Cell>(K.cell(h3));
-      // Aged first: besieging a cell that has already rotted away should find
-      // empty ground, not a defender who stopped existing last week.
-      if (stored) {
-        const [alive] = sweepDecay([stored], now).cells;
-        if (alive) known.set(h3, alive);
-        else await this.store.delete(K.cell(h3));
-      }
-    }
-
-    const plan = planClaim(detected.loop, { id: profile.id, level: profile.level }, known, now);
-    for (const cell of plan.cells) await this.store.set(K.cell(cell.h3), cell);
-    if (plan.xp > 0) await this.addXp(plan.xp);
-    await awardClaims(this.store, await this.getOwnedCells(now), plan.outcomes, now);
-
-    // The ring is spent. Keeping it would let the next fix close the same loop again.
-    await this.store.set(K.trail(runId), points.slice(detected.loop.endIndex));
-
-    return { closed: true, outcomes: plan.outcomes, areaM2: plan.areaM2 };
+    return closeWalk(this.walkDeps(), runId, now);
   }
 
   async runDecay(now: number): Promise<DecayResult> {
@@ -379,6 +315,18 @@ export class MockRepository implements GameRepository {
   }
 
   /* --- Internals -------------------------------------------------------- */
+
+  /** The handful of repository verbs `walkFlow.js` needs, with `ensureSeeded` kept private. */
+  private walkDeps(): WalkDeps {
+    return {
+      store: this.store,
+      getTrailPoints: (id) => this.getTrailPoints(id),
+      getProfile: () => this.getProfile(),
+      getOwnedCells: (t) => this.getOwnedCells(t),
+      addXp: (n) => this.addXp(n),
+      seed: (o) => this.ensureSeeded(o),
+    };
+  }
 
   /** Cells only exist once we know where the player is; seeding is therefore lazy. */
   private async ensureSeeded(origin: TrailPoint): Promise<void> {
