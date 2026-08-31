@@ -32,6 +32,12 @@ persistointiin. Väliin tarvitaan jotain, joka ei ole palvelin.
 - [ ] Peli toimii **täysin ilman `world.json`ia** — verkko on lisä, ei ehto
 - [ ] Vanhentunut maailma näkyy pelaajalle ikänä ("viimeksi päivitetty 4 h sitten"),
       ei tuoreena
+- [ ] **Tuotu solu ei rappeudu paikallisesti.** `world.json`ista tullut solu ei ole
+      tämän laitteen simuloima naapuri — se on jonkun toisen totuus, ja tämä laite ei
+      näe sen käyntejä. `sweepAndPersist` (`data/cellStore.ts`) ei saa ajaa siihen
+      *(siirretty `BRDC-SCALE-001`:stä, joka löysi tämän mutta ei voinut korjata sitä
+      ennen kuin "tuotu solu" on olemassa käsitteenä)*
+- [ ] Testi: tuotu solu ei muutu, vaikka karttaa katsottaisiin viikko
 
 ## Toteutus
 

@@ -56,9 +56,19 @@ export class IdbStore implements KeyValueStore {
     await this.run('readwrite', (s) => s.delete(key));
   }
 
+  /**
+   * Keys beginning with `prefix`, read with a range instead of a full-table scan.
+   *
+   * The previous version pulled every key in the database into JS with `getAllKeys()`
+   * and filtered by `startsWith` — trail points, runs and cells all mixed together,
+   * every time anything asked for just one kind. IndexedDB orders string keys
+   * lexicographically, so a bounded range does the same filtering inside the browser's
+   * own index instead of after the fact.
+   */
   async keys(prefix = ''): Promise<string[]> {
-    const all = await this.run<IDBValidKey[]>('readonly', (s) => s.getAllKeys());
-    return all.map(String).filter((k) => k.startsWith(prefix));
+    const range = prefix ? IDBKeyRange.bound(prefix, prefix + '￿') : undefined;
+    const all = await this.run<IDBValidKey[]>('readonly', (s) => s.getAllKeys(range));
+    return all.map(String);
   }
 
   async clear(): Promise<void> {

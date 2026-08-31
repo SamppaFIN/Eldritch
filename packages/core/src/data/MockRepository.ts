@@ -10,7 +10,7 @@
  * arrives, the same rules exist a second time in SQL, and the golden-fixture tests
  * (Phase 3) assert the two agree cell by cell.
  */
-import { cellToLatLng, latLngToCell } from 'h3-js';
+import { latLngToCell } from 'h3-js';
 import { filterTrail } from '../geo/filter.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
@@ -18,6 +18,7 @@ import { recordWalk } from './walkWriter.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { projectCell, sweepDecay } from '../rules/decay.js';
+import { allCells, cellsInBBox, hasGround, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
 import type { WardResult } from '../rules/ward.js';
@@ -52,9 +53,6 @@ import type { ImportResult } from './wager.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 
-
-
-const CELL_PREFIX = 'cell:';
 
 export interface MockRepositoryOptions {
   store?: KeyValueStore;
@@ -157,7 +155,7 @@ export class MockRepository implements GameRepository {
     const walked = await recordWalk(this.store, accepted, {
       id: profile.id,
       level: profile.level,
-      hasTerritory: await this.hasGround(profile.id),
+      hasTerritory: await hasGround(this.store, profile.id),
     });
 
     if (walked.xp > 0) await this.addXp(walked.xp);
@@ -263,15 +261,6 @@ export class MockRepository implements GameRepository {
     return ((await this.store.get<DwellMap>(K.dwell)) ?? {})[h3] ?? 0;
   }
 
-  /** Does the player hold anything at all? The seed exception turns on this. */
-  private async hasGround(playerId: string): Promise<boolean> {
-    for (const key of await this.store.keys(CELL_PREFIX)) {
-      const cell = await this.store.get<Cell>(key);
-      if (cell?.ownerId === playerId) return true;
-    }
-    return false;
-  }
-
   /* --- Territory -------------------------------------------------------- */
 
   /**
@@ -282,18 +271,13 @@ export class MockRepository implements GameRepository {
    * genuinely unowned again, and leaving it on disk would keep a ghost nobody can take.
    */
   async getCells(bbox: BBox, now: number): Promise<Cell[]> {
-    const visible = (await this.allCells()).filter((cell) => inBBox(cell, bbox));
-    const sweep = sweepDecay(visible, now);
-    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
-    return sweep.cells;
+    return (await sweepAndPersist(this.store, await cellsInBBox(this.store, bbox), now)).cells;
   }
 
   async getOwnedCells(now: number): Promise<Cell[]> {
     const me = await this.getProfile();
-    const mine = (await this.allCells()).filter((c) => c.ownerId === me.id);
-    const sweep = sweepDecay(mine, now);
-    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
-    return sweep.cells;
+    const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
+    return (await sweepAndPersist(this.store, mine, now)).cells;
   }
 
   /**
@@ -334,8 +318,7 @@ export class MockRepository implements GameRepository {
   }
 
   async runDecay(now: number): Promise<DecayResult> {
-    const sweep = sweepDecay(await this.allCells(), now);
-    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
+    const sweep = await sweepAndPersist(this.store, await allCells(this.store), now);
     return { weakened: sweep.weakened, released: sweep.released };
   }
 
@@ -356,38 +339,6 @@ export class MockRepository implements GameRepository {
       await this.store.set(K.cell(cell.h3), cell);
     }
   }
-
-  private async allCells(): Promise<Cell[]> {
-    const keys = await this.store.keys(CELL_PREFIX);
-    const cells: Cell[] = [];
-    for (const key of keys) {
-      const cell = await this.store.get<Cell>(key);
-      if (cell) cells.push(cell);
-    }
-    return cells;
-  }
-}
-
-/**
- * Cheap bbox test on the cell's own index.
- *
- * Decoding every stored cell to a boundary would be exact but pointless here: a res-11
- * cell is ~40 m across, and the viewport query only needs to be right to within a cell.
- */
-function inBBox(cell: Cell, bbox: BBox): boolean {
-  const { lat, lng } = cellCentre(cell.h3);
-  return lat >= bbox.south && lat <= bbox.north && lng >= bbox.west && lng <= bbox.east;
-}
-
-const centreCache = new Map<string, { lat: number; lng: number }>();
-
-function cellCentre(h3: string): { lat: number; lng: number } {
-  const hit = centreCache.get(h3);
-  if (hit) return hit;
-  const [lat, lng] = cellToLatLng(h3);
-  const value = { lat, lng };
-  centreCache.set(h3, value);
-  return value;
 }
 
 /** The ownership-resolution cell for a position, without importing h3-js downstream. */
