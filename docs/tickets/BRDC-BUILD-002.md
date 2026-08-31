@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-TERRAIN-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-01 (UI `[~]` selaimessa todentamatta) |
+| **Valmius** | 95 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §1.2, §6 (R2) |
 
 ## 🔴 RED
@@ -17,17 +17,33 @@ jota pelaaja ei voi valita ja joka tekee jokaisesta läänistä erilaisen.
 
 ## 🟢 GREEN
 
-- [ ] Suunnitelman seitsemän parannusta: Puusaha, Sahalaitos, Kaivos, Louhos,
-      Viljapelto, Kalastuslaituri, Viinitarha
-- [ ] Jokainen sitoo **maastonsa** ja kieltäytyy muualla nimetyllä syyllä
-- [ ] **Ketjut**: Sahalaitos vaatii Puusahan, Louhos vaatii Kaivoksen. Riippuvuus on
-      datassa, ei koodissa
-- [ ] Päivitys **korvaa** edeltäjänsä eikä pinoa tuottoja päällekkäin
-- [ ] Kalastuslaiturin *"+1 token/päivä"* on **päiväkohtainen, ei tuntikohtainen** —
-      sama kalenteripäivälogiikka kuin `DAY_VISIT_BONUS`illa (`rules/day.ts`)
-- [ ] Tuotto noudattaa `BRDC-ECON-001`:n kattoa ja lepotilaa — parannus ei ole
-      poikkeus siihen
-- [ ] Solupaneeli kertoo **mitä tähän voi rakentaa ja miksi ei muuta**
+- [x] Seitsemän parannusta `BUILDINGS`:ssa: `sawmill, lumbermill, mine, quarry, farm,
+      fishery, vineyard`
+- [x] Jokainen sitoo maaston (`terrain: [...]`), `canBuild` → `wrong-terrain` nimeltä
+- [x] **Ketjut datassa**: `lumbermill.requires = ['sawmill']`, `quarry.requires = ['mine']`.
+      `canBuild`:n `requires`-sääntö: ketjurakennus on **vain edeltäjän paikallaan-päivitys**
+- [x] Päivitys **korvaa** — `buildOn` kirjoittaa `cell.building`in yli, täysi hinta, ei
+      hyvitystä; tuotto johdetaan `cell.building`ista → vanha katoaa, ei pinoudu
+- [x] **`fishery` +1 token/päivä** — `producesPerDay`, `ResourceState.sinceDay` (oma
+      kello), `settleResources` maksaa kokonaisen vuorokauden kerrallaan; sama määrä
+      tilitettiin tunneittain tai kerran (`terrain.test.ts`)
+- [x] Tuotto kulkee `settleResources`:n läpi — sama katto ja lepotila kuin ECON-001:ssä
+- [x] Solupaneeli (`BuildPanel`): 11 rakennusta, **rakennettavat ensin**, muut syineen;
+      solussa jo oleva rakennus näyttää päivitysrivin ("Upgrade")
+
+## Toteutettu 2026-09-01
+
+- `rules/build.ts`: 7 riviä + `Building.producesPerDay?`, `buildingDayBonus`
+  (`buildingBonus`:n pari `sumOver`-apurilla), `canBuild`:n ketju/päivitys-sääntö
+  (päivitys ei törmää rakennuskattoon).
+- `rules/terrain.ts`: `ResourceState.sinceDay?` (additiivinen, `?? since`, **ei
+  skeemanostoa**), `settleResources` 6. parametri `bonusPerDay` + oma vuorokausikello.
+  `MS_PER_DAY` → `constants.ts`.
+- `data/pouch.ts`: `settlePouch` syöttää `buildingDayBonus`:n; tyhjä `read()` saa `sinceDay`.
+- `data/buildStore.ts`: **ei muutosta** — `buildOn` kirjoitti jo `cell.building`in yli.
+  Tiketin hyväksymiskoe ("ei uutta koodia ytimen päälle") melkein läpi: uutta on vain
+  paikallaan-päivitys ja vuorokausikello, molemmat GREEN-kohtia.
+- Testit: `build.test.ts` +8, `terrain.test.ts` +2, `build.repo.test.ts` +2. **547 vihreää.**
 
 ## Toteutus
 

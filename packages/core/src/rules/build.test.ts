@@ -8,7 +8,7 @@ import {
   GRANARY_CAPACITY,
   STOREHOUSE_CAP_BONUS,
 } from './constants.js';
-import { BASE_STORAGE_CAP, EMPTY_POOL, TERRAIN_TABLE } from './terrain.js';
+import { BASE_STORAGE_CAP, EMPTY_POOL, RESOURCE_KINDS, TERRAIN_TABLE } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
 import { TECHS } from './tech.js';
 import type { TechId } from './tech.js';
@@ -45,7 +45,7 @@ function cell(over: Partial<Cell> = {}): Cell {
 const loaded: BuildContext = {
   playerId: 'me',
   researched: Object.keys(TECHS) as TechId[],
-  pool: pool({ wood: 999, stone: 999, gold: 999, culture: 999 }),
+  pool: pool({ wood: 999, stone: 999, iron: 999, gold: 999, culture: 999 }),
   buildings: [],
 };
 
@@ -65,8 +65,48 @@ describe('BUILDINGS is well-formed', () => {
     }
   });
 
-  it('names the plan\'s four base buildings', () => {
-    expect(ALL.sort()).toEqual(['granary', 'market', 'monument', 'storehouse']);
+  it('holds the four base buildings and the seven improvements', () => {
+    expect(ALL.sort()).toEqual(
+      [
+        'granary', 'market', 'monument', 'storehouse',
+        'sawmill', 'lumbermill', 'mine', 'quarry', 'farm', 'fishery', 'vineyard',
+      ].sort(),
+    );
+  });
+
+  it('every produces/producesPerDay entry is a real resource', () => {
+    const resources = new Set(RESOURCE_KINDS as readonly string[]);
+    for (const id of ALL) {
+      for (const rates of [BUILDINGS[id].produces, BUILDINGS[id].producesPerDay]) {
+        for (const k of Object.keys(rates ?? {})) expect(resources.has(k)).toBe(true);
+      }
+    }
+  });
+});
+
+describe('upgrade chains (BRDC-BUILD-002)', () => {
+  const forest = (over: Partial<Cell> = {}): Cell =>
+    cell({ terrain: { kind: 'forest', source: 'tiles' }, ...over });
+
+  it('a chained building is only ever the in-place upgrade of its predecessor', () => {
+    expect(canBuild(loaded, 'lumbermill', forest())).toEqual({ ok: false, refused: 'locked' });
+    expect(canBuild(loaded, 'lumbermill', forest({ building: { id: 'sawmill', builtAt: T0 } }))).toEqual({
+      ok: true,
+    });
+  });
+
+  it('the predecessor itself still refuses a cell it already stands on', () => {
+    expect(canBuild(loaded, 'sawmill', forest({ building: { id: 'sawmill', builtAt: T0 } }))).toEqual({
+      ok: false,
+      refused: 'occupied',
+    });
+  });
+
+  it('an upgrade does not run into the building cap', () => {
+    const full = { ...loaded, buildings: Array(BASE_BUILDING_CAP).fill('sawmill') as BuildingId[] };
+    expect(canBuild(full, 'lumbermill', forest({ building: { id: 'sawmill', builtAt: T0 } }))).toEqual({
+      ok: true,
+    });
   });
 });
 

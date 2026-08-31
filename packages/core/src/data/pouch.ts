@@ -11,7 +11,7 @@ import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
 import { research } from '../rules/tech.js';
 import type { ResearchResult, TechId } from '../rules/tech.js';
-import { buildingBonus, buildingsOf, storageCap } from '../rules/build.js';
+import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
 import type { CaptureOutcome, Cell, PlayerId } from '../types/domain.js';
 import type { KeyValueStore } from './kv.js';
 
@@ -27,7 +27,7 @@ const KEY = 'resources';
  * minting `NaN` — is gone with it.
  */
 async function read(store: KeyValueStore, now: number): Promise<ResourceState> {
-  return (await store.get<ResourceState>(KEY)) ?? { pool: EMPTY_POOL, since: now };
+  return (await store.get<ResourceState>(KEY)) ?? { pool: EMPTY_POOL, since: now, sinceDay: now };
 }
 
 /**
@@ -49,7 +49,14 @@ export async function settlePouch(
   // and everything with a `produces` line adds a flat per-hour bonus, dormancy-filtered
   // (BRDC-BUILD-001). Keeping it here is what lets `rules/terrain.ts` stay building-blind.
   const held = buildingsOf(owned);
-  const settled = settleResources(stored, owned, now, storageCap(held), buildingBonus(owned, now));
+  const settled = settleResources(
+    stored,
+    owned,
+    now,
+    storageCap(held),
+    buildingBonus(owned, now),
+    buildingDayBonus(owned, now),
+  );
   if (settled !== stored) await store.set(KEY, settled);
   return settled;
 }

@@ -98,4 +98,37 @@ describe('build / demolish', () => {
     // One awake forest hour: without the Storehouse this would be pinned at BASE_STORAGE_CAP.
     expect((await full.getResources(T0 + 3_600_000)).wood).toBeGreaterThan(BASE_STORAGE_CAP);
   });
+
+  it('upgrades a Sawmill into a Lumbermill in place, charging the full cost (BRDC-BUILD-002)', async () => {
+    const { repo: r } = await repoWith(
+      { wood: 999, stone: 999, iron: 999 },
+      ['early-farming', 'masonry', 'forestry'],
+    );
+    const h = await r.setHome(ORIGIN, T0);
+    await r.setCellTerrain(h, { kind: 'forest', source: 'tiles' });
+
+    expect((await r.build(h, 'sawmill', T0)).ok).toBe(true);
+    const afterSawmill = (await r.getResources(T0)).wood;
+
+    const up = await r.build(h, 'lumbermill', T0);
+    expect(up.ok).toBe(true);
+    expect((await r.getCells(BOX, T0)).find((c) => c.h3 === h)?.building?.id).toBe('lumbermill');
+    expect((await r.getResources(T0)).wood).toBe(afterSawmill - 80);
+  });
+
+  it('a Fishery yields a token once a day (BRDC-BUILD-002)', async () => {
+    const { repo: r, store } = await repoWith(
+      { wood: 999, gold: 999 },
+      ['early-farming', 'masonry', 'seafaring'],
+    );
+    const h = await r.setHome(ORIGIN, T0);
+    await r.setCellTerrain(h, { kind: 'lake', source: 'tiles' });
+    await r.build(h, 'fishery', T0);
+    await store.set('resources', { pool: { ...EMPTY_POOL }, since: T0, sinceDay: T0 });
+
+    // Half a day pays nothing; a whole day pays one. (Longer spans hit the 48 h dormancy
+    // grace on a cell nobody re-walked — that path is terrain.test.ts's.)
+    expect((await r.getResources(T0 + 12 * 3_600_000)).tokens).toBe(0);
+    expect((await r.getResources(T0 + 25 * 3_600_000)).tokens).toBe(1);
+  });
 });

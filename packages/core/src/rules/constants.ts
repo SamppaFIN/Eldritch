@@ -197,6 +197,9 @@ export const STOREHOUSE_CAP_BONUS = 250;
 /** Demolishing hands back this fraction of the cost, floored per resource. */
 export const DEMOLISH_REFUND = 0.5;
 
+/** One day in ms — the fishery pays per calendar day, not per hour (BRDC-BUILD-002). */
+export const MS_PER_DAY = 86_400_000;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**

@@ -59,10 +59,21 @@ export interface Terrain {
 }
 
 /**
- * A building's id (BRDC-BUILD-001). Lives here because `Cell` carries one and
+ * A building's id (BRDC-BUILD-001, -002). Lives here because `Cell` carries one and
  * rules/build.ts imports `Cell`. The table and rules are in rules/build.ts.
  */
-export type BuildingId = 'granary' | 'monument' | 'storehouse' | 'market';
+export type BuildingId =
+  | 'granary'
+  | 'monument'
+  | 'storehouse'
+  | 'market'
+  | 'sawmill'
+  | 'lumbermill'
+  | 'mine'
+  | 'quarry'
+  | 'farm'
+  | 'fishery'
+  | 'vineyard';
 
 /**
  * One entry in a cell's ownership history (BRDC-HEX-001). Lives here, not in

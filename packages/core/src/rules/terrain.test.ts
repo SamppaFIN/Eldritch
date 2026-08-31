@@ -265,6 +265,34 @@ describe('settleResources', () => {
     expect(settled.since).toBe(T0 + 3 * HOUR);
     expect(settled.pool.gold).toBe(6);
   });
+
+  it('pays a per-day bonus one whole day at a time (BRDC-BUILD-002 fishery)', () => {
+    const start = { pool: EMPTY_POOL, since: T0, sinceDay: T0 };
+    const halfDay = settleResources(start, [], T0 + 12 * HOUR, undefined, undefined, { tokens: 1 });
+    expect(halfDay.pool.tokens).toBe(0);
+    expect(halfDay.sinceDay).toBe(T0);
+
+    const oneDay = settleResources(start, [], T0 + 24 * HOUR, undefined, undefined, { tokens: 1 });
+    expect(oneDay.pool.tokens).toBe(1);
+    expect(oneDay.sinceDay).toBe(T0 + 24 * HOUR);
+  });
+
+  it('per-day bonus is the same settled hourly or once', () => {
+    let hourly: ReturnType<typeof settleResources> = { pool: EMPTY_POOL, since: T0, sinceDay: T0 };
+    for (let h = 1; h <= 48; h += 1) {
+      hourly = settleResources(hourly, [], T0 + h * HOUR, undefined, undefined, { tokens: 1 });
+    }
+    const once = settleResources(
+      { pool: EMPTY_POOL, since: T0, sinceDay: T0 },
+      [],
+      T0 + 48 * HOUR,
+      undefined,
+      undefined,
+      { tokens: 1 },
+    );
+    expect(hourly.pool.tokens).toBe(2);
+    expect(hourly.pool.tokens).toBe(once.pool.tokens);
+  });
 });
 
 describe('terrainFromTiles', () => {

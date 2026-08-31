@@ -37,6 +37,8 @@ export interface Building {
   requires: readonly BuildingId[];
   /** Added to the trickle, per hour, while the cell it stands on is awake. */
   produces?: Readonly<Partial<ResourcePool>>;
+  /** Added per calendar day, not per hour — the fishery's token (BRDC-BUILD-002). */
+  producesPerDay?: Readonly<Partial<ResourcePool>>;
   /** Storehouse only: added to the pouch's per-resource ceiling. */
   storageCapBonus?: number;
   /** Granary only: added to how many buildings the player may hold. */
@@ -72,6 +74,62 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     tech: null,
     requires: [],
     produces: { gold: 2 },
+  },
+
+  /* --- BRDC-BUILD-002: terrain-bound improvements and chains ------------- */
+
+  sawmill: {
+    cost: { wood: 30 },
+    terrain: ['forest'],
+    tech: 'forestry',
+    requires: [],
+    produces: { wood: 5 },
+  },
+  // Upgrades the Sawmill in place. Costs iron — which only a mountain Mine gives, so the
+  // upgrade is a walk to a ridge, not a wait.
+  lumbermill: {
+    cost: { wood: 80, iron: 30 },
+    terrain: ['forest'],
+    tech: 'forestry',
+    requires: ['sawmill'],
+    produces: { wood: 9 },
+  },
+  mine: {
+    cost: { wood: 40, stone: 40 },
+    terrain: ['mountain'],
+    tech: 'mining',
+    requires: [],
+    produces: { iron: 5 },
+  },
+  // Deeper into the same rock; costs wood, which means a forest Sawmill somewhere.
+  quarry: {
+    cost: { wood: 60, stone: 60 },
+    terrain: ['mountain'],
+    tech: 'mining',
+    requires: ['mine'],
+    produces: { stone: 9 },
+  },
+  farm: {
+    cost: { wood: 40, stone: 20 },
+    terrain: ['plain', 'lake', 'coast'],
+    tech: 'irrigation',
+    requires: [],
+    produces: { food: 5 },
+  },
+  fishery: {
+    cost: { wood: 50, gold: 20 },
+    terrain: ['lake', 'coast'],
+    tech: 'seafaring',
+    requires: [],
+    produces: { food: 3 },
+    producesPerDay: { tokens: 1 },
+  },
+  vineyard: {
+    cost: { stone: 40, gold: 40, culture: 10 },
+    terrain: ['hill'],
+    tech: 'guild-craft',
+    requires: [],
+    produces: { culture: 4 },
   },
 };
 
@@ -115,13 +173,32 @@ export function buildingsOf(cells: readonly Cell[]): BuildingId[] {
  * walked in 48 h earns nothing, the same rule as terrain.
  */
 export function buildingBonus(cells: readonly Cell[], now: number): Partial<ResourcePool> {
+  return sumOver(cells, now, (b) => b.produces);
+}
+
+/**
+ * Per-calendar-day production from awake buildings (BRDC-BUILD-002) — the fishery's token.
+ *
+ * The same shape as `buildingBonus`, read by `settleResources` as a `bonusPerDay` it
+ * credits one whole day at a time. Kept off the hourly path because a token is 1/24 of an
+ * hour's worth and would floor to nothing every settle.
+ */
+export function buildingDayBonus(cells: readonly Cell[], now: number): Partial<ResourcePool> {
+  return sumOver(cells, now, (b) => b.producesPerDay);
+}
+
+function sumOver(
+  cells: readonly Cell[],
+  now: number,
+  pick: (b: Building) => Readonly<Partial<ResourcePool>> | undefined,
+): Partial<ResourcePool> {
   const bonus: Partial<ResourcePool> = {};
   for (const cell of cells) {
     if (!cell.building) continue;
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
-    const produces = BUILDINGS[cell.building.id].produces;
-    if (!produces) continue;
-    for (const [k, v] of Object.entries(produces) as [ResourceKind, number][]) {
+    const rates = pick(BUILDINGS[cell.building.id]);
+    if (!rates) continue;
+    for (const [k, v] of Object.entries(rates) as [ResourceKind, number][]) {
       bonus[k] = (bonus[k] ?? 0) + v;
     }
   }
@@ -157,15 +234,23 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   const b = BUILDINGS[id];
 
   if (cell.ownerId !== ctx.playerId) return { ok: false, refused: 'not-yours' };
-  if (cell.building) return { ok: false, refused: 'occupied' };
+
+  // A chained building (BUILD-002) is only ever the in-place upgrade of its predecessor:
+  // build `lumbermill` on a cell that holds a `sawmill`. Everything else refuses a taken
+  // cell outright.
+  const upgrading = cell.building !== undefined && b.requires.includes(cell.building.id);
+  if (b.requires.length > 0) {
+    if (!upgrading) return { ok: false, refused: 'locked' };
+  } else if (cell.building) {
+    return { ok: false, refused: 'occupied' };
+  }
+
   if (b.terrain !== 'any' && !b.terrain.includes(terrainForCell(cell).kind)) {
     return { ok: false, refused: 'wrong-terrain' };
   }
   if (b.tech && !hasTech(ctx.researched, b.tech)) return { ok: false, refused: 'locked' };
-  if (!b.requires.every((r) => ctx.buildings.includes(r))) {
-    return { ok: false, refused: 'locked' };
-  }
-  if (ctx.buildings.length >= buildingCapacity(ctx.buildings)) {
+  // An upgrade swaps a slot it already holds, so it never runs into the cap.
+  if (!upgrading && ctx.buildings.length >= buildingCapacity(ctx.buildings)) {
     return { ok: false, refused: 'at-capacity' };
   }
   if (!canAfford(ctx.pool, b.cost)) return { ok: false, refused: 'cannot-afford' };

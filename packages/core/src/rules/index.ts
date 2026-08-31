@@ -23,6 +23,7 @@ export {
   buildCost,
   buildingBonus,
   buildingCapacity,
+  buildingDayBonus,
   buildingsOf,
   canBuild,
   refund,

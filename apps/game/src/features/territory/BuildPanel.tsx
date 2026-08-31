@@ -14,6 +14,13 @@ const NAME: Readonly<Record<BuildingId, string>> = {
   monument: 'Monument',
   storehouse: 'Storehouse',
   market: 'Market',
+  sawmill: 'Sawmill',
+  lumbermill: 'Lumbermill',
+  mine: 'Mine',
+  quarry: 'Quarry',
+  farm: 'Farm',
+  fishery: 'Fishery',
+  vineyard: 'Vineyard',
 };
 
 /** `early-farming` → `Early Farming`. The tech table carries no display name of its own. */
@@ -54,6 +61,15 @@ export interface BuildPanelProps {
   refusal: BuildRefusal | 'nothing-here' | null;
 }
 
+function refusalLine(refusal: BuildRefusal | 'nothing-here' | null) {
+  if (!refusal || refusal === 'nothing-here') return null;
+  return (
+    <p className="cell-panel__refusal" role="status">
+      That did not go through — {refusal.replace(/-/g, ' ')}.
+    </p>
+  );
+}
+
 export function BuildPanel({
   cell,
   me,
@@ -64,49 +80,58 @@ export function BuildPanel({
   onDemolish,
   refusal,
 }: BuildPanelProps) {
+  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings };
+  const all = Object.keys(BUILDINGS) as BuildingId[];
+  const checks = new Map(all.map((id) => [id, canBuild(ctx, id, cell)] as const));
+
+  const row = (id: BuildingId) => {
+    const check = checks.get(id) ?? canBuild(ctx, id, cell);
+    return (
+      <li key={id} className="cell-panel__build-row">
+        <span>
+          {NAME[id]}
+          <span className="cell-panel__build-cost"> {costLine(BUILDINGS[id].cost)}</span>
+        </span>
+        {check.ok ? (
+          <RitualButton className="cell-panel__build-btn" onClick={() => onBuild(cell.h3, id)}>
+            {cell.building ? 'Upgrade' : 'Build'}
+          </RitualButton>
+        ) : (
+          <span className="cell-panel__build-why">{reason(check.refused, id)}</span>
+        )}
+      </li>
+    );
+  };
+
   if (cell.building) {
-    const back = costLine(refund(cell.building.id));
+    const held = cell.building.id;
+    const upgrades = all.filter((id) => BUILDINGS[id].requires.includes(held));
+    const back = costLine(refund(held));
     return (
       <div className="cell-panel__build">
-        <p className="cell-panel__build-has">{NAME[cell.building.id]} stands here.</p>
+        <p className="cell-panel__build-has">{NAME[held]} stands here.</p>
+        {upgrades.length > 0 ? (
+          <ul className="cell-panel__build-list">{upgrades.map(row)}</ul>
+        ) : null}
         <RitualButton className="cell-panel__build-btn" onClick={() => onDemolish(cell.h3)}>
           Demolish{back ? ` · +${back}` : ''}
         </RitualButton>
+        {refusalLine(refusal)}
       </div>
     );
   }
 
-  const pool = resources ?? EMPTY_POOL;
-  const ids = Object.keys(BUILDINGS) as BuildingId[];
+  // Buildable first, then by name — eleven rows, most reading "Wrong ground" on any cell.
+  const ids = [...all].sort(
+    (a, b) =>
+      Number(!checks.get(a)?.ok) - Number(!checks.get(b)?.ok) || NAME[a].localeCompare(NAME[b]),
+  );
 
   return (
     <div className="cell-panel__build">
       <p className="cell-panel__build-head">Build</p>
-      <ul className="cell-panel__build-list">
-        {ids.map((id) => {
-          const check = canBuild({ playerId: me, researched, pool, buildings: myBuildings }, id, cell);
-          return (
-            <li key={id} className="cell-panel__build-row">
-              <span>
-                {NAME[id]}
-                <span className="cell-panel__build-cost"> {costLine(BUILDINGS[id].cost)}</span>
-              </span>
-              {check.ok ? (
-                <RitualButton className="cell-panel__build-btn" onClick={() => onBuild(cell.h3, id)}>
-                  Build
-                </RitualButton>
-              ) : (
-                <span className="cell-panel__build-why">{reason(check.refused, id)}</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      {refusal && refusal !== 'nothing-here' ? (
-        <p className="cell-panel__refusal" role="status">
-          That did not go through — {refusal.replace(/-/g, ' ')}.
-        </p>
-      ) : null}
+      <ul className="cell-panel__build-list">{ids.map(row)}</ul>
+      {refusalLine(refusal)}
     </div>
   );
 }

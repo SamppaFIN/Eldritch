@@ -206,12 +206,19 @@ export function trickle(cells: readonly Cell[], ms: number, now: number): Resour
 
 export interface ResourceState {
   pool: ResourcePool;
-  /** When the trickle was last settled into the pool. */
+  /** When the hourly trickle was last settled into the pool. */
   since: number;
+  /**
+   * When per-day production was last settled (BRDC-BUILD-002's fishery token). Its own
+   * clock because it advances a day at a time, not an hour. Absent on an old save — it
+   * then starts from `since`.
+   */
+  sinceDay?: number;
 }
 
-/** The trickle is settled an hour at a time; a partial hour waits for the rest of it. */
+/** The hourly trickle is settled an hour at a time; a partial hour waits for the rest. */
 const SETTLE_MS = 3_600_000;
+const SETTLE_DAY_MS = 86_400_000;
 
 /**
  * Bring a stored pool up to date.
@@ -233,32 +240,51 @@ export function settleResources(
   now: number,
   cap: number = BASE_STORAGE_CAP,
   bonusPerHour: Partial<ResourcePool> = {},
+  bonusPerDay: Partial<ResourcePool> = {},
 ): ResourceState {
-  const elapsed = now - state.since;
-  if (elapsed <= 0) return state;
+  const sinceDay = state.sinceDay ?? state.since;
+  if (now <= state.since && now <= sinceDay) return state;
 
-  // Nothing to earn, but the clock still moves — otherwise a player holding only
-  // dormant or non-producing ground builds up a debt of hours that pays out the
-  // instant a lake is claimed, or an old cell is finally walked again. `bonusPerHour`
-  // is already dormancy-filtered by the caller (BRDC-BUILD-001), so a non-zero entry
-  // means at least one awake building is producing.
-  const producing =
+  // Two independent clocks. Each advances a whole unit at a time — settle every hour or
+  // once a day, the total is the same — and when its production is off it jumps to `now`,
+  // so a fishery built later cannot cash in a month of tokens. `bonusPerHour` is already
+  // dormancy-filtered by the caller (BUILD-001).
+  const hourlyOn =
     owned.some((c) => now - c.lastVisitedAt <= DORMANT_AFTER_MS && resourceForCell(c) !== null) ||
     RESOURCE_KINDS.some((k) => (bonusPerHour[k] ?? 0) > 0);
-  if (!producing) return { pool: state.pool, since: now };
+  const dailyOn = RESOURCE_KINDS.some((k) => (bonusPerDay[k] ?? 0) > 0);
 
-  const paidMs = Math.floor(elapsed / SETTLE_MS) * SETTLE_MS;
-  if (paidMs <= 0) return state;
+  const paidHourMs = hourlyOn
+    ? Math.floor(Math.max(0, now - state.since) / SETTLE_MS) * SETTLE_MS
+    : 0;
+  const paidDayMs = dailyOn
+    ? Math.floor(Math.max(0, now - sinceDay) / SETTLE_DAY_MS) * SETTLE_DAY_MS
+    : 0;
 
-  const earned = trickle(owned, paidMs, now);
-  const hours = paidMs / SETTLE_MS;
-  const pool = { ...state.pool };
-  for (const k of RESOURCE_KINDS) {
-    const fromBuildings = Math.floor((bonusPerHour[k] ?? 0) * hours);
-    pool[k] = Math.min(cap, pool[k] + earned[k] + fromBuildings);
+  const nextSince = hourlyOn ? state.since + paidHourMs : Math.max(state.since, now);
+  const nextSinceDay = dailyOn ? sinceDay + paidDayMs : Math.max(sinceDay, now);
+
+  if (nextSince === state.since && nextSinceDay === sinceDay) return state;
+  if (paidHourMs <= 0 && paidDayMs <= 0) {
+    return { pool: state.pool, since: nextSince, sinceDay: nextSinceDay };
   }
 
-  return { pool, since: state.since + paidMs };
+  const pool = { ...state.pool };
+  if (paidHourMs > 0) {
+    const earned = trickle(owned, paidHourMs, now);
+    const hours = paidHourMs / SETTLE_MS;
+    for (const k of RESOURCE_KINDS) {
+      pool[k] = Math.min(cap, pool[k] + earned[k] + Math.floor((bonusPerHour[k] ?? 0) * hours));
+    }
+  }
+  if (paidDayMs > 0) {
+    const days = paidDayMs / SETTLE_DAY_MS;
+    for (const k of RESOURCE_KINDS) {
+      pool[k] = Math.min(cap, pool[k] + Math.floor((bonusPerDay[k] ?? 0) * days));
+    }
+  }
+
+  return { pool, since: nextSince, sinceDay: nextSinceDay };
 }
 
 /** Can this pool afford that cost? */
