@@ -45,6 +45,7 @@ export interface MapViewProps {
 export function MapView({ onLeave }: MapViewProps) {
   const [repository, setRepository] = useState<GameRepository | null>(null);
   const [durable, setDurable] = useState(true);
+  const [schemaReset, setSchemaReset] = useState(false);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
   const [simulate, setSimulate] = useState(false);
@@ -76,6 +77,7 @@ export function MapView({ onLeave }: MapViewProps) {
       if (cancelled) return;
       setRepository(handle.repository);
       setDurable(handle.durable);
+      setSchemaReset(handle.reset);
       setProfile(await handle.repository.getProfile());
       // A returning player already has a Keep; setHome below only fires for a fresh one.
       setCastle(await handle.repository.getCastle());
@@ -305,6 +307,12 @@ export function MapView({ onLeave }: MapViewProps) {
       {!durable ? (
         <p className="mapview__warning" role="status">
           This device will not keep your progress. The Void forgets between visits.
+        </p>
+      ) : null}
+
+      {schemaReset ? (
+        <p className="mapview__warning" role="status">
+          A sanctuary from an older age was found, and could not be read. It has returned to the Void.
         </p>
       ) : null}
 

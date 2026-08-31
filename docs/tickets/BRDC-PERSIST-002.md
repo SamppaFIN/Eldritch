@@ -5,8 +5,8 @@
 | **Vaihe** | läpileikkaava |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-PERSIST-001, BRDC-MOCK-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-31 |
+| **Valmius** | 95 % (selainpuolen manuaalinen tarkistus ja e2e ajamatta — automaattikattavuus alla) |
 | **Lähde** | Löytyi `BRDC-ECON-001`:n resurssipoolin muotoa vaihdettaessa, 2026-08-31 |
 
 ## 🔴 RED
@@ -31,38 +31,45 @@ huomataan vasta kun joku ihmettelee miksi mikään ei toimi.
 
 ## 🟢 GREEN
 
-- [ ] `KeyValueStore`-pohjaisella tilalla on **oma skeemaversionsa**, tallennettuna
-      kannan sisään (esim. avain `schema:version`), tarkistettuna kerran bootissa
-- [ ] Tuntematon tai vanha versio **resetoi ja kertoo sen**, samalla periaatteella kuin
-      `save.ts`:n `loadWith` — ei hiljaista migraatioyritystä
-- [ ] `BRDC-ECON-001`:n väliaikainen paikkaus (`pouch.ts#isCurrentShape`, joka tunnistaa
-      vanhan poolin rakenteesta eikä versionumerosta) **korvataan** yleisellä
-      mekanismilla tämän tiketin valmistuttua
-- [ ] Testattu: vanhanmuotoinen data missä tahansa `KeyValueStore`-avaimessa johtaa
-      hallittuun resetiin, ei `NaN`:iin eikä kaatumiseen
-- [ ] Dokumentoitu selvästi mihin tämä versio kattaa ja mihin ei — `save.ts`:n oma versio
-      ja tämä ovat edelleen kaksi eri numeroa eri syistä, kuten `CHALLENGE_VERSION`kin on
+- [x] `KeyValueStore`-pohjaisella tilalla on **oma skeemaversionsa** (`SCHEMA_KEY =
+      'schema:version'`, `SCHEMA_VERSION = 1`), tallennettuna kannan sisään, tarkistettuna
+      kerran ennen ensimmäistä storen käyttöä (`schema.ts` → `versioned()`)
+- [x] Tuntematon tai vanha versio **resetoi ja kertoo sen**: `versioned().schema()`
+      palauttaa `'reset'` → `MockRepository.schemaOutcome()` → `RepositoryHandle.reset` →
+      `MapView` näyttää saman lore-viestin kuin `loadWith`in `'stale'`. Ei migraatioyritystä
+- [x] `BRDC-ECON-001`:n väliaikainen paikkaus `pouch.ts#isCurrentShape` **poistettu**;
+      `read()` luottaa nyt storeen suoraan, koska skeemaportti on tyhjentänyt tunnistamattoman
+- [x] Testattu (`schema.test.ts`, 8 testiä + `resources.test.ts`:n integraatiotapaus):
+      vanhanmuotoinen data missä tahansa avaimessa → `'reset'`, ei `NaN`:ia, ei kaatumista.
+      `boot.test.ts` (100× determinismi) ja `claiming.test.ts` yhä vihreitä
+- [x] Dokumentoitu `schema.ts`:n moduulikommentissa: tämä ja `SAVE_VERSION` ovat eri
+      numerot eri datalle eri storessa, kuten `CHALLENGE_VERSION`kin on
 
-## Toteutus
+## Toteutus — mitä tehtiin
 
-Sama malli kuin `save.ts`:ssä, siirrettynä asynkroniseen `KeyValueStore`-maailmaan:
+Luonnoksen bare-funktion sijaan **kääre** `versioned(store): KeyValueStore &
+{ schema() }` (`packages/core/src/data/schema.ts`). Syy: tarkistuksen on ajauduttava
+ennen *mitä tahansa* storen käyttöä, ei vain ennen ensimmäistä nimettyä metodia, ja
+kääre keskittää sen yhteen paikkaan `await this.ready()` -rivien sijaan joka metodissa.
+Portti on muistettu promise (`gate ??= …`), joten rinnakkaiset kutsut jakavat yhden ajon —
+sama ominaisuus jonka `boot.test.ts` tarkistaa siemennykselle.
 
-```ts
-const SCHEMA_KEY = 'schema:version';
-const SCHEMA_VERSION = 1;
+- **`MockRepository`-rakentaja** kääri storensa: `this.store = versioned(opts.store ?? …)`.
+  Yksi kääre-piste; `createRepository` antaa raa'an storen. `schemaOutcome()`-metodi
+  (ei `GameRepository`-rajapinnassa, konkreettisen luokan lisä kuten `toOwnershipCell`)
+  paljastaa tuloksen `createRepository`:lle → `RepositoryHandle.reset` → `MapView`-banneri.
+- **Tyhjä store + puuttuva versioavain → `'ok'`**, ei `'reset'` (vain leimaa). Poikkeaa
+  luonnoksesta tarkoituksella: `loadWith` palauttaa puuttuvalle avaimelle `'empty'` eikä
+  `'stale'` — muuten joka ensikäynnistys näyttäisi resetointiviestin. `'reset'` vain kun
+  versio on väärä **tai** dataa on ilman versioavainta.
+- **Käärretty `clear()` leimaa version uudelleen**, jottei pelaajan oma `resetAll()`
+  näyttäisi seuraavassa avauksessa vanhentuneelta.
+- `claiming.test.ts` esisiementää rivaalisoluja raakaan storeen — sen `beforeEach` leimaa
+  nyt `SCHEMA_KEY`:n, koska se kuvaa nykyversion tallennusta, ei vanhentunutta.
 
-async function checkSchema(store: KeyValueStore): Promise<'ok' | 'reset'> {
-  const stored = await store.get<number>(SCHEMA_KEY);
-  if (stored === SCHEMA_VERSION) return 'ok';
-  await store.clear();
-  await store.set(SCHEMA_KEY, SCHEMA_VERSION);
-  return 'reset';
-}
-```
-
-Kutsutaan kerran `MockRepository`:n rakentajassa tai ensimmäisessä metodikutsussa —
-tarkka koukutuskohta ratkaistaan toteutusvaiheessa. `'reset'`-paluuarvo antaa
-sovelluskerroksen näyttää saman rehellisen viestin kuin `loadWith`in `'stale'` tänään.
+`'reset'`-paluuarvo antaa sovelluskerroksen näyttää saman rehellisen viestin kuin
+`loadWith`in `'stale'` tänään — sama teksti `MapView`:n bannerissa kuin `App.tsx`:n
+`'stale'`-polulla.
 
 ## Ei tässä
 

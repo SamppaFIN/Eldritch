@@ -207,17 +207,18 @@ Majakan liikkumisnopeus pelissä, jossa liikkuminen on omat jalat (`BRDC-BUILD-0
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
 | [BRDC-REGRESSION-000](BRDC-REGRESSION-000.md) | v2:n bugit regressiotesteiksi | M | SETUP-001 |
-| [BRDC-PERSIST-002](BRDC-PERSIST-002.md) | IndexedDB:lle skeemaversio | M | PERSIST-001, MOCK-001 |
+| [BRDC-PERSIST-002](BRDC-PERSIST-002.md) | ✅ IndexedDB:lle skeemaversio | M | PERSIST-001, MOCK-001 |
 
 **Sääntö:** REGRESSION-000 ei ole erillinen työvaihe vaan **rekisteri**. Sen 12 testiä
 kirjoitetaan niissä tiketeissä, jotka rekisteri nimeää — **ennen** vastaavaa ominaisuutta,
 ei jälkeen.
 
-**PERSIST-002 avattiin `BRDC-ECON-001`:n sivulöydöstä 2026-08-31**: `SAVE_VERSION`
-suojaa vain `localStorage`a, ja IndexedDB — jossa suurin osa pelin tilasta oikeasti asuu
-— ei ole koskaan saanut vastaavaa. Ilman erillistä tarkistusta resurssipoolin muodon
-vaihto olisi hiljaa täyttänyt palaavan pelaajan poolin `NaN`:lla. `BRDC-SCALE-001`:n
-alueperusteinen kysely (kohta 6) odottaa tätä ennen kuin se voi vaihtaa solun avainmuodon.
+**PERSIST-002 avattiin `BRDC-ECON-001`:n sivulöydöstä 2026-08-31, tehty samana päivänä.**
+`SAVE_VERSION` suojaa vain `localStorage`a, ja IndexedDB — jossa suurin osa pelin tilasta
+oikeasti asuu — ei ollut koskaan saanut vastaavaa. `schema.ts`:n `versioned()`-kääre antaa
+sille oman `SCHEMA_VERSION`in; tunnistamaton versio tyhjentää storen ja `MapView` kertoo
+sen. `pouch.ts#isCurrentShape` poistettu. **`BRDC-SCALE-001`:n alueperusteinen kysely
+(kohta 6) on nyt auki** — se voi vaihtaa solun avainmuodon skeemaversion turvin.
 
 ---
 
@@ -261,7 +262,7 @@ mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on V
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
 tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **415 yksikkö** (29 tiedostoa, ajettu 2026-08-31) + Playwright
+Testejä: **442 yksikkö** (32 tiedostoa, ajettu 2026-08-31) + Playwright
 (360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
@@ -271,7 +272,7 @@ Testejä: **415 yksikkö** (29 tiedostoa, ajettu 2026-08-31) + Playwright
  95 %  MOCK-001 · TRAIL-001 · HUD-001 · CLAIM-005
  90 %  HUD-002
  90 %  PERSIST-001
- 95 %  CLAIM-006
+ 95 %  CLAIM-006 · PERSIST-002
  85 %  TRAIL-002
 ```
 
@@ -284,12 +285,12 @@ piilotettu prosenttilukuun.
 
 ```
 Yhteensä 58 tikettiä
-  Valmiit:       31   (Vaiheet 0, 1, 2, 2.5 · + ECON-001, Vaihe 3:sta ensimmäinen)
+  Valmiit:       32   (Vaiheet 0, 1, 2, 2.5 · + ECON-001 · + PERSIST-002)
   Kesken:         3   (REGRESSION-000 10/12 · SCALE-001 40 % · CASTLE-001 90 %)
   Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
   Vaihe 2.6:      5   (L×2, M×3, joista SCALE-001 ja CASTLE-001 jo liikkeellä)
   Vaihe 3:       17   (S×1, M×9, L×7)  ← seuraava, ECON-001 valmis perustaksi
-  Läpileikkaava:  2   (REGRESSION-000 · PERSIST-002, uusi 2026-08-31)
+  Läpileikkaava:  2   (REGRESSION-000 · PERSIST-002 done 2026-08-31)
 Arvio Vaiheelle 3: ~15 viikkoa (Infiniten §7 sprintit, +1 sprintti perustalle)
 ```
 

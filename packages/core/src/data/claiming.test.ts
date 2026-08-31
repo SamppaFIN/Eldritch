@@ -7,6 +7,7 @@ import { simulatePolygon } from '../sim/walk.js';
 import type { BBox, Cell, TrailPoint } from '../types/domain.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
+import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
 
 const ORIGIN = { lat: 61.47290805294704, lng: 23.725882485862012 };
 const T0 = Date.parse('2026-08-27T12:00:00Z');
@@ -33,8 +34,12 @@ const BOX: BBox = {
 let repo: MockRepository;
 let store: MemoryStore;
 
-beforeEach(() => {
+beforeEach(async () => {
   store = new MemoryStore();
+  // The tests below seed rival cells straight into `store`. Stamp the schema version so
+  // `versioned()` (BRDC-PERSIST-002) reads it as a current save rather than wiping it as
+  // an unversioned one on the first repo call.
+  await store.set(SCHEMA_KEY, SCHEMA_VERSION);
   let n = 0;
   repo = new MockRepository({ store, newId: () => `id-${++n}`, seed: 7 });
 });

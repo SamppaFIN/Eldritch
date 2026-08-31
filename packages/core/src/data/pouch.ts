@@ -5,7 +5,7 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { EMPTY_POOL, RESOURCE_KINDS, addClaimYield, settleResources } from '../rules/terrain.js';
+import { EMPTY_POOL, addClaimYield, settleResources } from '../rules/terrain.js';
 import type { ResourcePool, ResourceState } from '../rules/terrain.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
@@ -15,30 +15,16 @@ import type { KeyValueStore } from './kv.js';
 const KEY = 'resources';
 
 /**
- * Does this look like a pool in the current shape?
+ * Read the stored pouch, or an empty one if there is nothing yet.
  *
- * `SAVE_VERSION` (`persist/save.ts`) only guards `localStorage` — the pouch lives in
- * IndexedDB through `KeyValueStore`, which has no schema version of its own at all
- * (see `docs/tickets/BRDC-PERSIST-002.md`, opened alongside this fix). Without this
- * check, a returning player's pre-BRDC-ECON-001 pool — `{ water, wood, gold }` — would
- * be read back, trusted as the new nine-field shape, and every missing field would read
- * as `undefined`. `canAfford`/`spend`/`settleResources` would then compute with
- * `undefined + number`, and the pouch would silently start filling with `NaN`.
- *
- * Treated as a reset, not a migration: `water`'s few dozen units are not worth carrying
- * across a shape change, and a wrong guess at how to fold it into `food` would be worse
- * than the honest, visible "the pouch starts over" this produces instead.
+ * No shape check here any more. A pool from before a shape change cannot reach this
+ * point: `MockRepository` wraps its store in `versioned()` (BRDC-PERSIST-002), and an
+ * unrecognised schema version clears the store on open. The structural sniff this
+ * replaced — `{ water, wood, gold }` read back as the nine-field shape, `undefined + number`
+ * minting `NaN` — is gone with it.
  */
-function isCurrentShape(pool: unknown): pool is ResourcePool {
-  if (typeof pool !== 'object' || pool === null) return false;
-  const p = pool as Record<string, unknown>;
-  return RESOURCE_KINDS.every((k) => typeof p[k] === 'number');
-}
-
 async function read(store: KeyValueStore, now: number): Promise<ResourceState> {
-  const stored = await store.get<ResourceState>(KEY);
-  if (stored && isCurrentShape(stored.pool)) return stored;
-  return { pool: EMPTY_POOL, since: now };
+  return (await store.get<ResourceState>(KEY)) ?? { pool: EMPTY_POOL, since: now };
 }
 
 /**

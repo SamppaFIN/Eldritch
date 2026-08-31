@@ -13,12 +13,13 @@ export interface RepositoryHandle {
   repository: GameRepository;
   /** False when storage is unavailable — the session will not survive a reload. */
   durable: boolean;
+  /** True when the store was wiped on open because its schema version was stale. */
+  reset: boolean;
 }
 
 export async function createRepository(): Promise<RepositoryHandle> {
   const durable = await idbAvailable();
-  return {
-    repository: new MockRepository({ store: durable ? new IdbStore() : new MemoryStore() }),
-    durable,
-  };
+  const repository = new MockRepository({ store: durable ? new IdbStore() : new MemoryStore() });
+  const reset = (await repository.schemaOutcome()) === 'reset';
+  return { repository, durable, reset };
 }

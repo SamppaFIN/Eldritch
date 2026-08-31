@@ -127,15 +127,17 @@ describe('resources', () => {
   });
 
   it('resets a pre-BRDC-ECON-001 pool instead of trusting it as the new shape', async () => {
-    // BRDC-PERSIST-002: IndexedDB carries no schema version of its own, so a returning
-    // player's old { water, wood, gold } pool would otherwise be read back and treated
-    // as the current nine-field ResourcePool — every missing field undefined, and the
-    // first arithmetic on it minting NaN. Seeded directly, the way a real old save
+    // A returning player's old { water, wood, gold } pool read back as the current
+    // nine-field ResourcePool would leave every missing field undefined, and the first
+    // arithmetic on it would mint NaN. BRDC-PERSIST-002: `MockRepository` wraps its store
+    // in `versioned()`, and a store with no schema version is cleared on open — so the
+    // old pool never reaches the arithmetic. Seeded directly, the way a real old save
     // would already be sitting in the store before this code ever runs.
     const store = new MemoryStore();
     await store.set('resources', { pool: { water: 30, wood: 5, gold: 2 }, since: T0 });
     const stale = new MockRepository({ store, seed: 11 });
 
+    expect(await stale.schemaOutcome()).toBe('reset');
     const pool = await stale.getResources(T0);
     expect(pool).toEqual(EMPTY_POOL);
     expect(Object.values(pool).every(Number.isFinite)).toBe(true);

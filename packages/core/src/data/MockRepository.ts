@@ -40,6 +40,8 @@ import type {
 } from '../types/index.js';
 import type { KeyValueStore } from './kv.js';
 import { MemoryStore } from './kv.js';
+import { versioned } from './schema.js';
+import type { SchemaOutcome, VersionedStore } from './schema.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
 import {
@@ -64,14 +66,27 @@ export interface MockRepositoryOptions {
 }
 
 export class MockRepository implements GameRepository {
-  private readonly store: KeyValueStore;
+  private readonly store: VersionedStore;
   private readonly newId: () => string;
   private readonly seed: number;
 
   constructor(opts: MockRepositoryOptions = {}) {
-    this.store = opts.store ?? new MemoryStore();
+    // Wrapped here, not in createRepository, so a store handed straight to the
+    // constructor — every test, and the offline fallback — is guarded too. This is the
+    // one wrap site; the raw store goes in, nothing double-wraps it.
+    this.store = versioned(opts.store ?? new MemoryStore());
     this.newId = opts.newId ?? (() => globalThis.crypto.randomUUID());
     this.seed = opts.seed ?? 20260826;
+  }
+
+  /**
+   * Whether the store was wiped on open because its schema version did not match
+   * (BRDC-PERSIST-002). Off the `GameRepository` interface on purpose — a concrete-class
+   * extra like `toOwnershipCell`, read by `createRepository` to raise a notice. Awaiting
+   * it runs the one-time check if nothing has yet.
+   */
+  async schemaOutcome(): Promise<SchemaOutcome> {
+    return this.store.schema();
   }
 
   /* --- Profile ---------------------------------------------------------- */
