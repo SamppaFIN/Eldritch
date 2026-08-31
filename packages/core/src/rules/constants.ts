@@ -181,6 +181,22 @@ export const MAX_SHARD_CELLS = 4_000;
  */
 export const MAX_CELL_HISTORY = 20;
 
+/* --- Buildings (BRDC-BUILD-001) ---------------------------------------- */
+
+/**
+ * How many buildings a player may hold before a Granary is needed.
+ *
+ * The plan's Granary gives "+2 housing capacity" in a game with no population — this is
+ * the light reading that makes that line true: capacity caps building count, and a
+ * Granary raises it. Not a simulation, one number.
+ */
+export const BASE_BUILDING_CAP = 6;
+export const GRANARY_CAPACITY = 3;
+/** A Storehouse adds this to the pouch's per-resource ceiling (BRDC-ECON-001's other half). */
+export const STOREHOUSE_CAP_BONUS = 250;
+/** Demolishing hands back this fraction of the cost, floored per resource. */
+export const DEMOLISH_REFUND = 0.5;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**

@@ -102,7 +102,7 @@ export const TRICKLE_PER_HOUR = 2;
 export const BASE_STORAGE_CAP = 500;
 
 /** Milliseconds of no visit before a cell stops producing. Same clock as decay. */
-const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
+export const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
 /**
  * The resolution terrain clusters at.
@@ -231,24 +231,32 @@ export function settleResources(
   state: ResourceState,
   owned: readonly Cell[],
   now: number,
+  cap: number = BASE_STORAGE_CAP,
+  bonusPerHour: Partial<ResourcePool> = {},
 ): ResourceState {
   const elapsed = now - state.since;
   if (elapsed <= 0) return state;
 
   // Nothing to earn, but the clock still moves — otherwise a player holding only
   // dormant or non-producing ground builds up a debt of hours that pays out the
-  // instant a lake is claimed, or an old cell is finally walked again.
-  const producing = owned.some(
-    (c) => now - c.lastVisitedAt <= DORMANT_AFTER_MS && resourceForCell(c) !== null,
-  );
+  // instant a lake is claimed, or an old cell is finally walked again. `bonusPerHour`
+  // is already dormancy-filtered by the caller (BRDC-BUILD-001), so a non-zero entry
+  // means at least one awake building is producing.
+  const producing =
+    owned.some((c) => now - c.lastVisitedAt <= DORMANT_AFTER_MS && resourceForCell(c) !== null) ||
+    RESOURCE_KINDS.some((k) => (bonusPerHour[k] ?? 0) > 0);
   if (!producing) return { pool: state.pool, since: now };
 
   const paidMs = Math.floor(elapsed / SETTLE_MS) * SETTLE_MS;
   if (paidMs <= 0) return state;
 
   const earned = trickle(owned, paidMs, now);
+  const hours = paidMs / SETTLE_MS;
   const pool = { ...state.pool };
-  for (const k of RESOURCE_KINDS) pool[k] = Math.min(BASE_STORAGE_CAP, pool[k] + earned[k]);
+  for (const k of RESOURCE_KINDS) {
+    const fromBuildings = Math.floor((bonusPerHour[k] ?? 0) * hours);
+    pool[k] = Math.min(cap, pool[k] + earned[k] + fromBuildings);
+  }
 
   return { pool, since: state.since + paidMs };
 }

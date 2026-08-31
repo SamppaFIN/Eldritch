@@ -59,6 +59,12 @@ export interface Terrain {
 }
 
 /**
+ * A building's id (BRDC-BUILD-001). Lives here because `Cell` carries one and
+ * rules/build.ts imports `Cell`. The table and rules are in rules/build.ts.
+ */
+export type BuildingId = 'granary' | 'monument' | 'storehouse' | 'market';
+
+/**
  * One entry in a cell's ownership history (BRDC-HEX-001). Lives here, not in
  * rules/history.ts, because `Cell` carries a list of them and rules/history.ts imports
  * `Cell`.
@@ -104,6 +110,8 @@ export interface Cell {
    * (`terrainForCell`). Additive, so no save migration.
    */
   terrain?: Terrain;
+  /** The one building on this cell, if any (BRDC-BUILD-001). One cell, one building. */
+  building?: { id: BuildingId; builtAt: number };
 }
 
 export interface PlayerProfile {

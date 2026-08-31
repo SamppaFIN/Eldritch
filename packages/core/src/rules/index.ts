@@ -18,6 +18,17 @@ export {
   researchable,
 } from './tech.js';
 export type { Era, ResearchResult, Tech, TechId, TechRefusal, TechResult } from './tech.js';
+export {
+  BUILDINGS,
+  buildCost,
+  buildingBonus,
+  buildingCapacity,
+  buildingsOf,
+  canBuild,
+  refund,
+  storageCap,
+} from './build.js';
+export type { Building, BuildingId, BuildCheck, BuildContext, BuildRefusal } from './build.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
 export { growInto, growthNeighbourhood } from './growth.js';

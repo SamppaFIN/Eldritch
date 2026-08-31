@@ -245,6 +245,26 @@ describe('settleResources', () => {
     const settled = settleResources({ pool: almostFull, since: T0 }, wood, T0 + HOUR);
     expect(settled.pool.wood).toBe(BASE_STORAGE_CAP);
   });
+
+  it('banks past BASE_STORAGE_CAP when a raised cap is passed (BRDC-BUILD-001)', () => {
+    const wood = cellsAt(sample().filter((h3) => resourceOf(h3) === 'wood').slice(0, 5));
+    const full = { ...EMPTY_POOL, wood: BASE_STORAGE_CAP };
+    const raised = BASE_STORAGE_CAP + 250;
+    const settled = settleResources({ pool: full, since: T0 }, wood, T0 + HOUR, raised);
+    expect(settled.pool.wood).toBeGreaterThan(BASE_STORAGE_CAP);
+    expect(settled.pool.wood).toBeLessThanOrEqual(raised);
+  });
+
+  it('adds a flat per-hour building bonus, and it counts as production (BRDC-BUILD-001)', () => {
+    // A player holding only plain ground plus a Market: no terrain trickle, but the
+    // building bonus still pays and still moves the clock.
+    const plain = cellsAt(sample().filter((h3) => resourceOf(h3) === null).slice(0, 3));
+    const settled = settleResources({ pool: EMPTY_POOL, since: T0 }, plain, T0 + 3 * HOUR, undefined, {
+      gold: 2,
+    });
+    expect(settled.since).toBe(T0 + 3 * HOUR);
+    expect(settled.pool.gold).toBe(6);
+  });
 });
 
 describe('terrainFromTiles', () => {
