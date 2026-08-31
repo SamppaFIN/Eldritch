@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { gridDisk } from 'h3-js';
 import { cellAt } from '../geo/cells.js';
 import { destination } from '../geo/project.js';
+import { DECAY_GRACE_HOURS } from './constants.js';
 import {
+  BASE_STORAGE_CAP,
   CLAIM_YIELD,
   EMPTY_POOL,
+  RESOURCE_KINDS,
   TRICKLE_PER_HOUR,
   addClaimYield,
   canAfford,
@@ -14,12 +17,14 @@ import {
   terrainOf,
   trickle,
 } from './terrain.js';
-import type { TerrainKind } from './terrain.js';
+import type { Cell } from '../types/domain.js';
+import type { ResourcePool, TerrainKind } from './terrain.js';
 
 const ORIGIN = { lat: 61.47290805294704, lng: 23.725882485862012 };
 const HERE = cellAt(ORIGIN);
 const T0 = Date.parse('2026-08-28T09:00:00Z');
 const HOUR = 3_600_000;
+const GRACE_MS = DECAY_GRACE_HOURS * HOUR;
 
 /** A wide sample of real cells, spread over a couple of kilometres. */
 function sample(count = 400): string[] {
@@ -31,6 +36,14 @@ function sample(count = 400): string[] {
   }
   return [...cells].slice(0, count);
 }
+
+/** Minimal cells for trickle/settleResources, which only ever look at h3 and lastVisitedAt. */
+function cellsAt(h3s: readonly string[], lastVisitedAt = T0): Cell[] {
+  return h3s.map((h3) => ({ h3, ownerId: 'me', strength: 100, lastVisitedAt, visitDays: [] }));
+}
+
+/** Sum across every resource, so a test does not have to name each of the nine fields. */
+const total = (p: ResourcePool) => RESOURCE_KINDS.reduce((sum, k) => sum + p[k], 0);
 
 describe('terrainOf', () => {
   it('is the same every time it is asked', () => {
@@ -55,15 +68,15 @@ describe('terrainOf', () => {
      * a neighbour agreement rate near chance; clustered terrain agrees far more often.
      */
     let agree = 0;
-    let total = 0;
+    let total_ = 0;
     for (const h3 of sample(200)) {
       for (const n of gridDisk(h3, 1)) {
         if (n === h3) continue;
-        total += 1;
+        total_ += 1;
         if (terrainOf(n) === terrainOf(h3)) agree += 1;
       }
     }
-    expect(agree / total).toBeGreaterThan(0.55);
+    expect(agree / total_).toBeGreaterThan(0.55);
   });
 
   it('frays at the edges — a region is not a solid block of hexagons', () => {
@@ -73,6 +86,13 @@ describe('terrainOf', () => {
       gridDisk(h3, 1).some((n) => terrainOf(n) !== terrainOf(h3)),
     );
     expect(mixed.length).toBeGreaterThan(0);
+  });
+});
+
+describe('resourceOf', () => {
+  it('gives food for water, not a water resource — the pool has no such field', () => {
+    const water = sample().find((h3) => terrainOf(h3) === 'water') as string;
+    expect(resourceOf(water)).toBe('food');
   });
 });
 
@@ -91,28 +111,42 @@ describe('claim yield', () => {
 describe('trickle', () => {
   it('pays per producing cell per hour', () => {
     const wood = sample().filter((h3) => resourceOf(h3) === 'wood').slice(0, 3);
-    expect(trickle(wood, HOUR).wood).toBe(TRICKLE_PER_HOUR * 3);
+    expect(trickle(cellsAt(wood), HOUR, T0).wood).toBe(TRICKLE_PER_HOUR * 3);
   });
 
   it('pays nothing for plain ground however long it is held', () => {
     const plain = sample().filter((h3) => resourceOf(h3) === null);
-    expect(trickle(plain, 100 * HOUR)).toEqual(EMPTY_POOL);
+    expect(trickle(cellsAt(plain), 100 * HOUR, T0)).toEqual(EMPTY_POOL);
   });
 
   it('gives whole units only', () => {
     const cells = sample(20);
-    const pool = trickle(cells, HOUR / 3);
+    const pool = trickle(cellsAt(cells), HOUR / 3, T0);
     expect(Object.values(pool).every(Number.isInteger)).toBe(true);
+  });
+
+  it('pays nothing for a cell that has not been visited within the grace window', () => {
+    const wood = sample().find((h3) => resourceOf(h3) === 'wood') as string;
+    const stale = cellsAt([wood], T0 - GRACE_MS - HOUR);
+    expect(trickle(stale, HOUR, T0)).toEqual(EMPTY_POOL);
+  });
+
+  it('pays again the moment a stale cell is walked', () => {
+    // Dormancy is read from lastVisitedAt at the instant of the call — a fresh visit
+    // is a fresh lastVisitedAt, and production resumes with no separate "wake" step.
+    const wood = sample().find((h3) => resourceOf(h3) === 'wood') as string;
+    const revisited = cellsAt([wood], T0);
+    expect(trickle(revisited, HOUR, T0).wood).toBe(TRICKLE_PER_HOUR);
   });
 });
 
 describe('settleResources', () => {
-  const owned = sample().filter((h3) => resourceOf(h3) !== null).slice(0, 4);
+  const owned = cellsAt(sample().filter((h3) => resourceOf(h3) !== null).slice(0, 4));
 
   it('adds what was earned and moves the clock', () => {
     const next = settleResources({ pool: EMPTY_POOL, since: T0 }, owned, T0 + 2 * HOUR);
     expect(next.since).toBe(T0 + 2 * HOUR);
-    expect(next.pool.water + next.pool.wood + next.pool.gold).toBe(TRICKLE_PER_HOUR * 2 * 4);
+    expect(total(next.pool)).toBe(TRICKLE_PER_HOUR * 2 * 4);
   });
 
   it('pays the same whether settled once an hour or every ten minutes', () => {
@@ -136,15 +170,51 @@ describe('settleResources', () => {
   it('still moves the clock forward when nothing is producing', () => {
     // Otherwise a player holding only plain ground accrues a debt of hours that is
     // paid out the instant they claim their first lake.
-    const plain = sample().filter((h3) => resourceOf(h3) === null).slice(0, 5);
+    const plain = cellsAt(sample().filter((h3) => resourceOf(h3) === null).slice(0, 5));
     expect(settleResources({ pool: EMPTY_POOL, since: T0 }, plain, T0 + 5 * HOUR).since).toBe(
       T0 + 5 * HOUR,
     );
   });
+
+  it('still moves the clock forward when every producing cell is dormant', () => {
+    // Same reasoning as plain ground: nothing is earned right now, so the clock must
+    // still advance, or a cell that wakes up later would be paid for the dormant span.
+    const stale = cellsAt(
+      sample()
+        .filter((h3) => resourceOf(h3) !== null)
+        .slice(0, 3),
+      T0 - GRACE_MS - HOUR,
+    );
+    const settled = settleResources({ pool: EMPTY_POOL, since: T0 }, stale, T0 + 5 * HOUR);
+    expect(settled.since).toBe(T0 + 5 * HOUR);
+    expect(total(settled.pool)).toBe(0);
+  });
+
+  it('stops paying once a resource hits the storage cap', () => {
+    // A long enough span would earn far more than the cap without one — the whole
+    // point of BRDC-ECON-001's lock against turning this into an idle game. Settled in
+    // daily steps with the cells kept freshly visited each time, so this tests the cap
+    // in isolation from dormancy rather than tripping over the 48 h grace window too.
+    const wood = sample().filter((h3) => resourceOf(h3) === 'wood').slice(0, 5);
+    let state = { pool: EMPTY_POOL, since: T0 };
+    let now = T0;
+    for (let day = 0; day < 60; day += 1) {
+      now += 24 * HOUR;
+      state = settleResources(state, cellsAt(wood, now), now);
+    }
+    expect(state.pool.wood).toBe(BASE_STORAGE_CAP);
+  });
+
+  it('never exceeds the cap even starting already close to it', () => {
+    const wood = cellsAt(sample().filter((h3) => resourceOf(h3) === 'wood').slice(0, 5));
+    const almostFull = { ...EMPTY_POOL, wood: BASE_STORAGE_CAP - 1 };
+    const settled = settleResources({ pool: almostFull, since: T0 }, wood, T0 + HOUR);
+    expect(settled.pool.wood).toBe(BASE_STORAGE_CAP);
+  });
 });
 
 describe('spending', () => {
-  const pool = { water: 30, wood: 10, gold: 5 };
+  const pool: ResourcePool = { ...EMPTY_POOL, food: 30, wood: 10, gold: 5 };
 
   it('refuses what cannot be paid for', () => {
     expect(canAfford(pool, { wood: 11 })).toBe(false);
@@ -152,7 +222,7 @@ describe('spending', () => {
   });
 
   it('takes exactly the cost and nothing else', () => {
-    expect(spend(pool, { water: 10, gold: 5 })).toEqual({ water: 20, wood: 10, gold: 0 });
+    expect(spend(pool, { food: 10, gold: 5 })).toEqual({ ...pool, food: 20, gold: 0 });
   });
 
   it('allows spending down to nothing but never below', () => {

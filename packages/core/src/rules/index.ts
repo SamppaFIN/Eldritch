@@ -21,8 +21,10 @@ export {
 } from './dwell.js';
 export type { DwellMap, DwellReading, Place, PlaceKind } from './dwell.js';
 export {
+  BASE_STORAGE_CAP,
   CLAIM_YIELD,
   EMPTY_POOL,
+  RESOURCE_KINDS,
   RESOURCE_OF,
   TRICKLE_PER_HOUR,
   addClaimYield,

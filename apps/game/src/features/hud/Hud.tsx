@@ -215,10 +215,10 @@ export function Hud({
           <div className="hud__stat">
             <span className="hud__label">Pouch</span>
             <span className="hud__value es-numeric">
-              {resources && resources.water + resources.wood + resources.gold > 0 ? (
+              {resources && resources.food + resources.wood + resources.gold > 0 ? (
                 <span className="hud__pouch">
-                  <span className="hud__pip hud__pip--water" aria-hidden />
-                  {resources.water}
+                  <span className="hud__pip hud__pip--food" aria-hidden />
+                  {resources.food}
                   <span className="hud__pip hud__pip--wood" aria-hidden />
                   {resources.wood}
                   <span className="hud__pip hud__pip--gold" aria-hidden />

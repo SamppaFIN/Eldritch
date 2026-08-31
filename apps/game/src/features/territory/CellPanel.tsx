@@ -52,7 +52,7 @@ const GROUND: Readonly<Record<TerrainKind, string>> = {
 };
 
 const YIELD: Readonly<Record<TerrainKind, string>> = {
-  water: 'yields water',
+  water: 'yields food',
   forest: 'yields timber',
   market: 'yields gold',
   plain: 'yields nothing',
@@ -60,7 +60,7 @@ const YIELD: Readonly<Record<TerrainKind, string>> = {
 
 /** The resource a terrain gives, said the way the pouch says it. */
 const RESOURCE_NAME: Readonly<Record<string, string>> = {
-  water: 'water',
+  food: 'food',
   wood: 'timber',
   gold: 'gold',
 };

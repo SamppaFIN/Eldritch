@@ -2,11 +2,13 @@
  * The pouch, through the repository — claim yields and the trickle from held ground.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CLAIM_YIELD, TRICKLE_PER_HOUR, resourceOf } from '../rules/terrain.js';
+import { CLAIM_YIELD, EMPTY_POOL, RESOURCE_KINDS, TRICKLE_PER_HOUR, resourceOf } from '../rules/terrain.js';
+import type { ResourcePool } from '../rules/terrain.js';
 import { WARD_COST } from '../rules/ward.js';
 import { destination } from '../geo/project.js';
 import { cellAt } from '../geo/cells.js';
 import { MockRepository } from './MockRepository.js';
+import { MemoryStore } from './kv.js';
 import type { TrailPoint } from '../types/domain.js';
 
 const ORIGIN = { lat: 61.47290805294704, lng: 23.725882485862012 };
@@ -31,7 +33,7 @@ const BOX = {
   north: ORIGIN.lat + 0.02,
 };
 
-const total = (p: { water: number; wood: number; gold: number }) => p.water + p.wood + p.gold;
+const total = (p: ResourcePool) => RESOURCE_KINDS.reduce((sum, k) => sum + p[k], 0);
 
 describe('resources', () => {
   let repo: MockRepository;
@@ -41,7 +43,7 @@ describe('resources', () => {
   });
 
   it('start empty', async () => {
-    expect(await repo.getResources(T0)).toEqual({ water: 0, wood: 0, gold: 0 });
+    expect(await repo.getResources(T0)).toEqual(EMPTY_POOL);
   });
 
   it('are paid the moment ground is taken', async () => {
@@ -121,7 +123,22 @@ describe('resources', () => {
     const id = await repo.startRun(T0);
     await repo.submitTrail(id, walk());
     await repo.resetAll();
-    expect(await repo.getResources(T0)).toEqual({ water: 0, wood: 0, gold: 0 });
+    expect(await repo.getResources(T0)).toEqual(EMPTY_POOL);
+  });
+
+  it('resets a pre-BRDC-ECON-001 pool instead of trusting it as the new shape', async () => {
+    // BRDC-PERSIST-002: IndexedDB carries no schema version of its own, so a returning
+    // player's old { water, wood, gold } pool would otherwise be read back and treated
+    // as the current nine-field ResourcePool — every missing field undefined, and the
+    // first arithmetic on it minting NaN. Seeded directly, the way a real old save
+    // would already be sitting in the store before this code ever runs.
+    const store = new MemoryStore();
+    await store.set('resources', { pool: { water: 30, wood: 5, gold: 2 }, since: T0 });
+    const stale = new MockRepository({ store, seed: 11 });
+
+    const pool = await stale.getResources(T0);
+    expect(pool).toEqual(EMPTY_POOL);
+    expect(Object.values(pool).every(Number.isFinite)).toBe(true);
   });
 });
 
@@ -135,10 +152,9 @@ describe('warding through the repository', () => {
   /**
    * Walk out and back along four bearings, then hold the ground overnight.
    *
-   * One straight leg is not enough: a ward costs both timber and water, so the walk has
-   * to cross more than one kind of ground. That is the terrain rule doing its job — a
-   * player who only ever walks one street cannot ward anything — and it means this
-   * fixture has to look like a real neighbourhood rather than a line.
+   * One straight leg is not enough: a single street may cross no forest at all, and a
+   * ward costs timber. Four bearings around the origin makes it a neighbourhood rather
+   * than a line, which is what actually guarantees some woodland to fund a ward from.
    */
   const HELD_UNTIL = T_END + 30 * HOUR;
 

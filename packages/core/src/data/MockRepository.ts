@@ -161,7 +161,7 @@ export class MockRepository implements GameRepository {
 
     if (walked.xp > 0) await this.addXp(walked.xp);
     const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
-    await awardClaims(this.store, await this.ownedIndexes(lastT), walked.grown, lastT);
+    await awardClaims(this.store, await this.getOwnedCells(lastT), walked.grown, lastT);
 
     return { ...result, ...walked.trail };
   }
@@ -181,7 +181,7 @@ export class MockRepository implements GameRepository {
   /* --- Resources -------------------------------------------------------- */
 
   async getResources(now: number): Promise<ResourcePool> {
-    return (await settlePouch(this.store, await this.ownedIndexes(now), now)).pool;
+    return (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
   }
 
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
@@ -192,14 +192,10 @@ export class MockRepository implements GameRepository {
     if (!live) return { warded: false, refused: 'not-yours' };
 
     const me = await this.getProfile();
-    const owned = await this.ownedIndexes(now);
+    const owned = await this.getOwnedCells(now);
     const result = await wardWith(this.store, live, me.id, owned, now);
     if (result.warded) await this.store.set(K.cell(h3), result.cell);
     return result;
-  }
-
-  private async ownedIndexes(now: number): Promise<H3Index[]> {
-    return (await this.getOwnedCells(now)).map((c) => c.h3);
   }
 
   /* --- The Wager, carried by hand --------------------------------------- */
@@ -319,7 +315,7 @@ export class MockRepository implements GameRepository {
     const plan = planClaim(detected.loop, { id: profile.id, level: profile.level }, known, now);
     for (const cell of plan.cells) await this.store.set(K.cell(cell.h3), cell);
     if (plan.xp > 0) await this.addXp(plan.xp);
-    await awardClaims(this.store, await this.ownedIndexes(now), plan.outcomes, now);
+    await awardClaims(this.store, await this.getOwnedCells(now), plan.outcomes, now);
 
     // The ring is spent. Keeping it would let the next fix close the same loop again.
     await this.store.set(K.trail(runId), points.slice(detected.loop.endIndex));

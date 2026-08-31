@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BASE_STRENGTH, MAX_STRENGTH } from './constants.js';
 import { projectCell } from './decay.js';
+import { EMPTY_POOL } from './terrain.js';
 import { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
 import type { Cell } from '../types/domain.js';
 
@@ -9,7 +10,7 @@ const RIVAL = 'the-pale-warden';
 const T0 = Date.parse('2026-08-28T09:00:00Z');
 const DAY = 86_400_000;
 
-const rich = { water: 100, wood: 100, gold: 100 };
+const rich = { ...EMPTY_POOL, food: 100, wood: 100, gold: 100 };
 const cell = (over: Partial<Cell> = {}): Cell => ({
   h3: '8b1fb46622dafff',
   ownerId: ME,
@@ -28,7 +29,7 @@ describe('ward', () => {
     expect(result.cell.strength).toBe(BASE_STRENGTH + WARD_STRENGTH);
     expect(result.pool.wood).toBe(rich.wood - (WARD_COST.wood ?? 0));
     // Only what the cost names is taken.
-    expect(result.pool.water).toBe(rich.water);
+    expect(result.pool.food).toBe(rich.food);
     expect(result.pool.gold).toBe(rich.gold);
   });
 
@@ -118,19 +119,19 @@ describe('ward', () => {
 
 describe('wardsAffordable', () => {
   it('is nothing on an empty pouch', () => {
-    expect(wardsAffordable({ water: 0, wood: 0, gold: 0 })).toBe(0);
+    expect(wardsAffordable(EMPTY_POOL)).toBe(0);
   });
 
   it('is limited by the resources the cost actually names', () => {
-    // Gold and water are irrelevant to a ward, however much of them there is.
-    expect(wardsAffordable({ water: 1000, wood: 0, gold: 1000 })).toBe(0);
+    // Gold and food are irrelevant to a ward, however much of them there is.
+    expect(wardsAffordable({ ...EMPTY_POOL, food: 1000, gold: 1000 })).toBe(0);
   });
 
   it('counts exact change as one ward', () => {
-    expect(wardsAffordable({ water: 0, wood: WARD_COST.wood ?? 0, gold: 0 })).toBe(1);
+    expect(wardsAffordable({ ...EMPTY_POOL, wood: WARD_COST.wood ?? 0 })).toBe(1);
   });
 
   it('counts how many a full pouch could pay for', () => {
-    expect(wardsAffordable({ water: 0, wood: (WARD_COST.wood ?? 0) * 3 + 1, gold: 0 })).toBe(3);
+    expect(wardsAffordable({ ...EMPTY_POOL, wood: (WARD_COST.wood ?? 0) * 3 + 1 })).toBe(3);
   });
 });

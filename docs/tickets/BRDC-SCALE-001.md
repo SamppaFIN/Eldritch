@@ -4,7 +4,7 @@
 |---|---|
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
-| **Riippuvuudet** | BRDC-MOCK-001, BRDC-CLAIM-005, BRDC-CLAIM-006 |
+| **Riippuvuudet** | BRDC-MOCK-001, BRDC-CLAIM-005, BRDC-CLAIM-006, BRDC-PERSIST-002 (kohta 6) |
 | **Status** | `in_progress` — kolme kohtaa kuudesta korjattu, katso *Toteutettu* |
 | **Valmius** | 40 % |
 | **Lähde** | Koodiauditointi 2026-08-31, ajettu `BRDC-ATLAS-001`:n taustaksi |
@@ -115,10 +115,11 @@ datasta, joka olisi päätynyt tuotantoon ilman toista tarkistuskierrosta.
 1. **Eksplisiittinen yhdistelmäavain.** `cell:${regionOf(h3)}:${h3}` sen sijaan että
    alue yritettäisiin lukea `h3`:n omasta merkkijonosta. Oikein rakenteensa puolesta,
    ei vaadi mitään tietoa H3:n bittiasettelusta, testattavissa suoraan. **Vaatii
-   `SAVE_VERSION`-noston** (`persist/save.ts:19`) — avainmuodon muutos on täsmälleen se
-   tapaus, jota varten se olekassa. Järkevintä yhdistää `BRDC-ECON-001`:n jo
-   suunnittelemaan versionostoon (`water`→`food`), ei tehdä kahta erillistä resetiä
-   peräkkäin ilman syytä
+   IndexedDB-puolen skeemaversion**, joka ei ollut olemassa tätä kirjoitettaessa —
+   ks. `BRDC-PERSIST-002`, avattu `BRDC-ECON-001`:n sivulöydöstä 2026-08-31:
+   `persist/save.ts`:n `SAVE_VERSION` suojaa vain `localStorage`a, ei mitään tässä
+   koskettavaa. Tämä kohta odottaa `BRDC-PERSIST-002`:ta, ei enää `BRDC-ECON-001`:tä,
+   joka valmistui ilman versionostoa (pooli korjattiin muotoa tunnistamalla, ei numerolla)
 2. **`h3.cellToChildren(region, 11)[0]`** yhden todellisen lapsen hakemiseen ja sen
    merkkijonon käyttämiseen etuliitteenä. Oikein, koska se on oikea data eikä arvaus —
    mutta vaatii silti tietämään *kuinka monta merkkiä* on jaettu, mikä vaihtelee
@@ -126,7 +127,7 @@ datasta, joka olisi päätynyt tuotantoon ilman toista tarkistuskierrosta.
    pituus pitäisi joko todistaa tai laskea ajossa vertaamalla useampaa lasta keskenään
    — monimutkaisempi kuin näyttää, ja hyöty verrattuna kohtaan 1 on pieni
 
-**Suositus: kohta 1**, tehtynä `BRDC-ECON-001`:n version noston kanssa samalla.
+**Suositus: kohta 1**, tehtynä `BRDC-PERSIST-002`:n jälkeen.
 
 ## 🟡 Tarkennus: rappeutumisen "väärä puoli" ei ole väärin tänään — se on ajallisesti pommi
 
