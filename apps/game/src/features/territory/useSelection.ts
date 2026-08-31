@@ -8,13 +8,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { emptyCell } from '@es3/core';
 import type {
+  BuildRefusal,
+  BuildingId,
   Cell,
   GameRepository,
   H3Index,
   ResourcePool,
   RevealedPlace,
+  TechId,
   WardRefusal,
 } from '@es3/core';
+
+type BuildFail = BuildRefusal | 'nothing-here';
 
 export interface UseSelectionOptions {
   repository: GameRepository | null;
@@ -24,8 +29,18 @@ export interface UseSelectionOptions {
   now: () => number;
   /** Bumped as the trail grows, so dwell in the open cell keeps up. */
   trailVersion: number;
+  /** The pouch changed — warding, building or demolishing all pay. */
   onWarded: (pool: ResourcePool) => void;
   refreshTerritory: () => Promise<void>;
+}
+
+/** Everything CellPanel's build sub-panel needs, in one bundle. */
+export interface BuildBinding {
+  researched: readonly TechId[];
+  myBuildings: readonly BuildingId[];
+  refusal: BuildFail | null;
+  onBuild: (h3: H3Index, id: BuildingId) => void;
+  onDemolish: (h3: H3Index) => void;
 }
 
 export interface Selection {
@@ -35,6 +50,7 @@ export interface Selection {
   refusal: WardRefusal | null;
   sanctum: boolean;
   wager: boolean;
+  build: BuildBinding;
   onCellTap: (h3: H3Index) => void;
   onPlaceTap: (h3: H3Index) => void;
   onWard: (h3: H3Index) => void;
@@ -54,7 +70,28 @@ export function useSelection({
 }: UseSelectionOptions): Selection {
   const [selected, setSelected] = useState<H3Index | null>(null);
   const [refusal, setRefusal] = useState<WardRefusal | null>(null);
+  const [buildRefusal, setBuildRefusal] = useState<BuildFail | null>(null);
+  const [researched, setResearched] = useState<readonly TechId[]>([]);
   const [dwellMs, setDwellMs] = useState(0);
+
+  // Buildings the player holds, from the cells in view — enough for the capacity check in
+  // practice, since a player's buildings sit on their territory and that is what is on
+  // screen. An off-screen building could under-count the cap; acceptable for now.
+  const myBuildings = useMemo(
+    () => cells.flatMap((c): BuildingId[] => (c.building ? [c.building.id] : [])),
+    [cells],
+  );
+
+  useEffect(() => {
+    if (!repository) return;
+    let alive = true;
+    void repository.getResearched().then((r) => {
+      if (alive) setResearched(r);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [repository]);
   const [sanctum, setSanctum] = useState(false);
   const [wager, setWager] = useState(false);
 
@@ -63,6 +100,7 @@ export function useSelection({
   const onCellTap = useCallback((h3: H3Index) => {
     setSelected(h3);
     setRefusal(null);
+    setBuildRefusal(null);
     setSanctum(false);
   }, []);
 
@@ -126,6 +164,37 @@ export function useSelection({
     [repository, now, onWarded, refreshTerritory],
   );
 
+  /** Build and demolish share warding's shape: pay, refuse by name, then re-read. */
+  const afterSpend = useCallback(async () => {
+    if (!repository) return;
+    onWarded(await repository.getResources(now()));
+    await refreshTerritory();
+  }, [repository, now, onWarded, refreshTerritory]);
+
+  const onBuild = useCallback(
+    (h3: H3Index, id: BuildingId) => {
+      if (!repository) return;
+      void (async () => {
+        const r = await repository.build(h3, id, now());
+        setBuildRefusal(r.ok ? null : r.refused);
+        if (r.ok) await afterSpend();
+      })();
+    },
+    [repository, now, afterSpend],
+  );
+
+  const onDemolish = useCallback(
+    (h3: H3Index) => {
+      if (!repository) return;
+      void (async () => {
+        const r = await repository.demolish(h3, now());
+        setBuildRefusal(r.ok ? null : r.refused);
+        if (r.ok) await afterSpend();
+      })();
+    },
+    [repository, now, afterSpend],
+  );
+
   return {
     selected,
     cell,
@@ -133,6 +202,7 @@ export function useSelection({
     refusal,
     sanctum,
     wager,
+    build: { researched, myBuildings, refusal: buildRefusal, onBuild, onDemolish },
     onCellTap,
     onPlaceTap,
     onWard,

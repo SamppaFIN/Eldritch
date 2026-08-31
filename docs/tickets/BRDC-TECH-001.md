@@ -36,8 +36,8 @@ Taso on tällä hetkellä ainoa etenemisen mitta, ja se mittaa vain XP:tä.
       `era`, `eraChanged`), mutta UI:ssa ei ole vielä tutkimustoimintoa josta se laukeaa.
       Kytketään `BRDC-BUILD-001`:n tutkimusnäyttöön
 - [x] Puu **katettu** — `ERAS` päättyy `medieval`:iin, `eraOf` ei etene sen yli
-- [~] Lukitun rakennuksen paneeli nimeää avaavan teknologian — vaatii `BUILDINGS`:n →
-      `BRDC-BUILD-001`. `hasTech` ja `TECHS[id]` valmiina
+- [x] Lukitun rakennuksen paneeli nimeää avaavan teknologian — tehty `BRDC-BUILD-001`:n
+      committi 3:ssa: `BuildPanel.reason('locked', id)` → `Needs ${titleCase(BUILDINGS[id].tech)}`
 
 ## Toteutettu 2026-08-31
 

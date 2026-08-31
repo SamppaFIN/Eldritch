@@ -137,7 +137,7 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
 | [BRDC-TECH-001](BRDC-TECH-001.md) | 🔨 Teknologiapuu ja aikakaudet | M | ECON-001 |
-| [BRDC-BUILD-001](BRDC-BUILD-001.md) | 🔨 Rakennusjärjestelmän ydin ja perusrakennukset | L | ECON-001, TERRAIN-002, TECH-001 |
+| [BRDC-BUILD-001](BRDC-BUILD-001.md) | ✅ Rakennusjärjestelmän ydin ja perusrakennukset | L | ECON-001, TERRAIN-002, TECH-001 |
 | [BRDC-BUILD-002](BRDC-BUILD-002.md) | Aluekohtaiset parannukset ja päivitysketjut | M | BUILD-001, TERRAIN-002 |
 | [BRDC-BUILD-003](BRDC-BUILD-003.md) | Vaikutusalueen rakennukset ja uskollisuus | M | BUILD-001, HEX-001, DWELL-001 |
 
@@ -266,7 +266,7 @@ mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on V
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
 tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **541 yksikkö** (41 tiedostoa, ajettu 2026-08-31) + Playwright
+Testejä: **544 yksikkö** (42 tiedostoa, ajettu 2026-09-01) + Playwright
 (360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
@@ -281,7 +281,7 @@ Testejä: **541 yksikkö** (41 tiedostoa, ajettu 2026-08-31) + Playwright
  80 %  SHARE-001
  90 %  HEX-001
  80 %  TECH-001
- 80 %  BUILD-001
+ 95 %  BUILD-001
  75 %  TERRAIN-002
 ```
 
@@ -298,7 +298,7 @@ Yhteensä 58 tikettiä
   Kesken:         4   (REGRESSION-000 10/12 · SCALE-001 85 % · CASTLE-001 90 % · SHARE-001 80 %)
   Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
   Vaihe 2.6:      5   (L×2, M×3, joista SCALE-001 ja CASTLE-001 jo liikkeellä)
-  Vaihe 3:       17   (ECON-001 ✅ · HEX-001 ✅ · TERRAIN-002 75 % · TECH-001 80 % · BUILD-001 80 % · loput 12)
+  Vaihe 3:       17   (ECON-001 ✅ · HEX-001 ✅ · TERRAIN-002 75 % · TECH-001 80 % · BUILD-001 95 % · loput 12)
   Läpileikkaava:  2   (REGRESSION-000 · PERSIST-002 done 2026-08-31)
 Arvio Vaiheelle 3: ~15 viikkoa (Infiniten §7 sprintit, +1 sprintti perustalle)
 ```

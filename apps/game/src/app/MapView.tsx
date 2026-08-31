@@ -314,6 +314,7 @@ export function MapView({ onLeave }: MapViewProps) {
         dwellMs={inspect.dwellMs}
         hasAnchor={places.some((p) => p.kind === 'anchor')}
         onWard={inspect.onWard}
+        build={inspect.build}
         onClose={inspect.close}
       />
 

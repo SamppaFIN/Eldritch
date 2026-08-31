@@ -26,6 +26,8 @@ import {
 import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es3/core';
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
+import { BuildPanel } from './BuildPanel.js';
+import type { BuildBinding } from './useSelection.js';
 import './cell-panel.css';
 
 export interface CellPanelProps {
@@ -42,6 +44,8 @@ export interface CellPanelProps {
   /** Whether an Anchor already exists, which decides what this cell could become. */
   hasAnchor?: boolean;
   onWard: (h3: string) => void;
+  /** The build sub-panel's bundle (BRDC-BUILD-001), from `useSelection`. */
+  build?: BuildBinding;
   onClose: () => void;
 }
 
@@ -143,6 +147,7 @@ export function CellPanel({
   dwellMs = 0,
   hasAnchor = false,
   onWard,
+  build,
   onClose,
 }: CellPanelProps) {
   /*
@@ -296,6 +301,18 @@ export function CellPanel({
           <p className="cell-panel__note">
             A ward adds strength. It does not reset the clock — only your feet do that.
           </p>
+          {me && build ? (
+            <BuildPanel
+              cell={cell}
+              me={me}
+              resources={resources}
+              researched={build.researched}
+              myBuildings={build.myBuildings}
+              onBuild={build.onBuild}
+              onDemolish={build.onDemolish}
+              refusal={build.refusal}
+            />
+          ) : null}
         </>
       ) : null}
 

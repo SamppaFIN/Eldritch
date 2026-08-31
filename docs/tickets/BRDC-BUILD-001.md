@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-ECON-001, BRDC-TERRAIN-002, BRDC-TECH-001 |
-| **Status** | `in_progress` — ydin + repo tehty; jäljellä `CellPanel`-rakenna-osio (committi 3) |
-| **Valmius** | 80 % |
+| **Status** | `done` — 2026-09-01 (UI `[~]` selaimessa todentamatta) |
+| **Valmius** | 95 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §1.1, §6 (R1), §8.2 |
 
 ## 🔴 RED
@@ -59,8 +59,20 @@ Tämä on se tiketti.
 - Rakennukset ratsastavat `getCells`:llä (`projectCell` säilyttää `cell.building`in).
 - `build.repo.test.ts` (10). **541 vihreää.**
 
-**Committi 3:** `CellPanel` rakenna-osio (kytkee myös `TECH-001` GREEN 8 — lukittu
-rakennus nimeää teknologiansa `TECHS[BUILDINGS[id].tech]`:llä), `[~]` selaimessa.
+## Committi 3/3 — UI (tehty 2026-09-01)
+
+- `features/territory/BuildPanel.tsx` — `CellPanel`:n aliosio (erillinen, jottei kumpikaan
+  ylitä 400 riviä). Listaa `BUILDINGS`, laskee `canBuild`in per rakennus ja näyttää joko
+  Rakenna-napin tai **syyn nimeltä**: "Wrong ground", "Needs Masonry" (**TECH-001 GREEN 8**
+  — `reason()` nimeää teknologian), "No room — build a Granary", "Cannot afford". Jos
+  solussa on rakennus: nimi + Pura-nappi hyvityksellä.
+- `useSelection.ts` sai `onBuild`/`onDemolish` (`onWard`:n mallilla — maksa, kieltäydy
+  nimeltä, lue uudelleen) ja `build`-nipun (`researched`, `myBuildings` viewportista,
+  `refusal`). `MapView` → `<CellPanel build={inspect.build} />`.
+- `BuildPanel.test.ts` (3, `reason`/`titleCase` puhtaina). **544 vihreää.**
+- `[~]` **selaimessa todentamatta** — RTL:ää ei repossa, ja tutkimusnäyttöä ei ole vielä,
+  joten teknologiat ovat aina `[]` → tech-portitetut rakennukset näyttävät "Needs …".
+  `MapView.tsx` on nyt 399/400 — jaettava ennen seuraavaa lisäystä siihen.
 
 > ⚠️ **`MockRepository.ts` on 396/400.** Sitä on kavennettu tämän session aikana viisi
 > kertaa. `BRDC-BUILD-002`:n **ensimmäinen tehtävä on jakaa se** — ei enää kavennusta.
