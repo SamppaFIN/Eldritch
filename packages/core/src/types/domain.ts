@@ -58,6 +58,20 @@ export interface Terrain {
   source: TerrainSource;
 }
 
+/**
+ * One entry in a cell's ownership history (BRDC-HEX-001). Lives here, not in
+ * rules/history.ts, because `Cell` carries a list of them and rules/history.ts imports
+ * `Cell`.
+ */
+export interface OwnershipChange {
+  to: PlayerId;
+  /** Who it was taken from, or `null` when it was claimed from unowned ground. */
+  from: PlayerId | null;
+  at: number;
+  /** The attack power that broke it, or BASE_STRENGTH for a fresh claim. */
+  power: number;
+}
+
 export interface Cell {
   h3: H3Index;
   ownerId: PlayerId | null;
@@ -66,6 +80,18 @@ export interface Cell {
   lastVisitedAt: number;
   /** UTC calendar days (YYYY-MM-DD) the owner has passed through. */
   visitDays: string[];
+  /** Who first claimed this cell from nobody. Written once, never overwritten. */
+  finder?: PlayerId;
+  /** When `finder` claimed it. */
+  revealedAt?: number;
+  /**
+   * Distinct UTC days the cell has been walked while held — the loyalty base
+   * (BRDC-HEX-001, BRDC-BUILD-003). Not raw calendar days: an unwalked cell earns no
+   * loyalty, and a stored day-set would grow without a ceiling. Cumulative across owners.
+   */
+  ownedDays?: number;
+  /** Ownership changes, oldest first, capped at MAX_CELL_HISTORY. */
+  history?: OwnershipChange[];
   /**
    * Came from `world.json`, not from this device (BRDC-SHARE-001). It is someone else's
    * truth, refreshed by cron; this device never sees its visits, so it must not be

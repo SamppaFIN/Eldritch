@@ -130,7 +130,7 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 |---|---|:---:|---|
 | [BRDC-ECON-001](BRDC-ECON-001.md) | ✅ Yhdeksän resurssia ja tuotannon katto | L | TERRAIN-001, WARD-001 |
 | [BRDC-TERRAIN-002](BRDC-TERRAIN-002.md) | 🔨 Maastokirjo 4 → 7, ja oikea data vektoritiilistä | L | TERRAIN-001, ECON-001 |
-| [BRDC-HEX-001](BRDC-HEX-001.md) | Heksan muisti: löytäjä, historia, päivittäinen omistajuus | M | CLAIM-003, INSPECT-001 |
+| [BRDC-HEX-001](BRDC-HEX-001.md) | ✅ Heksan muisti: löytäjä, historia, päivittäinen omistajuus | M | CLAIM-003, INSPECT-001 |
 
 **Rakentaminen ja eteneminen:**
 
@@ -266,7 +266,7 @@ mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on V
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
 tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **488 yksikkö** (36 tiedostoa, ajettu 2026-08-31) + Playwright
+Testejä: **495 yksikkö** (37 tiedostoa, ajettu 2026-08-31) + Playwright
 (360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
@@ -279,6 +279,7 @@ Testejä: **488 yksikkö** (36 tiedostoa, ajettu 2026-08-31) + Playwright
  95 %  CLAIM-006 · PERSIST-002
  85 %  TRAIL-002 · SCALE-001
  80 %  SHARE-001
+ 90 %  HEX-001
  75 %  TERRAIN-002
 ```
 
@@ -295,7 +296,7 @@ Yhteensä 58 tikettiä
   Kesken:         4   (REGRESSION-000 10/12 · SCALE-001 85 % · CASTLE-001 90 % · SHARE-001 80 %)
   Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
   Vaihe 2.6:      5   (L×2, M×3, joista SCALE-001 ja CASTLE-001 jo liikkeellä)
-  Vaihe 3:       17   (ECON-001 ✅ · TERRAIN-002 75 % · loput 15 kirjoitettu, ei aloitettu)
+  Vaihe 3:       17   (ECON-001 ✅ · HEX-001 ✅ · TERRAIN-002 75 % · loput 14 kirjoitettu, ei aloitettu)
   Läpileikkaava:  2   (REGRESSION-000 · PERSIST-002 done 2026-08-31)
 Arvio Vaiheelle 3: ~15 viikkoa (Infiniten §7 sprintit, +1 sprintti perustalle)
 ```

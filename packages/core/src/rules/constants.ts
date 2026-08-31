@@ -172,6 +172,15 @@ export const WORLD_VERSION = 1;
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 
+/**
+ * Ownership changes kept per cell (BRDC-HEX-001).
+ *
+ * A cell on a contested border can change hands many times; without a ceiling its history
+ * grows storage without bound. Twenty is enough to read "this has been fought over"
+ * without keeping a ledger back to the first claim.
+ */
+export const MAX_CELL_HISTORY = 20;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**

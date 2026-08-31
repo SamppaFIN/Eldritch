@@ -46,6 +46,13 @@
   text-transform: uppercase;
 }
 
+/* The cell's ownership history, in a sentence (BRDC-HEX-001). */
+.cell-panel__history {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
 .cell-panel__close {
   min-inline-size: var(--touch-min);
   min-block-size: var(--touch-min);
