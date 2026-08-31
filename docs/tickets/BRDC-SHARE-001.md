@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-WAGER-JSON-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — formaatti, luku ja skripti tehty; cron-Action ajamatta |
+| **Valmius** | 80 % |
 | **Lähde** | Infinite 2026-08-31: *"tietojen jakaminen tapahtuu esim cron jobilla, joka päivittää tekstitiedoston, mikä tietää kaiken datan"* |
 
 ## 🔴 RED
@@ -21,17 +21,61 @@ persistointiin. Väliin tarvitaan jotain, joka ei ole palvelin.
 
 ## 🟢 GREEN
 
-- [ ] **`world.json` Pagesissa**: kaikkien pelaajien julkinen tila yhtenä tiedostona
-- [ ] Peli **lukee sen käynnistyksessä** ja näyttää muiden alueet kartalla
-- [ ] Kirjoituspolku on olemassa ja dokumentoitu — ks. *Toteutus*
-- [ ] **GitHub Action ajaa cronilla**, kokoaa saapuneet lähetykset ja julkaisee tiedoston
-- [ ] Jokainen lähetys **tarkistetaan checksumilla** ennen kuin se päätyy maailmaan
-      (sama mekanismi kuin `CHALLENGE_VERSION`-datassa jo on)
-- [ ] Lähetys, jonka versio on tuntematon, **hylätään nimeltä** — ei hiljaa ohiteta
-- [ ] Tiedoston koko on **rajattu** ja raja on testattu, ei toivottu
-- [ ] Peli toimii **täysin ilman `world.json`ia** — verkko on lisä, ei ehto
-- [ ] Vanhentunut maailma näkyy pelaajalle ikänä ("viimeksi päivitetty 4 h sitten"),
-      ei tuoreena
+- [x] **`world/<res6>.json`**: julkinen tila lohkoina alueittain, ei yhtenä tiedostona
+      (Infiniten "sharding res 6:lla heti" -linjaus). `world.ts#WorldShard`,
+      `buildShards`, `apps/game/public/world/`
+- [x] Peli **lukee sen** viewportin alueille (`useWorld` → `fetchWorldShards` →
+      `regionsCoveringBBox`) ja näyttää muut kartalla tuotuina soluina. *(Selaimessa
+      todentamatta — automaattikattavuus: `worldSource.test.ts`, `world.repo.test.ts`)*
+- [~] Kirjoituspolku **olemassa ja dokumentoitu**: `worldSubmissionUrl` avaa esitäytetyn
+      issuen (`world-submission`-label). Näkyvä "julkaise alueeni" -nappi jää pieneksi
+      jatkoksi — funktio ja polku ovat valmiit
+- [~] **GitHub Action** `.github/workflows/world.yml` kirjoitettu: cron 30 min +
+      `workflow_dispatch`, kokoaa avoimet issuet, `node scripts/build-world.mjs`, commit +
+      push, sulkee issuet. **Ei ajettu** — cron käy vain `main`illa, ja tämä on haaralla.
+      Sen kutsuma merge-logiikka on `world.ts`:ssä ja testattu
+- [x] Jokainen lähetys **tarkistetaan checksumilla** — `WorldSubmission` on allekirjoitettu
+      kirjekuori, `parseSubmission` torjuu `damaged`in samalla FNV-1a:lla kuin `challenge.ts`
+- [x] Tuntematon versio **hylätään nimeltä** — `parseWorld`/`parseSubmission` →
+      `{ ok: false, fault: 'wrong-version' }`, ei hiljaista ohitusta
+- [x] Koko **rajattu ja testattu** — `MAX_SHARD_CELLS`, `parseWorld`/`parseSubmission`
+      torjuvat `too-large`n; `world.test.ts` todentaa rajan vakiosta, ei literaalista
+- [x] Peli toimii **ilman yhtään lohkoa** — `fetchWorldShards` nielee 404:n ja verkkovirheen,
+      `useWorld` ei koskaan nosta virhettä
+- [x] Vanhentunut maailma näkyy **ikänä** — `worldAgeMs` + `MapView`-rivi "Other realms
+      last stirred N h ago"
+- [x] **Tuotu solu ei rappeudu paikallisesti** — `Cell.imported`, `projectCell` palauttaa
+      sen koskemattomana; `sweepDecay` ei koskaan heikennä tai vapauta sitä
+- [x] Testi: tuotu solu ei muutu viikossakaan — `decay.test.ts` (`projectCell` 30 vrk,
+      `sweepDecay` 90 vrk) ja `world.repo.test.ts` (`runDecay` +30 vrk, `getCells` +60 vrk)
+
+## Toteutettu 2026-08-31
+
+Malli suoraan `challenge.ts`:stä: versioitu kirjekuori, jaettu `checksum` (FNV-1a),
+nimetyt faultit, `*ToCells` joka päivää tuonnit `now`:iin.
+
+- **`packages/core/src/data/world.ts`** — `WorldShard` (yksi res 6 -alue), `buildShards`
+  (nippu alueittain, katto `MAX_SHARD_CELLS`), `parseWorld`, `worldToCells` (merkkaa
+  `imported: true`), `worldAgeMs`. Lisäksi `WorldSubmission` + `buildSubmission` /
+  `parseSubmission` — allekirjoitettu viesti *maailmaan sisään*.
+- **`Cell.imported?: boolean`** — additiivinen, ei `SCHEMA_VERSION`-nostoa (puuttuva =
+  paikallinen). `projectCell` palauttaa tuodun solun koskemattomana. Tämä on
+  `BRDC-SCALE-001`:stä siirretty kohta, nyt kun "tuotu solu" on käsite.
+- **`GameRepository.importWorld`** + `MockRepository` — yhdistää lohkon, ohittaa solun
+  jonka paikallinen pelaaja omistaa (riita ratkaistaan Wagerilla), palauttaa määrät ja
+  `generatedAt`. Idempotentti.
+- **`scripts/build-world.mjs`** — ohut fs-kääre: `parseSubmission` per issue-body,
+  `buildShards`, kirjoittaa `apps/game/public/world/<region>.json`. Kaikki validointi on
+  `world.ts`:ssä ja testattu.
+- **`.github/workflows/world.yml`** — cron, `[~]` ei ajettu (käy vain `main`illa).
+- **Client:** `apps/game/src/data/worldSource.ts` (`fetchWorldShards` 404-sietoinen,
+  `worldSubmissionUrl`), `features/territory/useWorld.ts` (hakee + yhdistää viewportin
+  alueille), `MapView`-rivi ikää varten. `MapView` ylitti 400 riviä → `useWorld`
+  eriytettiin (sama jako-sääntö).
+
+**Jäljellä:** cron-Actionin oikea ajo (`main`illa), näkyvä julkaisunappi, ja `seed.ts`:n
+tekonaapureiden suhde oikeaan dataan (oma tikettinsä). `MockRepository.ts` on 391/400 —
+seuraava metodi vaatii jaon.
 
 ## Toteutus
 
@@ -53,22 +97,22 @@ jo oikeus kirjoittaa repoon ilman että klientille annetaan yhtään avainta.
 omistavansa. Riitatilanteet ratkaistaan Wagerilla, ei tiedostolla — sama tietoinen
 kompromissi kuin `PIVOT-2026-08-27.md` §5:ssä tehtiin taistelun ratkaisusta.
 
-## 🔴 Ratkaistava ennen toteutusta
+## ✅ Ratkaistu — `BRDC-CASTLE-001`
 
-**Julkinen tiedosto sisältää oikeiden ihmisten kotihexat.** `world.json` on avoimessa
-URLissa, ja Hearth on määritelmän mukaan se ruutu, jossa pelaaja asuu. Res 11 -solu on
-~46 m leveä: se on osoite.
+**Julkinen tiedosto ei saa sisältää oikeiden ihmisten kotihexoja.** `world.json` on
+avoimessa URLissa, ja Hearth on määritelmän mukaan se ruutu, jossa pelaaja asuu. Res 11
+-solu on ~46 m leveä: se on osoite.
 
-Kolme vaihtoehtoa, ja tämä on Infiniten päätös:
+Tämän tiketin ensimmäinen versio esitti kolme vaihtoehtoa (karkeampi resoluutio, Hearth
+pois viennistä kokonaan, tai hyväksytään koska "peli on kavereiden kesken"). Kaikki
+kolme olivat vääriä kysymyksiä: ongelma ei ole *tarkkuus* vaan se, että Hearth itsessään
+ei saa koskaan olla julkaistava arvo, riippumatta resoluutiosta.
 
-1. **Julkinen data karkeammalla resoluutiolla** (res 8, ~0,7 km²). Alueen muoto näkyy,
-   koti ei
-2. **Hearth jätetään pois** julkisesta viennistä kokonaan
-3. **Hyväksytään** — peli on kavereiden kesken, ja he tietävät jo missä asut
-
-Kohta 3 on rehellinen valinta *kavereille* ja väärä valinta sillä hetkellä, kun peli
-jaetaan eteenpäin. Suosittelen kohtaa 1: se ei maksa mitään nyt ja poistaa ongelman
-ennen kuin se on olemassa.
+**Oikea ratkaisu on erillinen sijainti, ei karkeampi sama sijainti** — `BRDC-CASTLE-001`,
+tehty ja testattu: `getCastle()` arvotaan kerran laitteella `assignCastle`illa, ei ole
+johdettavissa Hearthista, ja se on ainoa asia, jonka `exportChallenge` julkaisee jo nyt
+(ks. sen oma *Sivulöytö*: sama vuoto oli olemassa Wagerissakin ennen korjausta). Kun
+`world.json` rakennetaan, sen on luettava `getCastle()`, ei `getHome()`ia — sama sääntö.
 
 ## Ei tässä
 
@@ -86,12 +130,13 @@ Ratkaisu ei ole res 8 -karkeistus vaan **erillinen julkinen sijainti**, joka arv
 kerran laitteella eikä ole johdettavissa kodista → `BRDC-CASTLE-001`. Kotipesä ei
 poistu puhelimesta koskaan.
 
-Kaksi tarkkuustasoa jää voimaan sen rinnalle:
+Kaksi tarkkuustasoa jää voimaan **alueelle**, mutta talon sijainti ei vaihtele
+kummallakaan rivillä — se on aina Linna:
 
-| Kenelle | Mitä | Missä |
-|---|---|---|
-| Julkisesti kaikille | Linna + alue res 8 | `world.json` |
-| Sille, jonka haastat | Koko lääni res 11 | `exportChallenge`, käsin lähetetty |
+| Kenelle | Alue | Talo | Missä |
+|---|---|---|---|
+| Julkisesti kaikille | Linna + alue res 8 | Linna | `world.json` |
+| Sille, jonka haastat | Koko lääni res 11 | **Linna, ei koskaan Hearth** | `exportChallenge`, käsin lähetetty |
 
 ### Sharding res 6:lla — heti, ei myöhemmin
 

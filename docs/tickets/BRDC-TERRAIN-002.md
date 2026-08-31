@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-TERRAIN-001, BRDC-ECON-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — 7 tyyppiä + taulukko + tiilimäppäri tehty; MapLibre-kysely selaimessa todentamatta |
+| **Valmius** | 75 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §1.2, §5 |
 
 ## 🔴 RED
@@ -26,17 +26,45 @@ enää, kun se päättää onko kotikadullasi vuori.
 
 ## 🟢 GREEN
 
-- [ ] `TerrainKind` kattaa suunnitelman maastot: metsä, vuori, mäki, tasanko, järvi,
-      rannikko, tori, ja se mitä §5 vaatii ihmeille
-- [ ] Jokaisella maastolla on **resurssi ja rakennuspaikat**, ja ne on yhdessä taulukossa
-- [ ] **Oikea maasto ladatuista vektoritiilistä**: `queryRenderedFeatures` lukee veden,
-      puiston, rakennukset ja maankäytön kartalta, joka on jo ruudulla
-- [ ] Solukohtainen ratkaisu **tehdään kerran ja tallennetaan** — sama solu ei saa
-      vastata eri tavalla eri zoom-tasolla
-- [ ] Hash jää **varajärjestelmäksi** sinne, missä tiilillä ei ole mitään sanottavaa
-- [ ] Ratkaistun ja arvatun maaston ero **näkyy datassa** (`source: 'tiles' | 'hash'`) —
-      Vaiheessa 3 SQL:n on tiedettävä kumpaa se vertaa
-- [ ] Klusterointi säilyy: maasto muodostaa metsiä ja järviä, ei solukohtaista kohinaa
+- [x] `TerrainKind` kattaa fyysiset maastot: `plain, forest, hill, mountain, lake, coast,
+      market` (7). Ihmeiden `valtameri/tundra/aavikko` **eivät ole omia tyyppejään** —
+      `BRDC-WONDER-001` mäppää ne vastineisiin (iso järvi = valtameri jne.), Infiniten
+      linjaus tässä tiketissä ("juu 1")
+- [x] Jokaisella maastolla **resurssi ja rakennuspaikat yhdessä taulukossa** —
+      `TERRAIN_TABLE` korvaa `RESOURCE_OF`:n; `BuildSite`-slugit odottavat `BRDC-BUILD-001`:tä
+- [~] **Oikea maasto vektoritiilistä** — `terrainFromTiles(features)` (puhdas, testattu
+      synteettisillä OSM-piirteillä) + `useTerrainResolver` joka kutsuu
+      `map.queryRenderedFeatures`:ia solun keskipisteessä. Kysely itse vaatii elävän
+      GL-kartan → **selaimessa todentamatta**
+- [x] Solukohtainen ratkaisu **tehdään kerran ja tallennetaan** — `Cell.terrain?`,
+      `setStoredTerrain` (no-op jos jo tallennettu), `useTerrainResolver` yrittää kerran
+      per solu. Hash on itsessään deterministinen → "kerran ratkaistu" tyhjälle maalle
+- [x] Hash **varajärjestelmänä** — `terrainForCell(cell) = cell.terrain ?? terrainOf(cell.h3)`
+- [x] Ratkaistun ja arvatun ero **datassa** — `Terrain.source: 'tiles' | 'hash'`;
+      `CellPanel` näyttää "(from the map)" / "(estimated)"
+- [x] Klusterointi säilyy — kaksi arvontaa ennallaan, kynnysporras jaettu 7 tyypille;
+      `terrain.test.ts` mittaa naapurien yksimielisyyden `> 0.55` ja reunan rispauksen
+
+## Toteutettu 2026-08-31
+
+**Puhdas perusta** (`packages/core`): `terrainOf(h3)` palauttaa nyt `Terrain = { kind,
+source }` (TERRAIN-001:n ennakoima rajapintamuutos). `Terrain`/`TerrainKind`/`TerrainSource`
+siirtyivät `types/domain.ts`:ään (`Cell` kantaa niitä), `terrain.ts` re-exporttaa.
+`RESOURCE_OF` → `TERRAIN_TABLE`. `Cell.terrain?` additiivinen, **ei skeemanostoa** (sama
+kuvio kuin `Cell.imported`). `trickle`/`settleResources` käyttävät `resourceForCell`:iä;
+`addClaimYield` jää hashiin (sillä on vain h3). `terrainFromTiles` mäppää OSM-vektoritiilet
+(vesi ennen maapeitettä, vuori/mäki tageista ei korkeudesta).
+
+**Wiring** (`apps/game`): `useTerrainResolver` (`features/map`) — `MapCanvas` kutsuu,
+`onCellTerrain`-propilla `MapView` → `repository.setCellTerrain` → `cellStore.setStoredTerrain`.
+`GameRepository.setCellTerrain` lisätty. `geo/cells.ts` sai `cellCentre(h3)`.
+
+**Testit:** `terrain.test.ts` kirjoitettu 7 tyypille + `terrainFromTiles`-lohko (33
+testiä), `cellStore.test.ts` +3 (`setStoredTerrain`). **488 vihreää.**
+
+**Jäljellä:** `queryRenderedFeatures`:n oikea ajo selaimessa (tiiliskeeman varmistus,
+debounce-tuntuma), ja `MockRepository.ts` (396/400) + `MapView.tsx` (398/400) ovat
+molemmat rajalla — **seuraava muutos kumpaankin vaatii jaon ensin.**
 
 ## Toteutus
 
@@ -69,6 +97,8 @@ Kaksi kelvollista ratkaisua:
 2. **Ihmeet eivät sido maastoa** vaan harvinaisuutta — maasto sävyttää nimen, ei estä
 
 Suositus: **1**, ja kirjataan `BRDC-WONDER-001`:een.
+
+- juu 1
 
 ## Ei tässä
 

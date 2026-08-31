@@ -10,6 +10,7 @@
  * known limitation). Standing on your own Hearth is a better place to be asked.
  */
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
+import { BASE_STORAGE_CAP, RESOURCE_KINDS } from '@es3/core';
 import type { Cell, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import './hearth-panel.css';
@@ -51,7 +52,11 @@ export function HearthPanel({
   onClose,
 }: HearthPanelProps) {
   const d = dominionOf(owned, now);
-  const rate = d.perHour.water + d.perHour.wood + d.perHour.gold;
+  const rate = RESOURCE_KINDS.reduce((sum, k) => sum + d.perHour[k], 0);
+  const producingCount = RESOURCE_KINDS.reduce((sum, k) => sum + d.producing[k], 0);
+  // BRDC-ECON-001: a full resource stops earning rather than overflowing silently, and
+  // the player is told in words, not left to notice the pouch has quietly stopped moving.
+  const full = resources ? RESOURCE_KINDS.some((k) => d.perHour[k] > 0 && resources[k] >= BASE_STORAGE_CAP) : false;
 
   return (
     <GlassPanel as="section" className="hearth-panel" aria-label="Your sanctuary">
@@ -96,15 +101,30 @@ export function HearthPanel({
         {/* Production is the number that explains why one walk was worth more than
             another, and it exists nowhere else in the interface. */}
         {rate > 0
-          ? `${d.producing.water + d.producing.wood + d.producing.gold} of your cells produce — ${rate} an hour in all.`
+          ? `${producingCount} of your cells produce — ${rate} an hour in all.`
           : 'None of your ground produces yet. Woodland, water and places of trade do.'}
+        {d.resting > 0
+          ? ` ${d.resting} more ${d.resting === 1 ? 'is' : 'are'} resting — walk them to wake them.`
+          : ''}
       </p>
+
+      {full ? (
+        <p className="hearth-panel__line hearth-panel__line--warn">
+          Storage is full — production has stalled. Spend some to make room.
+        </p>
+      ) : null}
 
       {resources ? (
         <p className="hearth-panel__line es-numeric">
-          Pouch · {resources.water} water · {resources.wood} timber · {resources.gold} gold
+          Pouch · {resources.food} food · {resources.wood} timber · {resources.gold} gold
         </p>
       ) : null}
+
+      <p className="hearth-panel__line">
+        {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,
+            where a player already comes to ask "what have I built". */}
+        Other players will only ever see your Keep, never your Hearth.
+      </p>
 
       {d.weakest && d.firstLossInHours !== null ? (
         <p className={`hearth-panel__line${d.atRisk > 0 ? ' hearth-panel__line--warn' : ''}`}>

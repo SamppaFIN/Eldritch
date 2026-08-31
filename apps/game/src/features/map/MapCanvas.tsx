@@ -24,6 +24,7 @@ import {
   removePlaceLayers,
   setPlaceData,
 } from '../territory/PlaceMarkers.js';
+import { ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import {
   AWAKENING_MS,
   ensureAwakeningLayers,
@@ -33,8 +34,14 @@ import {
 } from '../territory/AwakeningLayer.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
+import { useTerrainResolver } from './useTerrainResolver.js';
+import type { TerrainUpdate } from './useTerrainResolver.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
+
+/** Stable defaults, so an absent prop does not re-fire the terrain resolver each render. */
+const NO_CELLS: readonly Cell[] = [];
+const noResolve = (_: TerrainUpdate[]): void => {};
 
 export interface MapCanvasProps {
   /** Where to open the camera. Later fixes move the player, not the map's identity. */
@@ -50,6 +57,8 @@ export interface MapCanvasProps {
   playerId?: PlayerId | null;
   /** Cells the game has worked out are places. */
   places?: readonly RevealedPlace[];
+  /** The public decoy near the Hearth — never the Hearth itself. Null before one exists. */
+  castle?: H3Index | null;
   /**
    * Cells a closure has just taken, and when.
    *
@@ -63,6 +72,8 @@ export interface MapCanvasProps {
   onPlaceTap?: (h3: string) => void;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
+  /** Terrain resolved from the map's own tiles, for the caller to persist. */
+  onCellTerrain?: (updates: TerrainUpdate[]) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
   initialZoom?: number;
   /** Keep the camera on the player. False once they pan away by hand. */
@@ -78,6 +89,7 @@ export function MapCanvas({
   cells,
   playerId = null,
   places,
+  castle = null,
   awakening = null,
   initialZoom,
   follow = true,
@@ -85,6 +97,7 @@ export function MapCanvas({
   onCellTap,
   onPlaceTap,
   onViewportChange,
+  onCellTerrain,
 }: MapCanvasProps) {
   const { containerRef, map, ready, basemap } = useMap(
     initialZoom === undefined
@@ -97,6 +110,8 @@ export function MapCanvas({
   useEffect(() => {
     onBasemapChange?.(basemap);
   }, [basemap, onBasemapChange]);
+
+  useTerrainResolver({ map, ready, cells: cells ?? NO_CELLS, onResolved: onCellTerrain ?? noResolve });
 
   // Create the marker once the map is ready, never before.
   useEffect(() => {
@@ -132,12 +147,15 @@ export function MapCanvas({
     ensureTrailLayers(map);
     // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
+    // The Keep alongside places: it is a marker of the same weight, not territory.
+    ensureCastleLayer(map);
     // Above everything: this is a moment, and it is over in two seconds.
     ensureAwakeningLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
       if (map.loaded()) {
         removeAwakeningLayers(map);
+        removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
         removeTerritoryLayers(map);
@@ -229,6 +247,11 @@ export function MapCanvas({
     if (!map || !ready || !places) return;
     setPlaceData(map, places);
   }, [map, ready, places]);
+
+  useEffect(() => {
+    if (!map || !ready) return;
+    setCastleData(map, castle);
+  }, [map, ready, castle]);
 
   /*
    * The ground wakes up.

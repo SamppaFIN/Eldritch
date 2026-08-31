@@ -30,12 +30,27 @@
   font-weight: var(--weight-bold);
 }
 
+/* Whether the terrain was read from the map or guessed (BRDC-TERRAIN-002). */
+.cell-panel__source {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+}
+
 .cell-panel__yield,
 .cell-panel__owner {
   color: var(--text-dim);
   font-size: var(--text-sm);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* The cell's ownership history, in a sentence (BRDC-HEX-001). */
+.cell-panel__history {
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
 }
 
 .cell-panel__close {

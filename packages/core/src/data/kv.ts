@@ -16,6 +16,16 @@ export interface KeyValueStore {
   /** Keys beginning with `prefix`, in insertion order. */
   keys(prefix?: string): Promise<string[]>;
   clear(): Promise<void>;
+  /**
+   * Every value for `keys`, same order, `undefined` where nothing was stored.
+   *
+   * On IndexedDB a loop of `get()` opens one transaction per call — the actual cost
+   * behind "reading every cell is slow", independent of how many keys are read. This
+   * exists so a caller that already knows which keys it wants pays for one transaction
+   * instead of N. MemoryStore has no transaction to batch, so its implementation is a
+   * plain loop; IdbStore's is where the saving is real.
+   */
+  getMany<T>(keys: string[]): Promise<Array<T | undefined>>;
 }
 
 /** In-memory store. Used by tests, and as the fallback when IndexedDB is unavailable. */
@@ -40,6 +50,10 @@ export class MemoryStore implements KeyValueStore {
 
   async keys(prefix = ''): Promise<string[]> {
     return [...this.map.keys()].filter((k) => k.startsWith(prefix));
+  }
+
+  async getMany<T>(keys: string[]): Promise<Array<T | undefined>> {
+    return Promise.all(keys.map((key) => this.get<T>(key)));
   }
 
   async clear(): Promise<void> {

@@ -10,8 +10,11 @@ export {
   cellAreaM2,
   cellBoundary,
   cellAt,
+  cellCentre,
   neighboursOf,
+  regionAt,
   regionOf,
+  regionsCoveringBBox,
   ringToCells,
   totalAreaM2,
 } from './cells.js';

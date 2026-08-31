@@ -128,9 +128,9 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
-| [BRDC-ECON-001](BRDC-ECON-001.md) | Kymmenen resurssia ja tuotannon katto | L | TERRAIN-001, WARD-001 |
-| [BRDC-TERRAIN-002](BRDC-TERRAIN-002.md) | Maastokirjo 4 → 9, ja oikea data vektoritiilistä | L | TERRAIN-001, ECON-001 |
-| [BRDC-HEX-001](BRDC-HEX-001.md) | Heksan muisti: löytäjä, historia, päivittäinen omistajuus | M | CLAIM-003, INSPECT-001 |
+| [BRDC-ECON-001](BRDC-ECON-001.md) | ✅ Yhdeksän resurssia ja tuotannon katto | L | TERRAIN-001, WARD-001 |
+| [BRDC-TERRAIN-002](BRDC-TERRAIN-002.md) | 🔨 Maastokirjo 4 → 7, ja oikea data vektoritiilistä | L | TERRAIN-001, ECON-001 |
+| [BRDC-HEX-001](BRDC-HEX-001.md) | ✅ Heksan muisti: löytäjä, historia, päivittäinen omistajuus | M | CLAIM-003, INSPECT-001 |
 
 **Rakentaminen ja eteneminen:**
 
@@ -195,7 +195,7 @@ koska talous ja maasto ovat kaiken muun alla.
 |---|---|---|
 | Kolme legendaarista ihmettä vaatii maastoa, jota Tampereella ei ole | `BRDC-WONDER-001` | ✅ **Vastineet.** Pyhäjärvi Härmälässä ajaa valtameren virkaa — R'lyeh on kävelymatkan päässä |
 | `world.json` julkaisisi oikeiden ihmisten kotiosoitteet | `BRDC-CASTLE-001` | ✅ **Linna.** Arvotaan kerran laitteella, koti ei poistu puhelimesta. Kaksi tarkkuustasoa |
-| Tuottaako ~20 rakennusta "+X/tunti" idle-pelin? | `BRDC-ECON-001` | 🔴 **auki.** Suositus: varastokatto + 48 h lepotila |
+| Tuottaako ~20 rakennusta "+X/tunti" idle-pelin? | `BRDC-ECON-001` | ✅ **Varastokatto + 48 h lepotila**, tehty ja testattu |
 | Onko ASCII näkymä vai siirtomuoto? | `BRDC-ASCII-001` | 🔴 **auki.** Suositus: näkymä. Kuva ihmiselle, JSON pelille, samassa viestissä |
 | Palvelinta ei tarvita ihmeiden ainutkertaisuuteen — miten? | `BRDC-WONDER-001` | ✅ **Rajattu argmax.** 12 ihmettä, 3 626 res 5 -solua, 107 ms, 0 törmäystä — mitattu |
 
@@ -207,10 +207,22 @@ Majakan liikkumisnopeus pelissä, jossa liikkuminen on omat jalat (`BRDC-BUILD-0
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
 | [BRDC-REGRESSION-000](BRDC-REGRESSION-000.md) | v2:n bugit regressiotesteiksi | M | SETUP-001 |
+| [BRDC-PERSIST-002](BRDC-PERSIST-002.md) | ✅ IndexedDB:lle skeemaversio | M | PERSIST-001, MOCK-001 |
 
 **Sääntö:** REGRESSION-000 ei ole erillinen työvaihe vaan **rekisteri**. Sen 12 testiä
 kirjoitetaan niissä tiketeissä, jotka rekisteri nimeää — **ennen** vastaavaa ominaisuutta,
 ei jälkeen.
+
+**PERSIST-002 avattiin `BRDC-ECON-001`:n sivulöydöstä 2026-08-31, tehty samana päivänä.**
+`SAVE_VERSION` suojaa vain `localStorage`a, ja IndexedDB — jossa suurin osa pelin tilasta
+oikeasti asuu — ei ollut koskaan saanut vastaavaa. `schema.ts`:n `versioned()`-kääre antaa
+sille oman `SCHEMA_VERSION`in; tunnistamaton versio tyhjentää storen ja `MapView` kertoo
+sen. `pouch.ts#isCurrentShape` poistettu.
+
+**PERSIST-002:n turvin `BRDC-SCALE-001`:n rajattu kysely tehtiin heti perään** (85 %):
+avain on nyt `cell:${regionOf(h3)}:${h3}` (`SCHEMA_VERSION` 1 → 2), ja `getCells(bbox)`
+lukee vain viewportin peittämät res 6 -alueet, ei koko storea. `getOwnedCells` ja
+`claim.spec.ts`-perftesti jäivät tarkoituksella jäljelle.
 
 ---
 
@@ -246,7 +258,7 @@ sisältönä, ei ominaisuutena.
 | **1** Kartta ja ley-line | 🔨 koodattu, ulkoportti odottaa | 7/7 |
 | **2** Aluevaltaus | 🔨 portti läpi selaimessa, ulkoportti odottaa | 7/7 |
 | **2.5** Suunnanmuutos | ✅ kaikki `done` | 10/10 |
-| **2.6** Mobiili ja jaettu maailma | ⬜ ei aloitettu — **seuraava** | 0/5 |
+| **2.6** Mobiili ja jaettu maailma | 🔨 SCALE-001 85 % · SHARE-001 80 % · CASTLE-001 90 %; MOBILE-001 ja ASCII-001 auki | 0/5 |
 | **3** Sivilisaatio | ⬜ tiketit kirjoitettu, ei aloitettu | 0/18 |
 
 **Ulkoportti on yhä auki.** Kaikki on todennettu selaimessa ja simuloidulla GPS:llä,
@@ -254,7 +266,7 @@ mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on V
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
 tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **415 yksikkö** (29 tiedostoa, ajettu 2026-08-31) + Playwright
+Testejä: **495 yksikkö** (37 tiedostoa, ajettu 2026-08-31) + Playwright
 (360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
@@ -264,8 +276,11 @@ Testejä: **415 yksikkö** (29 tiedostoa, ajettu 2026-08-31) + Playwright
  95 %  MOCK-001 · TRAIL-001 · HUD-001 · CLAIM-005
  90 %  HUD-002
  90 %  PERSIST-001
- 95 %  CLAIM-006
- 85 %  TRAIL-002
+ 95 %  CLAIM-006 · PERSIST-002
+ 85 %  TRAIL-002 · SCALE-001
+ 80 %  SHARE-001
+ 90 %  HEX-001
+ 75 %  TERRAIN-002
 ```
 
 Auki jääneet kohdat on merkitty tiketteihin `[ ]` tai `[~]` perusteluineen — ei
@@ -276,12 +291,13 @@ piilotettu prosenttilukuun.
 ## Yhteenveto
 
 ```
-Yhteensä 57 tikettiä
-  Valmiit:       30   (Vaiheet 0, 1, 2, 2.5)
-  Kesken:         1   (REGRESSION-000, 10/12 + 1 todennettu ei-bugi)
+Yhteensä 58 tikettiä
+  Valmiit:       32   (Vaiheet 0, 1, 2, 2.5 · + ECON-001 · + PERSIST-002)
+  Kesken:         4   (REGRESSION-000 10/12 · SCALE-001 85 % · CASTLE-001 90 % · SHARE-001 80 %)
   Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
-  Vaihe 2.6:      5   (L×2, M×3)  ← seuraava
-  Vaihe 3:       18   (S×1, M×10, L×7)
+  Vaihe 2.6:      5   (L×2, M×3, joista SCALE-001 ja CASTLE-001 jo liikkeellä)
+  Vaihe 3:       17   (ECON-001 ✅ · HEX-001 ✅ · TERRAIN-002 75 % · loput 14 kirjoitettu, ei aloitettu)
+  Läpileikkaava:  2   (REGRESSION-000 · PERSIST-002 done 2026-08-31)
 Arvio Vaiheelle 3: ~15 viikkoa (Infiniten §7 sprintit, +1 sprintti perustalle)
 ```
 

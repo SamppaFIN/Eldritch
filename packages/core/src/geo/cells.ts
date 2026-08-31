@@ -8,13 +8,14 @@
 import {
   cellArea,
   cellToBoundary,
+  cellToLatLng,
   cellToParent,
   gridDisk,
   latLngToCell,
   polygonToCells,
 } from 'h3-js';
 import { H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
-import type { H3Index, LatLng } from '../types/domain.js';
+import type { BBox, H3Index, LatLng } from '../types/domain.js';
 
 /**
  * The cells enclosed by a ring.
@@ -37,9 +38,56 @@ export function cellAt(position: LatLng): H3Index {
   return latLngToCell(position.lat, position.lng, H3_RES_OWNERSHIP);
 }
 
-/** The res-6 region a cell belongs to. Used to shard realtime channels in Phase 3. */
+/** A cell's centre as `{ lat, lng }` — h3-js returns `[lat, lng]`, this hides that. */
+export function cellCentre(cell: H3Index): LatLng {
+  const [lat, lng] = cellToLatLng(cell);
+  return { lat, lng };
+}
+
+/** The res-6 region a cell belongs to. Shards realtime channels in Phase 3; keys cells now. */
 export function regionOf(cell: H3Index): H3Index {
   return cellToParent(cell, H3_RES_REGION);
+}
+
+/** The res-6 region a position falls in, without first resolving the res-11 cell. */
+export function regionAt(position: LatLng): H3Index {
+  return latLngToCell(position.lat, position.lng, H3_RES_REGION);
+}
+
+/**
+ * The res-6 regions that could hold a cell inside `bbox`.
+ *
+ * This is what lets `getCells` be a bounded read: rather than scanning every stored cell,
+ * the caller reads only `cell:${region}:` for these regions. Three sources unioned so it
+ * stays correct at every size — a phone viewport (smaller than one ~36 km² region), a pan
+ * that straddles a region edge, and a zoomed-out box that spans many:
+ *   1. every region whose centre lies in the box (`polygonToCells`),
+ *   2. the regions the four corners and the centre fall in — the small-box case (1) misses,
+ *   3. the immediate neighbours of the corner regions, for a viewport that overlaps a
+ *      region without covering its centre.
+ *
+ * h3-js takes `[lat, lng]`, the reverse of GeoJSON; the wrong order silently returns cells
+ * in the wrong hemisphere rather than an error.
+ */
+export function regionsCoveringBBox(bbox: BBox): H3Index[] {
+  const corners: LatLng[] = [
+    { lat: bbox.south, lng: bbox.west },
+    { lat: bbox.south, lng: bbox.east },
+    { lat: bbox.north, lng: bbox.east },
+    { lat: bbox.north, lng: bbox.west },
+  ];
+  const centre: LatLng = {
+    lat: (bbox.south + bbox.north) / 2,
+    lng: (bbox.west + bbox.east) / 2,
+  };
+
+  const regions = new Set<H3Index>(
+    polygonToCells([corners.map((p) => [p.lat, p.lng])], H3_RES_REGION),
+  );
+  for (const seed of [...corners, centre].map(regionAt)) {
+    for (const near of gridDisk(seed, 1)) regions.add(near);
+  }
+  return [...regions];
 }
 
 /**

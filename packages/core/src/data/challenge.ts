@@ -23,7 +23,11 @@ export interface Challenge {
   level: number;
   /** Ground held, at the moment of export. */
   cells: Array<{ h3: H3Index; strength: number }>;
-  /** Their Anchor Stone, if they have one. */
+  /**
+   * Their Keep, if they have one — never their Hearth (BRDC-CASTLE-001). Only ever
+   * read as a null check for the Anchor bonus (`wagerBattle.ts`), which is why the
+   * decoy location is exactly as good here as the real one.
+   */
   home: H3Index | null;
   /**
    * What they built on their border.
@@ -68,7 +72,7 @@ export type ChallengeResult =
  * their strength upward — a client-side checksum cannot do the second thing and pretending
  * otherwise would be worse than admitting it. Phase 3's server is where authority lives.
  */
-export function checksum(payload: Omit<Challenge, 'sum'>): string {
+export function checksum(payload: object): string {
   const text = JSON.stringify(payload);
   let h = 2166136261;
   for (let i = 0; i < text.length; i += 1) {

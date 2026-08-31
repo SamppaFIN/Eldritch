@@ -17,10 +17,11 @@ import {
   TRICKLE_PER_HOUR,
   WARD_COST,
   cellAreaM2,
+  daysBetween,
   hoursUntilReleased,
-  resourceOf,
+  resourceForCell,
   revealProgress,
-  terrainOf,
+  terrainForCell,
 } from '@es3/core';
 import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es3/core';
 import { useEffect, useRef } from 'react';
@@ -45,25 +46,60 @@ export interface CellPanelProps {
 }
 
 const GROUND: Readonly<Record<TerrainKind, string>> = {
-  water: 'Still water',
-  forest: 'Old woodland',
-  market: 'A place of trade',
   plain: 'Plain ground',
+  forest: 'Old woodland',
+  hill: 'Bare hillside',
+  mountain: 'Broken rock',
+  lake: 'Still water',
+  coast: 'The shoreline',
+  market: 'A place of trade',
 };
 
 const YIELD: Readonly<Record<TerrainKind, string>> = {
-  water: 'yields water',
-  forest: 'yields timber',
-  market: 'yields gold',
   plain: 'yields nothing',
+  forest: 'yields timber',
+  hill: 'yields stone',
+  mountain: 'yields iron',
+  lake: 'yields food',
+  coast: 'yields food',
+  market: 'yields gold',
 };
 
 /** The resource a terrain gives, said the way the pouch says it. */
 const RESOURCE_NAME: Readonly<Record<string, string>> = {
-  water: 'water',
+  food: 'food',
   wood: 'timber',
+  stone: 'stone',
+  iron: 'iron',
   gold: 'gold',
 };
+
+/** "3 days ago", "yesterday", "today" — from a day count. */
+function ago(days: number): string {
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  return `${days} days ago`;
+}
+
+/**
+ * The most recent thing that happened to this cell, in a sentence (BRDC-HEX-001).
+ *
+ * The client has ids, not names, so anyone who is not the local player reads as "another
+ * wanderer"; unowned ground it was claimed from is "the Void".
+ */
+function historyLine(cell: Cell, me: PlayerId | null, now: number): string | null {
+  const last = cell.history?.[cell.history.length - 1];
+  if (last) {
+    const when = ago(daysBetween(last.at, now));
+    if (last.from === null) {
+      return last.to === me ? `You claimed this from the Void ${when}` : `Claimed from the Void ${when}`;
+    }
+    return last.to === me ? `You took this ${when}` : `Taken from another wanderer ${when}`;
+  }
+  if (cell.finder === me) return 'You revealed this';
+  if (cell.finder) return 'Revealed by another wanderer';
+  return null;
+}
 
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<WardRefusal, string>> = {
@@ -124,9 +160,10 @@ export function CellPanel({
 
   if (!cell) return null;
 
-  const terrain = terrainOf(cell.h3);
-  const resource = resourceOf(cell.h3);
+  const terrain = terrainForCell(cell);
+  const resource = resourceForCell(cell);
   const mine = cell.ownerId !== null && cell.ownerId === me;
+  const history = historyLine(cell, me, now);
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
 
@@ -140,10 +177,16 @@ export function CellPanel({
     >
       <div className="cell-panel__head">
         <div>
-          <p className="cell-panel__ground">{GROUND[terrain]}</p>
+          <p className="cell-panel__ground">
+            {GROUND[terrain.kind]}
+            <span className="cell-panel__source">
+              {' '}
+              {terrain.source === 'tiles' ? '(from the map)' : '(estimated)'}
+            </span>
+          </p>
           <p className="cell-panel__yield">
             {here ? 'You are here · ' : ''}
-            {YIELD[terrain]}
+            {YIELD[terrain.kind]}
           </p>
         </div>
         <RitualButton
@@ -159,6 +202,13 @@ export function CellPanel({
       <p className="cell-panel__owner">
         {mine ? 'Yours' : cell.ownerId === null ? 'Unclaimed' : 'Held by another'}
       </p>
+
+      {history ? (
+        <p className="cell-panel__history">
+          {history}
+          {cell.ownedDays && cell.ownedDays > 1 ? ` · walked on ${cell.ownedDays} days` : ''}
+        </p>
+      ) : null}
 
       {/*
         What holding it is worth.

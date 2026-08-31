@@ -205,3 +205,40 @@ describe('outcomes report both sides of the change', () => {
     expect(cell).toEqual(snapshot);
   });
 });
+
+describe('a cell remembers its history (BRDC-HEX-001)', () => {
+  it('a first claim records the finder, the reveal time and one history row', () => {
+    const { cell } = resolveCapture(emptyCell(H3), ME, DAY(0));
+    expect(cell.finder).toBe('me');
+    expect(cell.revealedAt).toBe(DAY(0));
+    expect(cell.ownedDays).toBe(1);
+    expect(cell.history).toEqual([{ to: 'me', from: null, at: DAY(0), power: BASE_STRENGTH }]);
+  });
+
+  it('a stolen cell keeps its finder and appends a second row', () => {
+    const founded = resolveCapture(emptyCell(H3), { id: RIVAL, level: 1 }, DAY(0)).cell;
+    const weak = { ...founded, strength: 1 };
+    const { cell } = resolveCapture(weak, ME, DAY(2));
+
+    expect(cell.ownerId).toBe('me');
+    expect(cell.finder).toBe(RIVAL);
+    expect(cell.history).toHaveLength(2);
+    expect(cell.history?.[1]).toEqual({ to: 'me', from: RIVAL, at: DAY(2), power: attackPower(ME) });
+  });
+
+  it('counts a day held on each new-day reinforcement, not on a same-day revisit', () => {
+    const day0 = resolveCapture(emptyCell(H3), ME, DAY(0)).cell;
+    const sameDay = resolveCapture(day0, ME, DAY(0) + 3_600_000).cell;
+    expect(sameDay.ownedDays).toBe(1);
+
+    const day1 = resolveCapture(sameDay, ME, DAY(1)).cell;
+    expect(day1.ownedDays).toBe(2);
+  });
+
+  it('a reclaimed cell keeps the original finder', () => {
+    const founded = resolveCapture(emptyCell(H3), { id: RIVAL, level: 1 }, DAY(0)).cell;
+    // Released: back to unowned, but the row is still on disk for a moment.
+    const released: Cell = { ...founded, ownerId: null, strength: 0 };
+    expect(resolveCapture(released, ME, DAY(5)).cell.finder).toBe(RIVAL);
+  });
+});

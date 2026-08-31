@@ -160,6 +160,27 @@ export const ANCHOR = {
  */
 export const CHALLENGE_VERSION = 2;
 
+/**
+ * The wire format for one region's slice of the shared world (BRDC-SHARE-001).
+ *
+ * Its own number, like CHALLENGE_VERSION: `world/<res6>.json` is rebuilt by a cron job
+ * from player submissions and read by every client, and it changes shape for reasons that
+ * have nothing to do with a save or a hand-carried challenge. An unknown version is
+ * rejected by name, never merged.
+ */
+export const WORLD_VERSION = 1;
+/** Cells per region shard. A city block is fine; a city is a directory of shards. */
+export const MAX_SHARD_CELLS = 4_000;
+
+/**
+ * Ownership changes kept per cell (BRDC-HEX-001).
+ *
+ * A cell on a contested border can change hands many times; without a ceiling its history
+ * grows storage without bound. Twenty is enough to read "this has been fought over"
+ * without keeping a ledger back to the first claim.
+ */
+export const MAX_CELL_HISTORY = 20;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**
@@ -184,3 +205,14 @@ export const WALL_GUARD = 35;
  * way would be released by decay, and that is ownership changing hands by message.
  */
 export const WAGER_SPOIL = 150;
+
+/* --- The Keep (BRDC-CASTLE-001) ------------------------------------------- */
+
+/**
+ * How far the public decoy sits from the real Hearth.
+ *
+ * Far enough that it does not read as the same building; close enough that it still
+ * looks like this player's corner of town on a map that only ever shows the Keep.
+ */
+export const CASTLE_MIN_RADIUS_M = 300;
+export const CASTLE_MAX_RADIUS_M = 900;

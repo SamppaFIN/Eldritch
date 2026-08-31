@@ -10,7 +10,7 @@
  * arrives, the same rules exist a second time in SQL, and the golden-fixture tests
  * (Phase 3) assert the two agree cell by cell.
  */
-import { cellToLatLng, latLngToCell } from 'h3-js';
+import { latLngToCell } from 'h3-js';
 import { filterTrail } from '../geo/filter.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
@@ -18,6 +18,7 @@ import { recordWalk } from './walkWriter.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { projectCell, sweepDecay } from '../rules/decay.js';
+import { allCells, cellsInBBox, hasGround, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
 import type { WardResult } from '../rules/ward.js';
@@ -35,10 +36,13 @@ import type {
   PlayerProfile,
   Run,
   RunId,
+  Terrain,
   TrailPoint,
 } from '../types/index.js';
 import type { KeyValueStore } from './kv.js';
 import { MemoryStore } from './kv.js';
+import { versioned } from './schema.js';
+import type { SchemaOutcome, VersionedStore } from './schema.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
 import {
@@ -49,12 +53,12 @@ import {
   writeDefence,
 } from './wager.js';
 import type { ImportResult } from './wager.js';
+import { parseWorld, worldToCells } from './world.js';
+import type { WorldImportResult } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
+import { assignCastle } from './castle.js';
 
-
-
-const CELL_PREFIX = 'cell:';
 
 export interface MockRepositoryOptions {
   store?: KeyValueStore;
@@ -65,14 +69,27 @@ export interface MockRepositoryOptions {
 }
 
 export class MockRepository implements GameRepository {
-  private readonly store: KeyValueStore;
+  private readonly store: VersionedStore;
   private readonly newId: () => string;
   private readonly seed: number;
 
   constructor(opts: MockRepositoryOptions = {}) {
-    this.store = opts.store ?? new MemoryStore();
+    // Wrapped here, not in createRepository, so a store handed straight to the
+    // constructor — every test, and the offline fallback — is guarded too. This is the
+    // one wrap site; the raw store goes in, nothing double-wraps it.
+    this.store = versioned(opts.store ?? new MemoryStore());
     this.newId = opts.newId ?? (() => globalThis.crypto.randomUUID());
     this.seed = opts.seed ?? 20260826;
+  }
+
+  /**
+   * Whether the store was wiped on open because its schema version did not match
+   * (BRDC-PERSIST-002). Off the `GameRepository` interface on purpose — a concrete-class
+   * extra like `toOwnershipCell`, read by `createRepository` to raise a notice. Awaiting
+   * it runs the one-time check if nothing has yet.
+   */
+  async schemaOutcome(): Promise<SchemaOutcome> {
+    return this.store.schema();
   }
 
   /* --- Profile ---------------------------------------------------------- */
@@ -157,12 +174,12 @@ export class MockRepository implements GameRepository {
     const walked = await recordWalk(this.store, accepted, {
       id: profile.id,
       level: profile.level,
-      hasTerritory: await this.hasGround(profile.id),
+      hasTerritory: await hasGround(this.store, profile.id),
     });
 
     if (walked.xp > 0) await this.addXp(walked.xp);
     const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
-    await awardClaims(this.store, await this.ownedIndexes(lastT), walked.grown, lastT);
+    await awardClaims(this.store, await this.getOwnedCells(lastT), walked.grown, lastT);
 
     return { ...result, ...walked.trail };
   }
@@ -182,7 +199,7 @@ export class MockRepository implements GameRepository {
   /* --- Resources -------------------------------------------------------- */
 
   async getResources(now: number): Promise<ResourcePool> {
-    return (await settlePouch(this.store, await this.ownedIndexes(now), now)).pool;
+    return (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
   }
 
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
@@ -193,21 +210,19 @@ export class MockRepository implements GameRepository {
     if (!live) return { warded: false, refused: 'not-yours' };
 
     const me = await this.getProfile();
-    const owned = await this.ownedIndexes(now);
+    const owned = await this.getOwnedCells(now);
     const result = await wardWith(this.store, live, me.id, owned, now);
     if (result.warded) await this.store.set(K.cell(h3), result.cell);
     return result;
   }
 
-  private async ownedIndexes(now: number): Promise<H3Index[]> {
-    return (await this.getOwnedCells(now)).map((c) => c.h3);
-  }
-
   /* --- The Wager, carried by hand --------------------------------------- */
 
   async exportChallenge(now: number): Promise<string> {
-    // Projected, so what travels is the ground that is actually still standing.
-    return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getHome(), await this.getDefence(), now);
+    // Projected, so what travels is the ground that is actually still standing. The
+    // Keep, not the Hearth: `home` here only ever gates the Anchor bonus (a null check,
+    // see wagerBattle.ts) and never needs the real address to do it (BRDC-CASTLE-001).
+    return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getCastle(), await this.getDefence(), now);
   }
 
   async importChallenge(text: string, now: number): Promise<ImportResult> {
@@ -218,9 +233,31 @@ export class MockRepository implements GameRepository {
       text,
       await this.getProfile(),
       await this.getOwnedCells(now),
-      await this.getHome(),
+      await this.getCastle(),
       now,
     );
+  }
+
+  async importWorld(text: string, now: number): Promise<WorldImportResult> {
+    const parsed = parseWorld(text);
+    if (!parsed.ok) return parsed;
+
+    const me = await this.getProfile();
+    let written = 0;
+    for (const cell of worldToCells(parsed.shard, me.id, now)) {
+      // A file never overwrites your own ground — a disagreement is settled by the Wager.
+      const existing = await this.store.get<Cell>(K.cell(cell.h3));
+      if (existing?.ownerId === me.id) continue;
+      await this.store.set(K.cell(cell.h3), cell);
+      written += 1;
+    }
+    return {
+      ok: true,
+      region: parsed.shard.region,
+      players: parsed.shard.players.filter((p) => p.id !== me.id).length,
+      cells: written,
+      generatedAt: parsed.shard.generatedAt,
+    };
   }
 
   async getDefence(): Promise<Defence> {
@@ -235,7 +272,7 @@ export class MockRepository implements GameRepository {
     return ownCombatant(
       await this.getProfile(),
       await this.getOwnedCells(now),
-      await this.getHome(),
+      await this.getCastle(),
       await this.getDefence(),
     );
   }
@@ -245,12 +282,19 @@ export class MockRepository implements GameRepository {
   async setHome(position: LatLng, now: number): Promise<H3Index> {
     const profile = await this.getProfile();
     const h3 = await claimHearth(this.store, profile, position, now);
+    await assignCastle(this.store, position, this.newId());
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
     return h3;
   }
 
   async getHome(): Promise<H3Index | null> {
     return (await this.store.get<H3Index>(K.home)) ?? null;
+  }
+
+  /* --- The Keep ----------------------------------------------------------- */
+
+  async getCastle(): Promise<H3Index | null> {
+    return (await this.store.get<H3Index>(K.castle)) ?? null;
   }
 
   /* --- Places ----------------------------------------------------------- */
@@ -263,15 +307,6 @@ export class MockRepository implements GameRepository {
     return ((await this.store.get<DwellMap>(K.dwell)) ?? {})[h3] ?? 0;
   }
 
-  /** Does the player hold anything at all? The seed exception turns on this. */
-  private async hasGround(playerId: string): Promise<boolean> {
-    for (const key of await this.store.keys(CELL_PREFIX)) {
-      const cell = await this.store.get<Cell>(key);
-      if (cell?.ownerId === playerId) return true;
-    }
-    return false;
-  }
-
   /* --- Territory -------------------------------------------------------- */
 
   /**
@@ -282,18 +317,17 @@ export class MockRepository implements GameRepository {
    * genuinely unowned again, and leaving it on disk would keep a ghost nobody can take.
    */
   async getCells(bbox: BBox, now: number): Promise<Cell[]> {
-    const visible = (await this.allCells()).filter((cell) => inBBox(cell, bbox));
-    const sweep = sweepDecay(visible, now);
-    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
-    return sweep.cells;
+    return (await sweepAndPersist(this.store, await cellsInBBox(this.store, bbox), now)).cells;
   }
 
   async getOwnedCells(now: number): Promise<Cell[]> {
     const me = await this.getProfile();
-    const mine = (await this.allCells()).filter((c) => c.ownerId === me.id);
-    const sweep = sweepDecay(mine, now);
-    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
-    return sweep.cells;
+    const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
+    return (await sweepAndPersist(this.store, mine, now)).cells;
+  }
+
+  async setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void> {
+    await setStoredTerrain(this.store, h3, terrain);
   }
 
   /**
@@ -325,7 +359,7 @@ export class MockRepository implements GameRepository {
     const plan = planClaim(detected.loop, { id: profile.id, level: profile.level }, known, now);
     for (const cell of plan.cells) await this.store.set(K.cell(cell.h3), cell);
     if (plan.xp > 0) await this.addXp(plan.xp);
-    await awardClaims(this.store, await this.ownedIndexes(now), plan.outcomes, now);
+    await awardClaims(this.store, await this.getOwnedCells(now), plan.outcomes, now);
 
     // The ring is spent. Keeping it would let the next fix close the same loop again.
     await this.store.set(K.trail(runId), points.slice(detected.loop.endIndex));
@@ -334,8 +368,7 @@ export class MockRepository implements GameRepository {
   }
 
   async runDecay(now: number): Promise<DecayResult> {
-    const sweep = sweepDecay(await this.allCells(), now);
-    for (const h3 of sweep.released) await this.store.delete(K.cell(h3));
+    const sweep = await sweepAndPersist(this.store, await allCells(this.store), now);
     return { weakened: sweep.weakened, released: sweep.released };
   }
 
@@ -356,38 +389,6 @@ export class MockRepository implements GameRepository {
       await this.store.set(K.cell(cell.h3), cell);
     }
   }
-
-  private async allCells(): Promise<Cell[]> {
-    const keys = await this.store.keys(CELL_PREFIX);
-    const cells: Cell[] = [];
-    for (const key of keys) {
-      const cell = await this.store.get<Cell>(key);
-      if (cell) cells.push(cell);
-    }
-    return cells;
-  }
-}
-
-/**
- * Cheap bbox test on the cell's own index.
- *
- * Decoding every stored cell to a boundary would be exact but pointless here: a res-11
- * cell is ~40 m across, and the viewport query only needs to be right to within a cell.
- */
-function inBBox(cell: Cell, bbox: BBox): boolean {
-  const { lat, lng } = cellCentre(cell.h3);
-  return lat >= bbox.south && lat <= bbox.north && lng >= bbox.west && lng <= bbox.east;
-}
-
-const centreCache = new Map<string, { lat: number; lng: number }>();
-
-function cellCentre(h3: string): { lat: number; lng: number } {
-  const hit = centreCache.get(h3);
-  if (hit) return hit;
-  const [lat, lng] = cellToLatLng(h3);
-  const value = { lat, lng };
-  centreCache.set(h3, value);
-  return value;
 }
 
 /** The ownership-resolution cell for a position, without importing h3-js downstream. */

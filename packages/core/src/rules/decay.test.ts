@@ -147,3 +147,23 @@ describe('sweepDecay', () => {
     expect(sweepDecay([], days(100))).toEqual({ cells: [], weakened: [], released: [] });
   });
 });
+
+describe('imported cells do not decay (BRDC-SHARE-001)', () => {
+  const fromWorld: Cell = {
+    h3: 'w',
+    ownerId: 'someone-else',
+    strength: 120,
+    lastVisitedAt: T0,
+    visitDays: [],
+    imported: true,
+  };
+
+  it('projectCell returns it unchanged a month on', () => {
+    expect(projectCell(fromWorld, days(30))).toEqual(fromWorld);
+  });
+
+  it('sweepDecay never weakens or releases it', () => {
+    const sweep = sweepDecay([fromWorld], days(90));
+    expect(sweep).toEqual({ cells: [fromWorld], weakened: [], released: [] });
+  });
+});

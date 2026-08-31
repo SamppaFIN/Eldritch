@@ -71,6 +71,22 @@ describe('dominionOf', () => {
   it('pays nothing per hour for plain ground', () => {
     const plain = ground(30).filter((c) => resourceOf(c.h3) === null);
     const d = dominionOf(plain, T0);
-    expect(d.perHour).toEqual({ water: 0, wood: 0, gold: 0 });
+    expect(Object.values(d.perHour).every((v) => v === 0)).toBe(true);
+    expect(d.resting).toBe(0);
+  });
+
+  it('counts a producing cell gone quiet as resting, not producing', () => {
+    // BRDC-ECON-001: a cell not visited within the grace window earns nothing, and the
+    // HUD must say so rather than claim a rate the pouch is not actually being paid.
+    const cells = ground(30);
+    const wood = cells.find((c) => resourceOf(c.h3) === 'wood') as Cell;
+    const stale = { ...wood, lastVisitedAt: T0 - 60 * HOUR };
+    const others = cells.filter((c) => c.h3 !== wood.h3);
+
+    const awake = dominionOf(cells, T0);
+    const gone = dominionOf([...others, stale], T0);
+
+    expect(gone.producing.wood).toBe(awake.producing.wood - 1);
+    expect(gone.resting).toBe(awake.resting + 1);
   });
 });

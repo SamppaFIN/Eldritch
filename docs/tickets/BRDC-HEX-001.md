@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-003, BRDC-INSPECT-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-08-31 (world.json-vienti `[~]`, ks. GREEN 6) |
+| **Valmius** | 90 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (H1–H2) |
 
 ## 🔴 RED
@@ -24,15 +24,37 @@ jonka valtasit joltakulta. Peli ei tällä hetkellä erota niitä.
 
 ## 🟢 GREEN
 
-- [ ] `Cell` kantaa **löytäjän** ja **paljastushetken** — kirjoitetaan kerran, ei koskaan uudestaan
-- [ ] Jokainen omistajuuden vaihdos kirjaa rivin: kuka, keneltä, milloin, millä voimalla
-- [ ] Historia on **rajattu pituudeltaan** solua kohden ja raja on testattu — muuten
-      kiistelty rajasolu kasvattaa tallennusta ilman kattoa
-- [ ] **Päivittäinen omistajuus**: montako vuorokautta solu on ollut kenelläkin.
-      Tämä on suunnitelman H2 ja se on myös uskollisuuden pohja
-- [ ] `CellPanel` näyttää historian ihmisen kielellä ("Otettu Vieraalta 3 vrk sitten")
-- [ ] Historia kulkee `world.json`issa mukana rajattuna (`BRDC-SHARE-001`)
-- [ ] Puhtaat funktiot testattuina; ei kelloa ilman `now`-parametria
+- [x] `Cell.finder` + `Cell.revealedAt` — asetetaan `resolveCapture`:n `claimed`-haarassa
+      `cell.finder ?? attacker.id`, ei koskaan ylikirjoiteta (`taken` säilyttää alkuperäisen)
+- [x] Jokainen omistajuuden vaihdos kirjaa `OwnershipChange`-rivin: `to, from, at, power`
+      (`claimed` ja `taken` -haarat, `appendChange`)
+- [x] Historia **rajattu** `MAX_CELL_HISTORY = 20`:een, `appendChange` pudottaa vanhimman;
+      testattu `history.test.ts`:ssä
+- [x] **Päivittäinen omistajuus** `Cell.ownedDays` — kasvaa joka uuden päivän
+      `reinforced`-haarassa. **Harkinta:** lasketaan *päiviä käyty omistaessa*, ei
+      kalenteripäiviä (hylätty solu ei kerää uskollisuutta, eikä päiväjoukkoa tallenneta
+      rajattomasti). Kumulatiivinen omistajien yli
+- [x] `CellPanel` näyttää historian lauseena ("Taken from another wanderer 3 days ago",
+      "You revealed this") + "walked on N days". `from`:lla ei ole nimeä clientillä →
+      "another wanderer", `null` → "the Void"
+- [~] Historia `world.json`issa — **siirretty jatkoon.** `WorldShard`/`WorldSubmission`:n
+      solut ovat `{ h3, strength }`; `finder`+`history` vaatisi `buildShards`:n sisäisen
+      litistyksen levennyksen + checksum-katteen + validoinnin, ja tuotu solu on jäädytetty
+      tuontihetkellä (ei rappeudu, ei vaihda omistajaa paikallisesti) → arvo pieni,
+      niputetaan world.json-passiin
+- [x] Puhtaat funktiot testattuina (`history.test.ts` 3, `capture.test.ts` +4); `now` aina
+      parametri
+
+## Toteutettu 2026-08-31
+
+- `types/domain.ts`: `OwnershipChange` + `Cell.finder?/revealedAt?/ownedDays?/history?`,
+  kaikki optionaalisia → **ei skeemanostoa** (kuten `imported`, `terrain`).
+- `rules/history.ts` (uusi): `appendChange` (litistä + slice `-MAX_CELL_HISTORY`).
+- `rules/capture.ts`: `claimed`/`taken`/`reinforced`-haarat kirjaavat. `applySpoils` ei
+  koskenut — se ei käännä omistajaa ja säilyttää kentät `{...cell}`:llä.
+- `CellPanel.tsx` + `cell-panel.css`: `historyLine`-apuri.
+- **Ei `MockRepository`-muutosta** — historia ratsastaa soluilla jotka `planClaim`/
+  `planWalk`/`growth` jo tuottavat ja repo jo tallentaa. 495 testiä vihreää.
 
 ## Toteutus
 

@@ -26,6 +26,7 @@ import {
   STREAK_VISIT_BONUS,
 } from './constants.js';
 import { previousDay, utcDay } from './day.js';
+import { appendChange } from './history.js';
 
 export interface Attacker {
   id: PlayerId;
@@ -83,6 +84,16 @@ export function resolveCapture(cell: Cell, attacker: Attacker, now: number): Cap
         strength: BASE_STRENGTH,
         lastVisitedAt: now,
         visitDays: [today],
+        // Written once. A cell reclaimed after a release keeps whoever first found it.
+        finder: cell.finder ?? attacker.id,
+        revealedAt: cell.revealedAt ?? now,
+        ownedDays: 1,
+        history: appendChange(cell.history, {
+          to: attacker.id,
+          from: previousOwner,
+          at: now,
+          power: BASE_STRENGTH,
+        }),
       },
       outcome: {
         h3: cell.h3,
@@ -125,6 +136,8 @@ export function resolveCapture(cell: Cell, attacker: Attacker, now: number): Cap
         visitDays: [previousDay(today), today].filter(
           (d) => d === today || cell.visitDays.includes(d),
         ),
+        // This branch runs only on a new day, so every pass through it is one more day held.
+        ownedDays: (cell.ownedDays ?? 1) + 1,
       },
       outcome: {
         h3: cell.h3,
@@ -162,6 +175,16 @@ export function resolveCapture(cell: Cell, attacker: Attacker, now: number): Cap
       strength: BASE_STRENGTH,
       lastVisitedAt: now,
       visitDays: [today],
+      // A stolen cell keeps whoever first revealed it, and its running days-held count.
+      ...(cell.finder !== undefined ? { finder: cell.finder } : {}),
+      ...(cell.revealedAt !== undefined ? { revealedAt: cell.revealedAt } : {}),
+      ownedDays: cell.ownedDays ?? 1,
+      history: appendChange(cell.history, {
+        to: attacker.id,
+        from: previousOwner,
+        at: now,
+        power: damage,
+      }),
     },
     outcome: {
       h3: cell.h3,

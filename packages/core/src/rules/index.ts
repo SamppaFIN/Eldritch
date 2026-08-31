@@ -4,6 +4,8 @@ export type { LevelState } from './level.js';
 export { daysBetween, previousDay, utcDay } from './day.js';
 export { attackPower, emptyCell, resolveCapture } from './capture.js';
 export type { Attacker, CaptureResult } from './capture.js';
+export { appendChange } from './history.js';
+export type { OwnershipChange } from './history.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
 export { growInto, growthNeighbourhood } from './growth.js';
@@ -21,19 +23,33 @@ export {
 } from './dwell.js';
 export type { DwellMap, DwellReading, Place, PlaceKind } from './dwell.js';
 export {
+  BASE_STORAGE_CAP,
   CLAIM_YIELD,
   EMPTY_POOL,
-  RESOURCE_OF,
+  RESOURCE_KINDS,
+  TERRAIN_TABLE,
   TRICKLE_PER_HOUR,
   addClaimYield,
   canAfford,
+  resourceForCell,
   resourceOf,
   settleResources,
   spend,
+  terrainForCell,
+  terrainFromTiles,
   terrainOf,
   trickle,
 } from './terrain.js';
-export type { ResourceKind, ResourcePool, ResourceState, TerrainKind } from './terrain.js';
+export type {
+  BuildSite,
+  ResourceKind,
+  ResourcePool,
+  ResourceState,
+  Terrain,
+  TerrainKind,
+  TerrainSource,
+  TileFeature,
+} from './terrain.js';
 export { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
 export type { WardRefusal, WardResult } from './ward.js';
 export { muster, resolveWager, wagerSeed } from './wagerBattle.js';

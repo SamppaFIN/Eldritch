@@ -1,0 +1,63 @@
+name: Rebuild world.json
+
+# BRDC-SHARE-001. Multiplayer without a server: players submit their territory as a
+# `world-submission` issue, this job merges the open ones into apps/game/public/world/
+# and pushes, which trips deploy.yml and publishes the new shards to Pages.
+#
+# Runs only on the default branch (cron always does). Until this file is on main it is
+# written but never exercised — the merge logic it calls is covered by world.test.ts.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: world
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # build-world.mjs imports packages/core/dist, the way gen-fixtures.mjs does;
+      # `pnpm typecheck` is `tsc -b`, which emits it.
+      - run: pnpm typecheck
+
+      - name: Collect open submissions, oldest first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue list --label world-submission --state open --limit 500 \
+            --json number,body --jq 'sort_by(.number)' > raw.json
+          jq '[.[].body]' raw.json > submissions.json
+          jq -r '.[].number' raw.json > processed.txt
+
+      - run: node scripts/build-world.mjs < submissions.json
+
+      - name: Commit the rebuilt world
+        run: |
+          git config user.name 'eldritch-world-bot'
+          git config user.email 'world-bot@users.noreply.github.com'
+          git add apps/game/public/world
+          git diff --cached --quiet || git commit -m 'world.json: scheduled rebuild'
+          git push
+
+      - name: Close merged submissions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while read -r n; do
+            [ -n "$n" ] && gh issue close "$n" --comment 'Merged into world.json.'
+          done < processed.txt

@@ -37,6 +37,41 @@ export interface Run {
   distanceM: number;
 }
 
+/**
+ * What the ground under a cell is made of (BRDC-TERRAIN-002). Lives here rather than in
+ * rules/terrain.ts because `Cell` carries it and rules/terrain.ts imports `Cell`.
+ */
+export type TerrainKind =
+  | 'plain'
+  | 'forest'
+  | 'hill'
+  | 'mountain'
+  | 'lake'
+  | 'coast'
+  | 'market';
+
+/** Whether a cell's terrain was read from the map's vector tiles or stood in by a hash. */
+export type TerrainSource = 'tiles' | 'hash';
+
+export interface Terrain {
+  kind: TerrainKind;
+  source: TerrainSource;
+}
+
+/**
+ * One entry in a cell's ownership history (BRDC-HEX-001). Lives here, not in
+ * rules/history.ts, because `Cell` carries a list of them and rules/history.ts imports
+ * `Cell`.
+ */
+export interface OwnershipChange {
+  to: PlayerId;
+  /** Who it was taken from, or `null` when it was claimed from unowned ground. */
+  from: PlayerId | null;
+  at: number;
+  /** The attack power that broke it, or BASE_STRENGTH for a fresh claim. */
+  power: number;
+}
+
 export interface Cell {
   h3: H3Index;
   ownerId: PlayerId | null;
@@ -45,6 +80,30 @@ export interface Cell {
   lastVisitedAt: number;
   /** UTC calendar days (YYYY-MM-DD) the owner has passed through. */
   visitDays: string[];
+  /** Who first claimed this cell from nobody. Written once, never overwritten. */
+  finder?: PlayerId;
+  /** When `finder` claimed it. */
+  revealedAt?: number;
+  /**
+   * Distinct UTC days the cell has been walked while held — the loyalty base
+   * (BRDC-HEX-001, BRDC-BUILD-003). Not raw calendar days: an unwalked cell earns no
+   * loyalty, and a stored day-set would grow without a ceiling. Cumulative across owners.
+   */
+  ownedDays?: number;
+  /** Ownership changes, oldest first, capped at MAX_CELL_HISTORY. */
+  history?: OwnershipChange[];
+  /**
+   * Came from `world.json`, not from this device (BRDC-SHARE-001). It is someone else's
+   * truth, refreshed by cron; this device never sees its visits, so it must not be
+   * decayed or released locally. Absent means local — no migration needed.
+   */
+  imported?: boolean;
+  /**
+   * Resolved terrain, once the map's tiles have been read for this cell
+   * (BRDC-TERRAIN-002). Absent means "not resolved yet" — callers fall back to the hash
+   * (`terrainForCell`). Additive, so no save migration.
+   */
+  terrain?: Terrain;
 }
 
 export interface PlayerProfile {

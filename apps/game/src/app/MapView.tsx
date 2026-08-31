@@ -10,9 +10,11 @@ import { cellAt, clearAll, levelState, load, saveNow, speedMs } from '@es3/core'
 import type {
   BBox,
   GameRepository,
+  H3Index,
   PlayerProfile,
   ResourcePool,
   RevealedPlace,
+  Terrain,
   TrailPoint,
 } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
@@ -35,6 +37,7 @@ import { Hud } from '../features/hud/Hud.js';
 import { ResetDialog, WithdrawDialog } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { createRepository } from '../data/createRepository.js';
+import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
 
 export interface MapViewProps {
@@ -44,12 +47,14 @@ export interface MapViewProps {
 export function MapView({ onLeave }: MapViewProps) {
   const [repository, setRepository] = useState<GameRepository | null>(null);
   const [durable, setDurable] = useState(true);
+  const [schemaReset, setSchemaReset] = useState(false);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
   const [simulate, setSimulate] = useState(false);
   const [bbox, setBbox] = useState<BBox | null>(null);
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
+  const [castle, setCastle] = useState<H3Index | null>(null);
   const [resources, setResources] = useState<ResourcePool | null>(null);
 
   /*
@@ -74,7 +79,10 @@ export function MapView({ onLeave }: MapViewProps) {
       if (cancelled) return;
       setRepository(handle.repository);
       setDurable(handle.durable);
+      setSchemaReset(handle.reset);
       setProfile(await handle.repository.getProfile());
+      // A returning player already has a Keep; setHome below only fires for a fresh one.
+      setCastle(await handle.repository.getCastle());
     })();
     return () => {
       cancelled = true;
@@ -112,6 +120,7 @@ export function MapView({ onLeave }: MapViewProps) {
       if (await repository.getHome()) return;
       await repository.setHome(mark.position, clock.now());
       setProfile(await repository.getProfile());
+      setCastle(await repository.getCastle());
     })();
   }, [repository, clock]);
 
@@ -142,6 +151,13 @@ export function MapView({ onLeave }: MapViewProps) {
     bbox,
     now: clock.now,
     position: point,
+  });
+
+  const worldStirredMs = useWorld({
+    repository,
+    bbox,
+    now: clock.now,
+    onMerged: territory.refresh,
   });
 
   /*
@@ -190,6 +206,15 @@ export function MapView({ onLeave }: MapViewProps) {
   }, [territory.lastClaim]);
 
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
+
+  const onCellTerrain = useCallback(
+    async (updates: { h3: string; terrain: Terrain }[]) => {
+      if (!repository) return;
+      for (const u of updates) await repository.setCellTerrain(u.h3, u.terrain);
+      await territory.refresh();
+    },
+    [repository, territory.refresh],
+  );
 
   /*
    * Everything about what the player is inspecting, in one place.
@@ -249,12 +274,14 @@ export function MapView({ onLeave }: MapViewProps) {
         cells={territory.cells}
         playerId={profile?.id ?? null}
         places={places}
+        castle={castle}
         awakening={awakening}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}
         onCellTap={inspect.onCellTap}
         onPlaceTap={inspect.onPlaceTap}
         onViewportChange={onViewportChange}
+        onCellTerrain={onCellTerrain}
       />
 
       <ClaimBurst claim={territory.lastClaim} />
@@ -299,6 +326,18 @@ export function MapView({ onLeave }: MapViewProps) {
       {!durable ? (
         <p className="mapview__warning" role="status">
           This device will not keep your progress. The Void forgets between visits.
+        </p>
+      ) : null}
+
+      {schemaReset ? (
+        <p className="mapview__warning" role="status">
+          A sanctuary from an older age was found, and could not be read. It has returned to the Void.
+        </p>
+      ) : null}
+
+      {worldStirredMs !== null ? (
+        <p className="mapview__warning" role="status">
+          Other realms last stirred {Math.max(1, Math.round(worldStirredMs / 3_600_000))} h ago.
         </p>
       ) : null}
 

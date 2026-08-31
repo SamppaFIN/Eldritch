@@ -2,7 +2,16 @@ import { cellToLatLng, getResolution } from 'h3-js';
 import { describe, expect, it } from 'vitest';
 import { H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
 import { fixture } from '../sim/fixtures/index.js';
-import { cellAreaM2, cellAt, neighboursOf, regionOf, ringToCells, totalAreaM2 } from './cells.js';
+import {
+  cellAreaM2,
+  cellAt,
+  neighboursOf,
+  regionAt,
+  regionOf,
+  regionsCoveringBBox,
+  ringToCells,
+  totalAreaM2,
+} from './cells.js';
 import { detectLoops } from './loopDetection.js';
 import { haversine } from './haversine.js';
 import { destination } from './project.js';
@@ -110,6 +119,60 @@ describe('regionOf', () => {
     const cell = cellAt(ORIGIN);
     for (const neighbour of neighboursOf(cell)) {
       expect(regionOf(neighbour)).toBe(regionOf(cell));
+    }
+  });
+});
+
+describe('regionAt', () => {
+  it('returns a res-6 region', () => {
+    expect(getResolution(regionAt(ORIGIN))).toBe(H3_RES_REGION);
+  });
+
+  it('agrees with regionOf(cellAt(...))', () => {
+    expect(regionAt(ORIGIN)).toBe(regionOf(cellAt(ORIGIN)));
+  });
+});
+
+describe('regionsCoveringBBox', () => {
+  const box = (halfDeg: number) => ({
+    west: ORIGIN.lng - halfDeg,
+    east: ORIGIN.lng + halfDeg,
+    south: ORIGIN.lat - halfDeg,
+    north: ORIGIN.lat + halfDeg,
+  });
+
+  it('covers the region the box sits in, for a viewport smaller than one region', () => {
+    const regions = regionsCoveringBBox(box(0.01));
+    expect(regions).toContain(regionAt(ORIGIN));
+    expect(regions.every((r) => getResolution(r) === H3_RES_REGION)).toBe(true);
+  });
+
+  it('returns more than one region for a box that spans several', () => {
+    // ~0.2° ≈ 22 km N–S, well past one ~6 km res-6 cell.
+    expect(regionsCoveringBBox(box(0.2)).length).toBeGreaterThan(1);
+  });
+
+  it('stays a small set for a city-sized box', () => {
+    expect(regionsCoveringBBox(box(0.05)).length).toBeLessThan(25);
+  });
+
+  it('covers the regions of the box corners and edge midpoints', () => {
+    const b = box(0.03);
+    const covered = new Set(regionsCoveringBBox(b));
+    const midLat = (b.south + b.north) / 2;
+    const midLng = (b.west + b.east) / 2;
+    const probes = [
+      { lat: b.south, lng: b.west },
+      { lat: b.south, lng: b.east },
+      { lat: b.north, lng: b.east },
+      { lat: b.north, lng: b.west },
+      { lat: b.south, lng: midLng },
+      { lat: b.north, lng: midLng },
+      { lat: midLat, lng: b.west },
+      { lat: midLat, lng: b.east },
+    ];
+    for (const p of probes) {
+      expect(covered.has(regionOf(cellAt(p)))).toBe(true);
     }
   });
 });

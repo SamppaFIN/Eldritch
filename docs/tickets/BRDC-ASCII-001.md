@@ -106,6 +106,8 @@ rakennuksia eikä omistajan tunnusta — eli kaikkea sitä, mitä `exportChallen
 
 Kaksi vaihtoehtoa, ja tämä on päätettävä ennen kuin funktio kirjoitetaan:
 
+**Ascii on siirtomuoto ja muoto millä tallennetaan esimerkiksi esimääritellyt kaupungit tms .. Tällä siis siirretään heksadataa muiden välillä **
+
 1. **ASCII on näkymä.** Kaunis, luettava, häviöllinen. Siirto pysyy JSONina, ja
    viesti sisältää molemmat: kuva ihmiselle, JSON pelille. Yksinkertainen, ja
    kuva ei voi koskaan mennä epäsynkkaan koska se johdetaan samasta datasta
