@@ -96,3 +96,15 @@ Wager-areena (Vaihe 4).
 
 `PROMPTS.md` Vaihe 2 kohta 6 · `files/CLAUDE.md` §Design tokens ·
 `ANALYSIS.md` §8 kohta 1
+
+## Löydös 2026-08-31 — "5 000 heksaa alle 400 ms" ei mittaa renderöintiä
+
+Tämän tiketin oma suorituskykyväite (`claim.spec.ts:195-242`) on luettu uudelleen
+tarkkaan: se ajastaa **vain `setData()`-kutsun** 5 000 käsintehdyllä monikulmiolla,
+joita ei ole rakennettu `cellToBoundary`lla, eikä odota kartan `idle`-tilaa eikä
+sisällä `yield`-ominaisuutta. Se on totta siitä, mitä se mittaa, mutta se ei mittaa
+sitä, mitä `BRDC-REGRESSION-000` #4 ja tämä tiketti väittävät sen mittaavan.
+
+Korjaus, oikea skannausongelma (`getCells` ei ole rajattu kysely) ja rappeutumisen
+sivuvaikutus vieraisiin soluihin on koottu `BRDC-SCALE-001`:een — se on ennakkoehto
+`BRDC-ATLAS-001`:lle, joka puhuu jo koko Suomesta.

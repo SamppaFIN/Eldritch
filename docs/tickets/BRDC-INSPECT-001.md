@@ -51,3 +51,18 @@ Se on aito sauma: kaikki siinä vastaa kysymykseen *mistä solusta tässä on ky
 ## Ei tässä
 
 - Rakennukset. Paneeli kertoo mitä maa antaa; mitä sillä *rakennetaan* on oma tikettinsä.
+
+## Jatko — 2026-08-31
+
+> *"Ei tässä: Rakennukset. Paneeli kertoo mitä maa antaa; mitä sillä rakennetaan on
+> oma tikettinsä."*
+
+Se tiketti on `BRDC-BUILD-001`.
+
+Solupaneeli on rakentamisen käyttöliittymä, joten se kasvaa kolmella:
+
+- **Mitä tähän voi rakentaa** ja miksi ei muuta — `BRDC-BUILD-001`, `-002`
+- **Heksan historia**: löytäjä, keneltä otettu, monenako päivänä omistettu — `BRDC-HEX-001`
+- **Tuotantoennuste** eikä vain nykytila — `BRDC-STATS-001`
+
+Tämän tiketin sääntö pätee jokaiseen niistä: *"Väärä luku tässä luetaan pelin valheena."*

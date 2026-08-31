@@ -111,3 +111,14 @@ työpöytäikkunassa.
 katkaistu 30 remiin, joten neljäsosasarake on enintään 6 rem, ja levein *arvo*
 ("12 · 400 m²", tai kolme resurssilukua) tarvitsee noin yhdeksän. Otsikot eivät olleet
 rajoite — luvut olivat. Kaksi saraketta, joka leveydellä.
+
+## Jatko — 2026-08-31
+
+Kaksi saraketta, kolme resurssia. Kehityssuunnitelma tuo **kymmenen** resurssia
+(`BRDC-ECON-001`), ja tämän tiketin oma mittaus kertoo, ettei ratkaisu ole kolmas sarake:
+
+> *"levein arvo tarvitsee noin yhdeksän [remiä]. Otsikot eivät olleet rajoite — luvut olivat."*
+
+HUD näyttää siis jatkossa vain sen, mikä **muuttuu tai on loppumassa**; koko lompakko ja
+tuotantoennuste asuvat `BRDC-STATS-001`:ssä. Tämä on mittaustulos, ei mieltymys —
+360 px ei veny.

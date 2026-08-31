@@ -48,3 +48,18 @@ mekaniikkaa, eivät vaihtoehtoja.
 ## Ei kuulu tähän tikettiin
 
 Maasto ja resurssit (vaatii Overpassin). Rakentaminen.
+
+## Todennettu käytössä — 2026-08-31
+
+> Infinite: *"tuo tämän hetken valtausmekanismi on oikeen kiva käytännössä"*
+
+Ensimmäinen kerta, kun jokin tämän projektin mekaniikoista on arvioitu **käytöstä eikä
+testistä**. Se koskee `BRDC-GROW-001`:n ja `BRDC-CLAIM-001`:n yhdistelmää: kävely
+laajentaa aluetta askelittain, lenkin sulkeminen täyttää sisuksen.
+
+`PIVOT-2026-08-27.md` §1 päätti pitää molemmat eri rooleissa sen sijaan, että olisi
+valittu toinen. Se päätös on nyt vahvistettu käytännössä.
+
+**Seuraus: valtausmekaniikkaan ei kosketa.** Kehityssuunnitelman B1 (*"Flood Fill
+-korjaus"*) oli prototyypin bugi, ei tämän — todennettu `BRDC-REGRESSION-000` #13:ssa.
+Vaiheen 3 sisältö rakentuu tämän päälle eikä muuta sitä.
