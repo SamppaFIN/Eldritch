@@ -83,7 +83,7 @@ describe('importWorld', () => {
       id: 'rival',
       name: 'rival',
       castle: null,
-      cells: [{ h3: mine, ownerId: 'rival', strength: 999, lastVisitedAt: T0, visitDays: [] }],
+      cells: [{ h3: mine, strength: 999 }],
     };
 
     await repo.importWorld(shardText([claimsMyCell]), T0);

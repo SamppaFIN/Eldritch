@@ -36,6 +36,7 @@ import { Hud } from '../features/hud/Hud.js';
 import { ResetDialog, WithdrawDialog } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { createRepository } from '../data/createRepository.js';
+import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
 
 export interface MapViewProps {
@@ -149,6 +150,13 @@ export function MapView({ onLeave }: MapViewProps) {
     bbox,
     now: clock.now,
     position: point,
+  });
+
+  const worldStirredMs = useWorld({
+    repository,
+    bbox,
+    now: clock.now,
+    onMerged: territory.refresh,
   });
 
   /*
@@ -313,6 +321,12 @@ export function MapView({ onLeave }: MapViewProps) {
       {schemaReset ? (
         <p className="mapview__warning" role="status">
           A sanctuary from an older age was found, and could not be read. It has returned to the Void.
+        </p>
+      ) : null}
+
+      {worldStirredMs !== null ? (
+        <p className="mapview__warning" role="status">
+          Other realms last stirred {Math.max(1, Math.round(worldStirredMs / 3_600_000))} h ago.
         </p>
       ) : null}
 

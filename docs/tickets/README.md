@@ -258,7 +258,7 @@ sisältönä, ei ominaisuutena.
 | **1** Kartta ja ley-line | 🔨 koodattu, ulkoportti odottaa | 7/7 |
 | **2** Aluevaltaus | 🔨 portti läpi selaimessa, ulkoportti odottaa | 7/7 |
 | **2.5** Suunnanmuutos | ✅ kaikki `done` | 10/10 |
-| **2.6** Mobiili ja jaettu maailma | ⬜ ei aloitettu — **seuraava** | 0/5 |
+| **2.6** Mobiili ja jaettu maailma | 🔨 SCALE-001 85 % · SHARE-001 80 % · CASTLE-001 90 %; MOBILE-001 ja ASCII-001 auki | 0/5 |
 | **3** Sivilisaatio | ⬜ tiketit kirjoitettu, ei aloitettu | 0/18 |
 
 **Ulkoportti on yhä auki.** Kaikki on todennettu selaimessa ja simuloidulla GPS:llä,
@@ -266,7 +266,7 @@ mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on V
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
 tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **451 yksikkö** (33 tiedostoa, ajettu 2026-08-31) + Playwright
+Testejä: **475 yksikkö** (36 tiedostoa, ajettu 2026-08-31) + Playwright
 (360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
@@ -278,6 +278,7 @@ Testejä: **451 yksikkö** (33 tiedostoa, ajettu 2026-08-31) + Playwright
  90 %  PERSIST-001
  95 %  CLAIM-006 · PERSIST-002
  85 %  TRAIL-002 · SCALE-001
+ 80 %  SHARE-001
 ```
 
 Auki jääneet kohdat on merkitty tiketteihin `[ ]` tai `[~]` perusteluineen — ei
@@ -290,7 +291,7 @@ piilotettu prosenttilukuun.
 ```
 Yhteensä 58 tikettiä
   Valmiit:       32   (Vaiheet 0, 1, 2, 2.5 · + ECON-001 · + PERSIST-002)
-  Kesken:         3   (REGRESSION-000 10/12 · SCALE-001 85 % · CASTLE-001 90 %)
+  Kesken:         4   (REGRESSION-000 10/12 · SCALE-001 85 % · CASTLE-001 90 % · SHARE-001 80 %)
   Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
   Vaihe 2.6:      5   (L×2, M×3, joista SCALE-001 ja CASTLE-001 jo liikkeellä)
   Vaihe 3:       17   (S×1, M×9, L×7)  ← seuraava, ECON-001 valmis perustaksi

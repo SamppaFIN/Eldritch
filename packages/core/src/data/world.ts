@@ -51,7 +51,79 @@ export interface WorldSource {
   id: PlayerId;
   name: string;
   castle: H3Index | null;
-  cells: readonly Cell[];
+  /** Only h3 and strength travel — a full `Cell` is accepted, the rest is ignored. */
+  cells: ReadonlyArray<{ h3: H3Index; strength: number }>;
+}
+
+/**
+ * One player's own territory, signed, on its way *into* the world.
+ *
+ * The write path: the client seals this and the player carries it to the cron job as a
+ * GitHub issue body. The checksum is the same torn-message detector `challenge.ts` uses —
+ * the merge job still cannot trust the numbers, only that the message arrived whole.
+ */
+export interface WorldSubmission {
+  v: number;
+  id: PlayerId;
+  name: string;
+  castle: H3Index | null;
+  cells: Array<{ h3: H3Index; strength: number }>;
+  sum: string;
+}
+
+export function buildSubmission(source: WorldSource): WorldSubmission {
+  const payload = {
+    v: WORLD_VERSION,
+    id: source.id,
+    name: source.name,
+    castle: source.castle,
+    cells: [...source.cells]
+      .sort((a, b) => b.strength - a.strength)
+      .slice(0, MAX_SHARD_CELLS)
+      .map((c) => ({ h3: c.h3, strength: Math.round(c.strength) })),
+  };
+  return { ...payload, sum: checksum(payload) };
+}
+
+export function encodeSubmission(submission: WorldSubmission): string {
+  return JSON.stringify(submission);
+}
+
+export type SubmissionParse =
+  | { ok: true; source: WorldSource }
+  | { ok: false; fault: WorldFault };
+
+/** Read one player's submission. Same refusals as `parseWorld`, same reasons. */
+export function parseSubmission(text: string): SubmissionParse {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text.trim());
+  } catch {
+    return { ok: false, fault: 'not-json' };
+  }
+
+  if (typeof raw !== 'object' || raw === null) return { ok: false, fault: 'not-a-shard' };
+  const s = raw as Partial<WorldSubmission>;
+
+  if (
+    typeof s.v !== 'number' ||
+    typeof s.id !== 'string' ||
+    typeof s.name !== 'string' ||
+    !Array.isArray(s.cells) ||
+    typeof s.sum !== 'string'
+  ) {
+    return { ok: false, fault: 'not-a-shard' };
+  }
+  if (s.v !== WORLD_VERSION) return { ok: false, fault: 'wrong-version' };
+  if (s.cells.length > MAX_SHARD_CELLS) return { ok: false, fault: 'too-large' };
+
+  const { sum, ...payload } = s as WorldSubmission;
+  if (sum !== checksum(payload)) return { ok: false, fault: 'damaged' };
+
+  return {
+    ok: true,
+    source: { id: s.id, name: s.name, castle: s.castle ?? null, cells: s.cells },
+  };
 }
 
 /**

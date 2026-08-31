@@ -19,12 +19,23 @@ export {
 } from './challenge.js';
 export type { Challenge, ChallengeFault, ChallengeResult, ChallengeSource } from './challenge.js';
 export type { ImportResult, WagerReport } from './wager.js';
-export { buildShards, encodeWorld, parseWorld, worldToCells, worldAgeMs } from './world.js';
+export {
+  buildShards,
+  buildSubmission,
+  encodeSubmission,
+  encodeWorld,
+  parseSubmission,
+  parseWorld,
+  worldToCells,
+  worldAgeMs,
+} from './world.js';
 export type {
   WorldShard,
   WorldPlayer,
   WorldFault,
   WorldParse,
   WorldSource,
+  WorldSubmission,
+  SubmissionParse,
   WorldImportResult,
 } from './world.js';

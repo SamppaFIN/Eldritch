@@ -8,7 +8,16 @@ import { describe, expect, it } from 'vitest';
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { cellAt, regionOf } from '../geo/cells.js';
 import { destination } from '../geo/project.js';
-import { buildShards, encodeWorld, parseWorld, worldAgeMs, worldToCells } from './world.js';
+import {
+  buildShards,
+  buildSubmission,
+  encodeSubmission,
+  encodeWorld,
+  parseSubmission,
+  parseWorld,
+  worldAgeMs,
+  worldToCells,
+} from './world.js';
 import type { WorldSource } from './world.js';
 import type { Cell } from '../types/domain.js';
 
@@ -127,5 +136,38 @@ describe('worldAgeMs', () => {
     const shard = [...buildShards([source('a', ORIGIN, 2)], T0).values()][0]!;
     expect(worldAgeMs(shard, T0 + 3_600_000)).toBe(3_600_000);
     expect(worldAgeMs(shard, T0 - 5)).toBe(0);
+  });
+});
+
+describe('submission — the signed message into the world', () => {
+  const src = source('a', ORIGIN, 5);
+
+  it('round-trips through parseSubmission', () => {
+    const parsed = parseSubmission(encodeSubmission(buildSubmission(src)));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.source.id).toBe('a');
+      expect(parsed.source.cells.length).toBe(src.cells.length);
+    }
+  });
+
+  it('refuses a torn or wrong-version submission by name', () => {
+    const good = encodeSubmission(buildSubmission(src));
+    expect(parseSubmission('nope')).toEqual({ ok: false, fault: 'not-json' });
+    expect(parseSubmission(JSON.stringify({ ...JSON.parse(good), sum: 'deadbeef' }))).toEqual({
+      ok: false,
+      fault: 'damaged',
+    });
+    expect(parseSubmission(JSON.stringify({ ...JSON.parse(good), v: WORLD_VERSION + 1 }))).toEqual({
+      ok: false,
+      fault: 'wrong-version',
+    });
+  });
+
+  it('feeds buildShards — a submission becomes shards', () => {
+    const parsed = parseSubmission(encodeSubmission(buildSubmission(src)));
+    if (!parsed.ok) throw new Error('unreachable');
+    const shards = buildShards([parsed.source], T0);
+    expect(shards.size).toBeGreaterThan(0);
   });
 });
