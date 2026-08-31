@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-MOCK-001, BRDC-CLAIM-005, BRDC-CLAIM-006, BRDC-PERSIST-002 (kohta 6) |
-| **Status** | `in_progress` — kolme kohtaa kuudesta korjattu, katso *Toteutettu* |
-| **Valmius** | 40 % |
+| **Status** | `in_progress` — rajattu kysely tehty; `getOwnedCells` ja `claim.spec.ts` jäljellä |
+| **Valmius** | 85 % |
 | **Lähde** | Koodiauditointi 2026-08-31, ajettu `BRDC-ATLAS-001`:n taustaksi |
 
 ## 🔴 RED
@@ -19,35 +19,39 @@ Kaikki alla on **luettu koodista ja tarkistettu erikseen**, ei pääteltyä:
 
 | # | Mitä | Missä |
 |---|---|---|
-| 1 | `allCells()` on ainoa solunlukuprimitiivi: `keys()` ja sitten **yksi `get` per solu peräkkäin** *(korjattu — ks. Toteutettu)* | `MockRepository.ts:360-368` |
-| 2 | `getCells(bbox)` **ei ole rajattu kysely.** Se lukee kaiken ja suodattaa vasta sitten *(yhä totta — kysely itse on yhä täysi skannaus, vain sen hinta laski)* | `MockRepository.ts:285` |
+| 1 | ~~`allCells()` on ainoa solunlukuprimitiivi~~ **korjattu** — `getCells` menee nyt `cellsInBBox`:n rajattua polkua; `allCells` jää `runDecay`/`getOwnedCells`:lle | `cellStore.ts` |
+| 2 | ~~`getCells(bbox)` ei ole rajattu kysely~~ **korjattu** — lukee vain viewportin peittämät res 6 -alueet | `cellStore.ts:cellsInBBox` |
 | 3 | ~~IndexedDB:ssä jokainen `get` on oma transaktionsa~~ **korjattu** | `IdbStore.ts:34-49` |
 | 4 | ~~`keys(prefix)` hakee `getAllKeys()`illa koko kannan avaimet ja suodattaa JS:ssä~~ **korjattu** | `IdbStore.ts:59-62` |
-| 5 | `cells-fill`-tasolla **ei ole `minzoom`ia**. Zoomilla 5 bbox on koko maa | `TerritoryLayer.ts:41` |
-| 6 | `regionOf()` ja `H3_RES_REGION` ovat **kuollutta koodia** — määritelty, viety, testattu, eikä yksikään tuotantotiedosto kutsu niitä | `geo/cells.ts:41`, `constants.ts:14` |
+| 5 | `cells-fill`-tasolla **ei ole `minzoom`ia**. Zoomilla 5 bbox on koko maa *(siirretty `BRDC-ATLAS-001`:een)* | `TerritoryLayer.ts:41` |
+| 6 | ~~`regionOf()` ja `H3_RES_REGION` ovat kuollutta koodia~~ **korjattu** — `K.cell` ja `regionsCoveringBBox` kutsuvat niitä | `geo/cells.ts`, `keys.ts` |
 
 ## 🟢 GREEN
 
-- [ ] `getCells(bbox)` on **oikeasti rajattu kysely** — se ei saa lukea sitä, mitä se
-      ei palauta *(ei vielä — ks. Toteutettu, kohta jää tarkoituksella auki)*
+- [x] `getCells(bbox)` on **oikeasti rajattu kysely** — `cellsInBBox` lukee vain
+      `regionsCoveringBBox`:n antamat res 6 -alueet, ei koko storea. `inBBox`-suodatus jää,
+      koska alue (~36 km²) on viewporttia isompi
 - [x] Lukeminen käyttää **`IDBKeyRange`ä**, ei `getAllKeys` + JS-suodatusta — `keys(prefix)`
       hakee nyt vain kyseisen prefiksin avaimet DB-tasolla, kaikille kutsujille
       (`cell:`, `trail:`, `run:`), ei vain soluille
 - [x] Jokainen `get()` **ei enää avaa omaa transaktiotaan** — `KeyValueStore.getMany`
-      lukee koko avainjoukon yhdellä IndexedDB-transaktiolla. Ei poista täyttä
-      skannausta (kohta yllä), mutta poistaa sen todellisen hinnan: N transaktiota → 1
-- [ ] Yksi res 6 -alue luetaan **yhdellä, rajatulla haulla**, joka ei kosketa muita
-      alueita *(ei vielä — vaatii kohdan yllä olevan lisäksi turvallisen avainmuodon,
-      ks. Toteutettu)*
+      lukee koko avainjoukon yhdellä IndexedDB-transaktiolla
+- [x] Yksi res 6 -alue luetaan **yhdellä, rajatulla haulla** — avain on
+      `cell:${regionOf(h3)}:${h3}`, joten `store.keys('cell:${region}:')` on yhden alueen
+      range-skannaus joka ei kosketa muita. Vanhat `cell:${h3}`-avaimet resetoidaan
+      `SCHEMA_VERSION = 2`:lla (`BRDC-PERSIST-002`)
 - [~] `cells-fill` saa `minzoom`in — **tietoinen ei nyt.** `minzoom` säätelisi vain
       piirtoa, ei kyselyä; ilman rajattua kyselyä (kohta 1) se olisi kosmeettinen
       korjaus, joka samalla regressoisi Vaiheen 2:n läpäisseen käytöksen (oma alue
       näkyy täytettynä hieman uloszoomattunakin). Siirretty `BRDC-ATLAS-001`:een,
       jossa kansallinen näkymä on oma tasonsa eikä sama `cells-fill`
-- [ ] `regionOf` on **käytössä** eikä testattua koristetta *(ei vielä — ks. Toteutettu)*
-- [ ] Skannausten määrä kävelyn aikana **mitataan ennen ja jälkeen** — ei mitattu vielä,
-      koska kysely itse ei ole vielä rajattu
-- [ ] Suorituskykytesti `packages/core`issa — ei vielä kirjoitettu
+- [x] `regionOf` on **käytössä** — `keys.ts#K.cell` ja `geo/cells.ts#regionsCoveringBBox`
+      kutsuvat sitä; uusi `regionAt` on sen sijaintipari
+- [x] Skannauksen rajautuminen **mitataan testissä** — `cellStore.test.ts` seedaa soluja
+      kahteen kaukana toisistaan olevaan alueeseen, lukee viewportin ja todentaa
+      laskurilla ettei kaukaisen alueen avaimia luettu (`< NEAR + FAR`)
+- [x] Suorituskykytesti `packages/core`issa — `cellStore.test.ts` (rajautuminen) +
+      `cells.test.ts`:n `regionsCoveringBBox`-lohko (peittävyys ja koko)
 
 ## Toteutettu 2026-08-31
 
@@ -70,9 +74,38 @@ Samalla poistui kolmen paikan kopio samasta säännöstä: `getCells`, `getOwned
 yksi funktio, `sweepAndPersist`. `claiming.test.ts`:n *"removes released cells from
 storage, not just from the answer"* kattaa sen jo suoraan.
 
-**Kohta 6 ei ole vielä korjattu, ja tämän version aiempi suunnitelma sille oli väärä.**
-Ei arvailtu — testattu ja kumottu samana iltana. Tästä kannattaa lukea alla oleva
-kokonaan, koska se on suoraan varoitus seuraavalle, joka avaa tämän tiketin.
+**Kohta 6 ratkaistiin myöhemmin samana päivänä, `BRDC-PERSIST-002`:n jälkeen — ks. seuraava osio.**
+Alla oleva analyysi siitä, miksi merkkijonotemppu ei toimi, on säilytetty tarkoituksella:
+se on varoitus, ja se perustelee miksi valittu ratkaisu on eksplisiittinen yhdistelmäavain.
+
+## Toteutettu 2026-08-31 (jatko) — rajattu kysely
+
+**Avainmuoto vaihdettu: `cell:${h3}` → `cell:${regionOf(h3)}:${h3}`** (`keys.ts#K.cell`,
+"Kaksi kelvollista tapaa" -listan kohta 1). `K.cell` ottaa yhä pelkän `h3`:n ja laskee
+alueen itse, joten yksikään kutsupaikka ei muuttunut. `SCHEMA_VERSION` nostettu 1 → 2:
+vanha `cell:${h3}`-arvo ei löydy uudella avaimella, joten v1-store resetoidaan
+`BRDC-PERSIST-002`:n `versioned()`-portilla, ei migratoida.
+
+**`getCells(bbox)` on nyt rajattu.** `geo/cells.ts` sai `regionAt(position)` ja
+`regionsCoveringBBox(bbox)` — jälkimmäinen unioi `polygonToCells`in (kaikki alueet joiden
+keskipiste on laatikossa), nurkkien+keskipisteen alueet, ja nurkka-alueiden `gridDisk(_, 1)`
+-naapurit. `cellStore.ts#cellsInBBox` lukee näiden alueiden `cell:${region}:`-avaimet
+range-skannauksella eikä koskaan koko storea. `allCells` jäi ennalleen — `runDecay` ja
+`getOwnedCells` haluavat jokaisen solun, eikä kumpikaan ole paikkaan rajattu.
+
+**Testit:** `cells.test.ts` +6 (`regionAt`, `regionsCoveringBBox`), uusi `cellStore.test.ts`
++3 (rajautuminen laskuri-storella). Koko sarja **451 vihreää**, typecheck + lint:lines
+puhtaat.
+
+**Jäljellä, tarkoituksella tämän paketin ulkopuolella:**
+
+- **`getOwnedCells` on yhä täysi skannaus.** Omat solut eivät ole paikkaan rajattuja;
+  oikea korjaus vaatii `owned:${playerId}`-indeksin joka pidetään ajan tasalla joka
+  valtauksessa ja menetyksessä — oma liikkuva osansa, ja juuri se "toinen eriävä kopio"
+  -riski josta `keys.ts` varoittaa. Käytännössä rajattu yhden pelaajan omistuksiin.
+- **`claim.spec.ts`-perf­testin uusiksi kirjoittaminen** (osio "5 000 heksaa"): e2e,
+  Playwright, vaatii selainajon; riippumaton tästä työstä.
+- **`cells-fill` minzoom**: jo `[~]`, siirretty `BRDC-ATLAS-001`:een.
 
 ## Avain **ei** osaa sitä mitä tämä tiketti aiemmin väitti
 

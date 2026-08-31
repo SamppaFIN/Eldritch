@@ -5,6 +5,7 @@
  * two files inventing key strings for the same records is how a save quietly grows a
  * second, divergent copy of itself.
  */
+import { regionOf } from '../geo/cells.js';
 import type { RunId } from '../types/index.js';
 
 export const K = {
@@ -13,7 +14,10 @@ export const K = {
   seeded: 'seeded',
   run: (id: RunId) => `run:${id}`,
   trail: (id: RunId) => `trail:${id}`,
-  cell: (h3: string) => `cell:${h3}`,
+  // The res-6 region goes in the key so a viewport read can range-scan one region's
+  // cells instead of every cell in the store (BRDC-SCALE-001). Callers still pass only
+  // the h3; the region is derived here, in one place.
+  cell: (h3: string) => `cell:${regionOf(h3)}:${h3}`,
   dwell: 'dwell',
   home: 'home',
   castle: 'castle',

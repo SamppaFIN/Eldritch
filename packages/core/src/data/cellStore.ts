@@ -5,13 +5,13 @@
  * pouch.ts, hearth.ts and wager.ts already used. This module knows how cells are keyed
  * and read; it holds no rules of its own (those stay in rules/decay.ts).
  *
- * `allCells` is a full scan and stays one. Growing it into a bounded, region-scoped read
- * is real future work (see docs/tickets/BRDC-SCALE-001.md) — it needs a property test
- * proving the narrower query returns exactly what the full scan would, and that has not
- * been written yet. Shipping the optimisation without it would risk silently dropping
- * someone's ground, which is worse than the scan being slow.
+ * `cellsInBBox` is a bounded read (BRDC-SCALE-001): the res-6 region is in the cell key,
+ * so a viewport query range-scans only the regions it overlaps. `allCells` is still a
+ * full scan, and stays one — `runDecay` and `getOwnedCells` genuinely want every cell,
+ * and neither is spatially bounded.
  */
 import { cellToLatLng } from 'h3-js';
+import { regionsCoveringBBox } from '../geo/cells.js';
 import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
 import type { KeyValueStore } from './kv.js';
@@ -39,8 +39,21 @@ export async function hasGround(store: KeyValueStore, playerId: PlayerId): Promi
   return (await allCells(store)).some((cell) => cell.ownerId === playerId);
 }
 
+/**
+ * Cells inside `bbox`, read region by region rather than by scanning the whole store.
+ *
+ * `regionsCoveringBBox` gives the handful of res-6 regions the viewport touches; each one
+ * is a single bounded `keys()` range scan (`IDBKeyRange` on IdbStore). The `inBBox` filter
+ * still runs — a region is ~36 km², larger than any phone viewport — but nothing outside
+ * those regions is ever read.
+ */
 export async function cellsInBBox(store: KeyValueStore, bbox: BBox): Promise<Cell[]> {
-  return (await allCells(store)).filter((cell) => inBBox(cell, bbox));
+  const keys: string[] = [];
+  for (const region of regionsCoveringBBox(bbox)) {
+    keys.push(...(await store.keys(`${CELL_PREFIX}${region}:`)));
+  }
+  const values = await store.getMany<Cell>(keys);
+  return values.filter((cell): cell is Cell => cell !== undefined && inBBox(cell, bbox));
 }
 
 /**

@@ -7,6 +7,7 @@ import { simulatePolygon } from '../sim/walk.js';
 import type { BBox, Cell, TrailPoint } from '../types/domain.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
+import { K } from './keys.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
 
 const ORIGIN = { lat: 61.47290805294704, lng: 23.725882485862012 };
@@ -157,7 +158,7 @@ describe('walking over someone else', () => {
         lastVisitedAt: visitedAt,
         visitDays: [utcDay(visitedAt)],
       };
-      await store.set(`cell:${h3}`, cell);
+      await store.set(K.cell(h3), cell);
     }
   }
 

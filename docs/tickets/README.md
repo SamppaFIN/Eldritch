@@ -217,8 +217,12 @@ ei jälkeen.
 `SAVE_VERSION` suojaa vain `localStorage`a, ja IndexedDB — jossa suurin osa pelin tilasta
 oikeasti asuu — ei ollut koskaan saanut vastaavaa. `schema.ts`:n `versioned()`-kääre antaa
 sille oman `SCHEMA_VERSION`in; tunnistamaton versio tyhjentää storen ja `MapView` kertoo
-sen. `pouch.ts#isCurrentShape` poistettu. **`BRDC-SCALE-001`:n alueperusteinen kysely
-(kohta 6) on nyt auki** — se voi vaihtaa solun avainmuodon skeemaversion turvin.
+sen. `pouch.ts#isCurrentShape` poistettu.
+
+**PERSIST-002:n turvin `BRDC-SCALE-001`:n rajattu kysely tehtiin heti perään** (85 %):
+avain on nyt `cell:${regionOf(h3)}:${h3}` (`SCHEMA_VERSION` 1 → 2), ja `getCells(bbox)`
+lukee vain viewportin peittämät res 6 -alueet, ei koko storea. `getOwnedCells` ja
+`claim.spec.ts`-perftesti jäivät tarkoituksella jäljelle.
 
 ---
 
@@ -262,7 +266,7 @@ mutta kukaan ei ole vielä kävellyt korttelin ympäri puhelin taskussa. Se on V
 1 ja 2 oikea hyväksymiskriteeri, eikä sitä voi ajaa koneelta — ja se on nyt oma
 tikettinsä (`BRDC-MOBILE-001`) sen sijaan että se olisi alaviite.
 
-Testejä: **442 yksikkö** (32 tiedostoa, ajettu 2026-08-31) + Playwright
+Testejä: **451 yksikkö** (33 tiedostoa, ajettu 2026-08-31) + Playwright
 (360 px ajetaan ensin). `pnpm typecheck` ja `pnpm lint:lines` vihreitä samalla ajolla.
 
 **Valmiusasteet** — `[x]` vasta kun ajettu ja todennettu (`claude.md` §4.5):
@@ -273,7 +277,7 @@ Testejä: **442 yksikkö** (32 tiedostoa, ajettu 2026-08-31) + Playwright
  90 %  HUD-002
  90 %  PERSIST-001
  95 %  CLAIM-006 · PERSIST-002
- 85 %  TRAIL-002
+ 85 %  TRAIL-002 · SCALE-001
 ```
 
 Auki jääneet kohdat on merkitty tiketteihin `[ ]` tai `[~]` perusteluineen — ei
@@ -286,7 +290,7 @@ piilotettu prosenttilukuun.
 ```
 Yhteensä 58 tikettiä
   Valmiit:       32   (Vaiheet 0, 1, 2, 2.5 · + ECON-001 · + PERSIST-002)
-  Kesken:         3   (REGRESSION-000 10/12 · SCALE-001 40 % · CASTLE-001 90 %)
+  Kesken:         3   (REGRESSION-000 10/12 · SCALE-001 85 % · CASTLE-001 90 %)
   Jäissä:         1   (SEC-000 → Vaihe 5, kun Supabase kytketään)
   Vaihe 2.6:      5   (L×2, M×3, joista SCALE-001 ja CASTLE-001 jo liikkeellä)
   Vaihe 3:       17   (S×1, M×9, L×7)  ← seuraava, ECON-001 valmis perustaksi

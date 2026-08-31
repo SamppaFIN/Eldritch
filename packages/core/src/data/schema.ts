@@ -23,7 +23,12 @@ import type { KeyValueStore } from './kv.js';
 /** Not in `keys.ts`'s `K`: that map is game data, this is the store's own metadata. */
 export const SCHEMA_KEY = 'schema:version';
 
-export const SCHEMA_VERSION = 1;
+/**
+ * 1 → 2: BRDC-SCALE-001 changed the cell key from `cell:${h3}` to
+ * `cell:${regionOf(h3)}:${h3}`. An old `cell:${h3}` value cannot be found under the new
+ * key, so a v1 store is reset rather than migrated.
+ */
+export const SCHEMA_VERSION = 2;
 
 export type SchemaOutcome = 'ok' | 'reset';
 
