@@ -45,6 +45,12 @@ export interface Cell {
   lastVisitedAt: number;
   /** UTC calendar days (YYYY-MM-DD) the owner has passed through. */
   visitDays: string[];
+  /**
+   * Came from `world.json`, not from this device (BRDC-SHARE-001). It is someone else's
+   * truth, refreshed by cron; this device never sees its visits, so it must not be
+   * decayed or released locally. Absent means local — no migration needed.
+   */
+  imported?: boolean;
 }
 
 export interface PlayerProfile {

@@ -160,6 +160,18 @@ export const ANCHOR = {
  */
 export const CHALLENGE_VERSION = 2;
 
+/**
+ * The wire format for one region's slice of the shared world (BRDC-SHARE-001).
+ *
+ * Its own number, like CHALLENGE_VERSION: `world/<res6>.json` is rebuilt by a cron job
+ * from player submissions and read by every client, and it changes shape for reasons that
+ * have nothing to do with a save or a hand-carried challenge. An unknown version is
+ * rejected by name, never merged.
+ */
+export const WORLD_VERSION = 1;
+/** Cells per region shard. A city block is fine; a city is a directory of shards. */
+export const MAX_SHARD_CELLS = 4_000;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**

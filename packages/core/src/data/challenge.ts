@@ -72,7 +72,7 @@ export type ChallengeResult =
  * their strength upward — a client-side checksum cannot do the second thing and pretending
  * otherwise would be worse than admitting it. Phase 3's server is where authority lives.
  */
-export function checksum(payload: Omit<Challenge, 'sum'>): string {
+export function checksum(payload: object): string {
   const text = JSON.stringify(payload);
   let h = 2166136261;
   for (let i = 0; i < text.length; i += 1) {

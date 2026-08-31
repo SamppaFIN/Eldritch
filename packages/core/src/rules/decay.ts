@@ -43,6 +43,11 @@ import {
 export function projectCell(cell: Cell, now: number): Cell | null {
   if (cell.ownerId === null) return cell;
 
+  // A cell from world.json is someone else's ground, refreshed by cron. This device
+  // never witnesses its visits, so ageing it here would invent a decay nobody agreed to
+  // and eventually release a cell its real owner still holds (BRDC-SHARE-001).
+  if (cell.imported) return cell;
+
   const hours = (now - cell.lastVisitedAt) / 3_600_000;
   if (hours <= DECAY_GRACE_HOURS) return cell;
 

@@ -26,6 +26,7 @@ import type {
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WardResult } from '../rules/ward.js';
 import type { ImportResult } from '../data/wager.js';
+import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 
 export interface GameRepository {
@@ -103,6 +104,14 @@ export interface GameRepository {
    * become a sentence the player can act on.
    */
   importChallenge(text: string, now: number): Promise<ImportResult>;
+
+  /**
+   * Merge one `world/<res6>.json` shard: other players' territory as read-only, imported
+   * cells (BRDC-SHARE-001). Never overwrites the local player's own ground, never fights
+   * — a shard is state, not a challenge. A bad shard comes back as a named fault, and the
+   * game carries on without it. Safe to call repeatedly with the same or a fresher shard.
+   */
+  importWorld(text: string, now: number): Promise<WorldImportResult>;
 
   /* --- The Hearth ------------------------------------------------------- */
   /**

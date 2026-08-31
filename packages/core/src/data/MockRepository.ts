@@ -52,6 +52,8 @@ import {
   writeDefence,
 } from './wager.js';
 import type { ImportResult } from './wager.js';
+import { parseWorld, worldToCells } from './world.js';
+import type { WorldImportResult } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { assignCastle } from './castle.js';
@@ -233,6 +235,28 @@ export class MockRepository implements GameRepository {
       await this.getCastle(),
       now,
     );
+  }
+
+  async importWorld(text: string, now: number): Promise<WorldImportResult> {
+    const parsed = parseWorld(text);
+    if (!parsed.ok) return parsed;
+
+    const me = await this.getProfile();
+    let written = 0;
+    for (const cell of worldToCells(parsed.shard, me.id, now)) {
+      // A file never overwrites your own ground — a disagreement is settled by the Wager.
+      const existing = await this.store.get<Cell>(K.cell(cell.h3));
+      if (existing?.ownerId === me.id) continue;
+      await this.store.set(K.cell(cell.h3), cell);
+      written += 1;
+    }
+    return {
+      ok: true,
+      region: parsed.shard.region,
+      players: parsed.shard.players.filter((p) => p.id !== me.id).length,
+      cells: written,
+      generatedAt: parsed.shard.generatedAt,
+    };
   }
 
   async getDefence(): Promise<Defence> {
