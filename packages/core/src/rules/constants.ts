@@ -184,3 +184,14 @@ export const WALL_GUARD = 35;
  * way would be released by decay, and that is ownership changing hands by message.
  */
 export const WAGER_SPOIL = 150;
+
+/* --- The Keep (BRDC-CASTLE-001) ------------------------------------------- */
+
+/**
+ * How far the public decoy sits from the real Hearth.
+ *
+ * Far enough that it does not read as the same building; close enough that it still
+ * looks like this player's corner of town on a map that only ever shows the Keep.
+ */
+export const CASTLE_MIN_RADIUS_M = 300;
+export const CASTLE_MAX_RADIUS_M = 900;

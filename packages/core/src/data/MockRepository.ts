@@ -52,6 +52,7 @@ import {
 import type { ImportResult } from './wager.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
+import { assignCastle } from './castle.js';
 
 
 export interface MockRepositoryOptions {
@@ -243,12 +244,19 @@ export class MockRepository implements GameRepository {
   async setHome(position: LatLng, now: number): Promise<H3Index> {
     const profile = await this.getProfile();
     const h3 = await claimHearth(this.store, profile, position, now);
+    await assignCastle(this.store, position, this.newId());
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
     return h3;
   }
 
   async getHome(): Promise<H3Index | null> {
     return (await this.store.get<H3Index>(K.home)) ?? null;
+  }
+
+  /* --- The Keep ----------------------------------------------------------- */
+
+  async getCastle(): Promise<H3Index | null> {
+    return (await this.store.get<H3Index>(K.castle)) ?? null;
   }
 
   /* --- Places ----------------------------------------------------------- */

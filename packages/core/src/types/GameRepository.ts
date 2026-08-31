@@ -120,6 +120,14 @@ export interface GameRepository {
   /** The Hearth cell, or null if the player has not accepted one yet. */
   getHome(): Promise<H3Index | null>;
 
+  /* --- The Keep ----------------------------------------------------------- */
+  /**
+   * The public decoy near the Hearth — the only location ever published
+   * (`BRDC-SHARE-001`). Assigned automatically whenever `setHome` is; there is no
+   * separate action to set it, and no way to read the Hearth back out of it.
+   */
+  getCastle(): Promise<H3Index | null>;
+
   /* --- Places ----------------------------------------------------------- */
   /** Cells that have earned a name, Anchor first. */
   getPlaces(): Promise<RevealedPlace[]>;
