@@ -18,7 +18,7 @@ import { recordWalk } from './walkWriter.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { projectCell, sweepDecay } from '../rules/decay.js';
-import { allCells, cellsInBBox, hasGround, sweepAndPersist } from './cellStore.js';
+import { allCells, cellsInBBox, hasGround, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
 import type { WardResult } from '../rules/ward.js';
@@ -36,6 +36,7 @@ import type {
   PlayerProfile,
   Run,
   RunId,
+  Terrain,
   TrailPoint,
 } from '../types/index.js';
 import type { KeyValueStore } from './kv.js';
@@ -323,6 +324,10 @@ export class MockRepository implements GameRepository {
     const me = await this.getProfile();
     const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
     return (await sweepAndPersist(this.store, mine, now)).cells;
+  }
+
+  async setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void> {
+    await setStoredTerrain(this.store, h3, terrain);
   }
 
   /**

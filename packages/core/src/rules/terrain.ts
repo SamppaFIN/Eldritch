@@ -271,7 +271,8 @@ export function spend(pool: ResourcePool, cost: Partial<ResourcePool>): Resource
 export interface TileFeature {
   /** The tile source-layer, e.g. `water`, `landcover`, `landuse`, `poi`. */
   sourceLayer?: string;
-  properties?: Record<string, unknown>;
+  /** `null` is allowed so a raw MapLibre feature list can be passed straight in. */
+  properties?: Record<string, unknown> | null;
 }
 
 const has = (set: readonly string[], value: unknown): boolean =>

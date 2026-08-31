@@ -8,6 +8,7 @@
 import {
   cellArea,
   cellToBoundary,
+  cellToLatLng,
   cellToParent,
   gridDisk,
   latLngToCell,
@@ -35,6 +36,12 @@ export function ringToCells(ring: readonly LatLng[]): H3Index[] {
 /** The cell a position falls in, at ownership resolution. */
 export function cellAt(position: LatLng): H3Index {
   return latLngToCell(position.lat, position.lng, H3_RES_OWNERSHIP);
+}
+
+/** A cell's centre as `{ lat, lng }` — h3-js returns `[lat, lng]`, this hides that. */
+export function cellCentre(cell: H3Index): LatLng {
+  const [lat, lng] = cellToLatLng(cell);
+  return { lat, lng };
 }
 
 /** The res-6 region a cell belongs to. Shards realtime channels in Phase 3; keys cells now. */

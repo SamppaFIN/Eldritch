@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import { destination } from '../geo/project.js';
 import { regionOf, ringToCells } from '../geo/cells.js';
-import { cellsInBBox } from './cellStore.js';
+import { cellsInBBox, setStoredTerrain } from './cellStore.js';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
 import type { BBox, Cell } from '../types/domain.js';
@@ -79,5 +79,51 @@ describe('cellsInBBox', () => {
     expect(store.readKeys.some((k) => k.includes(farRegion))).toBe(false);
     expect(store.readKeys.length).toBeGreaterThan(0);
     expect(store.readKeys.length).toBeLessThan(NEAR.length + FAR.length);
+  });
+});
+
+describe('setStoredTerrain (BRDC-TERRAIN-002)', () => {
+  const h3 = NEAR[0] as string;
+
+  it('does nothing for a cell with no stored row — empty ground keeps the hash', async () => {
+    const store = new MemoryStore();
+    await setStoredTerrain(store, h3, { kind: 'mountain', source: 'tiles' });
+    expect(await store.get(K.cell(h3))).toBeUndefined();
+  });
+
+  it('writes terrain onto an existing cell and leaves the rest alone', async () => {
+    const store = new MemoryStore();
+    const owned: Cell = { h3, ownerId: 'p1', strength: 300, lastVisitedAt: T0, visitDays: ['2026-08-31'] };
+    await store.set(K.cell(h3), owned);
+
+    await setStoredTerrain(store, h3, { kind: 'forest', source: 'tiles' });
+
+    expect(await store.get<Cell>(K.cell(h3))).toEqual({
+      ...owned,
+      terrain: { kind: 'forest', source: 'tiles' },
+    });
+  });
+
+  it('is a no-op when the same terrain is already recorded', async () => {
+    class CountingStore extends MemoryStore {
+      sets = 0;
+      override async set<T>(key: string, value: T): Promise<void> {
+        this.sets += 1;
+        return super.set(key, value);
+      }
+    }
+    const store = new CountingStore();
+    await store.set(K.cell(h3), {
+      h3,
+      ownerId: 'p1',
+      strength: 300,
+      lastVisitedAt: T0,
+      visitDays: [],
+      terrain: { kind: 'forest', source: 'tiles' },
+    } satisfies Cell);
+    const before = store.sets;
+
+    await setStoredTerrain(store, h3, { kind: 'forest', source: 'tiles' });
+    expect(store.sets).toBe(before);
   });
 });

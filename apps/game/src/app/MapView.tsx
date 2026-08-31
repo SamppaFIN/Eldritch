@@ -14,6 +14,7 @@ import type {
   PlayerProfile,
   ResourcePool,
   RevealedPlace,
+  Terrain,
   TrailPoint,
 } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
@@ -206,6 +207,15 @@ export function MapView({ onLeave }: MapViewProps) {
 
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
 
+  const onCellTerrain = useCallback(
+    async (updates: { h3: string; terrain: Terrain }[]) => {
+      if (!repository) return;
+      for (const u of updates) await repository.setCellTerrain(u.h3, u.terrain);
+      await territory.refresh();
+    },
+    [repository, territory.refresh],
+  );
+
   /*
    * Everything about what the player is inspecting, in one place.
    *
@@ -271,6 +281,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onCellTap={inspect.onCellTap}
         onPlaceTap={inspect.onPlaceTap}
         onViewportChange={onViewportChange}
+        onCellTerrain={onCellTerrain}
       />
 
       <ClaimBurst claim={territory.lastClaim} />

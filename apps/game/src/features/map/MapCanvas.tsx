@@ -34,8 +34,14 @@ import {
 } from '../territory/AwakeningLayer.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
+import { useTerrainResolver } from './useTerrainResolver.js';
+import type { TerrainUpdate } from './useTerrainResolver.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
+
+/** Stable defaults, so an absent prop does not re-fire the terrain resolver each render. */
+const NO_CELLS: readonly Cell[] = [];
+const noResolve = (_: TerrainUpdate[]): void => {};
 
 export interface MapCanvasProps {
   /** Where to open the camera. Later fixes move the player, not the map's identity. */
@@ -66,6 +72,8 @@ export interface MapCanvasProps {
   onPlaceTap?: (h3: string) => void;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
+  /** Terrain resolved from the map's own tiles, for the caller to persist. */
+  onCellTerrain?: (updates: TerrainUpdate[]) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
   initialZoom?: number;
   /** Keep the camera on the player. False once they pan away by hand. */
@@ -89,6 +97,7 @@ export function MapCanvas({
   onCellTap,
   onPlaceTap,
   onViewportChange,
+  onCellTerrain,
 }: MapCanvasProps) {
   const { containerRef, map, ready, basemap } = useMap(
     initialZoom === undefined
@@ -101,6 +110,8 @@ export function MapCanvas({
   useEffect(() => {
     onBasemapChange?.(basemap);
   }, [basemap, onBasemapChange]);
+
+  useTerrainResolver({ map, ready, cells: cells ?? NO_CELLS, onResolved: onCellTerrain ?? noResolve });
 
   // Create the marker once the map is ready, never before.
   useEffect(() => {

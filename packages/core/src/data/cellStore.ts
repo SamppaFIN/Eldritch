@@ -16,7 +16,7 @@ import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
-import type { BBox, Cell, PlayerId } from '../types/domain.js';
+import type { BBox, Cell, PlayerId, Terrain } from '../types/domain.js';
 
 export const CELL_PREFIX = 'cell:';
 
@@ -37,6 +37,24 @@ export async function allCells(store: KeyValueStore): Promise<Cell[]> {
 /** Does this player hold anything at all? The seed exception in growth.ts turns on this. */
 export async function hasGround(store: KeyValueStore, playerId: PlayerId): Promise<boolean> {
   return (await allCells(store)).some((cell) => cell.ownerId === playerId);
+}
+
+/**
+ * Record the terrain a cell's map tiles resolved to (BRDC-TERRAIN-002).
+ *
+ * Only for cells that already have a stored row — ground someone holds, or a seeded
+ * neighbour. Empty ground keeps the deterministic hash, which is itself "resolved once".
+ * No-op if the same terrain is already recorded, so the resolver can call it freely.
+ */
+export async function setStoredTerrain(
+  store: KeyValueStore,
+  h3: string,
+  terrain: Terrain,
+): Promise<void> {
+  const stored = await store.get<Cell>(K.cell(h3));
+  if (!stored) return;
+  if (stored.terrain?.kind === terrain.kind && stored.terrain.source === terrain.source) return;
+  await store.set(K.cell(h3), { ...stored, terrain });
 }
 
 /**

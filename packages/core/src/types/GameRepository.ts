@@ -20,6 +20,7 @@ import type {
   RevealedPlace,
   Run,
   RunId,
+  Terrain,
   TrailPoint,
   TrailResult,
 } from './domain.js';
@@ -58,6 +59,14 @@ export interface GameRepository {
   /** Applies decay at read time, then returns what survives in the viewport. */
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;
+  /**
+   * Record the terrain the map's vector tiles resolved for a cell (BRDC-TERRAIN-002).
+   *
+   * Only affects cells that already have a stored row; empty ground keeps the hash. A
+   * no-op if the same terrain is already recorded, so the client's resolver can call it
+   * as freely as it likes.
+   */
+  setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void>;
 
   /* --- Resources -------------------------------------------------------- */
   /**

@@ -10,6 +10,7 @@ export {
   cellAreaM2,
   cellBoundary,
   cellAt,
+  cellCentre,
   neighboursOf,
   regionAt,
   regionOf,
