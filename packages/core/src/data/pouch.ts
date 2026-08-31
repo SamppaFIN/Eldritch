@@ -9,6 +9,8 @@ import { EMPTY_POOL, addClaimYield, settleResources } from '../rules/terrain.js'
 import type { ResourcePool, ResourceState } from '../rules/terrain.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
+import { research } from '../rules/tech.js';
+import type { ResearchResult, TechId } from '../rules/tech.js';
 import type { CaptureOutcome, Cell, PlayerId } from '../types/domain.js';
 import type { KeyValueStore } from './kv.js';
 
@@ -104,5 +106,25 @@ export async function wardWith(
   const state = await settlePouch(store, owned, now);
   const result = ward(cell, state.pool, me);
   if (result.warded) await writePouch(store, result.pool, now);
+  return result;
+}
+
+/**
+ * Spend wisdom to research one technology (BRDC-TECH-001).
+ *
+ * The pouch's second verb, after warding. Settles first — the trickle owed up to now has
+ * to be banked before it can be spent — and writes the pool back only on success. The
+ * researched list itself belongs to the repository; this module only moves the wisdom.
+ */
+export async function researchWith(
+  store: KeyValueStore,
+  researched: readonly TechId[],
+  id: TechId,
+  owned: readonly Cell[],
+  now: number,
+): Promise<ResearchResult> {
+  const state = await settlePouch(store, owned, now);
+  const result = research(researched, id, state.pool);
+  if (result.ok) await writePouch(store, result.pool, now);
   return result;
 }

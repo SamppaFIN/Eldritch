@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-ECON-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — puu, säännöt ja repo-mekanismi tehty; tutkimusnäyttö + aikakausiseremonia `BUILD-001`:n kanssa |
+| **Valmius** | 80 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §1 (Avausteknologia-sarake), §2.1, §2.2 |
 
 ## 🔴 RED
@@ -21,18 +21,36 @@ Taso on tällä hetkellä ainoa etenemisen mitta, ja se mittaa vain XP:tä.
 
 ## 🟢 GREEN
 
-- [ ] **`TECHS`-taulukko**: tunnus, hinta viisaudessa, edeltäjät, avattavat rakennukset
-- [ ] Teknologia maksaa **viisautta** — resurssi, jota ei saa kävelemällä vaan
-      rakentamalla ja tutkimalla. Se on toinen etenemisakseli tason rinnalle
-- [ ] Puu on **suunnattu asyklinen graafi ja se testataan sellaiseksi** — sykli
-      taulukossa on tyhmä bugi, joka lukitsee pelin hiljaa
-- [ ] Rakennuksen avaava teknologia luetaan `BUILDINGS`-taulukosta, **ei kirjoiteta kahdesti**
-- [ ] **Aikakaudet** (esihistoria → antiikki → keskiaika) johdetaan tutkitusta,
-      ei erillisenä laskurina
-- [ ] Aikakauden vaihtuminen on **tapahtuma**: ilmoitus, pyhä geometria, sanat
-      (sama kohtelu kuin `BRDC-AWAKEN-001`:n sulkeutumisella)
-- [ ] Puu on **katettu** kuten tasokäyräkin — viimeinen aikakausi on viimeinen
-- [ ] Tutkimattoman rakennuksen paneeli kertoo **mikä sen avaa**, ei vain että se on lukossa
+- [x] **`TECHS`-taulukko**: tunnus, hinta viisaudessa, edeltäjät, aikakausi (`rules/tech.ts`,
+      10 teknologiaa, haarautuva DAG — ei `unlocks`-kenttää, ks. seuraava kohta)
+- [x] Teknologia maksaa **viisautta** — `research(researched, id, pool)` maksaa
+      `terrain.ts#spend`:llä, `researchWith` (`pouch.ts`, `wardWith`:n pari) siirtää
+      viisauden storessa. Toinen etenemisakseli
+- [x] Puu on **DAG ja testataan** — `tech.test.ts` ajaa DFS:n, todentaa ettei sykliä ole,
+      että jokainen `requires` on olemassa ja aikakausiltaan ≤ riippuvansa
+- [x] Rakennuksen avaava teknologia **ei kirjoiteta tänne** — `BUILDINGS[x].tech` on
+      `BRDC-BUILD-001`:n, `hasTech(researched, id)` on valmis sen luettavaksi
+- [x] **Aikakaudet johdetaan** — `eraOf(researched)` etenee vasta kun edellinen aikakausi
+      on kokonaan tutkittu, ei laskuria
+- [~] Aikakauden vaihtuminen **tapahtumana** — data on paikallaan (`researchTech` palauttaa
+      `era`, `eraChanged`), mutta UI:ssa ei ole vielä tutkimustoimintoa josta se laukeaa.
+      Kytketään `BRDC-BUILD-001`:n tutkimusnäyttöön
+- [x] Puu **katettu** — `ERAS` päättyy `medieval`:iin, `eraOf` ei etene sen yli
+- [~] Lukitun rakennuksen paneeli nimeää avaavan teknologian — vaatii `BUILDINGS`:n →
+      `BRDC-BUILD-001`. `hasTech` ja `TECHS[id]` valmiina
+
+## Toteutettu 2026-08-31
+
+- `rules/tech.ts`: `Era`/`ERAS`, `TechId` (10), `TECHS`, `hasTech`, `canResearch`,
+  `researchable`, `research`, `eraOf`, `eraChanged`. Malli `ward.ts`:stä — puhdas,
+  `{ ok } | { refused }`, ei `now`:ta.
+- `data/pouch.ts`: `researchWith` `wardWith`:n rinnalle. `data/techStore.ts` (uusi):
+  `readResearched` + `researchTech` — omistaa `K.researched`-listan ja aikakausirajan,
+  jotta `MockRepository` ei kasva neljättä verbiä sisäänsä (jäi 390 riviin).
+- `GameRepository`: `getResearched`, `researchTech(id, now) → TechResult` (`era: Era | null`).
+- Testit: `tech.test.ts` (13, DAG-portti mukana), `tech.repo.test.ts` (6). **514 vihreää.**
+- **Ei UI:ta** — tutkimusnäyttö ja seremonia landaavat `BUILD-001`:n kanssa, koska siellä
+  pelaaja näkee lukitun rakennuksen.
 
 ## Toteutus
 

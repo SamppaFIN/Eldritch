@@ -6,6 +6,18 @@ export { attackPower, emptyCell, resolveCapture } from './capture.js';
 export type { Attacker, CaptureResult } from './capture.js';
 export { appendChange } from './history.js';
 export type { OwnershipChange } from './history.js';
+export {
+  ERAS,
+  TECHS,
+  canResearch,
+  eraChanged,
+  eraOf,
+  hasTech,
+  research,
+  researchCost,
+  researchable,
+} from './tech.js';
+export type { Era, ResearchResult, Tech, TechId, TechRefusal, TechResult } from './tech.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
 export { growInto, growthNeighbourhood } from './growth.js';

@@ -22,6 +22,8 @@ import { allCells, cellsInBBox, hasGround, setStoredTerrain, sweepAndPersist } f
 import type { ResourcePool } from '../rules/terrain.js';
 import { awardClaims, settlePouch, wardWith } from './pouch.js';
 import type { WardResult } from '../rules/ward.js';
+import { readResearched, researchTech as doResearch } from './techStore.js';
+import type { TechId, TechResult } from '../rules/tech.js';
 import { levelForXp } from '../rules/level.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import type {
@@ -214,6 +216,16 @@ export class MockRepository implements GameRepository {
     const result = await wardWith(this.store, live, me.id, owned, now);
     if (result.warded) await this.store.set(K.cell(h3), result.cell);
     return result;
+  }
+
+  /* --- Technology ----------------------------------------------------------- */
+
+  async getResearched(): Promise<TechId[]> {
+    return readResearched(this.store);
+  }
+
+  async researchTech(id: TechId, now: number): Promise<TechResult> {
+    return doResearch(this.store, id, await this.getOwnedCells(now), now);
   }
 
   /* --- The Wager, carried by hand --------------------------------------- */

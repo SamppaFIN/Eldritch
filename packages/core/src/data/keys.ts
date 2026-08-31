@@ -24,4 +24,5 @@ export const K = {
   defence: 'defence',
   fought: 'wager:fought',
   lastReading: 'reading:last',
+  researched: 'researched',
 } as const;

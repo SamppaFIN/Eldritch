@@ -26,6 +26,7 @@ import type {
 } from './domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WardResult } from '../rules/ward.js';
+import type { TechId, TechResult } from '../rules/tech.js';
 import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -84,6 +85,16 @@ export interface GameRepository {
    * are all things the interface has to be able to say out loud to the player.
    */
   wardCell(h3: H3Index, now: number): Promise<WardResult>;
+
+  /* --- Technology (BRDC-TECH-001) ------------------------------------------ */
+  /** Everything researched so far, in the order it was learned. */
+  getResearched(): Promise<TechId[]>;
+  /**
+   * Research one technology, paying wisdom from the pouch. Refusals are values —
+   * "locked", "cannot afford", "already known" — and `era` names the new age when
+   * researching this completed the previous one, for the caller's ceremony.
+   */
+  researchTech(id: TechId, now: number): Promise<TechResult>;
 
   /* --- The Wager, carried by hand --------------------------------------- */
   /**
