@@ -30,6 +30,11 @@ rakennusten jälkeen, ne kirjoitetaan kahdesti.
       kymmentä muokkausta
 - [ ] `SAVE_VERSION` = 2. Vanha tallennus **hylätään ja resetoidaan** näkyvästi;
       `es3:*` ei kanna kahta poolin muotoa (`BRDC-PERSIST-001`:n koko idea)
+- [ ] **Sama versionosto kuljettaa myös solun avainmuodon**, jos `BRDC-SCALE-001`:n
+      alueperusteinen kysely on silloin tekeillä: `cell:${h3}` → `cell:${regionOf(h3)}:${h3}`.
+      Kaksi resetoivaa versionostoa peräkkäin ilman syytä olisi tarpeetonta kipua —
+      tarkista `BRDC-SCALE-001`:n *"Avain ei osaa sitä mitä tämä tiketti aiemmin väitti"*
+      ennen tätä kohtaa
 - [ ] Kaikki 415 nykyistä testiä vihreinä muutoksen jälkeen
 - [ ] **Tuotantokatto** ja **lepotila** toteutettuna ja testattuna — ks. alla
 

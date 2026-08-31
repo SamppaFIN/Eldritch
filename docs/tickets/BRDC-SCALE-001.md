@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-MOCK-001, BRDC-CLAIM-005, BRDC-CLAIM-006 |
-| **Status** | `in_progress` — kaksi kohtaa kuudesta korjattu, katso *Toteutettu* |
-| **Valmius** | 30 % |
+| **Status** | `in_progress` — kolme kohtaa kuudesta korjattu, katso *Toteutettu* |
+| **Valmius** | 40 % |
 | **Lähde** | Koodiauditointi 2026-08-31, ajettu `BRDC-ATLAS-001`:n taustaksi |
 
 ## 🔴 RED
@@ -19,9 +19,9 @@ Kaikki alla on **luettu koodista ja tarkistettu erikseen**, ei pääteltyä:
 
 | # | Mitä | Missä |
 |---|---|---|
-| 1 | `allCells()` on ainoa solunlukuprimitiivi: `keys()` ja sitten **yksi `get` per solu peräkkäin** | `MockRepository.ts:360-368` |
-| 2 | `getCells(bbox)` **ei ole rajattu kysely.** Se lukee kaiken ja suodattaa vasta sitten | `MockRepository.ts:285` |
-| 3 | IndexedDB:ssä jokainen `get` on **oma transaktionsa** *(yhä totta — korjaa vasta alueperusteinen kysely)* | `IdbStore.ts:34-49` |
+| 1 | `allCells()` on ainoa solunlukuprimitiivi: `keys()` ja sitten **yksi `get` per solu peräkkäin** *(korjattu — ks. Toteutettu)* | `MockRepository.ts:360-368` |
+| 2 | `getCells(bbox)` **ei ole rajattu kysely.** Se lukee kaiken ja suodattaa vasta sitten *(yhä totta — kysely itse on yhä täysi skannaus, vain sen hinta laski)* | `MockRepository.ts:285` |
+| 3 | ~~IndexedDB:ssä jokainen `get` on oma transaktionsa~~ **korjattu** | `IdbStore.ts:34-49` |
 | 4 | ~~`keys(prefix)` hakee `getAllKeys()`illa koko kannan avaimet ja suodattaa JS:ssä~~ **korjattu** | `IdbStore.ts:59-62` |
 | 5 | `cells-fill`-tasolla **ei ole `minzoom`ia**. Zoomilla 5 bbox on koko maa | `TerritoryLayer.ts:41` |
 | 6 | `regionOf()` ja `H3_RES_REGION` ovat **kuollutta koodia** — määritelty, viety, testattu, eikä yksikään tuotantotiedosto kutsu niitä | `geo/cells.ts:41`, `constants.ts:14` |
@@ -33,8 +33,12 @@ Kaikki alla on **luettu koodista ja tarkistettu erikseen**, ei pääteltyä:
 - [x] Lukeminen käyttää **`IDBKeyRange`ä**, ei `getAllKeys` + JS-suodatusta — `keys(prefix)`
       hakee nyt vain kyseisen prefiksin avaimet DB-tasolla, kaikille kutsujille
       (`cell:`, `trail:`, `run:`), ei vain soluille
-- [ ] Yksi res 6 -alue luetaan **yhdellä transaktiolla**, ei tuhannella *(ei vielä —
-      vaatii kohdan yllä olevan lisäksi)*
+- [x] Jokainen `get()` **ei enää avaa omaa transaktiotaan** — `KeyValueStore.getMany`
+      lukee koko avainjoukon yhdellä IndexedDB-transaktiolla. Ei poista täyttä
+      skannausta (kohta yllä), mutta poistaa sen todellisen hinnan: N transaktiota → 1
+- [ ] Yksi res 6 -alue luetaan **yhdellä, rajatulla haulla**, joka ei kosketa muita
+      alueita *(ei vielä — vaatii kohdan yllä olevan lisäksi turvallisen avainmuodon,
+      ks. Toteutettu)*
 - [~] `cells-fill` saa `minzoom`in — **tietoinen ei nyt.** `minzoom` säätelisi vain
       piirtoa, ei kyselyä; ilman rajattua kyselyä (kohta 1) se olisi kosmeettinen
       korjaus, joka samalla regressoisi Vaiheen 2:n läpäisseen käytöksen (oma alue
@@ -66,44 +70,63 @@ Samalla poistui kolmen paikan kopio samasta säännöstä: `getCells`, `getOwned
 yksi funktio, `sweepAndPersist`. `claiming.test.ts`:n *"removes released cells from
 storage, not just from the answer"* kattaa sen jo suoraan.
 
-**Kohta 6 ei ole vielä korjattu, ja tässä on miksi ei kiireessä.** Alla oleva
-alueperusteinen kysely on oikea seuraava askel, mutta sen turvallinen toteutus vaatii
-enemmän kuin avaimen keksimisen — ks. *Miksi rajattu kysely odottaa*.
+**Kohta 6 ei ole vielä korjattu, ja tämän version aiempi suunnitelma sille oli väärä.**
+Ei arvailtu — testattu ja kumottu samana iltana. Tästä kannattaa lukea alla oleva
+kokonaan, koska se on suoraan varoitus seuraavalle, joka avaa tämän tiketin.
 
-## Avain osaa jo sen, mitä tarvitaan — mutta ei vielä käytössä
+## Avain **ei** osaa sitä mitä tämä tiketti aiemmin väitti
 
-Avainmuoto on `cell:${h3}` (`keys.ts:16`), ja **H3:n merkkijonoesitys on hierarkkinen**:
-res 6 -solun kaikki 16 807 res 11 -lasta jakavat kahdeksan ensimmäistä merkkiä.
+Edellinen versio tästä osiosta ehdotti: koska res 6 -alueen kaikki res 11 -lapset
+jakavat kahdeksan merkin etuliitteen keskenään, se etuliite saataisiin suoraan
+**vanhemman omasta merkkijonosta** — `region.slice(0, 8)`. Ensimmäinen puolisko
+(lapset jakavat etuliitteen keskenään) on totta ja todennettu 3 000 satunnaisotoksella
+ilman poikkeusta. **Jälkimmäinen (se saadaan vanhemman merkkijonosta) on väärin,** ja
+tässä on todiste, ei väite:
 
-Mitattu `h3-js` 4.5.0:lla, 3 000 satunnaisella solulla ympäri maapallon — ei yksikään
-poikkeus: vanhempi `86088a2d…`, kaikki lapset alkavat `8b088a2d`, eikä kahdella eri
-alueella ollut koskaan samaa kahdeksan merkin etuliitettä.
-
-Eli kokonainen alue **näyttäisi olevan** yksi rajattu haku:
-
-```ts
-IDBKeyRange.bound('cell:8b088a2d', 'cell:8b088a2e')
+```
+cell (res11): 8b112492eb03fff
+region(res6): 86112492fffffff
+                ^
+     merkki 1 eroaa: '6' vs 'b' — JOKAISEN lapsen merkki 1 on 'b', vanhemman '6'
 ```
 
-**Mitään ei tarvitsisi muuttaa tietomallissa.** `regionOf` on jo olemassa ja tekee juuri
-tämän avaimen. Se vain ei ole koskaan päässyt tuotantoon — se kirjoitettiin Vaihetta 3
-varten ja Vaihe 3 vaihtui.
+Merkki indeksissä 1 **on aina** resoluutio heksana — todennettu kaikilla 16 resoluutiolla
+0–15 samasta sijainnista: res 0 → `'0'`, res 6 → `'6'`, res 11 → `'b'`, res 15 → `'f'`,
+täydellinen 1:1-vastaavuus joka kerta. Se ei ole sattuma vaan H3-indeksin muoto. Koska
+tämä merkki muuttuu vanhemmasta lapseen, **mikä tahansa suora osajono vanhemman
+merkkijonosta menee väärin heti toisesta merkistä eteenpäin** — ja laajemmalla otannalla
+(eri resoluutioväleillä, ei vain res6→res11) sama koe epäonnistui toistuvasti:
 
-### Miksi rajattu kysely odottaa
+```
+region(res8): 88eee80439fffff → derivoitu (väärä) etuliite: '88eee80439'
+oikea lapsi:  8aeee8043807fff → ei ala millään yllä lasketulla etuliitteellä
+```
 
-Mittaus yllä on **empiirinen, ei todistettu.** H3-indeksin bittiasettelu (1 varattu +
-4 tila + 3 varattu + 4 resoluutio + 7 peruskennon bittiä = 19 bittiä ennen ensimmäistä
-tarkennusdigittiä) ei jakaudu tasan heksamerkkirajalle, joten "kahdeksan merkkiä on aina
-jaettu" on havainto kolmestatuhannesta otoksesta, ei taattu ominaisuus jota voisin
-perustella luvuista käsin.
+**Mitä tästä opittiin, sanottuna suoraan:** H3:n merkkijonoesitys ei ole tasan jaettu
+heksamerkkirajoille (otsikko on 19 bittiä: 1 varattu + 4 tila + 3 varattu + 4 resoluutio
++ 7 peruskenno), ja resoluutionumero istuu juuri sillä kohdalla, missä yksinkertaisin
+etuliiteoletus olisi. Kahdeksan merkin osuma res6→res11-kokeessa oli oikea havainto
+*lasten keskinäisestä* yhteneväisyydestä, mutta tästä tehty hyppäys "siis se lasketaan
+vanhemman merkkijonosta" ei koskaan ollut todistettu — se oli lukemisvirhe omasta
+datasta, joka olisi päätynyt tuotantoon ilman toista tarkistuskierrosta.
 
-Tämä on täsmälleen sitä dataa, josta `BRDC-REGRESSION-000` ja koko tämän tiketin RED
-puhuvat: väärä oletus omistajuusdatasta on hiljainen ja löytyy vasta tuotannossa. Ennen
-kuin tähän nojaa yhtään kyselyä, tarvitaan **ominaisuustesti** (property test): satoja
-tai tuhansia satunnaisia H3-indeksejä, jokaiselle varmistus että
-`cellToParent(cell, 6).slice(0,8)` on sama kaikilla `cellToChildren(parent,11)`-soluilla
-eikä törmää toisen alueen etuliitteeseen. Vasta sen jälkeen `cellsInBBox` voidaan
-kirjoittaa alueperusteiseksi ilman että se on toivottu oikeaksi.
+### Kaksi kelvollista tapaa eteenpäin, kumpikaan ei ole merkkijonotemppu
+
+1. **Eksplisiittinen yhdistelmäavain.** `cell:${regionOf(h3)}:${h3}` sen sijaan että
+   alue yritettäisiin lukea `h3`:n omasta merkkijonosta. Oikein rakenteensa puolesta,
+   ei vaadi mitään tietoa H3:n bittiasettelusta, testattavissa suoraan. **Vaatii
+   `SAVE_VERSION`-noston** (`persist/save.ts:19`) — avainmuodon muutos on täsmälleen se
+   tapaus, jota varten se olekassa. Järkevintä yhdistää `BRDC-ECON-001`:n jo
+   suunnittelemaan versionostoon (`water`→`food`), ei tehdä kahta erillistä resetiä
+   peräkkäin ilman syytä
+2. **`h3.cellToChildren(region, 11)[0]`** yhden todellisen lapsen hakemiseen ja sen
+   merkkijonon käyttämiseen etuliitteenä. Oikein, koska se on oikea data eikä arvaus —
+   mutta vaatii silti tietämään *kuinka monta merkkiä* on jaettu, mikä vaihtelee
+   resoluutioerojen mukaan eikä ole sama kaikilla väleillä (nähtiin yllä), joten senkin
+   pituus pitäisi joko todistaa tai laskea ajossa vertaamalla useampaa lasta keskenään
+   — monimutkaisempi kuin näyttää, ja hyöty verrattuna kohtaan 1 on pieni
+
+**Suositus: kohta 1**, tehtynä `BRDC-ECON-001`:n version noston kanssa samalla.
 
 ## 🟡 Tarkennus: rappeutumisen "väärä puoli" ei ole väärin tänään — se on ajallisesti pommi
 

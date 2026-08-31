@@ -20,24 +20,23 @@ import type { BBox, Cell, PlayerId } from '../types/domain.js';
 
 export const CELL_PREFIX = 'cell:';
 
-/** Every stored cell. Callers that only need a subset should prefer a narrower read. */
+/**
+ * Every stored cell. Callers that only need a subset should prefer a narrower read.
+ *
+ * Reads through `getMany` rather than a `get()` loop: on IndexedDB that is one
+ * transaction for every key it holds instead of one for the whole batch. Which keys
+ * to read is still a full scan (see the module doc) — this only fixes how they are
+ * fetched once known, not how many there are.
+ */
 export async function allCells(store: KeyValueStore): Promise<Cell[]> {
   const keys = await store.keys(CELL_PREFIX);
-  const cells: Cell[] = [];
-  for (const key of keys) {
-    const cell = await store.get<Cell>(key);
-    if (cell) cells.push(cell);
-  }
-  return cells;
+  const values = await store.getMany<Cell>(keys);
+  return values.filter((cell): cell is Cell => cell !== undefined);
 }
 
 /** Does this player hold anything at all? The seed exception in growth.ts turns on this. */
 export async function hasGround(store: KeyValueStore, playerId: PlayerId): Promise<boolean> {
-  for (const key of await store.keys(CELL_PREFIX)) {
-    const cell = await store.get<Cell>(key);
-    if (cell?.ownerId === playerId) return true;
-  }
-  return false;
+  return (await allCells(store)).some((cell) => cell.ownerId === playerId);
 }
 
 export async function cellsInBBox(store: KeyValueStore, bbox: BBox): Promise<Cell[]> {
