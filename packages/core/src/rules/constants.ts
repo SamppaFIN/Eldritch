@@ -219,6 +219,25 @@ export const MAX_TEMPLE_EXPANSION = 3;
 /** Each expansion level adds this fraction of the temple's base rate. */
 export const MANA_EXPANSION_STEP = 0.5;
 
+/* --- Area effects and loyalty (BRDC-BUILD-003) --------------------- */
+
+/**
+ * The most a single owned cell can gain from overlapping resource auras, per resource.
+ *
+ * Area effects stack quadratically — a cluster of Libraries would flood the domain with
+ * wisdom — so the ceiling is locked here alongside the buildings, not tuned in later.
+ * `NEIGHBOUR_BONUS_CAP` is the same idea for the siege bonus.
+ */
+export const AURA_CAP_PER_CELL = 3;
+
+/**
+ * Loyalty: how much each adjacent Monument or revealed place slows a cell's decay, and
+ * the floor it can never push past. 0.15 each, three of them, down to 0.5 — decay runs at
+ * half speed at most. It slows the Void; it never stops it (GREEN 6).
+ */
+export const LOYALTY_PER_SOURCE = 0.15;
+export const LOYALTY_MAX = 0.5;
+
 /* --- Walked paths (BRDC-TRAIL-003) ---------------------------------- */
 
 /**

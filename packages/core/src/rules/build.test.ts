@@ -65,11 +65,12 @@ describe('BUILDINGS is well-formed', () => {
     }
   });
 
-  it('holds the four base buildings and the seven improvements', () => {
+  it('holds the base buildings, the improvements, and the area-effect three', () => {
     expect(ALL.sort()).toEqual(
       [
         'granary', 'market', 'monument', 'storehouse',
         'sawmill', 'lumbermill', 'mine', 'quarry', 'farm', 'fishery', 'vineyard',
+        'library', 'temple-grove', 'lighthouse',
       ].sort(),
     );
   });
@@ -133,6 +134,12 @@ describe('canBuild refuses in order of how fundamental the objection is', () => 
     const ctx = { ...loaded, researched: [] as TechId[] };
     const plain = cell({ terrain: { kind: 'plain', source: 'tiles' } });
     expect(canBuild(ctx, 'granary', plain)).toEqual({ ok: false, refused: 'locked' });
+  });
+
+  it('needs-a-temple for a place-gated building with none beside it (BRDC-BUILD-003)', () => {
+    const plain = cell({ terrain: { kind: 'plain', source: 'tiles' } });
+    expect(canBuild(loaded, 'temple-grove', plain)).toEqual({ ok: false, refused: 'needs-a-temple' });
+    expect(canBuild({ ...loaded, templeAdjacent: true }, 'temple-grove', plain)).toEqual({ ok: true });
   });
 
   it('at-capacity once the building count reaches the cap', () => {

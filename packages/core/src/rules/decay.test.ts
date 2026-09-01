@@ -38,6 +38,15 @@ describe('grace period', () => {
     // A shelter longer than the cell's whole age just means full grace, never negative age.
     expect(projectCell({ ...cell(300), shelteredMs: 999 * 3_600_000 }, days(30))?.strength).toBe(300);
   });
+
+  it('loyalty scales the bleed but never stops it (BRDC-BUILD-003)', () => {
+    const at = hours(DECAY_GRACE_HOURS + 10 * 24);
+    const full = projectCell(cell(300), at, 1)?.strength ?? 0;
+    const loyal = projectCell(cell(300), at, 0.5)?.strength ?? 0;
+    expect(loyal).toBeGreaterThan(full);
+    expect(loyal).toBeLessThan(300);
+    expect(loyal - 300).toBeCloseTo((full - 300) * 0.5, 5);
+  });
 });
 
 describe('decayAmount', () => {

@@ -73,7 +73,14 @@ export type BuildingId =
   | 'quarry'
   | 'farm'
   | 'fishery'
-  | 'vineyard';
+  | 'vineyard'
+  // BRDC-BUILD-003: area-effect buildings
+  | 'library'
+  | 'temple-grove'
+  | 'lighthouse';
+
+/** What a building's area effect gives to the cells it covers (BRDC-BUILD-003). */
+export type AuraKind = 'wisdom' | 'mana' | 'food';
 
 /**
  * One entry in a cell's ownership history (BRDC-HEX-001). Lives here, not in

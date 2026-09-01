@@ -86,8 +86,9 @@ export async function sweepAndPersist(
   store: KeyValueStore,
   cells: readonly Cell[],
   now: number,
+  loyalty?: (cell: Cell) => number,
 ): Promise<DecaySweep> {
-  const sweep = sweepDecay(cells, now);
+  const sweep = sweepDecay(cells, now, loyalty);
   for (const h3 of sweep.released) await store.delete(K.cell(h3));
   return sweep;
 }

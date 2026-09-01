@@ -30,6 +30,8 @@ import type { ExpandOutcome } from './templeStore.js';
 import { readPaths } from './pathStore.js';
 import { walkedEdges } from '../geo/paths.js';
 import type { WalkedEdge } from '../geo/paths.js';
+import { neighboursOf } from '../geo/cells.js';
+import { loyaltyFactor, loyaltySourceCells } from '../rules/aura.js';
 import { castSpellAt, readSpells } from './spellStore.js';
 import type { CastOutcome } from './spellStore.js';
 import { activeSpells } from '../rules/spell.js';
@@ -200,8 +202,11 @@ export class MockRepository implements GameRepository {
   /* --- Buildings and technology ----------------------------------------- */
 
   async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
-    const me = await this.getProfile();
-    return buildOn(this.store, h3, id, me.id, await this.getOwnedCells(now), await this.getResearched(), now);
+    const near = new Set([h3, ...neighboursOf(h3)]);
+    const nearTemple = (await this.getPlaces()).some((p) => near.has(p.h3));
+    const owned = await this.getOwnedCells(now);
+    const me = (await this.getProfile()).id;
+    return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple);
   }
 
   async demolish(h3: H3Index, now: number): Promise<DemolishOutcome> {
@@ -305,13 +310,30 @@ export class MockRepository implements GameRepository {
    * genuinely unowned again, and leaving it on disk would keep a ghost nobody can take.
    */
   async getCells(bbox: BBox, now: number): Promise<Cell[]> {
-    return (await sweepAndPersist(this.store, await cellsInBBox(this.store, bbox), now)).cells;
+    const inView = await cellsInBBox(this.store, bbox);
+    const loyalty = await this.loyaltyOver(inView);
+    return (await sweepAndPersist(this.store, inView, now, loyalty)).cells;
   }
 
   async getOwnedCells(now: number): Promise<Cell[]> {
     const me = await this.getProfile();
     const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
-    return (await sweepAndPersist(this.store, mine, now)).cells;
+    return (await sweepAndPersist(this.store, mine, now, await this.loyaltyOver(mine))).cells;
+  }
+
+  /**
+   * A decay-multiplier resolver for a set of cells: 1 by default, lower for the local
+   * player's cells sitting next to their own Monuments or a revealed place (BRDC-BUILD-003).
+   * Loyalty sources are read from `cells` themselves, so this stays a bounded read.
+   */
+  private async loyaltyOver(cells: readonly Cell[]): Promise<(cell: Cell) => number> {
+    const me = (await this.getProfile()).id;
+    const placeCells = (await this.getPlaces()).map((p) => p.h3);
+    const sources = loyaltySourceCells(
+      cells.filter((c) => c.ownerId === me),
+      placeCells,
+    );
+    return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
   }
 
   async setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void> {
@@ -324,7 +346,8 @@ export class MockRepository implements GameRepository {
   }
 
   async runDecay(now: number): Promise<DecayResult> {
-    const sweep = await sweepAndPersist(this.store, await allCells(this.store), now);
+    const all = await allCells(this.store);
+    const sweep = await sweepAndPersist(this.store, all, now, await this.loyaltyOver(all));
     return { weakened: sweep.weakened, released: sweep.released };
   }
 

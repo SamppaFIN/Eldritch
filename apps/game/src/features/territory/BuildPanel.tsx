@@ -21,6 +21,9 @@ const NAME: Readonly<Record<BuildingId, string>> = {
   farm: 'Farm',
   fishery: 'Fishery',
   vineyard: 'Vineyard',
+  library: 'Library',
+  'temple-grove': 'Temple Grove',
+  lighthouse: 'Lighthouse',
 };
 
 /** `early-farming` → `Early Farming`. The tech table carries no display name of its own. */
@@ -41,6 +44,8 @@ export function reason(refused: BuildRefusal, id: BuildingId): string {
       const tech = BUILDINGS[id].tech;
       return tech ? `Needs ${titleCase(tech)}` : 'Needs an earlier building';
     }
+    case 'needs-a-temple':
+      return 'Build it beside a temple';
     case 'at-capacity':
       return 'No room — build a Granary';
     case 'cannot-afford':

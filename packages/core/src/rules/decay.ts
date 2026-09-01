@@ -40,7 +40,7 @@ import {
  * very weak cell, it is unowned ground again, and a caller that treats it as still-held
  * would keep a ghost on the map forever.
  */
-export function projectCell(cell: Cell, now: number): Cell | null {
+export function projectCell(cell: Cell, now: number, loyalty = 1): Cell | null {
   if (cell.ownerId === null) return cell;
 
   // A cell from world.json is someone else's ground, refreshed by cron. This device
@@ -53,7 +53,10 @@ export function projectCell(cell: Cell, now: number): Cell | null {
   const hours = Math.max(0, now - cell.lastVisitedAt - (cell.shelteredMs ?? 0)) / 3_600_000;
   if (hours <= DECAY_GRACE_HOURS) return cell;
 
-  const strength = cell.strength - decayAmount(hours);
+  // `loyalty` scales the bleed: 1 is normal, an adjacent Monument or temple pulls it
+  // toward 0.5 (BRDC-BUILD-003). It slows the Void, never stops it — the grace check
+  // above is the only thing that returns the cell untouched.
+  const strength = cell.strength - decayAmount(hours) * loyalty;
   if (strength <= 0) return null;
 
   // lastVisitedAt is untouched, which is what keeps the projection honest.
@@ -103,13 +106,17 @@ export interface DecaySweep {
  * The returned cells are projections, for rendering. The only thing worth persisting
  * from a sweep is `released` — those cells are genuinely gone.
  */
-export function sweepDecay(cells: readonly Cell[], now: number): DecaySweep {
+export function sweepDecay(
+  cells: readonly Cell[],
+  now: number,
+  loyalty?: (cell: Cell) => number,
+): DecaySweep {
   const kept: Cell[] = [];
   const weakened: string[] = [];
   const released: string[] = [];
 
   for (const cell of cells) {
-    const after = projectCell(cell, now);
+    const after = projectCell(cell, now, loyalty?.(cell) ?? 1);
     if (after === null) {
       released.push(cell.h3);
       continue;

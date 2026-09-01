@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-HEX-001, BRDC-DWELL-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — 2026-09-01: auravat rakennukset + uskollisuus tehty; Linnoitus, Kauppareitti ja karttaoverlay → BRDC-BUILD-004 |
+| **Valmius** | 60 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §1.3, §2.1, §6 (R3) |
 
 ## 🔴 RED
@@ -25,17 +25,47 @@ jonka peli antoi sinulle siitä että elit siinä. Sitä ei voi ostaa.
 
 ## 🟢 GREEN
 
-- [ ] Suunnitelman viisi: Linnoitus, Majakka, Kirjasto, Temppelilehto, Kauppareitti
-- [ ] Vaikutus **säteellä 1–2 heksaa**, ja säde on rakennuksen dataa
-- [ ] Päällekkäiset vaikutukset **lasketaan yhteen kattoon asti** — kuten
-      `NEIGHBOUR_BONUS_CAP` jo tekee. Ilman kattoa tiheä rakentaminen räjähtää
-- [ ] Kirjasto ja Temppelilehto vaativat **temppelin viereisyyden** — ensimmäinen kerta,
-      kun dwell-aika ostaa jotain, mitä resurssit eivät osta
-- [ ] Kauppareitti sitoo **kaksi solua** ja on siksi ainoa rakennus, joka ei asu yhdessä
-- [ ] **Uskollisuus**: Monumentti ja temppelit hidastavat rappeutumista viereisissä
-      soluissa. Hidastavat — eivät pysäytä
-- [ ] Vaikutusalue **näkyy kartalla** kun rakennus on valittuna, ei pelkkänä tekstinä
-- [ ] Puhtaat funktiot, testattuna myös päällekkäisillä vaikutusalueilla
+- [~] Suunnitelman viisi: **Kirjasto, Temppelilehto, Majakka tehty**; Linnoitus
+      (puolustus­aura taistelupolkuun) ja Kauppareitti (kahden solun sidos) → BRDC-BUILD-004
+- [x] Vaikutus **säteellä 1–2 heksaa**, säde on `Building.aura.radius`
+      (Kirjasto/Lehto r1, Majakka r2)
+- [x] Päällekkäiset vaikutukset **kattoon asti**: `AURA_CAP_PER_CELL` per solu per
+      resurssi, lukittu vaikutusten kanssa. `resourceAura`-testi todistaa
+- [x] Kirjasto ja Temppelilehto vaativat **temppelin viereisyyden**: `needsPlace: 'temple'`,
+      `templeAdjacent`-portti `canBuild`:ssa, `needs-a-temple` nimeltä
+- [~] Kauppareitti sitoo kaksi solua → BRDC-BUILD-004 (data­malli­muutos: oma avain,
+      ei `cell.building`)
+- [x] **Uskollisuus**: `loyaltyFactor` — Monumentti + paljastettu paikka viereisessä
+      solussa kertoo rappeutumisnopeuden, lattia `1 - LOYALTY_MAX` (0.5). Hidastaa, ei
+      pysäytä — testattu `decay.test.ts`:ssä ja `aura.repo.test.ts`:ssä
+- [~] Vaikutusalue kartalla valittaessa → BRDC-BUILD-004 (MapLibre-taso)
+- [x] Puhtaat funktiot testattu (`rules/aura.test.ts` 9): säteily, katto päällekkäisillä,
+      lepotila, uskollisuuden lattia
+
+## Toteutettu 2026-09-01
+
+- `rules/aura.ts` (puhdas): `resourceAura(cells, now, sources?)` — auravat rakennukset
+  säteilevät resurssia hallussa oleviin soluihin, per-solu-katto, lepotila lähteestä.
+  `loyaltyFactor(h3, sources)` — decay-kerroin viereisistä lähteistä.
+  `loyaltySourceCells` — pelaajan Monumentit + paikat.
+- `rules/build.ts`: `Building.aura?` + `needsPlace?`, 3 riviä (`library` wisdom r1,
+  `temple-grove` mana r1, `lighthouse` food r2). `canBuild` + `templeAdjacent` +
+  `needs-a-temple`. `BuildingId` +3 (`types/domain.ts`), `AuraKind` domainiin.
+- `rules/decay.ts`: `projectCell(cell, now, loyalty=1)` — `decayAmount(hours) * loyalty`.
+  `sweepDecay(cells, now, loyalty?)` resolverilla. Muu decay-polku ennallaan.
+- `data/pouch.ts`: `perHourBonus` syöttää `resourceAura`:n `manaBonus`/`buildingBonus`/
+  `domainSpellBonus`:n rinnalle.
+- `data/MockRepository.ts`: `loyaltyOver(cells)` — rakentaa resolverin viewportin
+  soluista (rajattu luku säilyy); `build` laskee `templeAdjacent`in `getPlaces`ista.
+- `geo/cells.ts`: `cellsWithin(centre, radius)`.
+- Testit: +14 (`aura.test.ts` 9, `aura.repo.test.ts` 3, `build.test.ts` 1,
+  `decay.test.ts` 1). **620 vihreää.**
+
+## Majakan rehellisyyskoe
+
+Ratkaistu: Majakka **ei** nosta liikkumisnopeutta (se on pelaajan jalat). Se säteilee
+`food` (kalastus) säteellä 2 viereisiin vesi/maasoluihin. Ei lupaa taulukossa mitään,
+mitä peli ei tee.
 
 ## Toteutus
 

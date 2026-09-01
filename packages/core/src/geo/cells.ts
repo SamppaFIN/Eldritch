@@ -101,6 +101,16 @@ export function neighboursOf(cell: H3Index): H3Index[] {
 }
 
 /**
+ * Every cell within `radius` steps of `centre`, the centre included.
+ *
+ * The area a building's effect reaches (BRDC-BUILD-003) — `radius` 1 is the seven-cell
+ * disk, 2 is nineteen. Keeps h3-js's `gridDisk` from leaking past `packages/core/geo`.
+ */
+export function cellsWithin(centre: H3Index, radius: number): H3Index[] {
+  return gridDisk(centre, Math.max(0, radius));
+}
+
+/**
  * True area of a cell in m².
  *
  * H3 cells are not equal-area. The nominal 2150 m² is a global mean; at Tampere's

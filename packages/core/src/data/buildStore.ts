@@ -35,6 +35,7 @@ export async function buildOn(
   owned: readonly Cell[],
   researched: readonly TechId[],
   now: number,
+  templeAdjacent = false,
 ): Promise<BuildOutcome> {
   const stored = await store.get<Cell>(K.cell(h3));
   const live = stored ? projectCell(stored, now) : null;
@@ -42,7 +43,7 @@ export async function buildOn(
 
   const state = await settlePouch(store, owned, now);
   const check = canBuild(
-    { playerId: me, researched, pool: state.pool, buildings: buildingsOf(owned) },
+    { playerId: me, researched, pool: state.pool, buildings: buildingsOf(owned), templeAdjacent },
     id,
     live,
   );

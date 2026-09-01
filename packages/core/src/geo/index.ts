@@ -11,6 +11,7 @@ export {
   cellBoundary,
   cellAt,
   cellCentre,
+  cellsWithin,
   neighboursOf,
   regionAt,
   regionOf,

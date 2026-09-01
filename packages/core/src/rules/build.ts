@@ -24,7 +24,7 @@ import { BASE_STORAGE_CAP, canAfford, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
 import { hasTech } from './tech.js';
 import type { TechId } from './tech.js';
-import type { BuildingId, Cell, PlayerId } from '../types/domain.js';
+import type { AuraKind, BuildingId, Cell, PlayerId } from '../types/domain.js';
 
 export type { BuildingId } from '../types/domain.js';
 
@@ -43,6 +43,10 @@ export interface Building {
   storageCapBonus?: number;
   /** Granary only: added to how many buildings the player may hold. */
   buildingCapacity?: number;
+  /** An effect projected to a radius of cells (BRDC-BUILD-003). See `rules/aura.ts`. */
+  aura?: { kind: AuraKind; radius: number; amount: number };
+  /** Must be built next to a revealed place of this kind (BRDC-BUILD-003). */
+  needsPlace?: 'temple';
 }
 
 export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
@@ -131,6 +135,34 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     requires: [],
     produces: { culture: 4 },
   },
+
+  /* --- BRDC-BUILD-003: area effects, and the first use of dwell as a build gate --- */
+
+  // Must sit next to a temple — the one thing resources cannot buy, only time in a place.
+  library: {
+    cost: { stone: 80, culture: 40 },
+    terrain: 'any',
+    tech: 'astronomy',
+    requires: [],
+    needsPlace: 'temple',
+    aura: { kind: 'wisdom', radius: 1, amount: 1 },
+  },
+  'temple-grove': {
+    cost: { stone: 60, culture: 60 },
+    terrain: ['plain', 'forest'],
+    tech: 'guild-craft',
+    requires: [],
+    needsPlace: 'temple',
+    aura: { kind: 'mana', radius: 1, amount: 1 },
+  },
+  // Coastal; its light reaches the water around it, and boats bring back more.
+  lighthouse: {
+    cost: { stone: 70, wood: 40 },
+    terrain: ['coast', 'lake'],
+    tech: 'seafaring',
+    requires: [],
+    aura: { kind: 'food', radius: 2, amount: 1 },
+  },
 };
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
@@ -210,6 +242,7 @@ export type BuildRefusal =
   | 'occupied'
   | 'wrong-terrain'
   | 'locked'
+  | 'needs-a-temple'
   | 'at-capacity'
   | 'cannot-afford';
 
@@ -219,6 +252,8 @@ export interface BuildContext {
   pool: ResourcePool;
   /** The player's current buildings — its length is the count, and Granaries raise the cap. */
   buildings: readonly BuildingId[];
+  /** Is the target cell on or next to a revealed temple? Gates Library and Temple Grove. */
+  templeAdjacent?: boolean;
 }
 
 export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
@@ -249,6 +284,10 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
     return { ok: false, refused: 'wrong-terrain' };
   }
   if (b.tech && !hasTech(ctx.researched, b.tech)) return { ok: false, refused: 'locked' };
+  // The dwell gate (BRDC-BUILD-003): a Library or Temple Grove needs a temple beside it.
+  if (b.needsPlace === 'temple' && !ctx.templeAdjacent) {
+    return { ok: false, refused: 'needs-a-temple' };
+  }
   // An upgrade swaps a slot it already holds, so it never runs into the cap.
   if (!upgrading && ctx.buildings.length >= buildingCapacity(ctx.buildings)) {
     return { ok: false, refused: 'at-capacity' };

@@ -17,6 +17,7 @@ import type { DwellMap } from '../rules/dwell.js';
 import { manaBonus } from '../rules/mana.js';
 import { activeSpells, domainSpellBonus } from '../rules/spell.js';
 import type { ActiveSpell } from '../rules/spell.js';
+import { resourceAura } from '../rules/aura.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -32,9 +33,10 @@ function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void
 
 /**
  * The per-hour bonus `settleResources` adds on top of the raw trickle: building
- * production (BRDC-BUILD-001), mana from held places (BRDC-MANA-001), and any running
- * research spell (BRDC-SPELL-001), merged additively. Each is filtered by its own rule —
- * kept here so `rules/terrain.ts` stays blind to buildings, places and spells alike.
+ * production (BRDC-BUILD-001), mana from held places (BRDC-MANA-001), a running research
+ * spell (BRDC-SPELL-001), and area auras from Libraries and the like (BRDC-BUILD-003),
+ * merged additively. Each is filtered by its own rule — kept here so `rules/terrain.ts`
+ * stays blind to all of it.
  */
 async function perHourBonus(
   store: KeyValueStore,
@@ -49,6 +51,7 @@ async function perHourBonus(
 
   const spells = (await store.get<ActiveSpell[]>(K.spells)) ?? [];
   addInto(merged, domainSpellBonus(activeSpells(spells, now), now));
+  addInto(merged, resourceAura(owned, now));
   return merged;
 }
 
