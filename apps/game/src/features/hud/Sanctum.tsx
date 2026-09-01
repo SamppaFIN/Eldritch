@@ -11,7 +11,8 @@
  * door out is a game people stop opening.
  */
 import { Modal, RitualButton } from '@es3/ui';
-import { SAVE_VERSION } from '@es3/core';
+import { SAVE_VERSION, clearAll } from '@es3/core';
+import type { GameRepository } from '@es3/core';
 
 export interface WithdrawDialogProps {
   open: boolean;
@@ -61,6 +62,56 @@ export interface ResetDialogProps {
   open: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+}
+
+export interface SanctumDialogsProps {
+  confirming: 'withdraw' | 'reset' | null;
+  setConfirming: (v: 'withdraw' | 'reset' | null) => void;
+  onLeave: () => void;
+  repository: GameRepository;
+  ownedCells: number;
+  distanceM: number;
+}
+
+/**
+ * The withdraw and reset confirmations, and the state that opens them.
+ *
+ * Lifted out of MapView with their state so that file keeps under its line limit — the
+ * two dialogs and the `confirming` flag are one concern and nothing else needs them.
+ */
+export function SanctumDialogs({
+  confirming,
+  setConfirming,
+  onLeave,
+  repository,
+  ownedCells,
+  distanceM,
+}: SanctumDialogsProps) {
+  return (
+    <>
+      <WithdrawDialog
+        open={confirming === 'withdraw'}
+        ownedCells={ownedCells}
+        distanceM={distanceM}
+        onConfirm={onLeave}
+        onCancel={() => setConfirming(null)}
+      />
+      <ResetDialog
+        open={confirming === 'reset'}
+        onConfirm={() => {
+          void (async () => {
+            await repository.resetAll();
+            // A full reload rather than clearing React state by hand: after a wipe there
+            // is nothing to preserve, and rebuilding from boot is the one path already
+            // tested a hundred times over.
+            clearAll();
+            window.location.reload();
+          })();
+        }}
+        onCancel={() => setConfirming(null)}
+      />
+    </>
+  );
 }
 
 export function ResetDialog({ open, onConfirm, onCancel }: ResetDialogProps) {

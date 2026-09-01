@@ -30,7 +30,8 @@ import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
-import type { BuildBinding, PlaceBinding } from './useSelection.js';
+import { SpellPanel } from './SpellPanel.js';
+import type { BuildBinding, PlaceBinding, SpellBinding } from './useSelection.js';
 import './cell-panel.css';
 
 type ExpandFail = NonNullable<PlaceBinding['refusal']>;
@@ -47,6 +48,8 @@ export interface CellPanelProps {
   /** Dwell, reveal progress, and the cell's life as a place (BRDC-MANA-001). */
   place: PlaceBinding;
   onWard: (h3: string) => void;
+  /** The rites sub-panel's bundle (BRDC-SPELL-001), from `useSelection`. */
+  spell?: SpellBinding;
   /** The build sub-panel's bundle (BRDC-BUILD-001), from `useSelection`. */
   build?: BuildBinding;
   onClose: () => void;
@@ -162,6 +165,7 @@ export function CellPanel({
   here = false,
   place,
   onWard,
+  spell,
   build,
   onClose,
 }: CellPanelProps) {
@@ -359,6 +363,10 @@ export function CellPanel({
             />
           ) : null}
         </>
+      ) : null}
+
+      {spell ? (
+        <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} />
       ) : null}
 
       {refusal ? (

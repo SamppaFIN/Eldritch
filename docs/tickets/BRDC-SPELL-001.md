@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-MANA-001, BRDC-WAGER-JSON-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-01 (kotikoulukunnat; valta/esto → BRDC-SPELL-002; kartta-merkit `[~]`) |
+| **Valmius** | 85 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (M3–M4), §3 |
 
 ## 🔴 RED
@@ -16,14 +16,52 @@ Sanctuary, ei ole yhtään loitsua — mystiikka on tähän asti ollut sanastoa,
 
 ## 🟢 GREEN
 
-- [ ] Neljä koulukuntaa suunnitelman mukaan: **tutkimus, valta, esto, suoja**
-- [ ] `SPELLS`-taulukko: hinta manassa, kohde, kesto, vaikutus, avaava teknologia
-- [ ] Loitsulla on **kohde ja se on tarkistettu**: oma solu, vieras solu, tai koko lääni
-- [ ] Vaikutus on **määräaikainen** ja päättyy itsestään — pysyvä loitsu on rakennus
-- [ ] Aktiiviset loitsut näkyvät kartalla ja HUDissa jäljellä olevine aikoineen
-- [ ] Loitsu, jonka kesto on umpeutunut, **poistuu laskennasta luettaessa** — sama malli
-      kuin rappeutumisella, ei ajastinta
-- [ ] Puhtaat funktiot; jokainen koulukunta testattuna erikseen
+- [x] Neljä koulukuntaa `SPELLS`:ssä: `research`, `protection`, `block`, `dominion`
+      (tutkimus / suoja / esto / valta)
+- [x] `SPELLS`-taulukko: `cost` (mana), `scope`, `durationMs`, `domainBonusPerH`,
+      `tech` — numerot taulussa kuten `BUILDINGS`/`TECHS`
+- [x] Loitsulla on **kohde ja se on tarkistettu**: `castSpell` — `domain` (ei kohdetta),
+      `own-cell` (`not-your-cell` nimeltä), `enemy-cell` → `carry-in-a-wager`
+- [x] Vaikutus **määräaikainen**: `activeSpells(list, now)` pudottaa umpeutuneet
+      luettaessa, ei ajastinta
+- [~] Aktiiviset loitsut HUDissa (◇-rivi, tunnit) ja solupaneelin Rituaalit-osiossa
+      (jäljellä oleva aika). **Kartta-merkit siirretty** — läänin­laajuisella loitsulla
+      ei ole yhtä solua merkittäväksi; solukohtaiset merkit tulevat SPELL-002:n
+      kohdennettujen loitsujen kanssa
+- [x] Umpeutunut loitsu **poistuu laskennasta luettaessa** — testi:
+      "stops counting a research spell the moment it has expired"
+- [x] Puhtaat funktiot testattu (`rules/spell.test.ts` 12, `data/spell.repo.test.ts` 6):
+      taulu, jokainen kieltäytymispolku, aikakelaus; `insight`/`bulwark` päästä päähän
+
+## Toteutettu 2026-09-01
+
+**Kaksi kotikoulukuntaa toimii nyt; vihollista koskevat odottavat SPELL-002:ta.**
+
+- `rules/spell.ts` (puhdas): `SPELLS`-taulu (4), `castSpell(ctx, id, target, castAt)` —
+  `ward.ts`:n muoto, järjestetyt kiellot; `activeSpells` / `spellRemaining` ainoat kelloa
+  katsovat; `domainSpellBonus` tutkimukselle; `BULWARK_SHELTER_MS` suojalle.
+- **Tutkimus (`insight`)**: +6 wisdom/h koko läänille 12 h. Menee `perHourBonus`:iin
+  `pouch.ts`:ssä `manaBonus`:n ja `buildingBonus`:n rinnalle. **Ensimmäinen wisdom-lähde
+  pelissä** — teknologiapuu on nyt saavutettavissa ilman onnenkantamoista.
+- **Suoja (`bulwark`)**: ostaa solulle 24 h decay-kelloaikaa, leivottu soluun
+  `Cell.shelteredMs`:ään heti loihdittaessa (additiivinen, ei skeemanostoa) — tunnit
+  säilyvät vaikka loitsun oma laskuri päättyy. `projectCell` vähentää sen; muu
+  decay-polku ei muutu.
+- `data/spellStore.ts` (ohut sauma): `readSpells`, `castSpellAt` — settle, sääntö,
+  kirjoita vain onnistuessa; lista karsiutuu `activeSpells`:llä joka loihdinnalla.
+- `GameRepository.getActiveSpells` / `castSpell`; `MockRepository` (yksirivit).
+- UI: `SpellPanel.tsx` (peili `BuildPanel`:lle) — Insight koko läänille, Bulwark soluun;
+  `useSelection` `spell`-bindaus; HUD ◇-rivi. `MapView` mahtui: `Sanctum.tsx` sai
+  `SanctumDialogs`-kääreen (molemmat dialogit + tilan), MapView 400 → 388.
+- Testit: +20 (`spell.test.ts` 12, `spell.repo.test.ts` 6, `SpellPanel.test.ts` 2),
+  `decay.test.ts` +1 (`shelteredMs`). **606 vihreää.**
+
+## Ei tässä (SPELL-002)
+
+- **Esto (`snare`) ja valta (`dominion`)** — vihollisen heksaan ei ylety ilman palvelinta.
+  Taulussa `via: 'wager'`, `castSpell` palauttaa `carry-in-a-wager`. Kulkevat
+  Wager-viestissä ja vaikuttavat siinä taistelussa (checksum, deterministinen).
+- Solukohtaiset kartta-merkit aktiivisille loitsuille.
 
 ## 🔴 Ratkaistava: vihollisen heksaan ei ylety
 

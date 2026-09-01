@@ -8,14 +8,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { emptyCell } from '@es3/core';
 import type {
+  ActiveSpell,
   BuildRefusal,
   BuildingId,
+  CastRefusal,
   Cell,
   ExpandRefusal,
   GameRepository,
   H3Index,
   ResourcePool,
   RevealedPlace,
+  SpellId,
   TechId,
   WardRefusal,
 } from '@es3/core';
@@ -62,10 +65,18 @@ export interface PlaceBinding {
   onExpand: (h3: H3Index) => void;
 }
 
+/** Spell casting for the selected cell and the domain, in one bundle (BRDC-SPELL-001). */
+export interface SpellBinding {
+  active: readonly ActiveSpell[];
+  refusal: CastRefusal | null;
+  onCast: (id: SpellId, target: H3Index | null) => void;
+}
+
 export interface Selection {
   selected: H3Index | null;
   cell: Cell | null;
   place: PlaceBinding;
+  spell: SpellBinding;
   refusal: WardRefusal | null;
   sanctum: boolean;
   wager: boolean;
@@ -91,6 +102,8 @@ export function useSelection({
   const [refusal, setRefusal] = useState<WardRefusal | null>(null);
   const [buildRefusal, setBuildRefusal] = useState<BuildFail | null>(null);
   const [expandRefusal, setExpandRefusal] = useState<ExpandFail | null>(null);
+  const [castRefusal, setCastRefusal] = useState<CastRefusal | null>(null);
+  const [spells, setSpells] = useState<readonly ActiveSpell[]>([]);
   const [researched, setResearched] = useState<readonly TechId[]>([]);
   const [dwellMs, setDwellMs] = useState(0);
 
@@ -113,10 +126,15 @@ export function useSelection({
     void repository.getResearched().then((r) => {
       if (alive) setResearched(r);
     });
+    // Running spells, re-read as the trail grows so a countdown stays honest and an
+    // expired spell drops from the panel on its own (BRDC-SPELL-001).
+    void repository.getActiveSpells(now()).then((s) => {
+      if (alive) setSpells(s);
+    });
     return () => {
       alive = false;
     };
-  }, [repository]);
+  }, [repository, now, trailVersion]);
   const [sanctum, setSanctum] = useState(false);
   const [wager, setWager] = useState(false);
 
@@ -127,6 +145,7 @@ export function useSelection({
     setRefusal(null);
     setBuildRefusal(null);
     setExpandRefusal(null);
+    setCastRefusal(null);
     setSanctum(false);
   }, []);
 
@@ -234,6 +253,21 @@ export function useSelection({
     [repository, now, afterSpend],
   );
 
+  const onCast = useCallback(
+    (id: SpellId, target: H3Index | null) => {
+      if (!repository) return;
+      void (async () => {
+        const r = await repository.castSpell(id, target, now());
+        setCastRefusal(r.ok ? null : r.refused);
+        if (r.ok) {
+          setSpells(await repository.getActiveSpells(now()));
+          await afterSpend();
+        }
+      })();
+    },
+    [repository, now, afterSpend],
+  );
+
   const here = selected ? (livePlaces.find((p) => p.h3 === selected) ?? null) : null;
 
   return {
@@ -249,6 +283,7 @@ export function useSelection({
       refusal: expandRefusal,
       onExpand,
     },
+    spell: { active: spells, refusal: castRefusal, onCast },
     refusal,
     sanctum,
     wager,

@@ -8,8 +8,14 @@
  * a walk outdoors, and without it you cannot tell broken code from a bad sky. v2 showed
  * nothing here and players concluded the game had frozen.
  */
-import { levelState, msToKmh } from '@es3/core';
-import type { PlayerProfile, RejectReason, ResourcePool, RevealedPlace } from '@es3/core';
+import { levelState, msToKmh, spellRemaining } from '@es3/core';
+import type {
+  ActiveSpell,
+  PlayerProfile,
+  RejectReason,
+  ResourcePool,
+  RevealedPlace,
+} from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
@@ -36,6 +42,10 @@ export interface HudProps {
   resources?: ResourcePool | null;
   /** Revealed places, for the mana source count (BRDC-MANA-001). */
   places?: RevealedPlace[];
+  /** Running spells, for the rite readout (BRDC-SPELL-001). */
+  spells?: readonly ActiveSpell[];
+  /** Game clock, so a spell's remaining time can be shown. */
+  now?: number;
   /** True once the game knows which cell the player is standing in. */
   standing?: boolean;
   onInspectHere?: () => void;
@@ -152,6 +162,8 @@ export function Hud({
   keepAlive,
   resources = null,
   places = [],
+  spells = [],
+  now = 0,
   standing = false,
   onInspectHere,
   unobservedMs = 0,
@@ -161,6 +173,13 @@ export function Hud({
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
   const temples = places.filter((p) => p.kind === 'temple').length;
+  const spellLine = spells
+    .map((s) => {
+      const h = Math.round(spellRemaining(s, now) / 3_600_000);
+      const name = s.id[0]?.toUpperCase() + s.id.slice(1);
+      return h >= 1 ? `${name} · ${h} h` : name;
+    })
+    .join(' · ');
 
   return (
     <div className="hud">
@@ -182,6 +201,12 @@ export function Hud({
           <p className="hud__note hud__note--loss" role="status">
             The Void reclaims {released.length}{' '}
             {released.length === 1 ? 'warded cell' : 'warded cells'}
+          </p>
+        ) : null}
+
+        {spellLine ? (
+          <p className="hud__note" role="status">
+            <span aria-hidden>◇</span> {spellLine}
           </p>
         ) : null}
 

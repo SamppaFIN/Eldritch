@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { cellAt, clearAll, levelState, load, saveNow, speedMs } from '@es3/core';
+import { cellAt, levelState, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
   GameRepository,
@@ -34,7 +34,7 @@ import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
-import { ResetDialog, WithdrawDialog } from '../features/hud/Sanctum.js';
+import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { createRepository } from '../data/createRepository.js';
 import { useWorld } from '../features/territory/useWorld.js';
@@ -313,6 +313,7 @@ export function MapView({ onLeave }: MapViewProps) {
         here={inspect.selected !== null && inspect.selected === standingOn}
         place={inspect.place}
         onWard={inspect.onWard}
+        spell={inspect.spell}
         build={inspect.build}
         onClose={inspect.close}
       />
@@ -365,6 +366,8 @@ export function MapView({ onLeave }: MapViewProps) {
         keepAlive={keepAlive}
         resources={resources}
         places={places}
+        spells={inspect.spell.active}
+        now={clock.now()}
         standing={standingOn !== null}
         onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
         unobservedMs={trail.unobservedMs}
@@ -372,27 +375,13 @@ export function MapView({ onLeave }: MapViewProps) {
         onReset={() => setConfirming('reset')}
       />
 
-      <WithdrawDialog
-        open={confirming === 'withdraw'}
+      <SanctumDialogs
+        confirming={confirming}
+        setConfirming={setConfirming}
+        onLeave={onLeave}
+        repository={repository}
         ownedCells={territory.owned.length}
         distanceM={trail.distanceM}
-        onConfirm={onLeave}
-        onCancel={() => setConfirming(null)}
-      />
-
-      <ResetDialog
-        open={confirming === 'reset'}
-        onConfirm={() => {
-          void (async () => {
-            await repository.resetAll();
-            // A full reload rather than clearing React state by hand: after a wipe
-            // there is nothing to preserve, and rebuilding from boot is the one path
-            // already tested a hundred times over.
-            clearAll();
-            window.location.reload();
-          })();
-        }}
-        onCancel={() => setConfirming(null)}
       />
     </main>
   );
