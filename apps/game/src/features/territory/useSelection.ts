@@ -115,6 +115,8 @@ export interface Selection {
   build: BuildBinding;
   onCellTap: (h3: H3Index) => void;
   onPlaceTap: (h3: H3Index) => void;
+  /** Tapping the Keep marker opens the nation panel, the same door as the Anchor. */
+  onCastleTap: () => void;
   onWard: (h3: H3Index) => void;
   openWager: () => void;
   closeWager: () => void;
@@ -215,6 +217,13 @@ export function useSelection({
     },
     [livePlaces, onCellTap],
   );
+
+  // The Keep sits on the Hearth cell; tapping its marker is a request for the nation,
+  // not the one hexagon underneath it.
+  const onCastleTap = useCallback(() => {
+    setSelected(null);
+    setSanctum(true);
+  }, []);
 
   /*
    * A cell nobody has ever claimed is not in storage, so the viewport query does not
@@ -368,6 +377,7 @@ export function useSelection({
     build: { researched, myBuildings, refusal: buildRefusal, onBuild, onDemolish },
     onCellTap,
     onPlaceTap,
+    onCastleTap,
     onWard,
     openWager: useCallback(() => {
       setSanctum(false);

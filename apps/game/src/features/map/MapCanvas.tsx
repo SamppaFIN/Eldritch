@@ -38,7 +38,7 @@ import {
   removePlaceLayers,
   setPlaceData,
 } from '../territory/PlaceMarkers.js';
-import { ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
+import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import {
   AWAKENING_MS,
   ensureAwakeningLayers,
@@ -90,6 +90,8 @@ export interface MapCanvasProps {
   onCellTap?: (h3: string) => void;
   /** Called when an Anchor Stone or temple marker is tapped. */
   onPlaceTap?: (h3: string) => void;
+  /** Called when the Keep marker is tapped — opens the nation panel. */
+  onCastleTap?: () => void;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
   /** Terrain resolved from the map's own tiles, for the caller to persist. */
@@ -119,6 +121,7 @@ export function MapCanvas({
   onBasemapChange,
   onCellTap,
   onPlaceTap,
+  onCastleTap,
   onViewportChange,
   onCellTerrain,
 }: MapCanvasProps) {
@@ -251,6 +254,18 @@ export function MapCanvas({
       map.off('click', layers, onClick);
     };
   }, [map, ready, onPlaceTap]);
+
+  // Tapping the Keep. It sits on the Hearth cell, so without its own handler the tap
+  // falls through to the hexagon beneath — but the Keep is about the whole map.
+  useEffect(() => {
+    if (!map || !ready || !onCastleTap) return;
+    const onClick = () => onCastleTap();
+    const layers = [CASTLE_CORE_LAYER, CASTLE_HALO_LAYER];
+    map.on('click', layers, onClick);
+    return () => {
+      map.off('click', layers, onClick);
+    };
+  }, [map, ready, onCastleTap]);
 
   // Report the viewport once it settles, so the caller loads only what is on screen.
   useEffect(() => {

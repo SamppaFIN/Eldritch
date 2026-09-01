@@ -218,8 +218,7 @@ export function MapView({ onLeave }: MapViewProps) {
     return cells.length > 0 ? { cells, at: claim.at } : null;
   }, [territory.lastClaim]);
 
-  // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring; the rest of
-  // the game still sees the whole viewport (selection, the rival compass).
+  // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
   const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
 
@@ -299,6 +298,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onBasemapChange={setBasemap}
         onCellTap={inspect.onCellTap}
         onPlaceTap={inspect.onPlaceTap}
+        onCastleTap={inspect.onCastleTap}
         onViewportChange={onViewportChange}
         onCellTerrain={onCellTerrain}
       />
