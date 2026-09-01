@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.1",
+    "date": "2026-09-02",
+    "notes": [
+      "Buildings show on the map now — a small mark on the cell, coloured by what it does: green for a Work that produces, gold for knowledge, red for a fortress. A rival's building on your border shows too."
+    ]
+  },
+  {
     "version": "0.5.0",
     "date": "2026-09-02",
     "notes": [

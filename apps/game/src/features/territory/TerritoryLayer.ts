@@ -20,6 +20,7 @@ export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';
+export const CELL_BUILDING_LAYER = 'cells-building';
 export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
 /**
@@ -131,6 +132,33 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
+   * The Work on this ground (BRDC-ART-002). Below the terrain glyph — anomaly is above,
+   * this is below, so a cell can carry all three without them colliding. Colour is by
+   * role (produce / store / knowledge / defence / culture); the glyph carries the meaning
+   * too, so it reads without colour. On any owner's cell, unlike the anomaly mark.
+   */
+  map.addLayer({
+    id: CELL_BUILDING_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['!=', ['get', 'building'], ''],
+    layout: {
+      'text-field': ['get', 'building'],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 13, 10, 17, 15, 19, 19],
+      'text-offset': [0, 1.1],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': ['get', 'buildingColor'],
+      'text-halo-color': '#0a0612',
+      'text-halo-width': 2,
+    },
+  });
+
+  /*
    * An anomaly on your own ground (BRDC-EVENT-001). Above the terrain glyph and offset
    * up so the two do not sit on each other. `--mystic-cyan`, one colour — the glyph
    * carries the state (`◌` a site, `◐` under study, `✦` a chain), never colour alone.
@@ -171,6 +199,7 @@ export function setTerritoryData(
 export function removeTerritoryLayers(map: MapLibreMap): void {
   for (const id of [
     CELL_ANOMALY_LAYER,
+    CELL_BUILDING_LAYER,
     CELL_ICON_LAYER,
     CELL_CONTESTED_LAYER,
     CELL_LINE_LAYER,

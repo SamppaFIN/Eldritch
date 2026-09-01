@@ -118,6 +118,29 @@ describe('terrain glyph', () => {
   });
 });
 
+describe('building glyph (BRDC-ART-002)', () => {
+  const built = (owner: string | null) => ({
+    ...cell(owner, 200),
+    building: { id: 'sawmill' as const, builtAt: 0 },
+  });
+
+  it('a built cell carries its role glyph and colour', () => {
+    const p = cellProperties(built(ME), ME);
+    expect(p.building).toBe('⚒'); // produce
+    expect(p.buildingColor).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+
+  it('a rival’s building shows too — it is intel', () => {
+    expect(cellProperties(built(RIVAL), ME).building).toBe('⚒');
+  });
+
+  it('an empty cell has no building glyph', () => {
+    const p = cellProperties(cell(ME, 100), ME);
+    expect(p.building).toBe('');
+    expect(p.buildingColor).toBe('');
+  });
+});
+
 describe('withFogOfWar', () => {
   it('keeps my cells and their neighbours, and nothing else', () => {
     const owned = [cell(ME, 200, H3)];

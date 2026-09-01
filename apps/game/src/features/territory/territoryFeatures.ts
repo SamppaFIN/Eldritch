@@ -9,6 +9,7 @@ import type { Feature, FeatureCollection, Polygon } from 'geojson';
 import { anomalyAt, emptyCell, neighboursOf, terrainOf, TERRAIN_TABLE } from '@es3/core';
 import { cellBoundary } from '@es3/core';
 import type { Cell, CaptureOutcome, H3Index, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
+import { buildingGlyph } from './buildingGlyphs.js';
 
 /**
  * The cells a just-closed loop should flare gold, and when. `null` when the last claim
@@ -64,6 +65,10 @@ export interface CellProperties {
   iconColor: string;
   /** Anomaly mark on your own ground: `◌` a site, `◐` under study, `✦` in a chain, `''` none. */
   anomaly: string;
+  /** Building glyph (BRDC-ART-002), `''` when the cell has no building. On any owner's cell. */
+  building: string;
+  /** The building glyph's colour, by role. `''` alongside an empty building glyph. */
+  buildingColor: string;
 }
 
 /**
@@ -154,6 +159,8 @@ export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties 
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const rival = cell.ownerId !== null && !mine;
   const glyph = terrainGlyph(terrainOf(cell.h3).kind);
+  // Shown on any owner's cell — a rival's building on a bordering hex is intel.
+  const bg = cell.building ? buildingGlyph(cell.building.id) : null;
   return {
     strength: cell.strength,
     mine,
@@ -164,6 +171,8 @@ export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties 
     icon: glyph?.char ?? '',
     iconColor: glyph?.color ?? '',
     anomaly: mine ? anomalyGlyphFor(cell) : '',
+    building: bg?.char ?? '',
+    buildingColor: bg?.color ?? '',
   };
 }
 
