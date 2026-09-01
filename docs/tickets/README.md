@@ -330,6 +330,24 @@ etukäteen, ei siinä vaiheessa kun portti kaatuu kesken tiketin.
 
 ---
 
+## Ideapankki — 2026-09-02
+
+Infiniten ideasessio kenttätestin jälkeen. Kirjattu tiketeiksi, **ei aikataulutettu** —
+`BRDC-MOBILE-001` (ulkolenkki) menee näiden edelle. Halpoja, olemassa olevien systeemien
+päälle rakentuvia.
+
+| ID | Nimi | Effort | Ydin |
+|---|---|:---:|---|
+| [BRDC-ART-002](BRDC-ART-002.md) | Rakennukset kartalla grafiikkana | S–M | stroke-SVG-glyfi per `BuildingId`, symbol-layer |
+| [BRDC-CIPHER-001](BRDC-CIPHER-001.md) | Sirpaleet → koottu kirjoitus → repeämä | M | uusi hash-tier, found-items-kokoaminen, chain-event |
+| [BRDC-BLIGHT-001](BRDC-BLIGHT-001.md) | Rappio näkyväksi: leviävä turmelus | S–M | decayn ilmiasu, ei uutta tilaa; kävely puhdistaa |
+| [BRDC-WEATHER-001](BRDC-WEATHER-001.md) | Säät kalenterista | S | `weatherAt(now)` → fog-säde, reveal, GPS-toleranssi |
+| [BRDC-MIND-001](BRDC-MIND-001.md) | Perkki per Consciousness-virstanpylväs | S | 5 pientä kytkentää olemassa oleviin systeemeihin |
+| [BRDC-WAGER-JSON-003](BRDC-WAGER-JSON-003.md) | Voitetun Wagerin rappiomajakka | S | 48 h nopeampi decay yhdellä rajaruudulla |
+| [BRDC-RAID-001](BRDC-RAID-001.md) | Partio: kevyt strateginen kerros | M | token joka projisoi voimaa naapureihin, ei liiku · **MOBILE-001 ensin** |
+
+---
+
 ## Suhde muihin dokumentteihin
 
 | Tiedosto | Rooli |
