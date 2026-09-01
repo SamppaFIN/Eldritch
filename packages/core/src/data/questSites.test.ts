@@ -2,7 +2,14 @@
  * BRDC-QUEST-001 — which landmarks the map draws, and finding a secret by walking onto it.
  */
 import { describe, expect, it } from 'vitest';
-import { FUMING_PATH, secretSiteAt, siteCell, visibleQuestSites } from './questSites.js';
+import {
+  FUMING_PATH,
+  QUEST_SITES,
+  STAGE_SITE,
+  secretSiteAt,
+  siteCell,
+  visibleQuestSites,
+} from './questSites.js';
 
 describe('visibleQuestSites', () => {
   it('shows only the statue before the adventure starts', () => {
@@ -28,6 +35,22 @@ describe('visibleQuestSites', () => {
       'staff',
       'wisdom',
     ]);
+  });
+});
+
+describe('STAGE_SITE', () => {
+  it('maps every path stage to its own site, and both endings to the water', () => {
+    for (const stage of FUMING_PATH) expect(STAGE_SITE[stage]).toBe(stage);
+    expect(STAGE_SITE.servitude).toBe('deep');
+  });
+
+  it('only ever names a real quest site', () => {
+    for (const site of Object.values(STAGE_SITE)) expect(QUEST_SITES[site]).toBeDefined();
+  });
+
+  it('has no entry for the failure loops', () => {
+    expect(STAGE_SITE['death-by-fumes']).toBeUndefined();
+    expect(STAGE_SITE['death-by-troll']).toBeUndefined();
   });
 });
 

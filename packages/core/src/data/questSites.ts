@@ -91,3 +91,33 @@ export function visibleQuestSites(
 export function secretSiteAt(h3: H3Index): SecretSiteId | null {
   return SECRET_SITES.find((s) => siteCell(s) === h3) ?? null;
 }
+
+/**
+ * Which quest site a stage of The Fuming Lake is acted on (BRDC-QUEST-002).
+ *
+ * The adventure is begun and advanced from the hex it happens at, not from the Keep. The
+ * two endings (`deep`, `servitude`) both play out at the water; the failure loops
+ * (`death-by-fumes`, `death-by-troll`) have no site — they send you back a step.
+ */
+export const STAGE_SITE: Readonly<Record<string, QuestSiteId>> = {
+  statue: 'statue',
+  lake: 'lake',
+  hermit: 'hermit',
+  troll: 'troll',
+  deep: 'deep',
+  servitude: 'deep',
+};
+
+/** The verb on a quest site's action button, per site. Copy, kept beside the sites. */
+export const SITE_VERB: Readonly<Record<QuestSiteId, string>> = {
+  statue: 'Begin — The Fuming Lake',
+  lake: 'Investigate the lake',
+  hermit: 'Speak to the hermit',
+  troll: 'Face the troll',
+  deep: 'Approach the water',
+  trinket: 'A Shiny Trinket lies here',
+  staff: 'An Ancient Staff lies here',
+  wisdom: 'The Wisdom Stone lies here',
+  'healing-shrine': 'A Healing Shrine',
+  'sanity-shrine': 'A Sanity Shrine',
+};

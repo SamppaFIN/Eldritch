@@ -19,7 +19,6 @@ import {
   WARD_COST,
   canAfford,
   cellAreaM2,
-  daysBetween,
   expansionCost,
   hoursUntilReleased,
   resourceForCell,
@@ -33,8 +32,11 @@ import { BuildPanel } from './BuildPanel.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TradeControls } from './TradeControls.js';
 import { AnomalyPanel } from './AnomalyPanel.js';
+import { QuestCellPanel } from '../quest/QuestCellPanel.js';
+import type { QuestCellInfo } from '../quest/questCell.js';
 import type { AnomalyBinding } from './useAnomaly.js';
 import type { BuildBinding, PlaceBinding, SpellBinding, TradeBinding } from './useSelection.js';
+import { historyLine } from './cellHistory.js';
 import { terrainGlyph } from './territoryFeatures.js';
 import './cell-panel.css';
 
@@ -59,6 +61,9 @@ export interface CellPanelProps {
   /** The build sub-panel's bundle (BRDC-BUILD-001), and the anomaly on this cell (BRDC-EVENT-001). */
   build?: BuildBinding;
   anomaly?: AnomalyBinding;
+  /** The Fuming Lake on this hex, if it has a step or a landmark here (BRDC-QUEST-002). */
+  quest?: QuestCellInfo | null;
+  onQuestOpen?: () => void;
   onClose: () => void;
 }
 
@@ -93,33 +98,6 @@ const RESOURCE_NAME: Readonly<Record<string, string>> = {
   iron: 'iron',
   gold: 'gold',
 };
-
-/** "3 days ago", "yesterday", "today" — from a day count. */
-function ago(days: number): string {
-  if (days <= 0) return 'today';
-  if (days === 1) return 'yesterday';
-  return `${days} days ago`;
-}
-
-/**
- * The most recent thing that happened to this cell, in a sentence (BRDC-HEX-001).
- *
- * The client has ids, not names, so anyone who is not the local player reads as "another
- * wanderer"; unowned ground it was claimed from is "the Void".
- */
-function historyLine(cell: Cell, me: PlayerId | null, now: number): string | null {
-  const last = cell.history?.[cell.history.length - 1];
-  if (last) {
-    const when = ago(daysBetween(last.at, now));
-    if (last.from === null) {
-      return last.to === me ? `You claimed this from the Void ${when}` : `Claimed from the Void ${when}`;
-    }
-    return last.to === me ? `You took this ${when}` : `Taken from another wanderer ${when}`;
-  }
-  if (cell.finder === me) return 'You revealed this';
-  if (cell.finder) return 'Revealed by another wanderer';
-  return null;
-}
 
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<WardRefusal, string>> = {
@@ -179,6 +157,8 @@ export function CellPanel({
   trade,
   build,
   anomaly,
+  quest,
+  onQuestOpen,
   onClose,
 }: CellPanelProps) {
   /*
@@ -388,6 +368,7 @@ export function CellPanel({
 
       {trade && mine ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
       {anomaly?.current && mine ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
+      {quest ? <QuestCellPanel info={quest} onOpen={onQuestOpen ?? (() => {})} /> : null}
 
       {refusal ? (
         <p className="cell-panel__refusal" role="status">

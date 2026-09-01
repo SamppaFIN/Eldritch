@@ -175,7 +175,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.4.4';
+export const APP_VERSION = '0.4.5';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 

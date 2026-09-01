@@ -19,7 +19,6 @@ import { ManaPanel } from './ManaPanel.js';
 import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { ResearchBinding } from './useSelection.js';
-import { AdventureDialog } from '../quest/AdventureDialog.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
 
@@ -83,15 +82,16 @@ export function HearthPanel({
   onWeakest,
   onClose,
 }: HearthPanelProps) {
-  const [questOpen, setQuestOpen] = useState(false);
   const [tab, setTab] = useState<KeepTab>('mana');
   const afterKeepSpend = useCallback(() => {
     void repository?.getResources(now).then(onPouch);
   }, [repository, now, onPouch]);
   const keep = useKeepEconomy(repository, () => now, owned.length, afterKeepSpend);
-  const questLabel = adventures.active
-    ? `${adventures.active.title} · continue`
-    : `${adventures.list.filter((a) => a.state === 'available').length} to begin`;
+  // The Fuming Lake is begun and advanced from its own hexes now (BRDC-QUEST-002); the
+  // Hearth only says where it stands.
+  const questLine = adventures.active
+    ? `The Fuming Lake — ${adventures.active.speaker ?? 'under way'}`
+    : null;
   const d = dominionOf(owned, now);
   const dark = darkTimeAt(now);
   const perHour = forecast?.perHour ?? {};
@@ -106,7 +106,6 @@ export function HearthPanel({
   const full = resources ? RESOURCE_KINDS.some((k) => d.perHour[k] > 0 && resources[k] >= BASE_STORAGE_CAP) : false;
 
   return (
-    <>
     <GlassPanel as="section" className="hearth-panel" aria-label="Your sanctuary">
       <div className="hearth-panel__head">
         <MetatronsCube size={44} animate={1200} className="hearth-panel__sigil" />
@@ -214,6 +213,8 @@ export function HearthPanel({
         <p className="hearth-panel__line hearth-panel__tabbody">Troops come later.</p>
       ) : null}
 
+      {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
+
       <p className="hearth-panel__line">
         {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,
             where a player already comes to ask "what have I built". */}
@@ -238,14 +239,7 @@ export function HearthPanel({
         <RitualButton variant="ghost" onClick={onWager}>
           The Wager
         </RitualButton>
-        <RitualButton variant="ghost" onClick={() => setQuestOpen(true)}>
-          Adventures · {questLabel}
-        </RitualButton>
       </div>
     </GlassPanel>
-    {questOpen ? (
-      <AdventureDialog binding={adventures} onClose={() => setQuestOpen(false)} />
-    ) : null}
-    </>
   );
 }

@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { cellAt, levelState, load, saveNow, speedMs, visibleQuestSites } from '@es3/core';
+import { cellAt, levelState, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
   GameRepository,
@@ -14,7 +14,6 @@ import type {
   LogEntry,
   PlayerProfile,
   RevealedPlace,
-  Terrain,
   TrailPoint,
 } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
@@ -32,9 +31,10 @@ import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
 import { awakeningReveal, withFogOfWar } from '../features/territory/territoryFeatures.js';
-import { useAdventure } from '../features/quest/useAdventure.js';
-import { useQuestFinds } from '../features/quest/useQuestFinds.js';
+import { useFumingLake } from '../features/quest/useFumingLake.js';
 import { QuestReveal } from '../features/quest/QuestReveal.js';
+import { AdventureDialog } from '../features/quest/AdventureDialog.js';
+import { useCellTerrain } from '../features/map/useCellTerrain.js';
 import { LogPanel } from '../features/log/LogPanel.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
@@ -194,15 +194,7 @@ export function MapView({ onLeave }: MapViewProps) {
   // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
   const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
-
-  const onCellTerrain = useCallback(
-    async (updates: { h3: string; terrain: Terrain }[]) => {
-      if (!repository) return;
-      for (const u of updates) await repository.setCellTerrain(u.h3, u.terrain);
-      await territory.refresh();
-    },
-    [repository, territory.refresh],
-  );
+  const onCellTerrain = useCellTerrain(repository, territory.refresh);
 
   /*
    * Everything about what the player is inspecting, in one place.
@@ -224,12 +216,8 @@ export function MapView({ onLeave }: MapViewProps) {
   /** The cell under the player's feet, which is the one they most often want. */
   const standingOn = useMemo(() => (point ? cellAt(point) : null), [point]);
 
-  // The Fuming Lake (BRDC-QUEST-001): book held here so the map can stage its landmarks.
-  const adventures = useAdventure(repository, clock.now(), territory.owned.length);
-  const fuming = adventures.list.find((a) => a.id === 'fuming-lake');
-  const questStage = fuming?.state === 'done' ? 'deep' : (fuming?.stageId ?? null);
-  const finds = useQuestFinds(repository, standingOn, fuming?.state === 'active', clock.now);
-  const questSites = useMemo(() => visibleQuestSites(questStage, finds.finds), [questStage, finds.finds]);
+  // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
+  const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
 
   /*
    * A player who owns nothing has never seen the game do anything, so the map opens
@@ -272,7 +260,7 @@ export function MapView({ onLeave }: MapViewProps) {
         cells={shownCells}
         playerId={profile?.id ?? null}
         places={places}
-        questSites={questSites}
+        questSites={quest.questSites}
         castle={castle}
         awakening={awakening}
         initialZoom={openingZoom}
@@ -286,7 +274,10 @@ export function MapView({ onLeave }: MapViewProps) {
 
       <ClaimBurst claim={territory.lastClaim} />
       <PlaceReveal revealed={trail.revealed} />
-      <QuestReveal found={finds.justFound} onDismiss={finds.dismiss} />
+      <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />
+      {quest.questHex ? (
+        <AdventureDialog binding={quest.adventures} onClose={() => quest.openQuestHex(null)} />
+      ) : null}
 
       {inspect.sanctum ? (
         <HearthPanel
@@ -297,7 +288,7 @@ export function MapView({ onLeave }: MapViewProps) {
           levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()}
           research={inspect.research}
-          adventures={adventures}
+          adventures={quest.adventures}
           repository={repository}
           onPouch={setResources}
           forecast={forecast}
@@ -322,6 +313,8 @@ export function MapView({ onLeave }: MapViewProps) {
         trade={inspect.trade}
         build={inspect.build}
         anomaly={inspect.anomaly}
+        quest={quest.questCell}
+        onQuestOpen={() => quest.openQuestHex(inspect.selected)}
         onClose={inspect.close}
       />
 
@@ -362,6 +355,8 @@ export function MapView({ onLeave }: MapViewProps) {
         onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
         unobservedMs={trail.unobservedMs}
         settings={settings}
+        waypoint={quest.waypoint}
+        onWaypointSeen={quest.onWaypointSeen}
         onHelp={setHelp}
         onOpenLog={() => setLogOpen(true)}
       />

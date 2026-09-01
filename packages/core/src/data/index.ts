@@ -23,6 +23,8 @@ export {
   QUEST_SITES,
   QUEST_SITE_IDS,
   SECRET_SITES,
+  SITE_VERB,
+  STAGE_SITE,
   secretSiteAt,
   siteCell,
   visibleQuestSites,

@@ -49,6 +49,9 @@ export interface HudProps {
   unobservedMs?: number;
   /** Sound and vibration switches — the claim chime and buzz read these. */
   settings: Settings;
+  /** A quest landmark that just appeared on the map (BRDC-QUEST-002), or null. */
+  waypoint?: string | null;
+  onWaypointSeen?: () => void;
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
@@ -172,6 +175,8 @@ export function Hud({
   onInspectHere,
   unobservedMs = 0,
   settings,
+  waypoint = null,
+  onWaypointSeen,
   onHelp,
   onOpenLog,
 }: HudProps) {
@@ -241,6 +246,12 @@ export function Hud({
           <p className="hud__note" role="status">
             <span aria-hidden>◇</span> {spellLine}
           </p>
+        ) : null}
+
+        {waypoint ? (
+          <button type="button" className="hud__note hud__waypoint" aria-live="polite" onClick={onWaypointSeen}>
+            <span aria-hidden>✦</span> New waypoint · {waypoint} — walk there
+          </button>
         ) : null}
 
         {/* One grid: two columns on a phone, four where there is width for them.

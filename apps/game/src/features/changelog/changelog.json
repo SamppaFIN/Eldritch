@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.4.5",
+    "date": "2026-09-01",
+    "notes": [
+      "The Fuming Lake begins on the statue's own hex now, not from the Keep — tap the statue and you are in the tale. Each step is an action on the hex it happens at.",
+      "Finding an item, and a place revealing itself, now wait for a tap instead of fading on their own — with a sound so you catch them while walking.",
+      "A claimed hex throws its yield: \"+10 timber\" rising off the ground, in the resource's colour.",
+      "A new landmark appearing on the map puts a line in the HUD. The History log names what you found."
+    ]
+  },
+  {
     "version": "0.4.4",
     "date": "2026-09-01",
     "notes": [

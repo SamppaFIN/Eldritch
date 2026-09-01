@@ -18,7 +18,10 @@ export interface PlaceRevealProps {
   revealed: readonly RevealedPlace[];
 }
 
-const REVEAL_MS = 3_600;
+/** Long enough to notice while walking; capped so it never sticks on screen. */
+const REVEAL_MS = 15_000;
+/** The draw-in animation is still brief — only the dismissal wait grew. */
+const DRAW_MS = 3_600;
 
 export function PlaceReveal({ revealed }: PlaceRevealProps) {
   const [showing, setShowing] = useState<RevealedPlace | null>(null);
@@ -37,26 +40,27 @@ export function PlaceReveal({ revealed }: PlaceRevealProps) {
   const hours = Math.round(showing.dwellMs / 3_600_000);
 
   return (
-    <div className="reveal" role="status">
-      <div className="reveal__sigil" aria-hidden>
+    <button type="button" className="reveal" onClick={() => setShowing(null)} aria-label="Dismiss">
+      <span className="reveal__sigil" aria-hidden>
         {anchor ? (
-          <MetatronsCube size={220} animate={REVEAL_MS * 0.55} />
+          <MetatronsCube size={220} animate={DRAW_MS * 0.55} />
         ) : (
-          <FlowerOfLife size={190} animate={REVEAL_MS * 0.55} />
+          <FlowerOfLife size={190} animate={DRAW_MS * 0.55} />
         )}
-      </div>
+      </span>
 
-      <p className="reveal__name">{anchor ? 'Anchor Stone' : 'A Temple'}</p>
-      <p className="reveal__line">
+      <span className="reveal__name">{anchor ? 'Anchor Stone' : 'A Temple'}</span>
+      <span className="reveal__line">
         {anchor
           ? 'The ground here knows you best. This is where you return to.'
           : 'You have given this place enough of yourself for it to answer.'}
-      </p>
+      </span>
       {hours >= 1 ? (
-        <p className="reveal__meta es-numeric">
+        <span className="reveal__meta es-numeric">
           {hours} {hours === 1 ? 'hour' : 'hours'} spent here
-        </p>
+        </span>
       ) : null}
-    </div>
+      <span className="reveal__hint">Tap to dismiss</span>
+    </button>
   );
 }

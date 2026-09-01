@@ -49,6 +49,15 @@ describe('describeLogEntry', () => {
       'Fought the Wager against Seeker — lost',
     );
   });
+
+  it('names a quest find and falls back for a plain step', () => {
+    expect(describeLogEntry({ at: 0, kind: 'quest', ref: 'found:wisdom' }).text).toBe(
+      'Found The Wisdom Stone',
+    );
+    expect(describeLogEntry({ at: 0, kind: 'quest', ref: 'fuming-lake' }).text).toBe(
+      'Took a step in an adventure',
+    );
+  });
 });
 
 describe('relativeTime', () => {

@@ -1,28 +1,34 @@
 /**
- * The moment you find one of the troll's answers (BRDC-QUEST-001).
+ * The moment you find one of the troll's answers (BRDC-QUEST-001, -002).
  *
  * Same weight as a place reveal: a drawn sigil, the item's name, a line of what it is.
- * It shows once, when you walk onto the cell, then the site is just a marker.
+ * It waits to be tapped — an earlier version faded on its own and was gone before it was
+ * read outdoors — with a long safety timeout so it cannot get stuck on screen forever.
  */
 import { useEffect } from 'react';
 import { QUEST_ITEMS } from '@es3/core';
 import type { SecretSiteId } from '@es3/core';
 import { Portrait } from './portraits.js';
+import { playPling } from '../hud/pling.js';
+import type { Settings } from '../hud/settings.js';
 import './quest-reveal.css';
 
 export interface QuestRevealProps {
   found: SecretSiteId | null;
   onDismiss: () => void;
+  settings: Settings;
 }
 
-const REVEAL_MS = 4_200;
+/** It stays until tapped, but never longer than this. */
+const SAFETY_MS = 15_000;
 
-export function QuestReveal({ found, onDismiss }: QuestRevealProps) {
+export function QuestReveal({ found, onDismiss, settings }: QuestRevealProps) {
   useEffect(() => {
     if (!found) return;
-    const timer = setTimeout(onDismiss, REVEAL_MS);
+    if (settings.sound) playPling();
+    const timer = setTimeout(onDismiss, SAFETY_MS);
     return () => clearTimeout(timer);
-  }, [found, onDismiss]);
+  }, [found, onDismiss, settings.sound]);
 
   if (!found) return null;
   const item = QUEST_ITEMS[found];
@@ -35,6 +41,7 @@ export function QuestReveal({ found, onDismiss }: QuestRevealProps) {
       <span className="quest-reveal__name">{item.name}</span>
       <span className="quest-reveal__line">{item.blurb}</span>
       <span className="quest-reveal__hint">It shows on your map now. Take the ground to use it on Grug.</span>
+      <span className="quest-reveal__hint">Tap to dismiss</span>
     </button>
   );
 }

@@ -283,6 +283,27 @@
   font-size: var(--text-sm);
 }
 
+.cell-panel__quest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--sacred-gold);
+}
+
+.cell-panel__quest-history {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.cell-panel__quest-landmark {
+  margin: 0;
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+}
+
 @keyframes es-panel-in {
   from {
     opacity: 0;

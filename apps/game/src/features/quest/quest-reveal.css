@@ -18,7 +18,9 @@
     color-mix(in oklch, var(--void-black) 72%, transparent),
     color-mix(in oklch, var(--void-black) 93%, transparent) 60%
   );
-  animation: quest-reveal-in 4.2s var(--ease-out, ease-out) both;
+  font: inherit;
+  cursor: pointer;
+  animation: quest-reveal-in 0.6s var(--ease-out, ease-out) both;
 }
 
 .quest-reveal__sigil {
@@ -53,14 +55,8 @@
   from {
     opacity: 0;
   }
-  10% {
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
   to {
-    opacity: 0;
+    opacity: 1;
   }
 }
 

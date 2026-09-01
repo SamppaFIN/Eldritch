@@ -200,6 +200,26 @@
   text-transform: uppercase;
 }
 
+.hud__waypoint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: start;
+  color: var(--sacred-gold);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.hud__waypoint:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
 /*
  * Signal above, controls below.
  *

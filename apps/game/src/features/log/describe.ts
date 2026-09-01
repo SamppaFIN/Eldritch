@@ -5,7 +5,8 @@
  * into a sentence with the app's name tables, and hands back the codex topic the line
  * links to.
  */
-import type { LogEntry, LogKind } from '@es3/core';
+import type { LogEntry, LogKind, SecretSiteId } from '@es3/core';
+import { QUEST_ITEMS } from '@es3/core';
 import { BUILDING_NAME, SPELL_NAME, titleCase } from '../territory/names.js';
 import type { HelpTopic } from '../help/help.js';
 
@@ -77,8 +78,13 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
                 : 'Dealt with an anomaly',
         topic,
       };
-    case 'quest':
-      return { text: 'Took a step in an adventure', topic };
+    case 'quest': {
+      const found = e.ref?.startsWith('found:') ? (e.ref.slice(6) as SecretSiteId) : null;
+      return {
+        text: found ? `Found ${QUEST_ITEMS[found]?.name ?? 'something'}` : 'Took a step in an adventure',
+        topic,
+      };
+    }
     case 'wager':
       return { text: `Fought the Wager against ${e.ref ?? 'a rival'} — ${e.won ? 'won' : 'lost'}`, topic };
     case 'hearth':
