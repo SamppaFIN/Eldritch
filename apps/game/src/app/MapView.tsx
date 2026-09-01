@@ -38,6 +38,8 @@ import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
+import { MapNotices } from '../features/hud/MapNotices.js';
+import { loadSettings } from '../features/hud/settings.js';
 import { createRepository } from '../data/createRepository.js';
 import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
@@ -59,6 +61,8 @@ export function MapView({ onLeave }: MapViewProps) {
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [resources, setResources] = useState<ResourcePool | null>(null);
   const [forecast, setForecast] = useState<Forecast | null>(null);
+  // The setter arrives with the settings menu (BRDC-HUD-003).
+  const [settings] = useState(loadSettings);
 
   /*
    * Held open by the player, never by default.
@@ -335,29 +339,13 @@ export function MapView({ onLeave }: MapViewProps) {
         rivalBearing={territory.rivalBearing}
       />
 
-      {!durable ? (
-        <p className="mapview__warning" role="status">
-          This device will not keep your progress. The Void forgets between visits.
-        </p>
-      ) : null}
-
-      {schemaReset ? (
-        <p className="mapview__warning" role="status">
-          A sanctuary from an older age was found, and could not be read. It has returned to the Void.
-        </p>
-      ) : null}
-
-      {worldStirredMs !== null ? (
-        <p className="mapview__warning" role="status">
-          Other realms last stirred {Math.max(1, Math.round(worldStirredMs / 3_600_000))} h ago.
-        </p>
-      ) : null}
-
-      {clock.shifted ? (
-        <p className="mapview__warning mapview__warning--dev" role="status">
-          Time is running {clock.offsetDays} days ahead · T to advance · Shift+T to return
-        </p>
-      ) : null}
+      <MapNotices
+        durable={durable}
+        schemaReset={schemaReset}
+        worldStirredMs={worldStirredMs}
+        shifted={clock.shifted}
+        offsetDays={clock.offsetDays}
+      />
 
       <Hud
         profile={profile}
@@ -383,6 +371,7 @@ export function MapView({ onLeave }: MapViewProps) {
         unobservedMs={trail.unobservedMs}
         onWithdraw={() => setConfirming('withdraw')}
         onReset={() => setConfirming('reset')}
+        settings={settings}
       />
 
       <SanctumDialogs

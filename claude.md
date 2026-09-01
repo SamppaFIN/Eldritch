@@ -196,7 +196,11 @@ Se on tämän säännön koko olemassaolon syy.
    Amended 2026-08-31: Infinite's plan brings quests, events and OSM terrain into Phase 3, so
    the blanket park no longer holds — but the reason for it does. The order is the rule:
    `BRDC-EVENT-001` builds the event engine, and only then does backlog material fill it.
-   Still parked with no mechanic to land in: TTS, procedural audio, health/sanity, themes.
+   Still parked with no mechanic to land in: TTS, health/sanity, themes.
+   Amended 2026-09-01 (BRDC-CLAIM-007): a claim now plays a short synthesised chime and
+   a buzz — procedural audio is unparked *for that one moment*, because the claim is the
+   mechanic it lands in. Not a soundtrack, not ambient audio; one two-note `AudioContext`
+   chime on a taken cell, switchable off. The rest of the audio backlog stays parked.
    v2's failure was shipping the content *as* the system. Do not do that.
 7. **Run `pnpm test && pnpm typecheck` before declaring any task done.** No exceptions.
 8. Ask before adding a dependency.
