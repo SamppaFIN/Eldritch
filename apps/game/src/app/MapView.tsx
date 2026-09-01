@@ -372,7 +372,6 @@ export function MapView({ onLeave }: MapViewProps) {
         released={territory.released}
         keepAlive={keepAlive}
         resources={resources}
-        places={places}
         spells={inspect.spell.active}
         now={clock.now()}
         standing={standingOn !== null}

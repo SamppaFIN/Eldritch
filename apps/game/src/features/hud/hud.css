@@ -243,6 +243,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
+  /* Four pips and their counts stay on one line even in a quarter-panel column — a
+     wrapped pouch turned the numbers into a scrambled block (BRDC-MOBILE-001). Half a
+     step down in size buys the room for the fourth (mana) without another row. */
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  font-size: 0.9em;
 }
 
 /* The same three colours the map uses for a cell's yield, so the pip in the HUD and

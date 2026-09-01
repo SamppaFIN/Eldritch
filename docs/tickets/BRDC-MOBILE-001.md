@@ -65,6 +65,25 @@ rungon päälle, jota kukaan ei ole vienyt ulos, on täsmälleen v2:n virhe.
 - [ ] Reduced motion todennetaan päälle kytkettynä, ei vain koodissa
 - [ ] Ruudun kääntö kesken kävelyn ei kaada karttaa eikä keskeytä juoksua
 
+## Testihavainto 1 (Infinite, 2026-09-01) — solupaneeli jää footerin alle
+
+*"details kortti jää footer menun alle.. salli scrollaaminen ylemmäs että käyttäjä
+pääsee näkemään koko kortin, tai pienennä footeria sillä aikaa."*
+
+Korjattu (vaihtoehto 1, siistimpänä):
+
+- **HUD julkaisee oikean korkeutensa** — `Hud.tsx` `ResizeObserver` kirjoittaa
+  `--hud-height`:n `:root`iin ja päivittää sitä kun footer kasvaa (claim-rivi,
+  himmenemisvaroitus, loitsurivi). `map.css` viittasi jo `--hud-height`:iin
+  8.5rem-fallbackilla jota kukaan ei asettanut — nyt se on oikea.
+- **Solu- ja Hearth-paneelin `max-block-size`** vaihdettu `75dvh` →
+  `calc(100dvh - var(--hud-height) - lovi - väli)`. Kortti loppuu nyt footerin
+  yläpuolelle ja vierii sisällään kokonaan; mitään ei jää lasin taakse.
+- Sivulöydös: HUD:n taskurivi rikkoutui (MANA-001:n manalähde-teksti "· anchor"
+  katkesi "anc/hor":ksi kapeassa sarakkeessa). Poistettu lähdeteksti taskusta (määrä
+  + pisara riittää HUDiin, lähde-erittely on paikkojen solupaneeleissa);
+  `.hud__pouch` nyt `nowrap` + 0.9em, pysyy yhdellä rivillä.
+
 ## Koodivalmistelu 2026-09-01 (ennen ensimmäistä ulkotestiä)
 
 Ei mittauksia — nämä ovat ilmiselviä korjauksia jotka tekisivät testistä hyödyttömän

@@ -8,14 +8,9 @@
  * a walk outdoors, and without it you cannot tell broken code from a bad sky. v2 showed
  * nothing here and players concluded the game had frozen.
  */
+import { useEffect, useRef } from 'react';
 import { levelState, msToKmh, spellRemaining } from '@es3/core';
-import type {
-  ActiveSpell,
-  PlayerProfile,
-  RejectReason,
-  ResourcePool,
-  RevealedPlace,
-} from '@es3/core';
+import type { ActiveSpell, PlayerProfile, RejectReason, ResourcePool } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
@@ -40,8 +35,6 @@ export interface HudProps {
   released?: string[];
   keepAlive: KeepAliveState;
   resources?: ResourcePool | null;
-  /** Revealed places, for the mana source count (BRDC-MANA-001). */
-  places?: RevealedPlace[];
   /** Running spells, for the rite readout (BRDC-SPELL-001). */
   spells?: readonly ActiveSpell[];
   /** Game clock, so a spell's remaining time can be shown. */
@@ -161,7 +154,6 @@ export function Hud({
   released = [],
   keepAlive,
   resources = null,
-  places = [],
   spells = [],
   now = 0,
   standing = false,
@@ -172,7 +164,27 @@ export function Hud({
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
-  const temples = places.filter((p) => p.kind === 'temple').length;
+
+  /*
+   * Publish the footer's real height so the top-docked panels (cell, Hearth) can cap
+   * themselves just above it and stay fully scrollable. The HUD grows and shrinks —
+   * claim lines, fade warnings, the rite readout — so a fixed guess would leave the
+   * bottom of a tall detail card stranded behind the glass.
+   */
+  const hudRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = hudRef.current;
+    if (!el) return;
+    const publish = () =>
+      document.documentElement.style.setProperty('--hud-height', `${el.offsetHeight}px`);
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.documentElement.style.removeProperty('--hud-height');
+    };
+  }, []);
   const spellLine = spells
     .map((s) => {
       const h = Math.round(spellRemaining(s, now) / 3_600_000);
@@ -182,7 +194,7 @@ export function Hud({
     .join(' · ');
 
   return (
-    <div className="hud">
+    <div className="hud" ref={hudRef}>
       <GlassPanel as="section" className="hud__panel" aria-label="Status">
         {lastClaim ? (
           <p className="hud__claim" role="status">
@@ -257,10 +269,6 @@ export function Hud({
                     <>
                       <span className="hud__pip hud__pip--mana" aria-hidden />
                       {resources.mana}
-                      <span className="hud__sub">
-                        {' '}
-                        · {temples > 0 ? `${temples} ${temples === 1 ? 'temple' : 'temples'}` : 'anchor'}
-                      </span>
                     </>
                   ) : null}
                 </span>

@@ -15,9 +15,13 @@
   padding: var(--space-4);
   max-inline-size: 26rem;
   margin-inline: auto;
-  /* The panel can outgrow the space above the HUD (terrain, worth, decay, ward, build).
-     Cap it and scroll inside, so the last row is always reachable. */
-  max-block-size: 75dvh;
+  /* The panel can outgrow the space above the HUD (terrain, worth, decay, ward, build,
+     rites). Cap it to the gap between the notch and the footer — `--hud-height` is
+     published by the HUD as it resizes — and scroll inside, so every row is reachable
+     and nothing hides behind the glass (BRDC-MOBILE-001). */
+  max-block-size: calc(
+    100dvh - var(--hud-height, 12rem) - max(var(--space-3), env(safe-area-inset-top)) - var(--space-3)
+  );
   overflow-y: auto;
   overscroll-behavior: contain;
   animation: es-panel-in 0.2s var(--ease-out) both;
