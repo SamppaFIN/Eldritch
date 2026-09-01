@@ -75,7 +75,7 @@ export {
   terrainOf,
   trickle,
 } from './terrain.js';
-export { HARMALA_STATUE, SEED_BOX, seededTerrainOf } from './terrainSeed.js';
+export { HARMALA_STATUE, SEED_BOX, enableTerrainSurvey, seededTerrainOf } from './terrainSeed.js';
 export type {
   BuildSite,
   ResourceKind,
