@@ -300,6 +300,7 @@ export function MapView({ onLeave }: MapViewProps) {
           levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()}
           research={inspect.research}
+          repository={repository}
           forecast={forecast}
           onWager={inspect.openWager}
           onWeakest={inspect.onCellTap}

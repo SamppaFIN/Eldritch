@@ -52,6 +52,14 @@ export {
 export type { AnomalyKind, InvestigateRefusal } from './anomaly.js';
 export { applyChoice, parseChains } from './chain.js';
 export type { Chain, ChainChoice, ChainEffect, ChainStage, ChoiceRefusal } from './chain.js';
+export { advanceAdventure, gateMet, parseAdventures } from './adventure.js';
+export type {
+  Adventure,
+  AdventureChoice,
+  AdventureContext,
+  AdventureGate,
+  AdventureStage,
+} from './adventure.js';
 export { timeToAfford } from './afford.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';

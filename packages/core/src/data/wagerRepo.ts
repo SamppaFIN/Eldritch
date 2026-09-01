@@ -22,6 +22,23 @@ export interface Muster {
   defence: Defence;
 }
 
+/** The four repository reads a muster is built from — passed as `this` by MockRepository. */
+export interface MusterDeps {
+  getProfile(): Promise<PlayerProfile>;
+  getOwnedCells(now: number): Promise<readonly Cell[]>;
+  getCastle(): Promise<H3Index | null>;
+  getDefence(): Promise<Defence>;
+}
+
+export async function muster(d: MusterDeps, now: number): Promise<Muster> {
+  return {
+    me: await d.getProfile(),
+    owned: await d.getOwnedCells(now),
+    castle: await d.getCastle(),
+    defence: await d.getDefence(),
+  };
+}
+
 /** Everything a friend's game needs to hold you as a rival, as text. */
 export function exportChallengeFrom(m: Muster, now: number): string {
   return sealChallenge(m.me, m.owned, m.castle, m.defence, now);

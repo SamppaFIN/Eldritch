@@ -46,6 +46,11 @@ import type {
   InvestigateOutcome,
   ResolveOutcome,
 } from '../data/anomalyStore.js';
+import type {
+  AdventureChoiceOutcome,
+  AdventureView,
+  StartOutcome,
+} from '../data/adventureStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -243,6 +248,16 @@ export interface GameRepository {
   resolveAnomaly(h3: H3Index, now: number): Promise<ResolveOutcome>;
   /** Take a choice in an anomaly's event chain; it applies the effect and moves on. */
   chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome>;
+
+  /* --- Adventures (BRDC-QUEST-001) ----------------------------------- */
+  /** Every adventure, with its state and — when running — the current stage and choices. */
+  getAdventures(now: number): Promise<AdventureView[]>;
+  /** Begin an adventure. Refuses one that is unknown or already begun. */
+  startAdventure(id: string, now: number): Promise<StartOutcome>;
+  /** Take a choice in a running adventure; applies its pouch/XP effect and moves on. */
+  chooseInAdventure(id: string, choiceIndex: number, now: number): Promise<AdventureChoiceOutcome>;
+  /** Drop a running adventure so it can be started again. */
+  abandonAdventure(id: string): Promise<void>;
 
   /* --- Maintenance ------------------------------------------------------ */
   runDecay(now: number): Promise<DecayResult>;

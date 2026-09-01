@@ -66,13 +66,15 @@ import type { SchemaOutcome, VersionedStore } from './schema.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
 import { readDefence, writeDefence, type ImportResult } from './wager.js';
-import { combatantFrom, exportChallengeFrom, importChallengeInto, type Muster } from './wagerRepo.js';
+import { combatantFrom, exportChallengeFrom, importChallengeInto, muster } from './wagerRepo.js';
 import { mergeWorld } from './worldStore.js';
 import type { WorldImportResult } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { assignCastle } from './castle.js';
-import { chooseAt, describeAnomalies, investigateAt, resolveAt, type Anomaly, type ChoiceOutcome, type InvestigateOutcome, type ResolveOutcome } from './anomalyStore.js';
+import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
+import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
+import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, investigateAnomalyFor, resolveAnomalyFor, startAdventureFor } from './storyRepo.js';
 import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
 
 export interface MockRepositoryOptions {
@@ -213,11 +215,11 @@ export class MockRepository implements GameRepository {
   /* --- The Wager, carried by hand — store half in `wagerRepo.js` -------- */
 
   async exportChallenge(now: number): Promise<string> {
-    return exportChallengeFrom(await this.muster(now), now);
+    return exportChallengeFrom(await muster(this, now), now);
   }
 
   async importChallenge(text: string, now: number): Promise<ImportResult> {
-    return importChallengeInto(this.store, await this.muster(now), text, now);
+    return importChallengeInto(this.store, await muster(this, now), text, now);
   }
 
   async importWorld(text: string, now: number): Promise<WorldImportResult> {
@@ -233,17 +235,7 @@ export class MockRepository implements GameRepository {
   }
 
   async getCombatant(now: number): Promise<Combatant> {
-    return combatantFrom(await this.muster(now));
-  }
-
-  /** Profile, held ground projected to `now`, the Keep, and the border defence. */
-  private async muster(now: number): Promise<Muster> {
-    return {
-      me: await this.getProfile(),
-      owned: await this.getOwnedCells(now),
-      castle: await this.getCastle(),
-      defence: await this.getDefence(),
-    };
+    return combatantFrom(await muster(this, now));
   }
 
   /* --- The Hearth ------------------------------------------------------- */
@@ -282,27 +274,31 @@ export class MockRepository implements GameRepository {
     return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   }
 
-  /* --- Anomalies (BRDC-EVENT-001) ------------------------------------- */
+  /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
 
-  async getAnomalies(now: number): Promise<Anomaly[]> {
-    return describeAnomalies(await this.getOwnedCells(now), now);
+  getAnomalies(now: number): Promise<Anomaly[]> {
+    return getAnomaliesFor(this, now);
   }
-
-  async investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome> {
-    return investigateAt(this.store, h3, (await this.getProfile()).id, await this.getOwnedCells(now), now);
+  investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome> {
+    return investigateAnomalyFor(this.store, this, h3, now);
   }
-
-  async resolveAnomaly(h3: H3Index, now: number): Promise<ResolveOutcome> {
-    const r = await resolveAt(this.store, h3, (await this.getProfile()).id, await this.getOwnedCells(now), now);
-    if (r.ok && r.xp) await this.addXp(r.xp);
-    return r;
+  resolveAnomaly(h3: H3Index, now: number): Promise<ResolveOutcome> {
+    return resolveAnomalyFor(this.store, this, h3, now);
   }
-
-  async chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome> {
-    const me = (await this.getProfile()).id;
-    const r = await chooseAt(this.store, h3, me, await this.getOwnedCells(now), choiceIndex, now);
-    if (r.ok && r.xp) await this.addXp(r.xp);
-    return r;
+  chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome> {
+    return chooseInChainFor(this.store, this, h3, choiceIndex, now);
+  }
+  getAdventures(now: number): Promise<AdventureView[]> {
+    return getAdventuresFor(this.store, this, now);
+  }
+  startAdventure(id: string, now: number): Promise<StartOutcome> {
+    return startAdventureFor(this.store, id, now);
+  }
+  chooseInAdventure(id: string, choiceIndex: number, now: number): Promise<AdventureChoiceOutcome> {
+    return chooseInAdventureFor(this.store, this, id, choiceIndex, now);
+  }
+  abandonAdventure(id: string): Promise<void> {
+    return abandonAdventureFor(this.store, id);
   }
 
   /* --- Territory -------------------------------------------------------- */

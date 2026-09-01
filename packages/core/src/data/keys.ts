@@ -35,4 +35,8 @@ export const K = {
   tradeRoutes: 'trade-routes',
   /** The action log, a capped `LogEntry[]` (BRDC-LOG-001). */
   log: 'log',
+  /** Adventure state, `Record<id, { stage, done? }>` (BRDC-QUEST-001). */
+  adventures: 'adventures',
+  /** Codex slugs an adventure has unlocked (BRDC-QUEST-001). */
+  unlocked: 'unlocked',
 } as const;

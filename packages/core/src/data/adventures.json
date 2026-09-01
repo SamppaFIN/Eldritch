@@ -1,0 +1,111 @@
+{
+  "fuming-lake": {
+    "title": "The Fuming Lake",
+    "start": "statue",
+    "stages": {
+      "statue": {
+        "speaker": "Narrator",
+        "text": [
+          "A boy's statue holds a propeller that should not exist. It is not impossible — it is aggressively possible, in ways that make reality uncomfortable.",
+          "At his feet, a map. It points to a lake. The map is also screaming, very quietly. In tiny apologetic handwriting: \"Sorry about this. Lake's fuming. Probably nothing. Definitely something. Good luck. You'll need it. — Management\""
+        ],
+        "choices": [
+          { "text": "Follow the map to the lake", "requires": { "terrain": "lake" }, "next": "lake" },
+          { "text": "Follow the map to the shore", "requires": { "terrain": "coast" }, "next": "lake" },
+          { "text": "Touch the propeller", "effect": {}, "next": "statue" },
+          { "text": "Study the boy's too-pleasant face", "next": "statue" }
+        ]
+      },
+      "lake": {
+        "speaker": "Narrator",
+        "text": [
+          "The lake is fuming. Not metaphorically. Green vapours rise like the universe's worst morning breath.",
+          "A fallen sign: \"DO NOT BREATHE THE FUMES. SIDE EFFECTS INCLUDE: Death, Un-death, Sideways-death, and Mild Indigestion.\" The fumes smell of burnt algebra and disappointed expectations. Your lungs will file a formal complaint in about thirty seconds."
+        ],
+        "choices": [
+          { "text": "Run to the hermit's hill", "next": "hermit" },
+          { "text": "Breathe the fumes (bad idea)", "next": "death-by-fumes" }
+        ]
+      },
+      "hermit": {
+        "speaker": "Cornelius",
+        "text": [
+          "Ah. I've been expecting someone. Not necessarily you. But someone. You'll do. Probably.",
+          "I have an incantation that should clear the lake. I just need company — safety in numbers, and also, I am lonely. Fair warning: there is a troll on the way. Big fellow, quite grumpy. But manageable, with the right leverage. A shiny trinket might bribe him. A staff could slay him. Wisdom could outwit him. Or you could run away and die horribly in the fumes. Choices!"
+        ],
+        "choices": [
+          { "text": "Lead on to the bridge", "next": "troll" },
+          { "text": "Ask him about the rocks first", "next": "hermit" }
+        ]
+      },
+      "troll": {
+        "speaker": "Grug",
+        "text": [
+          "The troll blocks the bridge, mid-thought. \"What,\" he rumbles, \"is the sound of one hand thinking? Answer correctly, or I shall demonstrate the sound of one troll crushing.\""
+        ],
+        "choices": [
+          {
+            "text": "Offer the shiny trinket",
+            "requires": { "holdsSite": "trinket", "pool": { "gold": 20 } },
+            "effect": { "pool": { "gold": -20 }, "xp": 40 },
+            "next": "deep"
+          },
+          {
+            "text": "Raise the ancient staff",
+            "requires": { "holdsSite": "staff", "pool": { "iron": 20 } },
+            "effect": { "pool": { "iron": -20 }, "xp": 40 },
+            "next": "deep"
+          },
+          {
+            "text": "Show him the wisdom stone",
+            "requires": { "holdsSite": "wisdom", "pool": { "wisdom": 20 } },
+            "effect": { "pool": { "wisdom": -20 }, "xp": 60 },
+            "next": "deep"
+          },
+          { "text": "Argue philosophy with him", "next": "death-by-troll" }
+        ]
+      },
+      "deep": {
+        "speaker": "Cornelius",
+        "text": [
+          "Cornelius begins the incantation. The words taste of forgotten mathematics and regretful decisions. Something goes wrong. Of course it does.",
+          "The fumes thicken. The lake begins to unfold. Cornelius screams — not a scared scream, an enlightened one. \"It's beautiful,\" he whispers, tears of blood on his face. \"We're less than dust. Less than the idea of dust.\" Something rises from the water. Too many angles. Too many eyes. Not enough mercy."
+        ],
+        "choices": [
+          { "text": "[Scream internally]", "next": "servitude" },
+          { "text": "[Scream externally]", "next": "servitude" },
+          { "text": "[Scream philosophically]", "next": "servitude" }
+        ]
+      },
+      "servitude": {
+        "speaker": "The Deep",
+        "text": [
+          "The voice fills your mind like dark honey in a teacup that is also screaming. \"SERVANT,\" it says. You are. The choosing was an illusion. Free will is closed for renovations.",
+          "\"YOUR SCREAMS ARE NOTED AND APPRECIATED. DUTIES INCLUDE: SPREADING COSMIC DREAD, QUESTIONING REALITY, AND OCCASIONALLY FETCHING THINGS.\" You feel changed. You are now a Servant of the Deep. This comes with perks. None of them are good. Try to see the bright side: excellent dental."
+        ],
+        "choices": [
+          {
+            "text": "Accept your post",
+            "effect": { "xp": 500 },
+            "unlocks": "cthulhu-awakening",
+            "next": "end"
+          }
+        ]
+      },
+      "death-by-fumes": {
+        "speaker": "Narrator",
+        "text": [
+          "You take a deep breath of the green. Your lungs file the complaint. You see colours that do not exist yet and hear music still being composed. This was a terrible idea."
+        ],
+        "choices": [{ "text": "Crawl to higher ground", "effect": { "xp": 10 }, "next": "hermit" }]
+      },
+      "death-by-troll": {
+        "speaker": "Grug",
+        "text": [
+          "\"Thinking? Good.\" He deconstructs your argument in three sentences. Then he begins to deconstruct you. It is very philosophical. You wake up some distance away, mostly intact."
+        ],
+        "choices": [{ "text": "Pick yourself up and try again", "next": "troll" }]
+      }
+    }
+  }
+}

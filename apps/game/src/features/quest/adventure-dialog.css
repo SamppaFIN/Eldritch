@@ -1,0 +1,139 @@
+.adventure {
+  position: fixed;
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  z-index: var(--z-modal);
+  margin-inline: auto;
+  max-inline-size: 32rem;
+  max-block-size: calc(
+    100dvh - var(--hud-height, 12rem) - max(var(--space-3), env(safe-area-inset-top)) -
+      var(--space-3)
+  );
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.adventure__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.adventure__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.adventure__close {
+  flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+  padding-inline: 0;
+}
+
+.adventure__speaker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.adventure__portrait {
+  color: var(--sacred-gold);
+  line-height: 0;
+}
+
+.adventure__name {
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  letter-spacing: 0.04em;
+}
+
+.adventure__line {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.55;
+}
+
+.adventure__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-start: var(--space-1);
+}
+
+.adventure__abandon {
+  align-self: flex-start;
+  opacity: 0.6;
+  font-size: var(--text-sm);
+}
+
+.adventure__shelf {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.adventure__shelf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+}
+
+.adventure__done {
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}
+
+.adventure__refusal {
+  margin: 0;
+  color: var(--danger, #d94a4a);
+  font-size: var(--text-sm);
+}
+
+.quest-portrait {
+  display: block;
+}
+
+.quest-portrait__spin {
+  animation: quest-spin 8s linear infinite;
+}
+
+.quest-portrait__breathe {
+  animation: quest-breathe 6s ease-in-out infinite;
+}
+
+@keyframes quest-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes quest-breathe {
+  50% {
+    transform: scale(1.08) rotate(20deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quest-portrait__spin,
+  .quest-portrait__breathe {
+    animation: none;
+  }
+}

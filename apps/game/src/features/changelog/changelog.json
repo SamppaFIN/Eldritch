@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.4.0",
+    "date": "2026-09-01",
+    "notes": [
+      "Adventures: a story with choices, opened from the Hearth. The first is The Fuming Lake — a boy's impossible propeller, a fuming green lake, a hermit who talks to rocks, and a troll doing philosophy on a bridge.",
+      "You get past the troll three ways: with a trinket, a weapon, or wisdom — each needs you to have walked to that place and claimed the ground, plus a little to spend.",
+      "Every speaker has its own sacred-geometry sigil. It ends the same way every route: cosmically employed.",
+      "The History log records each step of an adventure, linked to a new codex entry."
+    ]
+  },
+  {
     "version": "0.3.2",
     "date": "2026-09-01",
     "notes": [

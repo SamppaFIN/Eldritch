@@ -16,6 +16,7 @@ const ALL_KINDS: LogKind[] = [
   'route',
   'expand',
   'anomaly',
+  'quest',
   'wager',
   'hearth',
 ];

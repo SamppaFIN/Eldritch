@@ -9,12 +9,15 @@
  * from the title screen, which meant ending a walk to reach it (BRDC-WAGER-JSON-001,
  * known limitation). Standing on your own Hearth is a better place to be asked.
  */
+import { useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, Forecast, ResourceKind, ResourcePool } from '@es3/core';
+import type { Cell, Forecast, GameRepository, ResourceKind, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
 import type { ResearchBinding } from './useSelection.js';
+import { AdventureDialog } from '../quest/AdventureDialog.js';
+import { useAdventure } from '../quest/useAdventure.js';
 import './hearth-panel.css';
 
 export interface HearthPanelProps {
@@ -27,6 +30,8 @@ export interface HearthPanelProps {
   now: number;
   /** The research screen's bundle (BRDC-TECH-001), from `useSelection`. */
   research: ResearchBinding;
+  /** For the adventure book, opened from here (BRDC-QUEST-001). */
+  repository: GameRepository | null;
   /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
   forecast: Forecast | null;
   onWager: () => void;
@@ -54,11 +59,17 @@ export function HearthPanel({
   levelName,
   now,
   research,
+  repository,
   forecast,
   onWager,
   onWeakest,
   onClose,
 }: HearthPanelProps) {
+  const [questOpen, setQuestOpen] = useState(false);
+  const adventures = useAdventure(repository, now, owned.length);
+  const questLabel = adventures.active
+    ? `${adventures.active.title} · continue`
+    : `${adventures.list.filter((a) => a.state === 'available').length} to begin`;
   const d = dominionOf(owned, now);
   const dark = darkTimeAt(now);
   const perHour = forecast?.perHour ?? {};
@@ -73,6 +84,7 @@ export function HearthPanel({
   const full = resources ? RESOURCE_KINDS.some((k) => d.perHour[k] > 0 && resources[k] >= BASE_STORAGE_CAP) : false;
 
   return (
+    <>
     <GlassPanel as="section" className="hearth-panel" aria-label="Your sanctuary">
       <div className="hearth-panel__head">
         <MetatronsCube size={44} animate={1200} className="hearth-panel__sigil" />
@@ -183,7 +195,14 @@ export function HearthPanel({
         <RitualButton variant="ghost" onClick={onWager}>
           The Wager
         </RitualButton>
+        <RitualButton variant="ghost" onClick={() => setQuestOpen(true)}>
+          Adventures · {questLabel}
+        </RitualButton>
       </div>
     </GlassPanel>
+    {questOpen ? (
+      <AdventureDialog binding={adventures} onClose={() => setQuestOpen(false)} />
+    ) : null}
+    </>
   );
 }

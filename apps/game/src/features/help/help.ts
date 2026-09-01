@@ -20,6 +20,8 @@ export type HelpTopic =
   | 'warding'
   | 'mana'
   | 'anomaly'
+  | 'adventures'
+  | 'cthulhu-awakening'
   | 'the-wager'
   | 'hearth';
 
@@ -99,6 +101,20 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     body: [
       'Now and then a cell holds something wrong — strange ground you can study. Investigating costs food — you camp on it and wait — and takes a few hours, and what it gives you is hidden until it is done.',
       'Some anomalies simply pay out. Others open an event: a short story with choices, and the choices have consequences. Where an anomaly is, and what it turns out to be, is fixed to the ground — the same on every phone, and a reload will not re-roll it.',
+    ],
+  },
+  adventures: {
+    title: 'Adventures',
+    body: [
+      'An adventure is a story with choices, opened from the Hearth. It ties walking, ground and resources into one tale — a choice may be locked until you hold a certain kind of land, or a named place, or enough of a resource to spend.',
+      'It never blocks the game. Leave one half-finished and come back to it; a reset clears it. The first is The Fuming Lake.',
+    ],
+  },
+  'cthulhu-awakening': {
+    title: 'The Deep',
+    body: [
+      'Something sleeps under the Fuming Lake, and the hermit\'s incantation was never going to clear the fumes — only wake it. It speaks in concept, not sound. It calls you Servant, and the choosing was an illusion.',
+      'You carry this now. The perks are real. None of them are good.',
     ],
   },
   'the-wager': {

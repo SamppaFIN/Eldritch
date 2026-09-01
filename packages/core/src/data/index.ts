@@ -16,6 +16,14 @@ export type {
   InvestigateOutcome,
   ResolveOutcome,
 } from './anomalyStore.js';
+export { QUEST_SITES, QUEST_SITE_IDS, siteCell } from './questSites.js';
+export type { QuestSiteId } from './questSites.js';
+export type {
+  AdventureView,
+  AdventureChoiceView,
+  StartOutcome,
+  AdventureChoiceOutcome,
+} from './adventureStore.js';
 export {
   MAX_CHALLENGE_CELLS,
   buildChallenge,
