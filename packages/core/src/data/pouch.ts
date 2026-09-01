@@ -15,17 +15,26 @@ import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rul
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
 import { manaBonus } from '../rules/mana.js';
+import { activeSpells, domainSpellBonus } from '../rules/spell.js';
+import type { ActiveSpell } from '../rules/spell.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 
 const KEY = 'resources';
 
+/** Add one partial pool into another, in place. */
+function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void {
+  for (const [k, v] of Object.entries(from) as [ResourceKind, number][]) {
+    into[k] = (into[k] ?? 0) + v;
+  }
+}
+
 /**
  * The per-hour bonus `settleResources` adds on top of the raw trickle: building
- * production (BRDC-BUILD-001) and mana from the places a player still holds
- * (BRDC-MANA-001), merged additively. Each is dormancy-filtered by its own rule — kept
- * here so `rules/terrain.ts` stays blind to both buildings and places.
+ * production (BRDC-BUILD-001), mana from held places (BRDC-MANA-001), and any running
+ * research spell (BRDC-SPELL-001), merged additively. Each is filtered by its own rule —
+ * kept here so `rules/terrain.ts` stays blind to buildings, places and spells alike.
  */
 async function perHourBonus(
   store: KeyValueStore,
@@ -36,10 +45,10 @@ async function perHourBonus(
   const dwell = (await store.get<DwellMap>(K.dwell)) ?? {};
   const home = (await store.get<H3Index>(K.home)) ?? null;
   const expansions = (await store.get<Record<H3Index, number>>(K.expansions)) ?? {};
-  const mana = manaBonus(placesWithHome(dwell, home), expansions, owned, now);
-  for (const [k, v] of Object.entries(mana) as [ResourceKind, number][]) {
-    merged[k] = (merged[k] ?? 0) + v;
-  }
+  addInto(merged, manaBonus(placesWithHome(dwell, home), expansions, owned, now));
+
+  const spells = (await store.get<ActiveSpell[]>(K.spells)) ?? [];
+  addInto(merged, domainSpellBonus(activeSpells(spells, now), now));
   return merged;
 }
 

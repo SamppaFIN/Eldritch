@@ -30,6 +30,10 @@ import type { ExpandOutcome } from './templeStore.js';
 import { readPaths } from './pathStore.js';
 import { walkedEdges } from '../geo/paths.js';
 import type { WalkedEdge } from '../geo/paths.js';
+import { castSpellAt, readSpells } from './spellStore.js';
+import type { CastOutcome } from './spellStore.js';
+import { activeSpells } from '../rules/spell.js';
+import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import { levelForXp } from '../rules/level.js';
@@ -322,6 +326,15 @@ export class MockRepository implements GameRepository {
   async runDecay(now: number): Promise<DecayResult> {
     const sweep = await sweepAndPersist(this.store, await allCells(this.store), now);
     return { weakened: sweep.weakened, released: sweep.released };
+  }
+
+  async getActiveSpells(now: number): Promise<ActiveSpell[]> {
+    return activeSpells(await readSpells(this.store), now);
+  }
+
+  async castSpell(id: SpellId, target: H3Index | null, now: number): Promise<CastOutcome> {
+    const me = await this.getProfile();
+    return castSpellAt(this.store, id, target, me.id, await this.getOwnedCells(now), now);
   }
 
   /* --- Maintenance ------------------------------------------------------ */

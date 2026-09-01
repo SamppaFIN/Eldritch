@@ -48,7 +48,9 @@ export function projectCell(cell: Cell, now: number): Cell | null {
   // and eventually release a cell its real owner still holds (BRDC-SHARE-001).
   if (cell.imported) return cell;
 
-  const hours = (now - cell.lastVisitedAt) / 3_600_000;
+  // A Bulwark bought this cell time: the hours it granted were baked into `shelteredMs`
+  // when it was cast (BRDC-SPELL-001), and they come off the decay clock for good.
+  const hours = Math.max(0, now - cell.lastVisitedAt - (cell.shelteredMs ?? 0)) / 3_600_000;
   if (hours <= DECAY_GRACE_HOURS) return cell;
 
   const strength = cell.strength - decayAmount(hours);

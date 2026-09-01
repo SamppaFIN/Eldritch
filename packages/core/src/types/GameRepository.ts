@@ -31,6 +31,8 @@ import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
 import type { ExpandOutcome } from '../data/templeStore.js';
+import type { CastOutcome } from '../data/spellStore.js';
+import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -117,6 +119,16 @@ export interface GameRepository {
    * researching this completed the previous one, for the caller's ceremony.
    */
   researchTech(id: TechId, now: number): Promise<TechResult>;
+
+  /* --- Spells (BRDC-SPELL-001) ----------------------------------------- */
+  /** Spells still within their duration at `now`; the expired ones are simply gone. */
+  getActiveSpells(now: number): Promise<ActiveSpell[]>;
+  /**
+   * Cast a spell, paying mana. `target` is the cell for an own-cell spell, null for a
+   * domain one. Refusals are named — locked, cannot afford, not your cell, and
+   * `carry-in-a-wager` for the enemy-facing schools that wait on BRDC-SPELL-002.
+   */
+  castSpell(id: SpellId, target: H3Index | null, now: number): Promise<CastOutcome>;
 
   /* --- The Wager, carried by hand --------------------------------------- */
   /**

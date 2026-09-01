@@ -29,6 +29,15 @@ describe('grace period', () => {
     const after = projectCell(cell(300), hours(DECAY_GRACE_HOURS + 24));
     expect(after?.strength).toBeCloseTo(300 - DECAY_PER_DAY, 5);
   });
+
+  it('a Bulwark shelter comes off the clock (BRDC-SPELL-001)', () => {
+    const sheltered: Cell = { ...cell(300), shelteredMs: 24 * 3_600_000 };
+    // Age is (grace + 48 h); the 24 h shelter pulls it back to (grace + 24 h) → one day's bleed.
+    const after = projectCell(sheltered, hours(DECAY_GRACE_HOURS + 48));
+    expect(after?.strength).toBeCloseTo(300 - DECAY_PER_DAY, 5);
+    // A shelter longer than the cell's whole age just means full grace, never negative age.
+    expect(projectCell({ ...cell(300), shelteredMs: 999 * 3_600_000 }, days(30))?.strength).toBe(300);
+  });
 });
 
 describe('decayAmount', () => {

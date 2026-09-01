@@ -123,6 +123,12 @@ export interface Cell {
   terrain?: Terrain;
   /** The one building on this cell, if any (BRDC-BUILD-001). One cell, one building. */
   building?: { id: BuildingId; builtAt: number };
+  /**
+   * Decay-clock time bought by Bulwark spells (BRDC-SPELL-001), cumulative. Subtracted
+   * from the cell's age in `projectCell` — the hours stay off the clock after the spell's
+   * countdown ends. Additive, no migration.
+   */
+  shelteredMs?: number;
 }
 
 export interface PlayerProfile {

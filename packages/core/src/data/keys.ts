@@ -29,4 +29,6 @@ export const K = {
   expansions: 'expansions',
   /** Every stretch ever walked, `Record<edge, PathSegment>` (BRDC-TRAIL-003). */
   paths: 'paths',
+  /** Running spells, `ActiveSpell[]`, pruned on cast (BRDC-SPELL-001). */
+  spells: 'spells',
 } as const;

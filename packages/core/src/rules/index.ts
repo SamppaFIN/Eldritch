@@ -78,5 +78,24 @@ export { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
 export type { WardRefusal, WardResult } from './ward.js';
 export { expandTemple, expansionCost, manaBonus, manaRate, placesWithMana } from './mana.js';
 export type { ExpandRefusal, ExpandResult } from './mana.js';
+export {
+  BULWARK_SHELTER_MS,
+  SPELLS,
+  activeSpells,
+  castSpell,
+  domainSpellBonus,
+  spellRemaining,
+} from './spell.js';
+export type {
+  ActiveSpell,
+  CastContext,
+  CastRefusal,
+  CastResult,
+  Spell,
+  SpellId,
+  SpellSchool,
+  SpellScope,
+  SpellVia,
+} from './spell.js';
 export { muster, resolveWager, wagerSeed } from './wagerBattle.js';
 export type { Combatant, Defence, WagerOutcome, WagerRound } from './wagerBattle.js';
