@@ -7,6 +7,7 @@ import {
   OWN_FILL,
   REVEAL_FILL,
   anomalyGlyphFor,
+  awakeningReveal,
   cellProperties,
   cellToFeature,
   cellsToGeoJson,
@@ -201,5 +202,23 @@ describe('cellsToGeoJson', () => {
 
   it('handles an empty set', () => {
     expect(cellsToGeoJson([], ME)).toEqual({ type: 'FeatureCollection', features: [] });
+  });
+});
+
+describe('awakeningReveal', () => {
+  const outcome = (h3: string, kind: 'claimed' | 'taken' | 'reinforced') =>
+    ({ h3, kind, strengthBefore: 0, strengthAfter: 100, previousOwner: null }) as never;
+
+  it('is null with no claim and null when a lap only reinforced', () => {
+    expect(awakeningReveal(null)).toBeNull();
+    expect(awakeningReveal({ outcomes: [outcome('a', 'reinforced')], at: 5 })).toBeNull();
+  });
+
+  it('lights the claimed and taken cells, carrying the timestamp', () => {
+    const r = awakeningReveal({
+      outcomes: [outcome('a', 'claimed'), outcome('b', 'reinforced'), outcome('c', 'taken')],
+      at: 42,
+    });
+    expect(r).toEqual({ cells: ['a', 'c'], at: 42 });
   });
 });

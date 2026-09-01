@@ -8,7 +8,22 @@
 import type { Feature, FeatureCollection, Polygon } from 'geojson';
 import { anomalyAt, emptyCell, neighboursOf, terrainOf, TERRAIN_TABLE } from '@es3/core';
 import { cellBoundary } from '@es3/core';
-import type { Cell, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
+import type { Cell, CaptureOutcome, H3Index, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
+
+/**
+ * The cells a just-closed loop should flare gold, and when. `null` when the last claim
+ * took no ground — a lap that only reinforced has nothing to light up. Pulled out of
+ * MapView, which was at its line ceiling; pure, so it is tested here.
+ */
+export function awakeningReveal(
+  claim: { outcomes: readonly CaptureOutcome[]; at: number } | null,
+): { cells: H3Index[]; at: number } | null {
+  if (!claim) return null;
+  const cells = claim.outcomes
+    .filter((o) => o.kind === 'claimed' || o.kind === 'taken')
+    .map((o) => o.h3);
+  return cells.length > 0 ? { cells, at: claim.at } : null;
+}
 
 /** --cosmic-purple and a lifted version of it, inlined from tokens.css. */
 export const OWN_FILL = '#4a1a5c';

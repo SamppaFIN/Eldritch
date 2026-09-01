@@ -23,11 +23,15 @@ import {
   abandonAt as abandonAdvAt,
   chooseAt as chooseAdvAt,
   listAdventures,
+  readFinds,
+  recordFind,
   startAt as startAdvAt,
   type AdventureChoiceOutcome,
   type AdventureView,
   type StartOutcome,
 } from './adventureStore.js';
+import type { SecretSiteId } from './questSites.js';
+export type { SecretSiteId } from './questSites.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
@@ -107,4 +111,16 @@ export async function chooseInAdventureFor(
 
 export function abandonAdventureFor(store: KeyValueStore, id: string): Promise<void> {
   return abandonAdvAt(store, id);
+}
+
+export function getQuestFindsFor(store: KeyValueStore): Promise<SecretSiteId[]> {
+  return readFinds(store);
+}
+
+export function recordQuestFindFor(
+  store: KeyValueStore,
+  id: SecretSiteId,
+  now: number,
+): Promise<SecretSiteId | null> {
+  return recordFind(store, id, now);
 }

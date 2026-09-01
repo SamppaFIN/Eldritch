@@ -40,7 +40,7 @@ import {
 } from '../territory/PlaceMarkers.js';
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import { ensureAwakeningLayers, removeAwakeningLayers } from '../territory/AwakeningLayer.js';
-import { ensureQuestLayers, removeQuestLayers } from '../territory/QuestMarkers.js';
+import { ensureQuestLayers, removeQuestLayers, setQuestData } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
@@ -73,6 +73,8 @@ export interface MapCanvasProps {
   playerId?: PlayerId | null;
   /** Cells the game has worked out are places. */
   places?: readonly RevealedPlace[];
+  /** Adventure landmark ids the map should draw right now (BRDC-QUEST-001). */
+  questSites?: readonly string[];
   /** The Keep — the published location, the Hearth cell (BRDC-CASTLE-001). Null before one exists. */
   castle?: H3Index | null;
   /**
@@ -110,6 +112,7 @@ export function MapCanvas({
   cells,
   playerId = null,
   places,
+  questSites,
   castle = null,
   awakening = null,
   initialZoom,
@@ -310,6 +313,11 @@ export function MapCanvas({
     if (!map || !ready || !places) return;
     setPlaceData(map, places);
   }, [map, ready, places]);
+
+  useEffect(() => {
+    if (!map || !ready) return;
+    setQuestData(map, questSites ?? []);
+  }, [map, ready, questSites]);
 
   useEffect(() => {
     if (!map || !ready) return;

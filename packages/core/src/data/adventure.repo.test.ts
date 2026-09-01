@@ -94,4 +94,15 @@ describe('the Fuming Lake', () => {
     await repo.resetAll();
     expect((await fuming())?.state).toBe('available');
   });
+
+  it('records a secret find once, and a reset clears it', async () => {
+    expect(await repo.getQuestFinds()).toEqual([]);
+    expect(await repo.recordQuestFind('wisdom', T0)).toBe('wisdom');
+    expect(await repo.recordQuestFind('wisdom', T0)).toBeNull(); // already had it
+    expect(await repo.getQuestFinds()).toEqual(['wisdom']);
+    expect((await repo.getLog()).some((e) => e.kind === 'quest' && e.ref === 'found:wisdom')).toBe(true);
+
+    await repo.resetAll();
+    expect(await repo.getQuestFinds()).toEqual([]);
+  });
 });

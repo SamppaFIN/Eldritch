@@ -74,7 +74,7 @@ import { claimHearth } from './hearth.js';
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
-import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, investigateAnomalyFor, resolveAnomalyFor, startAdventureFor } from './storyRepo.js';
+import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, getQuestFindsFor, investigateAnomalyFor, recordQuestFindFor, resolveAnomalyFor, startAdventureFor, type SecretSiteId } from './storyRepo.js';
 import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
 
 export interface MockRepositoryOptions {
@@ -275,7 +275,6 @@ export class MockRepository implements GameRepository {
   }
 
   /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
-
   getAnomalies(now: number): Promise<Anomaly[]> {
     return getAnomaliesFor(this, now);
   }
@@ -300,9 +299,14 @@ export class MockRepository implements GameRepository {
   abandonAdventure(id: string): Promise<void> {
     return abandonAdventureFor(this.store, id);
   }
+  getQuestFinds(): Promise<SecretSiteId[]> {
+    return getQuestFindsFor(this.store);
+  }
+  recordQuestFind(id: SecretSiteId, now: number): Promise<SecretSiteId | null> {
+    return recordQuestFindFor(this.store, id, now);
+  }
 
   /* --- Territory -------------------------------------------------------- */
-
   /**
    * Cells in view, aged to `now`.
    *

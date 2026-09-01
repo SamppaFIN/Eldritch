@@ -53,9 +53,14 @@ Rikkinäinen tarina on sisältövirhe, joka pitää löytyä ennen julkaisua.
 
 ## Jatkoon
 
-- ~~Kartan tavoitemarkkerit~~ — tehty (v0.4.1). Kymmenen `QUEST_SITES`-paikkaa kultaisina
-  `✦`-sigileinä nimineen: `features/territory/QuestMarkers.ts`, staattinen taso.
-  Näkyy aina toistaiseksi; kun seikkailuja on useita, portitetaan keskeneräiseen.
+- ~~Kartan tavoitemarkkerit~~ — tehty (v0.4.1), **porrastettu v0.4.3**: kartalla vain
+  patsas ennen aloitusta, sitten `statue → lake → hermit → troll → deep` yksi etappi
+  kerrallaan (`visibleQuestSites`, ydin). Kolme salaisuutta (hely / sauva / viisaus)
+  eivät näy kartalla ennen kuin **kävelet solun päälle** — silloin ilmoitus (sigili +
+  kuvaus, `QuestReveal`) ja sen jälkeen kultainen markkeri. `useAdventure` siirtyi
+  MapView'hun, `HearthPanel` saa `adventures`-bindingin propsina.
 - HUD:n XP/pouch päivittyy seikkailuvalinnan jälkeen vasta minuuttipollilla — dialogi
-  itse kertoo palkinnon heti. Kun `useAdventure` siirtyy MapView'hun, kytke sama
-  `afterSpend`-virkistys kuin muillakin kulutuksilla.
+  itse kertoo palkinnon heti. Kytke `afterSpend`-virkistys kuten muilla kulutuksilla.
+- Salaisen esineen käyttö peikolla vaatii **solun omistuksen** (`holdsSite`), ei pelkkää
+  löytöä — kävele lenkki sen ympäri. Dialogi ei vielä sano tätä eksplisiittisesti
+  löytöhetkellä (`QuestReveal` vihjaa "take the ground").

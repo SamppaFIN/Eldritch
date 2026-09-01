@@ -39,4 +39,6 @@ export const K = {
   adventures: 'adventures',
   /** Codex slugs an adventure has unlocked (BRDC-QUEST-001). */
   unlocked: 'unlocked',
+  /** Secret quest sites the player has walked onto, `SecretSiteId[]` (BRDC-QUEST-001). */
+  questFinds: 'quest-finds',
 } as const;

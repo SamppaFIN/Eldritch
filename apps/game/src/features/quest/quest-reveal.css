@@ -1,0 +1,71 @@
+/* Found an item. Fills the screen briefly, tap to dismiss. */
+
+.quest-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: min(var(--space-6), 6vw);
+  border: 0;
+  text-align: center;
+  color: inherit;
+  background: radial-gradient(
+    circle at 50% 45%,
+    color-mix(in oklch, var(--void-black) 72%, transparent),
+    color-mix(in oklch, var(--void-black) 93%, transparent) 60%
+  );
+  animation: quest-reveal-in 4.2s var(--ease-out, ease-out) both;
+}
+
+.quest-reveal__sigil {
+  color: var(--sacred-gold);
+  filter: drop-shadow(0 0 26px color-mix(in oklch, var(--sacred-gold) 45%, transparent));
+  margin-block-end: var(--space-2);
+}
+
+.quest-reveal__name {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+}
+
+.quest-reveal__line {
+  max-inline-size: 32ch;
+  color: var(--text);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.quest-reveal__hint {
+  max-inline-size: 32ch;
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}
+
+@keyframes quest-reveal-in {
+  from {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quest-reveal {
+    animation-duration: 0.01ms;
+  }
+}

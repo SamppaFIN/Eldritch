@@ -1,17 +1,18 @@
 /**
  * Adventure landmarks on the map (BRDC-QUEST-001).
  *
- * The ten named places of The Fuming Lake — the statue, the lake, the troll bridge, the
- * three ways past him. They are fixed real-world coordinates (`QUEST_SITES` in core), so
- * this layer is static: seeded once, never updated. A gold sigil and a name, drawn with
- * the place markers so a player can see where the story is asking them to walk.
+ * The Fuming Lake reveals its path one stop at a time: the statue from the start, then
+ * the lake, the hermit, the bridge, the deep — each as the story reaches the stage
+ * before it. The three ways past the troll are never drawn here; they are found by
+ * walking onto the cell, and only then added to the set. The caller decides which ids
+ * are visible (`visibleQuestSites` in core); this just draws them.
  *
- * Always shown for now — there is one adventure. When there are several, gate this on
- * whether its adventure is unfinished.
+ * A gold sigil and a name, on the same layers as the place markers.
  */
 import type { FeatureCollection, Point } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { QUEST_SITES } from '@es3/core';
+import type { QuestSiteId } from '@es3/core';
 
 export const QUEST_SOURCE = 'quest-sites';
 export const QUEST_HALO_LAYER = 'quest-sites-halo';
@@ -20,22 +21,27 @@ export const QUEST_LABEL_LAYER = 'quest-sites-label';
 
 const GOLD = '#ffd700'; // --sacred-gold
 
-function toGeoJson(): FeatureCollection<Point> {
+function toGeoJson(ids: readonly string[]): FeatureCollection<Point> {
   return {
     type: 'FeatureCollection',
-    features: Object.entries(QUEST_SITES).map(([id, site]) => ({
-      type: 'Feature',
-      id,
-      properties: { label: site.label.toUpperCase() },
-      geometry: { type: 'Point', coordinates: [site.lng, site.lat] },
-    })),
+    features: ids
+      .filter((id): id is QuestSiteId => id in QUEST_SITES)
+      .map((id) => {
+        const site = QUEST_SITES[id];
+        return {
+          type: 'Feature',
+          id,
+          properties: { label: site.label.toUpperCase() },
+          geometry: { type: 'Point', coordinates: [site.lng, site.lat] },
+        };
+      }),
   };
 }
 
 export function ensureQuestLayers(map: MapLibreMap): void {
   if (map.getSource(QUEST_SOURCE)) return;
 
-  map.addSource(QUEST_SOURCE, { type: 'geojson', data: toGeoJson() });
+  map.addSource(QUEST_SOURCE, { type: 'geojson', data: toGeoJson([]) });
 
   map.addLayer({
     id: QUEST_HALO_LAYER,
@@ -87,6 +93,11 @@ export function ensureQuestLayers(map: MapLibreMap): void {
       'text-opacity': 0.85,
     },
   });
+}
+
+export function setQuestData(map: MapLibreMap, ids: readonly string[]): void {
+  const source = map.getSource(QUEST_SOURCE);
+  (source as { setData?: (d: FeatureCollection<Point>) => void })?.setData?.(toGeoJson(ids));
 }
 
 export function removeQuestLayers(map: MapLibreMap): void {

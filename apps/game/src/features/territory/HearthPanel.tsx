@@ -12,12 +12,12 @@
 import { useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, Forecast, GameRepository, ResourceKind, ResourcePool } from '@es3/core';
+import type { Cell, Forecast, ResourceKind, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
 import type { ResearchBinding } from './useSelection.js';
 import { AdventureDialog } from '../quest/AdventureDialog.js';
-import { useAdventure } from '../quest/useAdventure.js';
+import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
 
 export interface HearthPanelProps {
@@ -30,8 +30,9 @@ export interface HearthPanelProps {
   now: number;
   /** The research screen's bundle (BRDC-TECH-001), from `useSelection`. */
   research: ResearchBinding;
-  /** For the adventure book, opened from here (BRDC-QUEST-001). */
-  repository: GameRepository | null;
+  /** The adventure book, opened from here (BRDC-QUEST-001). Lifted to MapView so the map
+   *  can reveal landmarks by stage. */
+  adventures: AdventureBinding;
   /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
   forecast: Forecast | null;
   onWager: () => void;
@@ -59,14 +60,13 @@ export function HearthPanel({
   levelName,
   now,
   research,
-  repository,
+  adventures,
   forecast,
   onWager,
   onWeakest,
   onClose,
 }: HearthPanelProps) {
   const [questOpen, setQuestOpen] = useState(false);
-  const adventures = useAdventure(repository, now, owned.length);
   const questLabel = adventures.active
     ? `${adventures.active.title} · continue`
     : `${adventures.list.filter((a) => a.state === 'available').length} to begin`;

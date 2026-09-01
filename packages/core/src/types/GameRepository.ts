@@ -51,6 +51,7 @@ import type {
   AdventureView,
   StartOutcome,
 } from '../data/adventureStore.js';
+import type { SecretSiteId } from '../data/questSites.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -258,6 +259,10 @@ export interface GameRepository {
   chooseInAdventure(id: string, choiceIndex: number, now: number): Promise<AdventureChoiceOutcome>;
   /** Drop a running adventure so it can be started again. */
   abandonAdventure(id: string): Promise<void>;
+  /** Secret quest sites the player has walked onto (the map draws these). */
+  getQuestFinds(): Promise<SecretSiteId[]>;
+  /** Record a walk onto a secret site; returns the id if new, `null` if already found. */
+  recordQuestFind(id: SecretSiteId, now: number): Promise<SecretSiteId | null>;
 
   /* --- Maintenance ------------------------------------------------------ */
   runDecay(now: number): Promise<DecayResult>;

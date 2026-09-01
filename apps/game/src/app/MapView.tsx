@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { cellAt, levelState, load, saveNow, speedMs } from '@es3/core';
+import { cellAt, levelState, load, saveNow, speedMs, visibleQuestSites } from '@es3/core';
 import type {
   BBox,
   GameRepository,
@@ -31,7 +31,10 @@ import { CellPanel } from '../features/territory/CellPanel.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
-import { withFogOfWar } from '../features/territory/territoryFeatures.js';
+import { awakeningReveal, withFogOfWar } from '../features/territory/territoryFeatures.js';
+import { useAdventure } from '../features/quest/useAdventure.js';
+import { useQuestFinds } from '../features/quest/useQuestFinds.js';
+import { QuestReveal } from '../features/quest/QuestReveal.js';
 import { LogPanel } from '../features/log/LogPanel.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
@@ -185,18 +188,8 @@ export function MapView({ onLeave }: MapViewProps) {
     saveNow('opening-zoom', ZOOM_WALKING);
   }, [repository, territory.lastClaim]);
 
-  /*
-   * What the map should light up, derived rather than stored: a claim is already in
-   * hand, and the reveal is only the cells that changed hands in it.
-   */
-  const awakening = useMemo(() => {
-    const claim = territory.lastClaim;
-    if (!claim) return null;
-    const cells = claim.outcomes
-      .filter((o) => o.kind === 'claimed' || o.kind === 'taken')
-      .map((o) => o.h3);
-    return cells.length > 0 ? { cells, at: claim.at } : null;
-  }, [territory.lastClaim]);
+  // What the map should light up after a lap — the cells that changed hands (pure helper).
+  const awakening = useMemo(() => awakeningReveal(territory.lastClaim), [territory.lastClaim]);
 
   // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
   const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
@@ -230,6 +223,14 @@ export function MapView({ onLeave }: MapViewProps) {
 
   /** The cell under the player's feet, which is the one they most often want. */
   const standingOn = useMemo(() => (point ? cellAt(point) : null), [point]);
+
+  // The Fuming Lake (BRDC-QUEST-001): its book is held here, not in HearthPanel, so the map
+  // can reveal landmarks one stage at a time and catch a walk onto a secret site.
+  const adventures = useAdventure(repository, clock.now(), territory.owned.length);
+  const fuming = adventures.list.find((a) => a.id === 'fuming-lake');
+  const questStage = fuming?.state === 'done' ? 'deep' : (fuming?.stageId ?? null);
+  const finds = useQuestFinds(repository, standingOn, fuming?.state === 'active', clock.now);
+  const questSites = useMemo(() => visibleQuestSites(questStage, finds.finds), [questStage, finds.finds]);
 
   /*
    * A player who owns nothing has never seen the game do anything, so the map opens
@@ -272,6 +273,7 @@ export function MapView({ onLeave }: MapViewProps) {
         cells={shownCells}
         playerId={profile?.id ?? null}
         places={places}
+        questSites={questSites}
         castle={castle}
         awakening={awakening}
         initialZoom={openingZoom}
@@ -285,6 +287,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
       <ClaimBurst claim={territory.lastClaim} />
       <PlaceReveal revealed={trail.revealed} />
+      <QuestReveal found={finds.justFound} onDismiss={finds.dismiss} />
 
       {inspect.sanctum ? (
         <HearthPanel
@@ -295,7 +298,7 @@ export function MapView({ onLeave }: MapViewProps) {
           levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()}
           research={inspect.research}
-          repository={repository}
+          adventures={adventures}
           forecast={forecast}
           onWager={inspect.openWager}
           onWeakest={inspect.onCellTap}

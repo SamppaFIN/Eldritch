@@ -16,8 +16,17 @@ export type {
   InvestigateOutcome,
   ResolveOutcome,
 } from './anomalyStore.js';
-export { QUEST_SITES, QUEST_SITE_IDS, siteCell } from './questSites.js';
-export type { QuestSiteId } from './questSites.js';
+export {
+  FUMING_PATH,
+  QUEST_ITEMS,
+  QUEST_SITES,
+  QUEST_SITE_IDS,
+  SECRET_SITES,
+  secretSiteAt,
+  siteCell,
+  visibleQuestSites,
+} from './questSites.js';
+export type { QuestSiteId, SecretSiteId } from './questSites.js';
 export type {
   AdventureView,
   AdventureChoiceView,

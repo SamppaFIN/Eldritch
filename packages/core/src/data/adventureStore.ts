@@ -13,7 +13,7 @@ import { terrainForCell } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
-import { QUEST_SITE_IDS, siteCell } from './questSites.js';
+import { QUEST_SITE_IDS, siteCell, type SecretSiteId } from './questSites.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell } from '../types/domain.js';
@@ -32,6 +32,8 @@ export interface AdventureView {
   id: string;
   title: string;
   state: 'available' | 'active' | 'done';
+  /** The current stage id, while `state` is 'active'. Drives the map's landmark reveal. */
+  stageId?: string | undefined;
   speaker?: string | undefined;
   text?: readonly string[] | undefined;
   choices?: readonly AdventureChoiceView[] | undefined;
@@ -73,6 +75,7 @@ export async function listAdventures(
       id: adv.id,
       title: adv.title,
       state: 'active',
+      stageId: s.stage,
       speaker: stage?.speaker,
       text: stage?.text ?? [],
       choices: (stage?.choices ?? []).map((c) => ({ text: c.text, locked: !gateMet(c.requires, ctx) })),
@@ -132,4 +135,22 @@ export async function abandonAt(store: KeyValueStore, id: string): Promise<void>
   if (!book[id]) return;
   const { [id]: _gone, ...rest } = book;
   await store.set(K.adventures, rest);
+}
+
+/** The secret quest sites the player has walked onto. */
+export async function readFinds(store: KeyValueStore): Promise<SecretSiteId[]> {
+  return (await store.get<SecretSiteId[]>(K.questFinds)) ?? [];
+}
+
+/** Record a walk onto a secret site. Returns the id if it is new, `null` if already found. */
+export async function recordFind(
+  store: KeyValueStore,
+  id: SecretSiteId,
+  now: number,
+): Promise<SecretSiteId | null> {
+  const finds = await readFinds(store);
+  if (finds.includes(id)) return null;
+  await store.set(K.questFinds, [...finds, id]);
+  await writeLogEntry(store, { at: now, kind: 'quest', ref: `found:${id}` });
+  return id;
 }

@@ -40,3 +40,54 @@ export const QUEST_SITE_IDS = Object.keys(QUEST_SITES) as QuestSiteId[];
 export function siteCell(id: QuestSiteId): H3Index {
   return cellAt(QUEST_SITES[id]);
 }
+
+/**
+ * The Fuming Lake's main path, in order. The map reveals one landmark at a time: the
+ * statue always, then each next stop as the adventure reaches the stage before it
+ * (`statue` visible from the start, `lake` once you are at `statue`, and so on).
+ */
+export const FUMING_PATH = ['statue', 'lake', 'hermit', 'troll', 'deep'] as const;
+
+/** The three ways past the troll. Never on the map — found by walking onto the cell. */
+export const SECRET_SITES = ['trinket', 'staff', 'wisdom'] as const;
+export type SecretSiteId = (typeof SECRET_SITES)[number];
+
+/** A found secret, in the player's hands — what the reveal toast says. */
+export const QUEST_ITEMS: Readonly<Record<SecretSiteId, { name: string; blurb: string }>> = {
+  trinket: {
+    name: 'A Shiny Trinket',
+    blurb: 'It catches light that is not there. A troll would want this. A troll would take this and let you pass.',
+  },
+  staff: {
+    name: 'An Ancient Staff',
+    blurb: 'Heavier than wood should be, and it hums when a bridge is mentioned. Raise it and Grug may reconsider.',
+  },
+  wisdom: {
+    name: 'The Wisdom Stone',
+    blurb: 'Smooth, cool, and faintly smug. Hold it and the troll’s riddle stops sounding clever.',
+  },
+};
+
+/**
+ * Which landmarks the map should draw: the statue always, the path up to and including
+ * the stop after the current stage, plus any secret the player has already walked into.
+ */
+export function visibleQuestSites(
+  stage: string | null,
+  finds: readonly string[],
+): QuestSiteId[] {
+  let upto: number;
+  if (stage === null) {
+    upto = 1; // not started — only the statue that starts it
+  } else {
+    const i = FUMING_PATH.indexOf(stage as (typeof FUMING_PATH)[number]);
+    // A stage past the last path node (`servitude`, or a finished run) shows everything.
+    upto = i < 0 ? FUMING_PATH.length : Math.min(i + 2, FUMING_PATH.length);
+  }
+  return [...FUMING_PATH.slice(0, upto), ...SECRET_SITES.filter((s) => finds.includes(s))];
+}
+
+/** The secret site whose cell this is, if any — for the walk-onto reveal. */
+export function secretSiteAt(h3: H3Index): SecretSiteId | null {
+  return SECRET_SITES.find((s) => siteCell(s) === h3) ?? null;
+}
