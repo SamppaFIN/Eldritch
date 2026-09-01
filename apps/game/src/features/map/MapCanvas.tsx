@@ -203,15 +203,19 @@ export function MapCanvas({
   }, [map, ready, cells, playerId]);
 
   /*
-   * Tapping a hexagon — any hexagon, claimed or not.
-   *
-   * A rendered cell carries its H3 index as the feature id (`cellToFeature`); empty ground
-   * has no feature, so the index is derived from where the tap landed. Either way the
-   * panel gets a cell to talk about (`useSelection` fills in `emptyCell` for unclaimed).
+   * Tapping a hexagon — any hexagon, claimed or not. A rendered cell carries its H3 as
+   * the feature id; empty ground has none, so the index comes from where the tap landed.
    */
   useEffect(() => {
     if (!map || !ready || !onCellTap) return;
     const onClick = (e: MapMouseEvent) => {
+      // The Keep has its own listener; this global one fires for every click, so without
+      // the guard it would re-select the cell under the Keep and close its panel.
+      const onKeep =
+        onCastleTap &&
+        map.getLayer(CASTLE_CORE_LAYER) &&
+        map.queryRenderedFeatures(e.point, { layers: [CASTLE_CORE_LAYER, CASTLE_HALO_LAYER] }).length;
+      if (onKeep) return;
       const hit = map.getLayer(CELL_FILL_LAYER)
         ? map.queryRenderedFeatures(e.point, { layers: [CELL_FILL_LAYER] })[0]
         : undefined;
@@ -233,14 +237,11 @@ export function MapCanvas({
       map.off('mouseenter', [CELL_FILL_LAYER], enter);
       map.off('mouseleave', [CELL_FILL_LAYER], leave);
     };
-  }, [map, ready, onCellTap]);
+  }, [map, ready, onCellTap, onCastleTap]);
 
   /*
-   * Tapping a place.
-   *
-   * Registered after the cell handler and on layers drawn above it, so a tap on the
-   * Anchor Stone opens the sanctuary rather than the one cell it happens to sit in — the
-   * marker is the smaller, more deliberate target of the two.
+   * Tapping a place. On layers above the cells, so a tap on the Anchor Stone opens the
+   * sanctuary rather than the one cell it sits in.
    */
   useEffect(() => {
     if (!map || !ready || !onPlaceTap) return;
