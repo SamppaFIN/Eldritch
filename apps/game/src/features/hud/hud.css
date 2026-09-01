@@ -222,6 +222,23 @@
   color: var(--accent);
 }
 
+/* A link, not a button in disguise — it opens a codex entry (BRDC-WIKI-001). */
+.hud__help-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--mystic-cyan);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.hud__help-link:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
 /* --- The pouch --------------------------------------------------------- */
 
 .hud__pouch {

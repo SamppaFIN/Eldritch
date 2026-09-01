@@ -25,6 +25,7 @@ import { useInitialPosition } from '../features/map/useInitialPosition.js';
 import { usePositionSource } from '../features/trail/usePositionSource.js';
 import { useTrail } from '../features/trail/useTrail.js';
 import { useKeepAlive } from '../features/trail/useKeepAlive.js';
+import { useSimulateKey } from '../features/trail/useSimulateKey.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
@@ -42,6 +43,8 @@ import { MapNotices } from '../features/hud/MapNotices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { loadSettings, saveSettings } from '../features/hud/settings.js';
 import type { Settings } from '../features/hud/settings.js';
+import { HelpPanel } from '../features/help/HelpPanel.js';
+import type { HelpTopic } from '../features/help/help.js';
 import { createRepository } from '../data/createRepository.js';
 import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
@@ -56,7 +59,6 @@ export function MapView({ onLeave }: MapViewProps) {
   const [schemaReset, setSchemaReset] = useState(false);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
-  const [simulate, setSimulate] = useState(false);
   const [bbox, setBbox] = useState<BBox | null>(null);
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
@@ -64,6 +66,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const [resources, setResources] = useState<ResourcePool | null>(null);
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [settings, setSettings] = useState(loadSettings);
+  const [help, setHelp] = useState<HelpTopic | null>(null);
   const onSettingsChange = useCallback((next: Settings) => {
     setSettings(next);
     saveSettings(next);
@@ -101,15 +104,7 @@ export function MapView({ onLeave }: MapViewProps) {
     };
   }, []);
 
-  // Dev-only simulated walking, so the mechanic can be exercised without going outside.
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'g') setSimulate((v) => !v);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  const simulate = useSimulateKey();
 
   const { point, status, source } = usePositionSource({
     enabled: settled,
@@ -376,7 +371,10 @@ export function MapView({ onLeave }: MapViewProps) {
         onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
         unobservedMs={trail.unobservedMs}
         settings={settings}
+        onHelp={setHelp}
       />
+
+      <HelpPanel topic={help} onClose={() => setHelp(null)} />
 
       <SettingsMenu
         settings={settings}

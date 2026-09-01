@@ -5,9 +5,23 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-TECH-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
-| **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (W1–W2), §3 |
+| **Status** | `wip` — eka viipale (Vigil-ohje) 2026-09-01, kentältä pyydetty |
+| **Valmius** | 15 % |
+| **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (W1–W2), §3 · kenttätesti 2026-09-01 |
+
+## Eka viipale — Vigil-ohje (2026-09-01)
+
+Kaverit kentällä kysyivät "mikä vigil on". Rakennettu tietokirjan **runko** ja sen
+ensimmäinen sivu, muu suunnitelma alla jää Vaihe 3:een portin taakse.
+
+- [x] `features/help/help.ts` — `HelpTopic`-unioni + `HELP`-tietue (`{ title, body: string[] }`)
+- [x] `HelpPanel.tsx` (+css) — `GlassPanel`, ei modaali, ESC + sulkunappi, korkeus
+      katkaistu HUDin yläpuolelle ja vierii sisällään (sama kuin `CellPanel`)
+- [x] HUDin Vigil-tilan viereen **sininen linkki** "what is this?" kun Vigil on päällä
+      (`hud__help-link`, `--mystic-cyan`, alleviivattu, oikea `<button>`)
+- [x] `MapView` pitää `help`-tilaa ja renderöi `<HelpPanel>`
+- [~] Sisältö johdettu taulukoista, haku, linkki joka toiminnosta — jää Vaihe 3:een
+- [~] Testi joka väittää "jokaisella rakennuksella sivu" — jää Vaihe 3:een (nyt 1 sivu)
 
 ## 🔴 RED
 

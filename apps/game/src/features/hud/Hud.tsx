@@ -19,6 +19,7 @@ import { Vigil, vigilLine } from './Vigil.js';
 import { gainsLine, resourceGainsFor } from './claimFeedback.js';
 import { useClaimFeedback } from './useClaimFeedback.js';
 import type { Settings } from './settings.js';
+import type { HelpTopic } from '../help/help.js';
 import './hud.css';
 
 export interface HudProps {
@@ -48,6 +49,8 @@ export interface HudProps {
   unobservedMs?: number;
   /** Sound and vibration switches — the claim chime and buzz read these. */
   settings: Settings;
+  /** Opens a codex entry (BRDC-WIKI-001). */
+  onHelp?: (topic: HelpTopic) => void;
 }
 
 /**
@@ -167,6 +170,7 @@ export function Hud({
   onInspectHere,
   unobservedMs = 0,
   settings,
+  onHelp,
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
@@ -329,6 +333,18 @@ export function Hud({
                 {' · '}
                 {vigilLine(keepAlive, unobservedMs)}
               </span>
+              {keepAlive.wanted && onHelp ? (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    className="hud__help-link"
+                    onClick={() => onHelp('vigil')}
+                  >
+                    what is this?
+                  </button>
+                </>
+              ) : null}
             </span>
           </p>
 
