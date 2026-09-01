@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-AWAKEN-001, BRDC-TERRAIN-002, BRDC-HEX-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — 2026-09-01: deterministinen `revealOf` + jakaumatesti tehty; sumu ja kortti jäljellä |
+| **Valmius** | 25 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §4, §6 (P1–P3), §8.1 |
 
 ## 🔴 RED
@@ -57,9 +57,23 @@ säilyvät sellaisenaan — ne ovat kynnyksiä hashin yli, eivät noppia.
 Se on myös parempi peli: löytö on **paikassa**, ei onnessa. Kaverille voi sanoa
 "käy katsomassa sitä kulmaa", ja siellä on se mitä lupasit.
 
-- [ ] `revealOf(h3)` on puhdas ja deterministinen — testattu sillä, että sama indeksi
-      antaa saman sisällön tuhat kertaa
-- [ ] Jakauma testattu suurella otoksella: ihmeitä ~1 %, mysteereitä ~5 %
+- [x] `revealOf(h3)` on puhdas ja deterministinen — `rules/reveal.ts`, FNV-1a-hash
+      `reveal:${h3}`:sta (sama kuvio kuin `terrainOf`), ei `Math.random()`:ia. Testattu
+      tuhannella toistolla + kutsujärjestyksestä riippumattomuudella
+- [x] Jakauma testattu ~7500 oikealla H3-indeksillä Tampereelta: `legendary` ~1 %
+      (0,3–2,5 % raja), `rare` ~5 % (3–8 %), jokainen taso ±4 % osuudestaan
+      (`RARITY_SHARE`)
+
+## Toteutettu 2026-09-01 (commit 1: deterministinen ydin)
+
+`rules/reveal.ts` (puhdas): `Rarity` (`common`/`uncommon`/`rare`/`legendary`),
+`revealOf(h3)` — kynnykset hashin yli (`0.01` legendary, `0.06` rare, `0.25` uncommon),
+`RARITY_SHARE` jakauman lukemiseen ja testiin. Barrel export. `reveal.test.ts` (8).
+**644 vihreää.**
+
+Jäljellä: peittosumu (karttataso, testattu 5000 solulla), paljastuskortti
+(maasto+nimi+resurssit+harvinaisuus, väri ei ainoa kantaja, itsestään sulkeutuva,
+niputettu), `Cell`-kytkentä (`revealedAt` on jo HEX-001:stä).
 
 ## Ei tässä
 

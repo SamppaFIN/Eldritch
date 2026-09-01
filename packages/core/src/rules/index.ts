@@ -34,6 +34,8 @@ export { defenceAura, loyaltyFactor, loyaltySourceCells, resourceAura } from './
 export type { AuraKind } from './aura.js';
 export { canLayRoute, routeCost, routeGoldBonus, routeRefund, sameLink } from './trade.js';
 export type { RouteCheck, RouteRefusal, TradeRoute } from './trade.js';
+export { RARITY_SHARE, revealOf } from './reveal.js';
+export type { Rarity } from './reveal.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
 export { growInto, growthNeighbourhood } from './growth.js';
