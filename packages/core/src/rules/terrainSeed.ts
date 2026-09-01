@@ -11,13 +11,15 @@
  * else in the world is untouched. Regions are tested in order; the first that contains
  * the cell centre wins, and a cell inside the box that matches none is `plain`.
  *
- * FIRST DRAFT — coordinates are estimated from memory of the area and need a pass
- * against a real map (a Google Maps screenshot of the walk route). Refine the numbers,
- * do not add machinery.
+ * SECOND DRAFT (2026-09-01) — placed from Infinite's annotated Google Maps screenshot:
+ * water to the north and north-east, the residential grid to the south, a "vuori" block
+ * ringed as mountain, a shop and a bar by the statue where the adventure starts, the
+ * island rec park as woods. Still ±150–250 m until a walk and a long-press lock the
+ * numbers. Refine the coordinates, do not add machinery.
  */
 import { cellCentre } from '../geo/cells.js';
 import { haversine } from '../geo/haversine.js';
-import type { H3Index, Terrain, TerrainKind } from '../types/domain.js';
+import type { H3Index, LatLng, Terrain, TerrainKind } from '../types/domain.js';
 
 interface Circle {
   shape: 'circle';
@@ -41,23 +43,28 @@ interface Box {
 
 type Region = Circle | Box;
 
-/** The area the survey covers. Roughly the Härmälä district, ~3 km across. */
-export const SEED_BOX = { south: 61.438, west: 23.705, north: 61.47, east: 23.775 };
+/** The area the survey covers — the Härmälä district in Infinite's screenshot, ~2.5 km. */
+export const SEED_BOX = { south: 61.449, west: 23.706, north: 61.467, east: 23.744 };
 
 /**
- * Härmälä, Tampere. Ordered: a shore cell must read `coast`, not `lake`, so the coast
- * points come before the water they sit beside.
+ * Where the adventure begins (`BRDC-QUEST-001`): the statue Infinite marked, with a
+ * shop and a bar beside it. Not terrain — a point the quest reads.
+ */
+export const HARMALA_STATUE: LatLng = { lat: 61.4577, lng: 23.7278 };
+
+/**
+ * Härmälä, Tampere. Ordered, first match wins: the island rec park sits *in* the water,
+ * so `forest` is checked before `lake`; a shore cell reads `coast` before `lake` too.
  */
 const REGIONS: readonly Region[] = [
-  { shape: 'circle', kind: 'coast', note: 'Härmälänranta shore', lat: 61.4542, lng: 23.7338, radiusM: 260 },
-  { shape: 'circle', kind: 'coast', note: 'Rantaperkiö shore', lat: 61.4491, lng: 23.7228, radiusM: 240 },
-  { shape: 'circle', kind: 'market', note: 'Härmälä centre / Nuolialantie shops', lat: 61.4581, lng: 23.7462, radiusM: 340 },
-  { shape: 'circle', kind: 'market', note: 'Pirkkahalli / retail', lat: 61.4512, lng: 23.7421, radiusM: 300 },
-  { shape: 'circle', kind: 'forest', note: 'Härmälän puisto', lat: 61.4559, lng: 23.7381, radiusM: 200 },
-  { shape: 'circle', kind: 'forest', note: 'Rautaharkko / Vähäjärvi woods', lat: 61.4623, lng: 23.7662, radiusM: 520 },
-  { shape: 'circle', kind: 'forest', note: 'Nuoliala woods (south)', lat: 61.4423, lng: 23.7451, radiusM: 400 },
-  { shape: 'circle', kind: 'lake', note: 'Pyhäjärvi — Härmälä bay', lat: 61.4462, lng: 23.7123, radiusM: 1400 },
-  { shape: 'circle', kind: 'lake', note: 'Pyhäjärvi — southern water', lat: 61.4352, lng: 23.7302, radiusM: 1200 },
+  { shape: 'circle', kind: 'forest', note: 'Härmälänsaaren ulkoilupuisto (island)', lat: 61.4628, lng: 23.7175, radiusM: 320 },
+  { shape: 'circle', kind: 'forest', note: 'SE greenbelt — Lepolanpuisto / camping woods', lat: 61.4568, lng: 23.7365, radiusM: 280 },
+  { shape: 'circle', kind: 'coast', note: 'Härmälänrannan satama / Villa shore', lat: 61.46, lng: 23.7245, radiusM: 240 },
+  { shape: 'circle', kind: 'coast', note: 'SE shore point (quest location)', lat: 61.4585, lng: 23.735, radiusM: 220 },
+  { shape: 'circle', kind: 'market', note: 'shop + bar by the statue', lat: 61.4578, lng: 23.728, radiusM: 260 },
+  { shape: 'circle', kind: 'mountain', note: 'the "vuori" block', lat: 61.4562, lng: 23.73, radiusM: 230 },
+  { shape: 'circle', kind: 'lake', note: 'Pyhäjärvi — Härmälänlahti (NW)', lat: 61.464, lng: 23.722, radiusM: 700 },
+  { shape: 'circle', kind: 'lake', note: 'Pyhäjärvi — the NE arm', lat: 61.4625, lng: 23.735, radiusM: 650 },
 ];
 
 function inBox(lat: number, lng: number): boolean {

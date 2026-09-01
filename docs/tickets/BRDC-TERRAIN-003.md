@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — Mobiilikokemus ja jaettu maailma |
 | **Effort** | S (puoli päivää) + kartoitus |
 | **Riippuvuudet** | BRDC-TERRAIN-002 |
-| **Status** | `wip` — runko + ensiluonnos 2026-09-01, koordinaatit tarkistamatta |
-| **Valmius** | 40 % |
+| **Status** | `wip` — 2. luonnos annetusta karttakuvasta 2026-09-01, koordinaatit ±150–250 m |
+| **Valmius** | 60 % |
 | **Lähde** | Infinite 2026-09-01: *"mallinnan tän härmälän alueen sopimaan niin että karttaruudut vastaavat oikeaa maailmaa"* |
 
 ## 🔴 RED
@@ -23,9 +23,15 @@ ulkotesti on oikea kävely Härmälässä, ja Pyhäjärven rannan ohi kävelyn p
 - [x] `terrainOf` ja `terrainForCell` kysyvät kartoituksen ensin — voittaa hashin JA
       tallennetun tiilimaastonkin laatikon sisällä (se on käsin tarkistettu)
 - [x] `SEED_BOX` ja `seededTerrainOf` exportattu `@es3/core`sta
-- [ ] **Koordinaatit tarkistettu oikeaa karttaa vasten** (Google Maps -kuva + kävelyreitin
-      rajat Infinitelta) — nyt arvattu muistista
-- [ ] Kävelyreitin solut vastaavat maastoa: ranta = coast, metsiköt = forest, kadut = market
+- [x] Alueet aseteltu Infiniten merkitystä karttakuvasta (2026-09-01): vesi pohjoiseen
+      ja koilliseen, asuinruudukko etelään, "vuori"-kortteli, kauppa + baari patsaan
+      vieressä, saaren ulkoilupuisto metsänä
+- [x] `HARMALA_STATUE` (61.4577, 23.7278) — seikkailun aloituspiste (`BRDC-QUEST-001`
+      lukee tämän). Ei maastoa, vaan piste
+- [ ] **Koordinaatit lukittu** — vaatii pitkän painalluksen patsaan (+) kohdalla ja
+      yhden kävelyn läpi. Nyt ±150–250 m
+- [ ] Vanhan pelin questilokaatiot (satama, veneenlaskupaikka, ulkoilupuisto, SE-ranta)
+      merkitty `BRDC-QUEST-001`:een pistelistana
 
 ## Toteutus
 
