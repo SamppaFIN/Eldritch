@@ -18,7 +18,7 @@ import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { projectCell } from '../rules/decay.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { settlePouch, wardWith } from './pouch.js';
+import { forecastRates, settlePouch, wardWith, type Forecast } from './pouch.js';
 import { closeWalk, submitWalk } from './walkFlow.js';
 import type { WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
@@ -63,14 +63,8 @@ import { versioned } from './schema.js';
 import type { SchemaOutcome, VersionedStore } from './schema.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
-import {
-  openChallenge,
-  ownCombatant,
-  readDefence,
-  sealChallenge,
-  writeDefence,
-} from './wager.js';
-import type { ImportResult } from './wager.js';
+import { readDefence, writeDefence, type ImportResult } from './wager.js';
+import { combatantFrom, exportChallengeFrom, importChallengeInto, type Muster } from './wagerRepo.js';
 import { mergeWorld } from './worldStore.js';
 import type { WorldImportResult } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -188,6 +182,10 @@ export class MockRepository implements GameRepository {
     return (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
   }
 
+  async getForecast(now: number): Promise<Forecast> {
+    return forecastRates(this.store, await this.getOwnedCells(now), now);
+  }
+
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
     // Projected first, so a cell decay has already released cannot be propped up from
     // the grave — and so the strength being paid to raise is the one on screen.
@@ -237,19 +235,14 @@ export class MockRepository implements GameRepository {
     return doResearch(this.store, id, await this.getOwnedCells(now), now);
   }
 
-  /* --- The Wager, carried by hand --------------------------------------- */
+  /* --- The Wager, carried by hand — store half in `wagerRepo.js` -------- */
 
   async exportChallenge(now: number): Promise<string> {
-    // Projected, so what travels is the ground that is actually still standing. The
-    // `home` here is the Keep (the Hearth cell since BRDC-CASTLE-001's reversal); it only
-    // gates the Anchor bonus, a null check in wagerBattle.ts.
-    return sealChallenge(await this.getProfile(), await this.getOwnedCells(now), await this.getCastle(), await this.getDefence(), now);
+    return exportChallengeFrom(await this.muster(now), now);
   }
 
   async importChallenge(text: string, now: number): Promise<ImportResult> {
-    // Their ground is projected out of the local player's own before the fight.
-    const me = await this.getProfile();
-    return openChallenge(this.store, text, me, await this.getOwnedCells(now), await this.getCastle(), now);
+    return importChallengeInto(this.store, await this.muster(now), text, now);
   }
 
   async importWorld(text: string, now: number): Promise<WorldImportResult> {
@@ -265,12 +258,17 @@ export class MockRepository implements GameRepository {
   }
 
   async getCombatant(now: number): Promise<Combatant> {
-    return ownCombatant(
-      await this.getProfile(),
-      await this.getOwnedCells(now),
-      await this.getCastle(),
-      await this.getDefence(),
-    );
+    return combatantFrom(await this.muster(now));
+  }
+
+  /** Profile, held ground projected to `now`, the Keep, and the border defence. */
+  private async muster(now: number): Promise<Muster> {
+    return {
+      me: await this.getProfile(),
+      owned: await this.getOwnedCells(now),
+      castle: await this.getCastle(),
+      defence: await this.getDefence(),
+    };
   }
 
   /* --- The Hearth ------------------------------------------------------- */

@@ -11,7 +11,7 @@
  */
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, ResourcePool } from '@es3/core';
+import type { Cell, Forecast, ResourceKind, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
 import type { ResearchBinding } from './useSelection.js';
@@ -27,6 +27,8 @@ export interface HearthPanelProps {
   now: number;
   /** The research screen's bundle (BRDC-TECH-001), from `useSelection`. */
   research: ResearchBinding;
+  /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
+  forecast: Forecast | null;
   onWager: () => void;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
@@ -52,12 +54,18 @@ export function HearthPanel({
   levelName,
   now,
   research,
+  forecast,
   onWager,
   onWeakest,
   onClose,
 }: HearthPanelProps) {
   const d = dominionOf(owned, now);
   const dark = darkTimeAt(now);
+  const perHour = forecast?.perHour ?? {};
+  const forecastLine = (Object.keys(perHour) as ResourceKind[])
+    .filter((k) => (perHour[k] ?? 0) > 0)
+    .map((k) => `${perHour[k]} ${k}/h`)
+    .join(' · ');
   const rate = RESOURCE_KINDS.reduce((sum, k) => sum + d.perHour[k], 0);
   const producingCount = RESOURCE_KINDS.reduce((sum, k) => sum + d.producing[k], 0);
   // BRDC-ECON-001: a full resource stops earning rather than overflowing silently, and
@@ -114,6 +122,12 @@ export function HearthPanel({
           : ''}
       </p>
 
+      {/* The forecast: what the pouch will actually fill at, buildings and auras and the
+          storage ceiling all folded in (BRDC-STATS-001). */}
+      {forecastLine ? (
+        <p className="hearth-panel__line es-numeric">Forecast · {forecastLine}</p>
+      ) : null}
+
       {full ? (
         <p className="hearth-panel__line hearth-panel__line--warn">
           Storage is full — production has stalled. Spend some to make room.
@@ -139,7 +153,11 @@ export function HearthPanel({
         </p>
       ) : null}
 
-      <ResearchPanel research={research} wisdom={resources?.wisdom ?? 0} />
+      <ResearchPanel
+        research={research}
+        pool={resources}
+        wisdomPerHour={forecast?.perHour.wisdom ?? 0}
+      />
 
       <p className="hearth-panel__line">
         {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,

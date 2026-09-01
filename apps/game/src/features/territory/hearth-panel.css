@@ -117,6 +117,10 @@
   font-size: var(--text-sm);
 }
 
+.hearth-panel__research-wait {
+  color: var(--text-dim);
+}
+
 .hearth-panel__actions {
   display: flex;
   flex-wrap: wrap;

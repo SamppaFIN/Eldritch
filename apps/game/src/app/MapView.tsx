@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cellAt, levelState, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
+  Forecast,
   GameRepository,
   H3Index,
   PlayerProfile,
@@ -56,6 +57,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [resources, setResources] = useState<ResourcePool | null>(null);
+  const [forecast, setForecast] = useState<Forecast | null>(null);
 
   /*
    * Held open by the player, never by default.
@@ -171,9 +173,9 @@ export function MapView({ onLeave }: MapViewProps) {
     if (!repository) return;
     let alive = true;
     const read = () => {
-      void repository.getResources(clock.now()).then((pool) => {
-        if (alive) setResources(pool);
-      });
+      const t = clock.now();
+      void repository.getResources(t).then((pool) => alive && setResources(pool));
+      void repository.getForecast(t).then((f) => alive && setForecast(f));
     };
     read();
     const timer = setInterval(read, 60_000);
@@ -299,6 +301,7 @@ export function MapView({ onLeave }: MapViewProps) {
           levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()}
           research={inspect.research}
+          forecast={forecast}
           onWager={inspect.openWager}
           onWeakest={inspect.onCellTap}
           onClose={inspect.close}

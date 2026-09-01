@@ -8,6 +8,8 @@ export { SEED_NEIGHBOURS, seedCells } from './seed.js';
 export type { SeedNeighbour } from './seed.js';
 export { cellsToLoad, planClaim } from './claiming.js';
 export type { ClaimPlan } from './claiming.js';
+export { forecastRates } from './pouch.js';
+export type { Forecast } from './pouch.js';
 export {
   MAX_CHALLENGE_CELLS,
   buildChallenge,

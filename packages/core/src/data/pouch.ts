@@ -5,7 +5,7 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { EMPTY_POOL, addClaimYield, settleResources } from '../rules/terrain.js';
+import { EMPTY_POOL, RESOURCE_KINDS, addClaimYield, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState } from '../rules/terrain.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
@@ -106,6 +106,44 @@ export async function settlePouch(
   );
   if (settled !== stored) await store.set(KEY, settled);
   return settled;
+}
+
+/**
+ * What the pouch will fill at, per resource, over the next hour and the next day
+ * (BRDC-STATS-001).
+ *
+ * Not re-derived from the buildings and auras — that is the number this codebase is most
+ * likely to get subtly wrong. Instead it settles the *real* `settleResources` forward a
+ * whole hour and a whole day from the current state, with the exact inputs `settlePouch`
+ * uses, and reports the delta. The forecast is a settle, so it cannot disagree with one:
+ * dormancy, the storage cap and the dark-time factor are all already inside it.
+ */
+export interface Forecast {
+  perHour: Partial<ResourcePool>;
+  perDay: Partial<ResourcePool>;
+}
+
+export async function forecastRates(
+  store: KeyValueStore,
+  owned: readonly Cell[],
+  now: number,
+): Promise<Forecast> {
+  const cap = storageCap(buildingsOf(owned));
+  const bph = await perHourBonus(store, owned, now);
+  const bpd = buildingDayBonus(owned, now);
+  const factor = darkTimeAt(now).factor;
+
+  const base = settleResources(await read(store, now), owned, now, cap, bph, bpd, factor);
+  const hour = settleResources(base, owned, base.since + 3_600_000, cap, bph, bpd, factor);
+  const dayFrom = Math.max(base.since, base.sinceDay ?? base.since) + 86_400_000;
+  const day = settleResources(base, owned, dayFrom, cap, bph, bpd, factor);
+
+  const delta = (after: ResourcePool): Partial<ResourcePool> => {
+    const out: Partial<ResourcePool> = {};
+    for (const k of RESOURCE_KINDS) if (after[k] > base.pool[k]) out[k] = after[k] - base.pool[k];
+    return out;
+  };
+  return { perHour: delta(hour.pool), perDay: delta(day.pool) };
 }
 
 /**

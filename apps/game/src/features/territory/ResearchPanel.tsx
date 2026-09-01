@@ -1,18 +1,29 @@
 /**
- * The research screen (BRDC-TECH-001).
+ * The research screen (BRDC-TECH-001, BRDC-STATS-001).
  *
  * A section of the Hearth panel, since research is about the whole domain, not one cell.
- * It lists the frontier — every rite whose prerequisites are met — with its wisdom price,
- * and marks the moment an era turns, which is the one ceremony the tree has.
+ * It lists the frontier — every rite whose prerequisites are met — with its wisdom price
+ * and, from the forecast, how long until that price is met. It marks the moment an era
+ * turns, which is the one ceremony the tree has.
  */
 import { MetatronsCube, RitualButton } from '@es3/ui';
-import { TECHS, researchCost } from '@es3/core';
-import type { TechRefusal } from '@es3/core';
+import { TECHS, researchCost, timeToAfford } from '@es3/core';
+import type { ResourcePool, TechRefusal } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
 import type { ResearchBinding } from './useSelection.js';
 
 const TOTAL = Object.keys(TECHS).length;
+const HOUR = 3_600_000;
 
+/** " · ~3 h" until a rite is affordable, "" when it already is, a note when it never is. */
+export function waitFor(cost: number, pool: ResourcePool | null, wisdomPerHour: number): string {
+  if (!pool) return '';
+  const ms = timeToAfford(pool, { wisdom: wisdomPerHour }, { wisdom: cost });
+  if (ms === null) return ' · no wisdom coming in';
+  return ms === 0 ? '' : ` · ~${Math.round(ms / HOUR)} h`;
+}
+
+/** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<TechRefusal, string>> = {
   'already-known': 'That rite is already known.',
   locked: 'An earlier rite must come first.',
@@ -21,10 +32,15 @@ const REFUSAL: Readonly<Record<TechRefusal, string>> = {
 
 export interface ResearchPanelProps {
   research: ResearchBinding;
-  wisdom: number;
+  /** The pouch, for the affordability check and the wait hint. */
+  pool: ResourcePool | null;
+  /** Forecast wisdom per hour (BRDC-STATS-001). */
+  wisdomPerHour: number;
 }
 
-export function ResearchPanel({ research, wisdom }: ResearchPanelProps) {
+export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelProps) {
+  const wisdom = pool?.wisdom ?? 0;
+
   return (
     <div className="hearth-panel__research">
       <p className="hearth-panel__research-head">
@@ -45,7 +61,12 @@ export function ResearchPanel({ research, wisdom }: ResearchPanelProps) {
           const cost = researchCost(id);
           return (
             <div key={id} className="hearth-panel__research-row">
-              <span>{titleCase(id)}</span>
+              <span>
+                {titleCase(id)}
+                <span className="hearth-panel__research-wait">
+                  {waitFor(cost, pool, wisdomPerHour)}
+                </span>
+              </span>
               <RitualButton
                 variant="ghost"
                 disabled={wisdom < cost}

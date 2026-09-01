@@ -38,6 +38,7 @@ export { RARITY_SHARE, revealOf } from './reveal.js';
 export type { Rarity } from './reveal.js';
 export { DARK_RADIUS_DAYS, DARK_TIME_FACTOR, darkTimeAt } from './darkTime.js';
 export type { DarkTime } from './darkTime.js';
+export { timeToAfford } from './afford.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
 export { growInto, growthNeighbourhood } from './growth.js';
