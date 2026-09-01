@@ -1,0 +1,47 @@
+/* Small "+N" rising off the HUD pouch when an hour settles (BRDC-CHAR-001). */
+
+.pouch-gain {
+  position: fixed;
+  inset-block-end: calc(var(--hud-height, 12rem) + var(--space-2));
+  inset-inline: 0;
+  z-index: var(--z-hud, 100);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  font-family: var(--font-numeric, monospace);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold, 700);
+  text-shadow: 0 0 6px var(--void-black), 0 1px 2px var(--void-black);
+  animation: pouch-gain-rise 1.9s var(--ease-out, ease-out) forwards;
+}
+
+@keyframes pouch-gain-rise {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-32px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pouch-gain {
+    animation: pouch-gain-hold 1.2s steps(1) forwards;
+  }
+}
+
+@keyframes pouch-gain-hold {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

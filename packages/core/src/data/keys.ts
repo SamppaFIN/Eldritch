@@ -41,4 +41,6 @@ export const K = {
   unlocked: 'unlocked',
   /** Secret quest sites the player has walked onto, `SecretSiteId[]` (BRDC-QUEST-001). */
   questFinds: 'quest-finds',
+  /** Achievement id → the ms it was first earned (BRDC-CHAR-001). */
+  achievements: 'achievements',
 } as const;

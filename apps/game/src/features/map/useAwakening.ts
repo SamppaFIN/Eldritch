@@ -11,27 +11,14 @@
 import { useEffect } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { CLAIM_YIELD, cellCentre, resourceOf } from '@es3/core';
-import type { H3Index, ResourceKind } from '@es3/core';
+import type { H3Index } from '@es3/core';
 import {
   AWAKENING_MS,
   setAwakeningCells,
   setAwakeningProgress,
 } from '../territory/AwakeningLayer.js';
-import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
+import { RESOURCE_COLOUR, RESOURCE_WORD } from '../territory/territoryFeatures.js';
 import './gains-flyup.css';
-
-/** A short word per resource for the "+N" that rises off a claimed hex. */
-const RESOURCE_WORD: Readonly<Record<ResourceKind, string>> = {
-  wood: 'timber',
-  stone: 'stone',
-  iron: 'iron',
-  food: 'food',
-  gold: 'gold',
-  wisdom: 'wisdom',
-  mana: 'mana',
-  culture: 'culture',
-  tokens: 'tokens',
-};
 
 /** "+10 timber" rising and fading over each cell a loop just took. */
 function flyGains(map: MapLibreMap, cells: readonly H3Index[]): void {

@@ -52,6 +52,7 @@ export interface HudProps {
   /** A quest landmark that just appeared on the map (BRDC-QUEST-002), or null. */
   waypoint?: string | null;
   onWaypointSeen?: () => void;
+  onOpenCharacter?: () => void;
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
@@ -177,6 +178,7 @@ export function Hud({
   settings,
   waypoint = null,
   onWaypointSeen,
+  onOpenCharacter,
   onHelp,
   onOpenLog,
 }: HudProps) {
@@ -382,6 +384,11 @@ export function Hud({
             {standing && onInspectHere ? (
               <RitualButton variant="ghost" className="hud__here" onClick={onInspectHere}>
                 <span aria-hidden>⬢</span> Here
+              </RitualButton>
+            ) : null}
+            {onOpenCharacter ? (
+              <RitualButton variant="ghost" className="hud__here" onClick={onOpenCharacter}>
+                <span aria-hidden>◇</span> You
               </RitualButton>
             ) : null}
           </div>

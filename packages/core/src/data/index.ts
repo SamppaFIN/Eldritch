@@ -11,6 +11,7 @@ export type { ClaimPlan } from './claiming.js';
 export { forecastRates } from './pouch.js';
 export type { Forecast } from './pouch.js';
 export type { AltarOutcome, ChannelOutcome } from './keepStore.js';
+export type { AchievementView } from './achievementStore.js';
 export type {
   Anomaly,
   ChoiceOutcome,

@@ -41,8 +41,10 @@ import { activeSpells } from '../rules/spell.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
-import { levelForXp } from '../rules/level.js';
 import type { LogEntry } from '../rules/log.js';
+import { addXpTo, readProfile, setName } from './profileStore.js';
+import { achievementsFor } from './achievementRepo.js';
+import type { AchievementView } from './achievementStore.js';
 import type {
   BBox,
   Cell,
@@ -102,30 +104,21 @@ export class MockRepository implements GameRepository {
     return this.store.schema();
   }
 
-  /* --- Profile ---------------------------------------------------------- */
-
-  async getProfile(): Promise<PlayerProfile> {
-    const existing = await this.store.get<PlayerProfile>(K.profile);
-    if (existing) return existing;
-
-    const profile: PlayerProfile = {
-      id: this.newId(),
-      name: 'Seeker',
-      colorHue: 285,
-      level: 1,
-      xp: 0,
-    };
-    await this.store.set(K.profile, profile);
-    return profile;
+  /* --- Profile and achievements — seams in profileStore.js / achievementRepo.js --- */
+  getProfile(): Promise<PlayerProfile> {
+    return readProfile(this.store, this.newId);
   }
-
-  /** XP is added here so `level` can never drift from `xp` (v2's level-118 route). */
-  async addXp(amount: number): Promise<PlayerProfile> {
-    const profile = await this.getProfile();
-    const xp = Math.max(0, profile.xp + amount);
-    const updated: PlayerProfile = { ...profile, xp, level: levelForXp(xp) };
-    await this.store.set(K.profile, updated);
-    return updated;
+  addXp(amount: number): Promise<PlayerProfile> {
+    return addXpTo(this.store, this.newId, amount);
+  }
+  setPlayerName(name: string): Promise<PlayerProfile> {
+    return setName(this.store, this.newId, name);
+  }
+  async getAchievements(now: number): Promise<AchievementView[]> {
+    return (await achievementsFor(this.store, this, now)).view;
+  }
+  async syncAchievements(now: number): Promise<string[]> {
+    return (await achievementsFor(this.store, this, now)).unlocked;
   }
 
   /* --- Runs — CRUD in `runStore.js`, one run at a time ---------------- */

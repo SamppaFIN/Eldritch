@@ -1,0 +1,181 @@
+.character {
+  position: fixed;
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  z-index: var(--z-modal);
+  margin-inline: auto;
+  max-inline-size: 32rem;
+  max-block-size: calc(
+    100dvh - var(--hud-height, 12rem) - max(var(--space-3), env(safe-area-inset-top)) -
+      var(--space-3)
+  );
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.character__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.character__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.character__close {
+  flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+  padding-inline: 0;
+}
+
+.character__label {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.character__name {
+  inline-size: 100%;
+  box-sizing: border-box;
+  min-block-size: var(--touch-min);
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-1, 6px);
+  background: var(--void-black);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  letter-spacing: 0.04em;
+}
+
+.character__name:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.character__section {
+  margin: var(--space-2) 0 0;
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.character__level {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+}
+
+.character__xp {
+  block-size: 4px;
+  border-radius: 2px;
+  background: var(--glass-border);
+  overflow: hidden;
+}
+
+.character__xp-fill {
+  block-size: 100%;
+  background: var(--sacred-gold);
+}
+
+.character__lore {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.55;
+}
+
+.character__ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.character__rung--here {
+  color: var(--sacred-gold);
+}
+
+.character__empty,
+.character__found,
+.character__achievements {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.character__found li,
+.character__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block-end: var(--space-1);
+}
+
+.character__found-name {
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+}
+
+.character__found-blurb {
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.character__achievements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.character__ach {
+  display: flex;
+  gap: var(--space-2);
+  color: var(--text-dim);
+}
+
+.character__ach--got {
+  color: var(--text);
+}
+
+.character__ach-mark {
+  color: var(--sacred-gold);
+}
+
+.character__ach-name {
+  display: block;
+  font-family: var(--font-display);
+}
+
+.character__ach-hint {
+  display: block;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.character__link {
+  border: 0;
+  background: none;
+  color: var(--mystic-cyan);
+  font: inherit;
+  cursor: pointer;
+}

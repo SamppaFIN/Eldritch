@@ -11,7 +11,6 @@ import type {
   BBox,
   GameRepository,
   H3Index,
-  LogEntry,
   PlayerProfile,
   RevealedPlace,
   TrailPoint,
@@ -35,19 +34,19 @@ import { useFumingLake } from '../features/quest/useFumingLake.js';
 import { QuestReveal } from '../features/quest/QuestReveal.js';
 import { AdventureDialog } from '../features/quest/AdventureDialog.js';
 import { useCellTerrain } from '../features/map/useCellTerrain.js';
-import { LogPanel } from '../features/log/LogPanel.js';
+import { useMapAside } from '../features/map/useMapAside.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
+import { WelcomeBack } from '../features/hud/WelcomeBack.js';
+import { PouchGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
-import { HelpPanel } from '../features/help/HelpPanel.js';
-import type { HelpTopic } from '../features/help/help.js';
 import { createRepository } from '../data/createRepository.js';
 import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
@@ -67,9 +66,6 @@ export function MapView({ onLeave }: MapViewProps) {
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [settings, onSettingsChange] = useSettings();
-  const [help, setHelp] = useState<HelpTopic | null>(null);
-  const [logOpen, setLogOpen] = useState(false);
-  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
 
   /*
    * Held open by the player, never by default.
@@ -167,17 +163,15 @@ export function MapView({ onLeave }: MapViewProps) {
     onMerged: territory.refresh,
   });
 
-  const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, [
+  const { resources, forecast, gain, setResources } = usePouchPolling(repository, clock.now, [
     clock,
     territory.lastClaim,
     trail.points.length,
   ]);
 
-  // The action log, pulled only while its panel is open and after anything a lap did.
-  useEffect(() => {
-    if (!repository || !logOpen) return;
-    void repository.getLog().then(setLogEntries);
-  }, [repository, logOpen, territory.lastClaim]);
+  // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
+  const aside = useMapAside(repository, clock.now, trail.points.length + (territory.lastClaim?.at ?? 0));
+  const [welcomed, setWelcomed] = useState(false);
 
   // Profile is re-read after a claim: XP and level change with the ground.
   useEffect(() => {
@@ -357,25 +351,21 @@ export function MapView({ onLeave }: MapViewProps) {
         settings={settings}
         waypoint={quest.waypoint}
         onWaypointSeen={quest.onWaypointSeen}
-        onHelp={setHelp}
-        onOpenLog={() => setLogOpen(true)}
+        onOpenCharacter={aside.openCharacter}
+        onHelp={aside.openHelp}
+        onOpenLog={aside.openLog}
       />
 
-      <HelpPanel topic={help} onClose={() => setHelp(null)} />
-      <LogPanel
-        open={logOpen}
-        entries={logEntries}
-        now={clock.now()}
-        onTopic={setHelp}
-        onClose={() => setLogOpen(false)}
-      />
+      {aside.node}
+      <WelcomeBack gain={welcomed ? null : gain} settings={settings} onDismiss={() => setWelcomed(true)} />
+      <PouchGain gain={gain} settings={settings} />
 
       <SettingsMenu
         settings={settings}
         onChange={onSettingsChange}
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
-        onOpenLog={() => setLogOpen(true)}
+        onOpenLog={aside.openLog}
         repository={repository}
         position={point}
         onDebugGrant={() => void repository?.debugGrant(clock.now()).then(() => repository?.getResources(clock.now()).then(setResources))}

@@ -53,10 +53,17 @@ import type {
   StartOutcome,
 } from '../data/adventureStore.js';
 import type { SecretSiteId } from '../data/questSites.js';
+import type { AchievementView } from '../data/achievementStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
   getProfile(): Promise<PlayerProfile>;
+  /** Rename the player. Trimmed, capped at 24; an empty string is ignored (BRDC-CHAR-001). */
+  setPlayerName(name: string): Promise<PlayerProfile>;
+  /** Every achievement with its unlock time, or `null` if still locked (BRDC-CHAR-001). */
+  getAchievements(now: number): Promise<AchievementView[]>;
+  /** Stamp anything newly earned; returns the ids added this call, for a toast. */
+  syncAchievements(now: number): Promise<string[]>;
 
   /* --- Runs and trail --------------------------------------------------- */
   startRun(now: number): Promise<RunId>;

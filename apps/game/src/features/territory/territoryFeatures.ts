@@ -82,6 +82,19 @@ export const RESOURCE_COLOUR: Readonly<Record<ResourceKind, string>> = {
   tokens: '#ffd700',
 };
 
+/** The word the pouch uses for each resource — "timber", not "wood". */
+export const RESOURCE_WORD: Readonly<Record<ResourceKind, string>> = {
+  wood: 'timber',
+  stone: 'stone',
+  iron: 'iron',
+  food: 'food',
+  gold: 'gold',
+  wisdom: 'wisdom',
+  mana: 'mana',
+  culture: 'culture',
+  tokens: 'tokens',
+};
+
 /** One glyph per terrain kind, from the same register as the HUD's `⬢ ⬡ ◈ ◇`. */
 const TERRAIN_CHAR: Readonly<Record<TerrainKind, string>> = {
   plain: '',

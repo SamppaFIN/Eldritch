@@ -32,7 +32,7 @@ export function useClaimFeedback(lastClaim: ClaimEvent | null, settings: Setting
 }
 
 /** Best-effort: a browser that blocks audio just stays quiet. */
-function playChime(kind: 'claimed' | 'taken'): void {
+export function playChime(kind: 'claimed' | 'taken'): void {
   try {
     const Ctor: typeof AudioContext | undefined =
       window.AudioContext ??

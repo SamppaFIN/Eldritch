@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.0",
+    "date": "2026-09-02",
+    "notes": [
+      "A Character screen, from the ◇ You button in the footer: set your name, read what your Consciousness level actually means, see the items you have found, and a list of achievements with when you earned each.",
+      "Come back after a while away and the game shows you what the wait was worth — a card with the resources that accrued, and a chime.",
+      "When an hour rolls over mid-walk, a small \"+N timber\" rises off the pouch with a soft pling."
+    ]
+  },
+  {
     "version": "0.4.6",
     "date": "2026-09-02",
     "notes": [
