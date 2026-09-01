@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M–L (1–2 päivää) |
 | **Riippuvuudet** | BRDC-MANA-001, BRDC-TECH-001, BRDC-BUILD-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` |
+| **Valmius** | 100 % |
 | **Lähde** | Infinite 2026-09-01: *"tee keeppiin valinta, rakenna alttari joka antaa manaa … tee manalle, tutkimukselle ja rakennuksille oma tabi … tuohon Rites Prehistory kontrollin tilalle, mistä voi napilla vaihtaa mana / wisdom / buildings ja train unit"* |
 
 ## 🔴 RED
@@ -16,23 +16,26 @@ Mana tulee nyt vain paikoista — Anchor ja pitkän oleskelun paljastamat temppe
 näyttää yhden otsikon *"Rites · Prehistory"* eikä siitä pääse muuhun kuin tutkimukseen.
 Pelaaja ei voi Keepiltä käsin päättää mihin panostaa.
 
-## 🟢 GREEN (luonnos — tarkennettava suunnitteluvaiheessa)
+## 🟢 GREEN
 
-- [ ] Keepin (Hearth-solun) paneelissa **rakennusvalikko** — oma osio, ei sekoitu
-      tavallisen solun `CellPanel`-rakentamiseen
-- [ ] **Alttari**: rakennettava manalähde Keep-soluun. Maksaa resursseja (kiveä + kultaa),
-      tuottaa manaa/h. **Päivitettävissä** rankilla (`expandTemple`-tyylinen porras:
-      lisää kiveä + kultaa → enemmän manaa)
-      - Huom: rikkoo tarkoituksella BRDC-BUILD-002:n periaatteen *"temppeliä ei voi ostaa,
-        vain ansaita ajalla"* — **vain Keepin kohdalla**, koska Keep on erityinen
-- [ ] **Mana → wisdom -vaihto** (ja myöhemmin taiat): manalla voi hankkia wisdomia.
-      Kurssi ja rajat suunnittelussa
-- [ ] **Välilehdet** `ResearchPanel`in *"Rites · Prehistory"* -kontrollin tilalle:
-      **Mana** (alttari + vaihto) · **Wisdom** (nykyinen tutkimus/Rites) ·
-      **Buildings** (mitä Keep-alueelle voi rakentaa) · **Train unit** (disabloitu,
-      "tulossa" — joukot lisätään myöhemmin)
-- [ ] Tabit toimivat yhdellä peukalolla, aktiivinen tab selvä, ei vaakascrollia (§14)
-- [ ] Kaikki talouslogiikka `packages/core`:ssa puhtaana funktiona + Vitest
+- [x] Keepin paneelissa **välilehdet** — `HearthPanel` sai tab-rivin, ei sekoitu
+      `CellPanel`-rakentamiseen. Domain-yhteenveto pysyy tabien yläpuolella.
+- [x] **Alttari = Anchor sytytettynä** (Infiniten vahvistus): level 0 = uinuva Anchor
+      Stone (6 mana/h), `raiseAltar` nostaa `K.expansions[home]` temppelin
+      expand-käyrällä (40 kiveä / 30 kultaa × taso) → 1–3 = 9 / 12 / 15 mana/h.
+      `expandTemple`-puhdas sääntö uudelleenkäytetty; `data/keepStore.ts` on seam.
+      - Rikkoo BRDC-BUILD-002:n *"ei voi ostaa, vain ansaita ajalla"* — **vain Keep**.
+- [x] **Mana → wisdom** — `channelMana` (puhdas, `rules/mana.ts`): 25 manaa → 5 wisdom,
+      kiinteä kurssi `MANA_TO_WISDOM_RATE`. Kieltäytyy jos manaa liian vähän tai wisdom
+      olisi yli storage-katon. Taiat viittauksena, oma tikettinsä.
+- [x] **Välilehdet** *"Rites · Prehistory"* -otsikon tilalle: **Mana** (`ManaPanel`) ·
+      **Wisdom** (`ResearchPanel` ennallaan) · **Buildings** (`KeepBuildingsPanel`,
+      read-only katalogi) · **Train** (disabloitu, "Troops come later").
+- [~] Yhdellä peukalolla: 44 px kohteet, `overflow-x:auto` neljälle tabille, näkyvä
+      fokus. **Nuolinäppäinvieritys jätetty pois** — tabit ovat `aria-pressed`-nappeja,
+      ei `role=tablist` (AI-Koulu: "no ARIA is better than bad ARIA").
+- [x] Talouslogiikka `packages/core`:ssa puhtaana + Vitest — `mana.test.ts` (`channelMana`),
+      `data/keep.repo.test.ts` (`raiseAltar` + `channelMana` repon läpi). 777 vihreää.
 
 ## Auki (suunnittelu)
 

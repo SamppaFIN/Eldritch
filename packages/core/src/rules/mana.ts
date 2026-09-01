@@ -24,6 +24,11 @@ import {
 } from './constants.js';
 import { DORMANT_AFTER_MS, spend } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
+
+export type ChannelRefusal = 'cannot-afford' | 'wisdom-full';
+export type ChannelResult =
+  | { ok: true; pool: ResourcePool }
+  | { ok: false; refused: ChannelRefusal };
 import type { Place } from './dwell.js';
 import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
 
@@ -85,6 +90,26 @@ export function expandTemple(level: number, pool: ResourcePool): ExpandResult {
   const paid = spend(pool, expansionCost(level + 1));
   if (!paid) return { ok: false, refused: 'cannot-afford' };
   return { ok: true, level: level + 1, pool: paid };
+}
+
+/**
+ * Channel mana into wisdom at the Altar (BRDC-KEEP-002).
+ *
+ * A slow path to research for a player who has not built a Library — the Altar makes
+ * mana, this turns it into wisdom at a fixed rate. Refuses rather than overfills: if the
+ * wisdom would cross the storage cap, nothing is spent. Never mutates `pool`.
+ */
+export function channelMana(
+  pool: ResourcePool,
+  manaSpent: number,
+  rate: number,
+  cap: number,
+): ChannelResult {
+  const gained = Math.floor(manaSpent / rate);
+  if (pool.wisdom + gained > cap) return { ok: false, refused: 'wisdom-full' };
+  const paid = spend(pool, { mana: manaSpent });
+  if (!paid) return { ok: false, refused: 'cannot-afford' };
+  return { ok: true, pool: { ...paid, wisdom: paid.wisdom + gained } };
 }
 
 /** Attach `expansion` and `manaPerHour` to each place, for the panels. Pure. */

@@ -108,8 +108,8 @@ export type {
 } from './terrain.js';
 export { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
 export type { WardRefusal, WardResult } from './ward.js';
-export { expandTemple, expansionCost, manaBonus, manaRate, placesWithMana } from './mana.js';
-export type { ExpandRefusal, ExpandResult } from './mana.js';
+export { channelMana, expandTemple, expansionCost, manaBonus, manaRate, placesWithMana } from './mana.js';
+export type { ChannelRefusal, ChannelResult, ExpandRefusal, ExpandResult } from './mana.js';
 export {
   BULWARK_SHELTER_MS,
   SPELLS,

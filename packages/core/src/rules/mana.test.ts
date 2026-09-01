@@ -17,7 +17,14 @@ import {
 } from './dwell.js';
 import { EMPTY_POOL } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
-import { expandTemple, expansionCost, manaBonus, manaRate, placesWithMana } from './mana.js';
+import {
+  channelMana,
+  expandTemple,
+  expansionCost,
+  manaBonus,
+  manaRate,
+  placesWithMana,
+} from './mana.js';
 import type { Place } from './dwell.js';
 import type { Cell } from '../types/domain.js';
 
@@ -113,6 +120,34 @@ describe('expandTemple', () => {
     const p = pool({ stone: 999, gold: 999 });
     const snapshot = { ...p };
     expandTemple(0, p);
+    expect(p).toEqual(snapshot);
+  });
+});
+
+describe('channelMana', () => {
+  it('turns mana into wisdom at the rate', () => {
+    const r = channelMana(pool({ mana: 30 }), 25, 5, 500);
+    expect(r).toEqual({ ok: true, pool: pool({ mana: 5, wisdom: 5 }) });
+  });
+
+  it('refuses cannot-afford below the step', () => {
+    expect(channelMana(pool({ mana: 20 }), 25, 5, 500)).toEqual({
+      ok: false,
+      refused: 'cannot-afford',
+    });
+  });
+
+  it('refuses wisdom-full rather than overfilling the cap', () => {
+    expect(channelMana(pool({ mana: 100, wisdom: 498 }), 25, 5, 500)).toEqual({
+      ok: false,
+      refused: 'wisdom-full',
+    });
+  });
+
+  it('never mutates the pool it was handed', () => {
+    const p = pool({ mana: 100 });
+    const snapshot = { ...p };
+    channelMana(p, 25, 5, 500);
     expect(p).toEqual(snapshot);
   });
 });

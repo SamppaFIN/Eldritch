@@ -9,16 +9,27 @@
  * from the title screen, which meant ending a walk to reach it (BRDC-WAGER-JSON-001,
  * known limitation). Standing on your own Hearth is a better place to be asked.
  */
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, Forecast, ResourceKind, ResourcePool } from '@es3/core';
+import type { Cell, Forecast, GameRepository, ResourceKind, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
+import { ManaPanel } from './ManaPanel.js';
+import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
+import { useKeepEconomy } from './useKeepEconomy.js';
 import type { ResearchBinding } from './useSelection.js';
 import { AdventureDialog } from '../quest/AdventureDialog.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
+
+type KeepTab = 'mana' | 'wisdom' | 'buildings' | 'train';
+const TABS: readonly { id: KeepTab; label: string }[] = [
+  { id: 'mana', label: 'Mana' },
+  { id: 'wisdom', label: 'Wisdom' },
+  { id: 'buildings', label: 'Buildings' },
+  { id: 'train', label: 'Train' },
+];
 
 export interface HearthPanelProps {
   /** Every cell the player holds, already projected to `now`. */
@@ -33,6 +44,10 @@ export interface HearthPanelProps {
   /** The adventure book, opened from here (BRDC-QUEST-001). Lifted to MapView so the map
    *  can reveal landmarks by stage. */
   adventures: AdventureBinding;
+  /** For the Keep's Mana tab — the Altar and channelling (BRDC-KEEP-002). */
+  repository: GameRepository | null;
+  /** Push a fresh pouch up after a Keep spend, so the numbers do not lag the minute poll. */
+  onPouch: (pool: ResourcePool) => void;
   /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
   forecast: Forecast | null;
   onWager: () => void;
@@ -61,12 +76,19 @@ export function HearthPanel({
   now,
   research,
   adventures,
+  repository,
+  onPouch,
   forecast,
   onWager,
   onWeakest,
   onClose,
 }: HearthPanelProps) {
   const [questOpen, setQuestOpen] = useState(false);
+  const [tab, setTab] = useState<KeepTab>('mana');
+  const afterKeepSpend = useCallback(() => {
+    void repository?.getResources(now).then(onPouch);
+  }, [repository, now, onPouch]);
+  const keep = useKeepEconomy(repository, () => now, owned.length, afterKeepSpend);
   const questLabel = adventures.active
     ? `${adventures.active.title} · continue`
     : `${adventures.list.filter((a) => a.state === 'available').length} to begin`;
@@ -165,11 +187,32 @@ export function HearthPanel({
         </p>
       ) : null}
 
-      <ResearchPanel
-        research={research}
-        pool={resources}
-        wisdomPerHour={forecast?.perHour.wisdom ?? 0}
-      />
+      <div className="hearth-panel__tabs" aria-label="Keep">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            aria-pressed={tab === t.id}
+            className={`hearth-panel__tab${tab === t.id ? ' hearth-panel__tab--on' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'mana' ? <ManaPanel keep={keep} pool={resources} /> : null}
+      {tab === 'wisdom' ? (
+        <ResearchPanel
+          research={research}
+          pool={resources}
+          wisdomPerHour={forecast?.perHour.wisdom ?? 0}
+        />
+      ) : null}
+      {tab === 'buildings' ? <KeepBuildingsPanel /> : null}
+      {tab === 'train' ? (
+        <p className="hearth-panel__line hearth-panel__tabbody">Troops come later.</p>
+      ) : null}
 
       <p className="hearth-panel__line">
         {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,

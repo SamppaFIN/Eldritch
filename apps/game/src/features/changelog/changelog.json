@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.4.4",
+    "date": "2026-09-01",
+    "notes": [
+      "The Keep has tabs now — Mana, Wisdom, Buildings, Train — where the single Rites line used to be.",
+      "Light the Altar (your Anchor Stone) with stone and gold to make more mana an hour, up to three times.",
+      "No Library? Channel mana into wisdom at the Altar — a slow trade, but it moves the research along.",
+      "The Buildings tab lists every Work with its cost and what it needs; Train is a placeholder for troops later."
+    ]
+  },
+  {
     "version": "0.4.3",
     "date": "2026-09-01",
     "notes": [

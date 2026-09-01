@@ -11,9 +11,8 @@
  * (Phase 3) assert the two agree cell by cell.
  */
 import { latLngToCell } from 'h3-js';
-import { placesWithHome } from '../rules/dwell.js';
-import type { DwellMap } from '../rules/dwell.js';
-import { placesWithMana } from '../rules/mana.js';
+import { readPlaces, readDwellFor, raiseAltarFor, channelManaFor } from './keepStore.js';
+import type { AltarOutcome, ChannelOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
@@ -25,7 +24,7 @@ import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
-import { expandTempleAt, readExpansions } from './templeStore.js';
+import { expandTempleAt } from './templeStore.js';
 import type { ExpandOutcome } from './templeStore.js';
 import { readPaths } from './pathStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
@@ -258,18 +257,19 @@ export class MockRepository implements GameRepository {
     return (await this.store.get<H3Index>(K.castle)) ?? null;
   }
 
-  /* --- Places ----------------------------------------------------------- */
-
-  async getPlaces(): Promise<RevealedPlace[]> {
-    const dwell = (await this.store.get<DwellMap>(K.dwell)) ?? {};
-    const places = placesWithHome(dwell, await this.getHome());
-    return placesWithMana(places, await readExpansions(this.store));
+  /* --- Places and the Keep's economy — seam in keepStore.js ------------- */
+  getPlaces(): Promise<RevealedPlace[]> {
+    return readPlaces(this.store, () => this.getHome());
   }
-
-  async getDwellFor(h3: string): Promise<number> {
-    return ((await this.store.get<DwellMap>(K.dwell)) ?? {})[h3] ?? 0;
+  getDwellFor(h3: string): Promise<number> {
+    return readDwellFor(this.store, h3);
   }
-
+  raiseAltar(now: number): Promise<AltarOutcome> {
+    return raiseAltarFor(this.store, this, now);
+  }
+  channelMana(now: number): Promise<ChannelOutcome> {
+    return channelManaFor(this.store, this, now);
+  }
   async expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome> {
     return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   }

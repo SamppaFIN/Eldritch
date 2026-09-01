@@ -175,7 +175,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.4.3';
+export const APP_VERSION = '0.4.4';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 
@@ -234,6 +234,16 @@ export const MANA_TEMPLE_MIN = 1;
 export const MAX_TEMPLE_EXPANSION = 3;
 /** Each expansion level adds this fraction of the temple's base rate. */
 export const MANA_EXPANSION_STEP = 0.5;
+
+/* --- The Altar and channelling (BRDC-KEEP-002) -------------------------
+   The Altar is the Anchor invested in: it uses the temple expansion curve
+   (`expansionCost`, cap `MAX_TEMPLE_EXPANSION`). Channelling turns the mana it
+   makes into wisdom, a slow path to research for a player with no Library. */
+
+/** Mana spent per unit of wisdom when channelling at the Altar. */
+export const MANA_TO_WISDOM_RATE = 5;
+/** One channel press spends this much mana (→ MANA_CHANNEL_STEP / rate wisdom). */
+export const MANA_CHANNEL_STEP = 25;
 
 /* --- Area effects and loyalty (BRDC-BUILD-003) --------------------- */
 

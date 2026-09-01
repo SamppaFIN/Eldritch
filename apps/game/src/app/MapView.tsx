@@ -224,8 +224,7 @@ export function MapView({ onLeave }: MapViewProps) {
   /** The cell under the player's feet, which is the one they most often want. */
   const standingOn = useMemo(() => (point ? cellAt(point) : null), [point]);
 
-  // The Fuming Lake (BRDC-QUEST-001): its book is held here, not in HearthPanel, so the map
-  // can reveal landmarks one stage at a time and catch a walk onto a secret site.
+  // The Fuming Lake (BRDC-QUEST-001): book held here so the map can stage its landmarks.
   const adventures = useAdventure(repository, clock.now(), territory.owned.length);
   const fuming = adventures.list.find((a) => a.id === 'fuming-lake');
   const questStage = fuming?.state === 'done' ? 'deep' : (fuming?.stageId ?? null);
@@ -299,6 +298,8 @@ export function MapView({ onLeave }: MapViewProps) {
           now={clock.now()}
           research={inspect.research}
           adventures={adventures}
+          repository={repository}
+          onPouch={setResources}
           forecast={forecast}
           onWager={inspect.openWager}
           onWeakest={inspect.onCellTap}
