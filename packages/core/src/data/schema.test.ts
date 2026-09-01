@@ -5,9 +5,10 @@
  * it exists to stop: a returning player's pre-shape-change data read back and trusted,
  * the way v2's level-118 save was.
  */
-import { describe, expect, it } from 'vitest';
-import { SCHEMA_VERSION, versioned } from './schema.js';
+import { afterEach, describe, expect, it } from 'vitest';
+import { MIGRATIONS, SCHEMA_VERSION, versioned } from './schema.js';
 import { MemoryStore } from './kv.js';
+import type { KeyValueStore } from './kv.js';
 import { MockRepository } from './MockRepository.js';
 
 const KEY = 'schema:version';
@@ -93,6 +94,42 @@ describe('versioned()', () => {
     await store.clear();
 
     expect(await versioned(inner).schema()).toBe('ok');
+  });
+});
+
+describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
+  const mutable = MIGRATIONS as Record<number, (s: KeyValueStore) => Promise<void>>;
+
+  afterEach(() => {
+    for (const k of Object.keys(mutable)) delete mutable[Number(k)];
+  });
+
+  it('walks an old version forward when every step has a migration', async () => {
+    const inner = new MemoryStore();
+    await inner.set(KEY, SCHEMA_VERSION - 1);
+    await inner.set('profile', { id: 'p1', xp: 40, stale: true });
+
+    // A synthetic (SCHEMA_VERSION - 1) → SCHEMA_VERSION step: drop a field.
+    mutable[SCHEMA_VERSION - 1] = async (s) => {
+      const p = await s.get<{ id: string; xp: number }>('profile');
+      if (p) await s.set('profile', { id: p.id, xp: p.xp });
+    };
+
+    const store = versioned(inner);
+    expect(await store.schema()).toBe('migrated');
+    expect(await store.get('profile')).toEqual({ id: 'p1', xp: 40 });
+    expect(await inner.get(KEY)).toBe(SCHEMA_VERSION);
+  });
+
+  it('still resets when a step in the path has no migration', async () => {
+    const inner = new MemoryStore();
+    await inner.set(KEY, SCHEMA_VERSION - 1);
+    await inner.set('profile', { id: 'p1', xp: 40 });
+
+    const store = versioned(inner);
+    expect(await store.schema()).toBe('reset');
+    expect(await store.get('profile')).toBeUndefined();
+    expect(await inner.get(KEY)).toBe(SCHEMA_VERSION);
   });
 });
 
