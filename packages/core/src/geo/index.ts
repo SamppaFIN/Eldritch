@@ -12,6 +12,7 @@ export {
   cellAt,
   cellCentre,
   cellsWithin,
+  hexDistance,
   neighboursOf,
   regionAt,
   regionOf,

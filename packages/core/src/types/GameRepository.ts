@@ -33,6 +33,8 @@ import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
 import type { ExpandOutcome } from '../data/templeStore.js';
 import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
+import type { RouteOutcome } from '../data/tradeStore.js';
+import type { TradeRoute } from '../rules/trade.js';
 import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -109,6 +111,17 @@ export interface GameRepository {
   build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome>;
   /** Demolish a cell's building and return half its cost. */
   demolish(h3: H3Index, now: number): Promise<DemolishOutcome>;
+
+  /* --- Trade Routes (BRDC-BUILD-004) ---------------------------------- */
+  /** The two-cell links the player holds; each pays gold while both ends are awake. */
+  getTradeRoutes(): Promise<TradeRoute[]>;
+  /**
+   * Bind two owned cells within `TRADE_ROUTE_MAX_HEXES`, paying stone and gold. Refusals
+   * are named — same cell, not yours, too far, already linked, cannot afford.
+   */
+  layTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome>;
+  /** Tear a route down and hand back half its cost. */
+  removeTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome>;
 
   /* --- Technology (BRDC-TECH-001) ------------------------------------------ */
   /** Everything researched so far, in the order it was learned. */

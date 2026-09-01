@@ -31,4 +31,6 @@ export const K = {
   paths: 'paths',
   /** Running spells, `ActiveSpell[]`, pruned on cast (BRDC-SPELL-001). */
   spells: 'spells',
+  /** Trade Routes, `TradeRoute[]` — two-cell links (BRDC-BUILD-004). */
+  tradeRoutes: 'trade-routes',
 } as const;

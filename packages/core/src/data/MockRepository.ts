@@ -32,6 +32,9 @@ import { walkedEdges } from '../geo/paths.js';
 import type { WalkedEdge } from '../geo/paths.js';
 import { neighboursOf } from '../geo/cells.js';
 import { loyaltyFactor, loyaltySourceCells } from '../rules/aura.js';
+import { layRouteAt, readRoutes, removeRouteAt } from './tradeStore.js';
+import type { RouteOutcome } from './tradeStore.js';
+import type { TradeRoute } from '../rules/trade.js';
 import { castSpellAt, readSpells } from './spellStore.js';
 import type { CastOutcome } from './spellStore.js';
 import { activeSpells } from '../rules/spell.js';
@@ -202,15 +205,28 @@ export class MockRepository implements GameRepository {
   /* --- Buildings and technology ----------------------------------------- */
 
   async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
-    const near = new Set([h3, ...neighboursOf(h3)]);
-    const nearTemple = (await this.getPlaces()).some((p) => near.has(p.h3));
-    const owned = await this.getOwnedCells(now);
+    const near = [h3, ...neighboursOf(h3)];
+    const nearTemple = (await this.getPlaces()).some((p) => near.includes(p.h3));
     const me = (await this.getProfile()).id;
+    const owned = await this.getOwnedCells(now);
     return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple);
   }
 
   async demolish(h3: H3Index, now: number): Promise<DemolishOutcome> {
     return demolishOn(this.store, h3, await this.getOwnedCells(now), now);
+  }
+
+  async getTradeRoutes(): Promise<TradeRoute[]> {
+    return readRoutes(this.store);
+  }
+
+  async layTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome> {
+    const me = (await this.getProfile()).id;
+    return layRouteAt(this.store, me, a, b, await this.getOwnedCells(now), now);
+  }
+
+  async removeTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome> {
+    return removeRouteAt(this.store, a, b, await this.getOwnedCells(now), now);
   }
 
   async getResearched(): Promise<TechId[]> {
@@ -231,16 +247,9 @@ export class MockRepository implements GameRepository {
   }
 
   async importChallenge(text: string, now: number): Promise<ImportResult> {
-    // Their ground is projected out of the local player's own before the fight, so the
-    // muster reflects what is actually still standing rather than what once was.
-    return openChallenge(
-      this.store,
-      text,
-      await this.getProfile(),
-      await this.getOwnedCells(now),
-      await this.getCastle(),
-      now,
-    );
+    // Their ground is projected out of the local player's own before the fight.
+    const me = await this.getProfile();
+    return openChallenge(this.store, text, me, await this.getOwnedCells(now), await this.getCastle(), now);
   }
 
   async importWorld(text: string, now: number): Promise<WorldImportResult> {
@@ -321,18 +330,12 @@ export class MockRepository implements GameRepository {
     return (await sweepAndPersist(this.store, mine, now, await this.loyaltyOver(mine))).cells;
   }
 
-  /**
-   * A decay-multiplier resolver for a set of cells: 1 by default, lower for the local
-   * player's cells sitting next to their own Monuments or a revealed place (BRDC-BUILD-003).
-   * Loyalty sources are read from `cells` themselves, so this stays a bounded read.
-   */
+  /** A decay-multiplier resolver: <1 for my cells next to my Monuments or a place, else 1.
+   *  Sources are read from `cells` themselves, so this stays a bounded read (BRDC-BUILD-003). */
   private async loyaltyOver(cells: readonly Cell[]): Promise<(cell: Cell) => number> {
     const me = (await this.getProfile()).id;
-    const placeCells = (await this.getPlaces()).map((p) => p.h3);
-    const sources = loyaltySourceCells(
-      cells.filter((c) => c.ownerId === me),
-      placeCells,
-    );
+    const places = (await this.getPlaces()).map((p) => p.h3);
+    const sources = loyaltySourceCells(cells.filter((c) => c.ownerId === me), places);
     return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
   }
 

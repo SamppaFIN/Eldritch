@@ -18,6 +18,8 @@ import { manaBonus } from '../rules/mana.js';
 import { activeSpells, domainSpellBonus } from '../rules/spell.js';
 import type { ActiveSpell } from '../rules/spell.js';
 import { resourceAura } from '../rules/aura.js';
+import { routeGoldBonus } from '../rules/trade.js';
+import type { TradeRoute } from '../rules/trade.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -52,6 +54,9 @@ async function perHourBonus(
   const spells = (await store.get<ActiveSpell[]>(K.spells)) ?? [];
   addInto(merged, domainSpellBonus(activeSpells(spells, now), now));
   addInto(merged, resourceAura(owned, now));
+
+  const routes = (await store.get<TradeRoute[]>(K.tradeRoutes)) ?? [];
+  addInto(merged, routeGoldBonus(routes, owned, now));
   return merged;
 }
 

@@ -11,6 +11,7 @@ import {
   cellToLatLng,
   cellToParent,
   gridDisk,
+  gridDistance,
   latLngToCell,
   polygonToCells,
 } from 'h3-js';
@@ -108,6 +109,11 @@ export function neighboursOf(cell: H3Index): H3Index[] {
  */
 export function cellsWithin(centre: H3Index, radius: number): H3Index[] {
   return gridDisk(centre, Math.max(0, radius));
+}
+
+/** Grid steps between two cells — how a Trade Route measures its span (BRDC-BUILD-004). */
+export function hexDistance(a: H3Index, b: H3Index): number {
+  return gridDistance(a, b);
 }
 
 /**

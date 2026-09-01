@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-003, BRDC-CLAIM-004, BRDC-INSPECT-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — 2026-09-01: Linnoitus + Kauppareitti tehty; karttaoverlay jäljellä |
+| **Valmius** | 75 % |
 | **Lähde** | BRDC-BUILD-003:n siirretyt kohdat (2026-09-01) |
 
 ## 🔴 RED
@@ -25,23 +25,45 @@ kohtaa jäi, koska ne eivät folddaa olemassa oleviin saumoihin yhtä siististi:
 
 ## 🟢 GREEN
 
-- [ ] **Linnoitus** `BUILDINGS`:ssa: `aura { kind: 'defence', radius: 1, amount: N }`,
+- [x] **Linnoitus** `BUILDINGS`:ssa: `aura { kind: 'defence', radius: 1, amount: 30 }`,
       maasto `'any'`, teknologia `fortification`
-- [ ] Puolustusaura **vähentää vahinkoa**, jonka vihollishyökkäys tekee säteen sisällä
-      oleviin omiin soluihin — sekä kävelyhyökkäykseen (`growInto`) että lenkin
-      sulkemiseen (`planClaim`)
-- [ ] Puolustus **noudattaa kattoa** (`AURA_CAP_PER_CELL` tai oma) eikä voi tehdä solusta
-      valtaamatonta: `max(0, damage - defence)`, ja `BRDC-CLAIM-004`:n testit todistavat
-      ettei siege-tasapaino kaadu
-- [ ] `resourceAura` **ei käsittele** `'defence'`-auraa resurssina — se ei ole `ResourcePool`:ssa
-- [ ] **Kauppareitti**: oma avain `K.tradeRoutes`, `Array<{ a, b, builtAt }>`. Sitoo kaksi
-      omaa solua enintään `TRADE_ROUTE_MAX_HEXES` päässä toisistaan; molemmat saavat
-      kultaa tunnissa. Ei asu `cell.building`issa
-- [ ] Kauppareitin purku hyvittää puolikkaan, kuten muutkin rakennukset
-- [ ] **Vaikutusalue kartalla**: kun solu jolla on aura (tai paikka) on valittuna,
-      `cellsWithin(h3, radius)` piirtyy omalle karttatasolle. Ei tekstinä
-- [ ] Puhtaat funktiot testattu: `defenceAura` päällekkäisillä, `max(0, …)`-lattia,
-      kauppareitin sidos ja etäisyysraja
+- [x] Puolustusaura **vähentää vahinkoa** säteen sisällä oleviin omiin soluihin — sekä
+      `growInto` että `planClaim` lukevat `defenceAura`:n samasta `known`-kartasta
+- [x] Puolustus **noudattaa kattoa** (`DEFENCE_AURA_CAP = 75`), eikä tee solusta
+      valtaamatonta: `resolveCapture` tekee `max(0, attackPower - max(0, defence))`.
+      CLAIM-004:n testit ennallaan (`defence` oletuksena 0); uudet todistavat lattian
+- [x] `resourceAura` **hyppää yli** `'defence'`-auran — se ei ole `ResourcePool`:ssa
+- [x] **Kauppareitti**: `K.tradeRoutes`, `TradeRoute[]`. `canLayRoute` — kaksi omaa solua
+      ≤ `TRADE_ROUTE_MAX_HEXES` päässä, ei duplikaattia; `routeGoldBonus` → `perHourBonus`
+      (`TRADE_ROUTE_GOLD`/h kun molemmat päät hereillä). Ei `cell.building`issa
+- [x] `removeRouteAt` hyvittää puolikkaan (`routeRefund`, `DEMOLISH_REFUND`)
+- [~] **Vaikutusalue kartalla** — jäljellä. `AuraLayer.ts` + `useSelection`-bindaus +
+      `MapCanvas`. Ydin toimii ilman sitä
+- [x] Puhtaat funktiot testattu: `aura.test.ts` (defenceAura päällekkäisillä + katto),
+      `capture.test.ts` (max(0)-lattia), `trade.test.ts` (sidos, etäisyys, duplikaatti,
+      kulta, hyvitys)
+
+## Toteutettu 2026-09-01
+
+**Linnoitus** (commit `eea91b2`): `Building.aura.kind` sai `'defence'`,
+`aura.ts#defenceAura(known, h3, ownerId)` summaa puolustajan Linnoitukset säteeltä,
+`DEFENCE_AURA_CAP`-katto. `resolveCapture(cell, attacker, now, defence=0)` — yksi
+valinnainen parametri, `growInto` ja `planClaim` laskevat sen `known`-kartasta kuten
+`ownedNeighbours`in. `BuildingId` +`fortress`. Testit +6.
+
+**Kauppareitti**: `rules/trade.ts` (puhdas) — `canLayRoute` (`ward.ts`:n muoto),
+`routeGoldBonus` (lepotila­suodatettu), `routeRefund`, `sameLink` (järjestyksestä
+riippumaton). `data/tradeStore.ts` ohut sauma — `layRouteAt` / `removeRouteAt`, settle +
+sääntö + kirjoita vain onnistuessa. `geo/cells.ts#hexDistance`. `perHourBonus` syöttää
+`routeGoldBonus`:n. `GameRepository` + `MockRepository` (`importChallenge` tiivistettiin
+rivibudjetin vuoksi, 399/400). Testit +10. **636 vihreää.**
+
+## Ei tässä
+
+- Kaupunkivaltioiden kauppareitit → `BRDC-CITY-001`
+- Aura­efektien grafiikka (hehku, animaatio) → `BRDC-ART-001`
+- Kaksisoluinen valintavuo (napauta A, napauta B) kauppareitin UI:hin — tulee overlayn
+  kanssa
 
 ## Toteutus
 
