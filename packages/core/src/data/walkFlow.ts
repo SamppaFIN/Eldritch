@@ -12,6 +12,7 @@ import { detectLoop } from '../geo/loopDetection.js';
 import { sweepDecay } from '../rules/decay.js';
 import { hasGround } from './cellStore.js';
 import { awardClaims } from './pouch.js';
+import { writeLogEntry } from './logStore.js';
 import { recordWalk } from './walkWriter.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import { K } from './keys.js';
@@ -99,6 +100,16 @@ export async function closeWalk(d: WalkDeps, runId: RunId, now: number): Promise
   for (const cell of plan.cells) await d.store.set(K.cell(cell.h3), cell);
   if (plan.xp > 0) await d.addXp(plan.xp);
   await awardClaims(d.store, await d.getOwnedCells(now), plan.outcomes, now);
+
+  // One log line per kind of thing this lap did (BRDC-LOG-001).
+  const tally = (kind: string) => plan.outcomes.filter((o) => o.kind === kind).length;
+  for (const [kind, count] of [
+    ['awaken', tally('claimed')],
+    ['corrupt', tally('taken')],
+    ['reinforce', tally('reinforced')],
+  ] as const) {
+    if (count > 0) await writeLogEntry(d.store, { at: now, kind, count });
+  }
 
   // The ring is spent. Keeping it would let the next fix close the same loop again.
   await d.store.set(K.trail(runId), points.slice(detected.loop.endIndex));

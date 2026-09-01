@@ -6,6 +6,8 @@ export { attackPower, emptyCell, resolveCapture } from './capture.js';
 export type { Attacker, CaptureResult } from './capture.js';
 export { appendChange } from './history.js';
 export type { OwnershipChange } from './history.js';
+export { appendLog } from './log.js';
+export type { LogEntry, LogKind } from './log.js';
 export {
   ERAS,
   TECHS,

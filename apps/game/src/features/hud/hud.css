@@ -93,13 +93,30 @@
 
 /* A closure is the game's one moment of reward. It gets the accent colour and
    the sacred-gold tick, and nothing else in the HUD does. */
+/* A button, styled as the status line it replaced — it also opens the full log. */
 .hud__claim {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  inline-size: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: start;
   color: var(--accent-warm);
+  font: inherit;
   font-size: 0.85rem;
+  cursor: pointer;
   animation: es-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.hud__claim:disabled {
+  cursor: default;
+}
+
+.hud__claim:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
 }
 
 .hud__note--warn {

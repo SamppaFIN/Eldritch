@@ -33,4 +33,6 @@ export const K = {
   spells: 'spells',
   /** Trade Routes, `TradeRoute[]` — two-cell links (BRDC-BUILD-004). */
   tradeRoutes: 'trade-routes',
+  /** The action log, a capped `LogEntry[]` (BRDC-LOG-001). */
+  log: 'log',
 } as const;

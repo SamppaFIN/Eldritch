@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-TECH-001 |
-| **Status** | `wip` — eka viipale (Vigil-ohje) 2026-09-01, kentältä pyydetty |
-| **Valmius** | 15 % |
+| **Status** | `wip` — viipaleet 1–2 (Vigil + lokin linkkaamat aiheet) 2026-09-01 |
+| **Valmius** | 30 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (W1–W2), §3 · kenttätesti 2026-09-01 |
 
 ## Eka viipale — Vigil-ohje (2026-09-01)
@@ -20,8 +20,16 @@ ensimmäinen sivu, muu suunnitelma alla jää Vaihe 3:een portin taakse.
 - [x] HUDin Vigil-tilan viereen **sininen linkki** "what is this?" kun Vigil on päällä
       (`hud__help-link`, `--mystic-cyan`, alleviivattu, oikea `<button>`)
 - [x] `MapView` pitää `help`-tilaa ja renderöi `<HelpPanel>`
-- [~] Sisältö johdettu taulukoista, haku, linkki joka toiminnosta — jää Vaihe 3:een
-- [~] Testi joka väittää "jokaisella rakennuksella sivu" — jää Vaihe 3:een (nyt 1 sivu)
+
+## Viipale 2 — lokin linkkaamat aiheet (2026-09-01, BRDC-LOG-001)
+
+- [x] `HelpTopic` + `HELP` kasvoivat 10 aiheella: `awakening` · `corruption` ·
+      `reinforcement` · `decay` · `work` · `rite` · `warding` · `mana` · `the-wager` ·
+      `hearth`. Teksti johdettu sääntömoduulien omista doc-kommenteista
+- [x] Toimintalokin jokainen rivi linkittää oikeaan aiheeseen (`describe.ts` `TOPIC`);
+      testi väittää että jokainen palautettu topic on `HELP`issä
+- [~] Sisältö johdettu taulukoista, haku, linkki joka paneelista — jää Vaihe 3:een
+- [~] Testi "jokaisella rakennuksella/teknologialla sivu" — jää Vaihe 3:een
 
 ## 🔴 RED
 

@@ -51,6 +51,8 @@ export interface HudProps {
   settings: Settings;
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
+  /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
+  onOpenLog?: () => void;
 }
 
 /**
@@ -171,6 +173,7 @@ export function Hud({
   unobservedMs = 0,
   settings,
   onHelp,
+  onOpenLog,
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
@@ -209,9 +212,15 @@ export function Hud({
     <div className="hud" ref={hudRef}>
       <GlassPanel as="section" className="hud__panel" aria-label="Status">
         {lastClaim ? (
-          <p className="hud__claim" role="status">
+          <button
+            type="button"
+            className="hud__claim"
+            aria-live="polite"
+            onClick={onOpenLog}
+            disabled={!onOpenLog}
+          >
             <span aria-hidden>◈</span> {claimLine(lastClaim)}
-          </p>
+          </button>
         ) : null}
 
         {fading > 0 ? (

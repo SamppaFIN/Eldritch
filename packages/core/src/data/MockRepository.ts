@@ -15,10 +15,10 @@ import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
 import { placesWithMana } from '../rules/mana.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
-import { projectCell } from '../rules/decay.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { forecastRates, settlePouch, wardWith, type Forecast } from './pouch.js';
+import { forecastRates, settlePouch, type Forecast } from './pouch.js';
+import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk } from './walkFlow.js';
 import type { WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
@@ -28,6 +28,7 @@ import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import { expandTempleAt, readExpansions } from './templeStore.js';
 import type { ExpandOutcome } from './templeStore.js';
 import { readPaths } from './pathStore.js';
+import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges } from '../geo/paths.js';
 import type { WalkedEdge } from '../geo/paths.js';
 import { neighboursOf } from '../geo/cells.js';
@@ -42,6 +43,7 @@ import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import { levelForXp } from '../rules/level.js';
+import type { LogEntry } from '../rules/log.js';
 import type {
   BBox,
   Cell,
@@ -160,6 +162,11 @@ export class MockRepository implements GameRepository {
     return walkedEdges(await readPaths(this.store));
   }
 
+  /** The action log, newest first (BRDC-LOG-001). */
+  async getLog(limit = 100): Promise<LogEntry[]> {
+    return (await readLog(this.store)).slice(-limit).reverse();
+  }
+
   async submitTrail(runId: RunId, points: TrailPoint[]) {
     return submitWalk(this.walkDeps(), runId, points);
   }
@@ -187,17 +194,8 @@ export class MockRepository implements GameRepository {
   }
 
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
-    // Projected first, so a cell decay has already released cannot be propped up from
-    // the grave — and so the strength being paid to raise is the one on screen.
-    const stored = await this.store.get<Cell>(K.cell(h3));
-    const live = stored ? projectCell(stored, now) : null;
-    if (!live) return { warded: false, refused: 'not-yours' };
-
     const me = await this.getProfile();
-    const owned = await this.getOwnedCells(now);
-    const result = await wardWith(this.store, live, me.id, owned, now);
-    if (result.warded) await this.store.set(K.cell(h3), result.cell);
-    return result;
+    return wardAt(this.store, h3, me.id, await this.getOwnedCells(now), now);
   }
 
   /* --- Buildings and technology ----------------------------------------- */
@@ -351,6 +349,8 @@ export class MockRepository implements GameRepository {
     const all = await allCells(this.store);
     const loyalty = await this.loyaltyOver(all);
     const sweep = await sweepAndPersist(this.store, all, now, loyalty, await this.getHome());
+    const lost = sweep.released.length;
+    if (lost > 0) await writeLogEntry(this.store, { at: now, kind: 'reclaim', count: lost });
     return { weakened: sweep.weakened, released: sweep.released };
   }
 

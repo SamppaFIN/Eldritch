@@ -13,6 +13,7 @@ import type { ResourceKind } from '../rules/terrain.js';
 import { projectCell } from '../rules/decay.js';
 import type { TechId } from '../rules/tech.js';
 import { settlePouch, writePouch } from './pouch.js';
+import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, PlayerId } from '../types/domain.js';
@@ -55,6 +56,7 @@ export async function buildOn(
 
   const built: Cell = { ...live, building: { id, builtAt: now } };
   await store.set(K.cell(h3), built);
+  await writeLogEntry(store, { at: now, kind: 'build', ref: id });
   return { ok: true, cell: built };
 }
 
@@ -80,8 +82,10 @@ export async function demolishOn(
   for (const [k, v] of Object.entries(back) as [ResourceKind, number][]) pool[k] += v;
   await writePouch(store, pool, now);
 
+  const removed = stored.building.id;
   const bare: Cell = { ...stored };
   delete bare.building;
   await store.set(K.cell(h3), bare);
+  await writeLogEntry(store, { at: now, kind: 'demolish', ref: removed });
   return { ok: true, cell: bare };
 }

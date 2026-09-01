@@ -9,6 +9,7 @@
 import { expandTemple } from '../rules/mana.js';
 import type { ExpandRefusal } from '../rules/mana.js';
 import { settlePouch, writePouch } from './pouch.js';
+import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
@@ -46,5 +47,6 @@ export async function expandTempleAt(
 
   await writePouch(store, result.pool, now);
   await store.set(K.expansions, { ...expansions, [h3]: result.level });
+  await writeLogEntry(store, { at: now, kind: 'expand', count: result.level });
   return { ok: true, level: result.level };
 }

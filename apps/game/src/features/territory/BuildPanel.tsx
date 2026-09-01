@@ -8,28 +8,9 @@
 import { BUILDINGS, EMPTY_POOL, canBuild, refund } from '@es3/core';
 import type { BuildRefusal, BuildingId, Cell, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { BUILDING_NAME as NAME, titleCase } from './names.js';
 
-const NAME: Readonly<Record<BuildingId, string>> = {
-  granary: 'Granary',
-  monument: 'Monument',
-  storehouse: 'Storehouse',
-  market: 'Market',
-  sawmill: 'Sawmill',
-  lumbermill: 'Lumbermill',
-  mine: 'Mine',
-  quarry: 'Quarry',
-  farm: 'Farm',
-  fishery: 'Fishery',
-  vineyard: 'Vineyard',
-  library: 'Library',
-  'temple-grove': 'Temple Grove',
-  lighthouse: 'Lighthouse',
-  fortress: 'Fortress',
-};
-
-/** `early-farming` → `Early Farming`. The tech table carries no display name of its own. */
-export const titleCase = (slug: string): string =>
-  slug.replace(/(^|-)([a-z])/g, (_, sep: string, ch: string) => (sep ? ' ' : '') + ch.toUpperCase());
+export { titleCase };
 
 const costLine = (cost: Readonly<Partial<ResourcePool>>): string =>
   Object.entries(cost)

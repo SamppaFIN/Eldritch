@@ -9,11 +9,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cellAt, levelState, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
-  Forecast,
   GameRepository,
   H3Index,
+  LogEntry,
   PlayerProfile,
-  ResourcePool,
   RevealedPlace,
   Terrain,
   TrailPoint,
@@ -31,7 +30,9 @@ import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
+import { usePouchPolling } from '../features/territory/usePouchPolling.js';
 import { withFogOfWar } from '../features/territory/territoryFeatures.js';
+import { LogPanel } from '../features/log/LogPanel.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
@@ -63,10 +64,10 @@ export function MapView({ onLeave }: MapViewProps) {
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [castle, setCastle] = useState<H3Index | null>(null);
-  const [resources, setResources] = useState<ResourcePool | null>(null);
-  const [forecast, setForecast] = useState<Forecast | null>(null);
   const [settings, setSettings] = useState(loadSettings);
   const [help, setHelp] = useState<HelpTopic | null>(null);
+  const [logOpen, setLogOpen] = useState(false);
+  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const onSettingsChange = useCallback((next: Settings) => {
     setSettings(next);
     saveSettings(next);
@@ -168,28 +169,17 @@ export function MapView({ onLeave }: MapViewProps) {
     onMerged: territory.refresh,
   });
 
-  /*
-   * The pouch, re-read whenever the ground changes and once a minute besides.
-   *
-   * Reading it settles the trickle, so this is also what pays the player for holding
-   * land — but the payment is computed from the clock, not from the polling, and asking
-   * more often does not earn more.
-   */
+  const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, [
+    clock,
+    territory.lastClaim,
+    trail.points.length,
+  ]);
+
+  // The action log, pulled only while its panel is open and after anything a lap did.
   useEffect(() => {
-    if (!repository) return;
-    let alive = true;
-    const read = () => {
-      const t = clock.now();
-      void repository.getResources(t).then((pool) => alive && setResources(pool));
-      void repository.getForecast(t).then((f) => alive && setForecast(f));
-    };
-    read();
-    const timer = setInterval(read, 60_000);
-    return () => {
-      alive = false;
-      clearInterval(timer);
-    };
-  }, [repository, clock, territory.lastClaim, trail.points.length]);
+    if (!repository || !logOpen) return;
+    void repository.getLog().then(setLogEntries);
+  }, [repository, logOpen, territory.lastClaim]);
 
   // Profile is re-read after a claim: XP and level change with the ground.
   useEffect(() => {
@@ -372,15 +362,24 @@ export function MapView({ onLeave }: MapViewProps) {
         unobservedMs={trail.unobservedMs}
         settings={settings}
         onHelp={setHelp}
+        onOpenLog={() => setLogOpen(true)}
       />
 
       <HelpPanel topic={help} onClose={() => setHelp(null)} />
+      <LogPanel
+        open={logOpen}
+        entries={logEntries}
+        now={clock.now()}
+        onTopic={setHelp}
+        onClose={() => setLogOpen(false)}
+      />
 
       <SettingsMenu
         settings={settings}
         onChange={onSettingsChange}
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
+        onOpenLog={() => setLogOpen(true)}
         visible={inspect.cell === null && !inspect.sanctum}
       />
 

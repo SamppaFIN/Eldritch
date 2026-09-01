@@ -10,6 +10,7 @@ import type { RouteRefusal, TradeRoute } from '../rules/trade.js';
 import { spend } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { settlePouch, writePouch } from './pouch.js';
+import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
@@ -42,6 +43,7 @@ export async function layRouteAt(
 
   const route: TradeRoute = { a, b, builtAt: now };
   await store.set(K.tradeRoutes, [...routes, route]);
+  await writeLogEntry(store, { at: now, kind: 'route' });
   return { ok: true, route };
 }
 

@@ -12,6 +12,7 @@ import { BULWARK_SHELTER_MS, activeSpells, castSpell } from '../rules/spell.js';
 import type { ActiveSpell, CastRefusal, SpellId } from '../rules/spell.js';
 import { readResearched } from './techStore.js';
 import { settlePouch, writePouch } from './pouch.js';
+import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
@@ -56,6 +57,7 @@ export async function castSpellAt(
 
   await writePouch(store, result.pool, now);
   await store.set(K.spells, [...running, result.spell]);
+  await writeLogEntry(store, { at: now, kind: 'spell', ref: id });
 
   // Bulwark buys decay-clock time on the spot: the hours are baked into the cell so they
   // survive the spell's own countdown ending (BRDC-SPELL-001).

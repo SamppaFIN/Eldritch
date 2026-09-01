@@ -181,6 +181,15 @@ export const MAX_SHARD_CELLS = 4_000;
  */
 export const MAX_CELL_HISTORY = 20;
 
+/**
+ * Entries kept in the action log (BRDC-LOG-001).
+ *
+ * The log is a scrollable record of what the player has done — claims, builds, losses,
+ * Wagers. Two hundred is a few weeks of play at this tempo; older entries fall off the
+ * bottom, the same bounded-list rule as `MAX_CELL_HISTORY` and `MAX_PATH_SEGMENTS`.
+ */
+export const MAX_LOG_ENTRIES = 200;
+
 /* --- Buildings (BRDC-BUILD-001) ---------------------------------------- */
 
 /**

@@ -20,6 +20,8 @@ export interface SettingsMenuProps {
   onChange: (next: Settings) => void;
   onRetreat: () => void;
   onDeleteProgress: () => void;
+  /** Opens the action log (BRDC-LOG-001). */
+  onOpenLog: () => void;
   /** Hidden while a cell or the Hearth has the top of the screen. */
   visible?: boolean;
 }
@@ -29,6 +31,7 @@ export function SettingsMenu({
   onChange,
   onRetreat,
   onDeleteProgress,
+  onOpenLog,
   visible = true,
 }: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
@@ -91,6 +94,9 @@ export function SettingsMenu({
 
           <hr className="settings-menu__rule" />
 
+          <button type="button" className="settings-menu__action" onClick={() => run(onOpenLog)}>
+            History
+          </button>
           <button
             type="button"
             className="settings-menu__action"

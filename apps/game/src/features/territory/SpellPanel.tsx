@@ -9,17 +9,11 @@ import { SPELLS, spellRemaining } from '@es3/core';
 import type { CastRefusal, SpellId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import type { SpellBinding } from './useSelection.js';
+import { SPELL_NAME as NAME } from './names.js';
 
 export const HOME_SPELLS = (Object.keys(SPELLS) as SpellId[]).filter(
   (id) => SPELLS[id].via === 'home',
 );
-
-const NAME: Readonly<Record<SpellId, string>> = {
-  insight: 'Insight',
-  bulwark: 'Bulwark',
-  snare: 'Snare',
-  dominion: 'Dominion',
-};
 
 const WHAT: Readonly<Record<SpellId, string>> = {
   insight: 'wisdom to the whole domain',

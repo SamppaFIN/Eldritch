@@ -8,6 +8,7 @@
 import { eraChanged } from '../rules/tech.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import { researchWith } from './pouch.js';
+import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell } from '../types/domain.js';
@@ -31,5 +32,6 @@ export async function researchTech(
   if (!result.ok) return result;
 
   await store.set(K.researched, result.researched);
+  await writeLogEntry(store, { at: now, kind: 'research', ref: id });
   return { ok: true, researched: result.researched, era: eraChanged(before, result.researched) };
 }

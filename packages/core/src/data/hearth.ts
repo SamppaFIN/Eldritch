@@ -6,6 +6,7 @@
  */
 import { cellAt } from '../geo/cells.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
+import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, LatLng, PlayerProfile } from '../types/domain.js';
@@ -29,5 +30,6 @@ export async function claimHearth(
 
   await store.set(K.cell(h3), cell);
   await store.set(K.home, h3);
+  await writeLogEntry(store, { at: now, kind: 'hearth' });
   return h3;
 }

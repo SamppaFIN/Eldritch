@@ -39,6 +39,7 @@ import type { Forecast } from '../data/pouch.js';
 import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
+import type { LogEntry } from '../rules/log.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -58,6 +59,9 @@ export interface GameRepository {
    * Read wholesale; the store is capped so "wholesale" stays bounded.
    */
   getWalkedPaths(): Promise<WalkedEdge[]>;
+
+  /** The action log, newest first — claims, builds, losses, Wagers (BRDC-LOG-001). */
+  getLog(limit?: number): Promise<LogEntry[]>;
 
   /**
    * Build the starting neighbourhood around a position, once.

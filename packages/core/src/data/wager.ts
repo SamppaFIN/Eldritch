@@ -16,6 +16,7 @@ import {
 import type { Challenge, ChallengeFault } from './challenge.js';
 import { applySpoils } from '../rules/spoils.js';
 import { resolveWager } from '../rules/wagerBattle.js';
+import { writeLogEntry } from './logStore.js';
 import type { WagerOutcome } from '../rules/wagerBattle.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -116,6 +117,12 @@ export async function openChallenge(
   for (const cell of spoils.cells) await store.set(K.cell(cell.h3), cell);
 
   await store.set(K.fought, [...fought, challenge.sum].slice(-200));
+  await writeLogEntry(store, {
+    at: now,
+    kind: 'wager',
+    ref: challenge.name,
+    won: outcome.winner === me.id,
+  });
 
   return {
     ok: true,
