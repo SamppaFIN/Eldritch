@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-REVEAL-001, BRDC-HEX-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in_progress` — 2026-09-01: pimeät ajat tehty; anomaliat ja tapahtumaketjut jäljellä |
+| **Valmius** | 35 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §2.3, §2.4 |
 
 ## 🔴 RED
@@ -26,13 +26,26 @@ tapahtumaketjut ja Endless Legendin talvi.
       (*"Metsässä kuuluu outoa huminaa…"*)
 - [ ] Ketjut ovat **dataa, eivät koodia** — JSON, jota voi kirjoittaa lisää ilman
       käännöstä. Sama malli kuin `docs/backlog/`in aineistolla
-- [ ] **Pimeät ajat**: jaksot, joissa tuotanto laskee ja mystiset tapahtumat yleistyvät
-- [ ] Pimeä aika on **maailmanlaajuinen ja ennustettava kalenterista** — johdettu
-      päivämäärästä, ei arvottu. Kaikki pelaajat ovat samassa talvessa, ja se on
-      ainoa tapa, jolla siitä voi puhua kaverille
-- [ ] Pelaaja **näkee talven tulevan**. Yllätysrangaistus on huono peli; ennakoitava
-      niukkuus on suunnittelua
-- [ ] Kaikki tila johdettavissa kellosta ja hashista — ei ajastimia, ei taustaprosesseja
+- [~] **Pimeät ajat**: tuotanto laskee (`DARK_TIME_FACTOR = 0.6`). *Mystisten tapahtumien
+      yleistyminen* odottaa anomalia-/ketjumekaniikkaa
+- [x] Pimeä aika on **kalenterista johdettu** — `darkTimeAt(now)`, joulukuun 21. ympärillä
+      ±7 pv, deterministinen, ei arvontaa. Sama kaikille
+- [x] Pelaaja **näkee talven tulevan** — Hearth-paneeli näyttää "The dark time comes in
+      N days" 21 pv ennen, ja aktiivisena jäljellä olevat päivät
+- [x] Ei ajastinta — `darkTimeAt` lukee kellon, `settleResources` saa `factor`-parametrin
+      (oletus 1, ei muuta olemassa olevaa)
+
+## Toteutettu 2026-09-01 (pimeät ajat)
+
+`rules/darkTime.ts` (puhdas): `darkTimeAt(now): DarkTime` — `{ active, factor, changesAt,
+inDays }`. Ikkuna on jouluseisauksen kahden viikon jakso; naapurivuosien seisaukset
+tarkistetaan myös, joten vuodenvaihde on oikein. `settleResources` 7. parametri `factor`
+kertoo tuotannon (`trickle` + `bonusPerHour` + `bonusPerDay`); `factor = 1` antaa
+bittiä myöten saman kuin ennen. `pouch.ts#settlePouch` syöttää `darkTimeAt(now).factor`.
+`HearthPanel`-rivi. Testit: `darkTime.test.ts` (7). **651 vihreää.**
+
+Ikkuna ja kerroin ovat viritettäviä — mekanismi on paikallaan, tasapaino kaipaa
+Infiniten silmää.
 
 ## Toteutus
 

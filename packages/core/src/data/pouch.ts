@@ -20,6 +20,7 @@ import type { ActiveSpell } from '../rules/spell.js';
 import { resourceAura } from '../rules/aura.js';
 import { routeGoldBonus } from '../rules/trade.js';
 import type { TradeRoute } from '../rules/trade.js';
+import { darkTimeAt } from '../rules/darkTime.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -100,6 +101,8 @@ export async function settlePouch(
     storageCap(held),
     await perHourBonus(store, owned, now),
     buildingDayBonus(owned, now),
+    // The world's winter scales everything produced, decay's cousin from the same clock.
+    darkTimeAt(now).factor,
   );
   if (settled !== stored) await store.set(KEY, settled);
   return settled;

@@ -10,7 +10,7 @@
  * known limitation). Standing on your own Hearth is a better place to be asked.
  */
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
-import { BASE_STORAGE_CAP, RESOURCE_KINDS } from '@es3/core';
+import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
 import type { Cell, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
@@ -57,6 +57,7 @@ export function HearthPanel({
   onClose,
 }: HearthPanelProps) {
   const d = dominionOf(owned, now);
+  const dark = darkTimeAt(now);
   const rate = RESOURCE_KINDS.reduce((sum, k) => sum + d.perHour[k], 0);
   const producingCount = RESOURCE_KINDS.reduce((sum, k) => sum + d.producing[k], 0);
   // BRDC-ECON-001: a full resource stops earning rather than overflowing silently, and
@@ -116,6 +117,19 @@ export function HearthPanel({
       {full ? (
         <p className="hearth-panel__line hearth-panel__line--warn">
           Storage is full — production has stalled. Spend some to make room.
+        </p>
+      ) : null}
+
+      {/* The world's winter — predictable from the calendar, so it is said before it
+          bites, not after (BRDC-EVENT-001). */}
+      {dark.active ? (
+        <p className="hearth-panel__line hearth-panel__line--warn">
+          The dark time holds. Everything you make comes slower — {dark.inDays}{' '}
+          {dark.inDays === 1 ? 'day' : 'days'} until it lifts.
+        </p>
+      ) : dark.inDays <= 21 ? (
+        <p className="hearth-panel__line">
+          The dark time comes in {dark.inDays} days. Production will slow while it lasts.
         </p>
       ) : null}
 

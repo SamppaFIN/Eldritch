@@ -241,6 +241,8 @@ export function settleResources(
   cap: number = BASE_STORAGE_CAP,
   bonusPerHour: Partial<ResourcePool> = {},
   bonusPerDay: Partial<ResourcePool> = {},
+  /** A dark-time multiplier on everything produced (BRDC-EVENT-001). 1 the rest of the year. */
+  factor = 1,
 ): ResourceState {
   const sinceDay = state.sinceDay ?? state.since;
   if (now <= state.since && now <= sinceDay) return state;
@@ -274,13 +276,14 @@ export function settleResources(
     const earned = trickle(owned, paidHourMs, now);
     const hours = paidHourMs / SETTLE_MS;
     for (const k of RESOURCE_KINDS) {
-      pool[k] = Math.min(cap, pool[k] + earned[k] + Math.floor((bonusPerHour[k] ?? 0) * hours));
+      const raw = earned[k] + (bonusPerHour[k] ?? 0) * hours;
+      pool[k] = Math.min(cap, pool[k] + Math.floor(raw * factor));
     }
   }
   if (paidDayMs > 0) {
     const days = paidDayMs / SETTLE_DAY_MS;
     for (const k of RESOURCE_KINDS) {
-      pool[k] = Math.min(cap, pool[k] + Math.floor((bonusPerDay[k] ?? 0) * days));
+      pool[k] = Math.min(cap, pool[k] + Math.floor((bonusPerDay[k] ?? 0) * days * factor));
     }
   }
 
