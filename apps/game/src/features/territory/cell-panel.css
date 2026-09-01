@@ -41,6 +41,11 @@
   font-weight: var(--weight-bold);
 }
 
+/* The terrain glyph — colour is the resource it gives, set inline (BRDC-MAP-002). */
+.cell-panel__terrain-icon {
+  font-family: var(--font-body);
+}
+
 /* Whether the terrain was read from the map or guessed (BRDC-TERRAIN-002). */
 .cell-panel__source {
   color: var(--text-dim);

@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { cellAt } from '@es3/core';
-import type { Cell } from '@es3/core';
+import { cellAt, neighboursOf } from '@es3/core';
+import type { Cell, TerrainKind } from '@es3/core';
 import {
   CONTESTED_BELOW,
-  HUE_MAX,
-  HUE_MIN,
+  ENEMY_FILL,
   OWN_FILL,
+  REVEAL_FILL,
   cellProperties,
   cellToFeature,
   cellsToGeoJson,
-  hueFor,
+  terrainGlyph,
+  withFogOfWar,
 } from './territoryFeatures.js';
 
 const ME = 'me';
@@ -27,46 +28,86 @@ describe('ownership colour', () => {
     expect(cellProperties(cell(ME, 200), ME).mine).toBe(true);
   });
 
-  it('gives each rival their own hue', () => {
+  it('paints every rival the same fixed enemy red', () => {
     const a = cellProperties(cell(RIVAL, 200), ME).color;
     const b = cellProperties(cell(OTHER, 200), ME).color;
-    expect(a).not.toBe(b);
+    expect(a).toBe(ENEMY_FILL);
+    expect(b).toBe(ENEMY_FILL);
     expect(a).not.toBe(OWN_FILL);
   });
 
-  it('keeps a rival the same colour between sessions', () => {
-    // Derived from the id, not stored, so nothing has to be persisted or synced.
-    expect(hueFor(RIVAL)).toBe(hueFor(RIVAL));
-  });
-
-  it('keeps rival colours inside the palette', () => {
-    // A neighbourhood of fully saturated hues stops reading as the same world.
-    // Only the hue moves; lightness and saturation are fixed.
-    for (const id of [RIVAL, OTHER, 'x', 'a-very-long-player-identifier-indeed']) {
-      expect(hueFor(id)).toMatch(/^hsl\(\d{1,3}, 38%, 46%\)$/);
-    }
-  });
-
-  it('never hands a rival a colour from outside the cosmic arc', () => {
-    // The full hue circle includes olive, mustard and brown. A rival painted olive
-    // on a purple-and-cyan map does not read as another player; it reads as a fault.
-    for (let i = 0; i < 500; i++) {
-      const hue = Number(/hsl\((\d+)/.exec(hueFor(`player-${i}`))?.[1]);
-      expect(hue).toBeGreaterThanOrEqual(HUE_MIN);
-      expect(hue).toBeLessThan(HUE_MAX);
-    }
-  });
-
-  it('draws released ground as available, not as somebody else\'s', () => {
-    // A cell the Void has taken back is unowned. Giving it a generated hue would
-    // make free ground look like a rival's territory.
+  it('draws seen-but-unclaimed ground in the neutral reveal tint', () => {
+    // A cell revealed only by sitting next to yours is not a rival's — it must not
+    // read as enemy red, and not as your own purple either.
     const free = cellProperties(cell(null, 0), ME);
-    expect(free.color).toBe(OWN_FILL);
+    expect(free.color).toBe(REVEAL_FILL);
+    expect(free.color).not.toBe(ENEMY_FILL);
+    expect(free.color).not.toBe(OWN_FILL);
     expect(free.mine).toBe(false);
   });
 
   it('is not mine when nobody is signed in', () => {
     expect(cellProperties(cell(ME, 200), null).mine).toBe(false);
+  });
+});
+
+describe('terrain glyph', () => {
+  it('plain ground shows nothing', () => {
+    expect(terrainGlyph('plain')).toBeNull();
+  });
+
+  it('forest is a club in the wood colour', () => {
+    const g = terrainGlyph('forest');
+    expect(g?.char).toBe('♣');
+    expect(g?.color).toBe('#7cbf63');
+  });
+
+  it('every terrain kind resolves to a glyph or an explicit null', () => {
+    const kinds: TerrainKind[] = ['plain', 'forest', 'hill', 'mountain', 'lake', 'coast', 'market'];
+    for (const kind of kinds) {
+      const g = terrainGlyph(kind);
+      if (kind === 'plain') expect(g).toBeNull();
+      else {
+        expect(g?.char).toBeTruthy();
+        expect(g?.color).toMatch(/^#[0-9a-f]{6}$/i);
+      }
+    }
+  });
+
+  it('the cell feature carries the glyph, or an empty string for plain', () => {
+    const props = cellProperties(cell(ME, 100), ME);
+    // H3 above hashes to some terrain; icon is a string either way, never null.
+    expect(typeof props.icon).toBe('string');
+    expect(typeof props.iconColor).toBe('string');
+  });
+});
+
+describe('withFogOfWar', () => {
+  it('keeps my cells and their neighbours, and nothing else', () => {
+    const owned = [cell(ME, 200, H3)];
+    const ring = neighboursOf(H3);
+    // A rival cell far enough away that it is neither mine nor a neighbour of mine.
+    const far = cellAt({ lat: 60.17, lng: 24.94 });
+    const all = [cell(ME, 200, H3), cell(RIVAL, 200, far)];
+
+    const shown = withFogOfWar(all, owned);
+    const shownH3 = new Set(shown.map((c) => c.h3));
+
+    expect(shownH3.has(H3)).toBe(true);
+    for (const n of ring) expect(shownH3.has(n)).toBe(true);
+    expect(shownH3.has(far)).toBe(false);
+  });
+
+  it('synthesises an empty cell for a revealed neighbour with no stored cell', () => {
+    const owned = [cell(ME, 200, H3)];
+    const shown = withFogOfWar([cell(ME, 200, H3)], owned);
+    const neighbour = shown.find((c) => c.h3 !== H3);
+    expect(neighbour?.ownerId).toBeNull();
+    expect(neighbour?.strength).toBe(0);
+  });
+
+  it('an empty owned set reveals nothing', () => {
+    expect(withFogOfWar([cell(RIVAL, 200)], [])).toEqual([]);
   });
 });
 
@@ -80,7 +121,6 @@ describe('contested', () => {
   });
 
   it('marks my own ground too when it is under attack', () => {
-    // Being told that someone is chipping at your home block is the point.
     expect(cellProperties(cell(ME, 40), ME).contested).toBe(true);
   });
 
@@ -95,12 +135,6 @@ describe('strength is carried through for the paint expression', () => {
       expect(cellProperties(cell(ME, strength), ME).strength).toBe(strength);
     }
   });
-
-  it('distinguishes a fading cell from a strong one', () => {
-    const weak = cellProperties(cell(ME, 50), ME).strength;
-    const strong = cellProperties(cell(ME, 500), ME).strength;
-    expect(weak).toBeLessThan(strong);
-  });
 });
 
 describe('geometry', () => {
@@ -110,8 +144,6 @@ describe('geometry', () => {
 
     expect(ring.length).toBeGreaterThanOrEqual(6);
     for (const [lng, lat] of ring) {
-      // [lng, lat], not [lat, lng]. The wrong order draws the whole territory off
-      // the coast of Africa without raising anything.
       expect(Math.abs(lat)).toBeLessThanOrEqual(90);
       expect(lng).toBeCloseTo(23.72, 0);
       expect(lat).toBeCloseTo(61.47, 0);

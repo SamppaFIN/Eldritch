@@ -6,13 +6,27 @@
  * and decisions deserve tests. What is left in TerritoryLayer is MapLibre plumbing.
  */
 import type { Feature, FeatureCollection, Polygon } from 'geojson';
-import { resourceOf } from '@es3/core';
+import { emptyCell, neighboursOf, terrainOf, TERRAIN_TABLE } from '@es3/core';
 import { cellBoundary } from '@es3/core';
-import type { Cell, PlayerId } from '@es3/core';
+import type { Cell, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
 
 /** --cosmic-purple and a lifted version of it, inlined from tokens.css. */
 export const OWN_FILL = '#4a1a5c';
 export const OWN_STROKE = '#8b3fb8';
+/**
+ * Any rival's ground, one fixed colour. A dark red, the same relation to `--danger`
+ * (`oklch(0.65 0.21 25)`) that `OWN_FILL` is to `--cosmic-purple`. A hue arc per rival
+ * was tried (BRDC-CLAIM-006) and dropped once real rival ground rendered: one "this is
+ * hostile" signal reads faster than a rainbow nobody can tell apart outdoors.
+ */
+export const ENEMY_FILL = '#5c1a1a';
+export const ENEMY_STROKE = '#a13b3b';
+/**
+ * Seen but not held — a cell revealed only by being next to yours. A neutral pale tone
+ * (from `--glass-border`, `oklch(1 0 0 / 0.1)`), never `OWN_FILL`, so "explored,
+ * unclaimed" stops looking identical to your own territory at low strength.
+ */
+export const REVEAL_FILL = '#cdc7d6';
 /** --danger. The dashed stroke on a cell someone is walking on. */
 export const CONTESTED_STROKE = '#d94a4a';
 
@@ -29,59 +43,83 @@ export interface CellProperties {
   mine: boolean;
   contested: boolean;
   color: string;
-  /** The colour of what this ground yields, or null where it yields nothing. */
-  yield: string | null;
+  /** Terrain glyph, or `''` where the ground shows nothing (plain). */
+  icon: string;
+  /** The glyph's colour — the resource the terrain gives. `''` alongside an empty icon. */
+  iconColor: string;
 }
 
 /**
- * One colour per resource, and none for plain ground.
- *
- * Terrain deliberately does not repaint the hexagons: ownership owns the fill, and a map
- * where colour means two things at once means neither. It is a pip in the middle of a
- * cell you hold — enough to see that this one is a lake, not enough to argue with the
- * territory palette.
+ * One colour per resource the ground can give. Drives both the map's terrain glyph and
+ * the same glyph in `CellPanel`, so a lake reads the same colour in both places.
  */
-export const YIELD_COLOUR: Readonly<Record<string, string>> = {
-  water: '#4fc3dc',
+export const RESOURCE_COLOUR: Readonly<Record<ResourceKind, string>> = {
   wood: '#7cbf63',
+  stone: '#b8b0a0',
+  iron: '#9aa7b3',
+  food: '#6fcf8f',
   gold: '#e0b04a',
+  wisdom: '#b98fd6',
+  mana: '#00d4ff',
+  culture: '#e08fb0',
+  tokens: '#ffd700',
+};
+
+/** One glyph per terrain kind, from the same register as the HUD's `⬢ ⬡ ◈ ◇`. */
+const TERRAIN_CHAR: Readonly<Record<TerrainKind, string>> = {
+  plain: '',
+  forest: '♣',
+  hill: '△',
+  mountain: '▲',
+  lake: '≈',
+  coast: '≈',
+  market: '◆',
 };
 
 /**
- * The arc of hue a rival can be given: cyan through blue and purple to magenta.
- *
- * Fixing lightness and saturation was not enough. The full circle includes olive,
- * mustard and brown, and a rival painted olive on a purple-and-cyan map does not look
- * like another player — it looks like a rendering fault. Restricting the arc keeps
- * every rival unmistakably part of the same world while staying easy to tell apart
- * from the player's own --cosmic-purple.
+ * The glyph and colour for a terrain kind, or `null` when there is nothing to show
+ * (plain ground). Exported for `CellPanel`, which draws the same mark beside its
+ * terrain description.
  */
-export const HUE_MIN = 185;
-export const HUE_MAX = 335;
+export function terrainGlyph(kind: TerrainKind): { char: string; color: string } | null {
+  const char = TERRAIN_CHAR[kind];
+  if (!char) return null;
+  const resource = TERRAIN_TABLE[kind].resource;
+  return { char, color: resource ? RESOURCE_COLOUR[resource] : OWN_STROKE };
+}
 
 /**
- * A stable hue per rival, inside the palette's arc.
+ * Fog of war: the only cells the map draws are the ones you hold and the ring of cells
+ * around them. Everything else is left as bare basemap.
  *
- * Deterministic from the id, so a rival keeps their colour between sessions without
- * anything being stored or synced.
+ * A neighbour with no stored cell of its own still appears — as `emptyCell(h3)` — so it
+ * can carry the pale reveal tint and its terrain glyph. The full set stays available to
+ * the rest of the game (selection, the rival compass); only what reaches the map is
+ * narrowed here.
  */
-export function hueFor(id: PlayerId): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  return `hsl(${HUE_MIN + (hash % (HUE_MAX - HUE_MIN))}, 38%, 46%)`;
+export function withFogOfWar(all: readonly Cell[], owned: readonly Cell[]): Cell[] {
+  const byH3 = new Map(all.map((c) => [c.h3, c]));
+  const visible = new Set<string>();
+  for (const cell of owned) {
+    visible.add(cell.h3);
+    for (const n of neighboursOf(cell.h3)) visible.add(n);
+  }
+  return [...visible].map((h3) => byH3.get(h3) ?? emptyCell(h3));
 }
 
 export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
+  const rival = cell.ownerId !== null && !mine;
+  const glyph = terrainGlyph(terrainOf(cell.h3).kind);
   return {
     strength: cell.strength,
     mine,
     contested: cell.ownerId !== null && cell.strength < CONTESTED_BELOW,
-    // Unowned ground is drawn in the player's own colour at low strength, so a cell
-    // released by the Void reads as available rather than as somebody else's.
-    color: mine || cell.ownerId === null ? OWN_FILL : hueFor(cell.ownerId),
-    // Only on ground the player holds: what a rival's land produces is their business.
-    yield: mine ? (YIELD_COLOUR[resourceOf(cell.h3) ?? ''] ?? null) : null,
+    // Three tiers: mine, a rival's, or seen-but-unclaimed. Strength drives opacity in
+    // the paint expression, so a fresh reveal (strength 0) is naturally faint.
+    color: mine ? OWN_FILL : rival ? ENEMY_FILL : REVEAL_FILL,
+    icon: glyph?.char ?? '',
+    iconColor: glyph?.color ?? '',
   };
 }
 

@@ -30,6 +30,7 @@ import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
+import { withFogOfWar } from '../features/territory/territoryFeatures.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
@@ -207,6 +208,9 @@ export function MapView({ onLeave }: MapViewProps) {
     return cells.length > 0 ? { cells, at: claim.at } : null;
   }, [territory.lastClaim]);
 
+  // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring; the rest of
+  // the game still sees the whole viewport (selection, the rival compass).
+  const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
 
   const onCellTerrain = useCallback(
@@ -276,7 +280,7 @@ export function MapView({ onLeave }: MapViewProps) {
         walkedPaths={trail.walkedPaths}
         auraCells={inspect.auraCells}
         tradeRoutes={inspect.trade.routes}
-        cells={territory.cells}
+        cells={shownCells}
         playerId={profile?.id ?? null}
         places={places}
         castle={castle}

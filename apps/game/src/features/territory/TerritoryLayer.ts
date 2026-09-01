@@ -19,7 +19,7 @@ export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
-export const CELL_YIELD_LAYER = 'cells-yield';
+export const CELL_ICON_LAYER = 'cells-icon';
 
 /**
  * Below this, individual res-11 cells are smaller than a finger and stop being
@@ -99,25 +99,33 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
-   * What this ground yields.
+   * What this ground is made of.
    *
-   * A pip, not a repaint. Ownership owns the fill of a hexagon; if terrain took it over
-   * too, one colour would be answering two questions and a player could read neither.
-   * It appears at the zoom where individual cells are already legible — below that a
-   * city block is a smudge and a dot per cell is dirt on the screen.
+   * A glyph, not a repaint. Ownership owns the fill of a hexagon; if terrain took it
+   * over too, one colour would be answering two questions and a player could read
+   * neither. The mark carries its meaning in shape and colour both — a plain circle
+   * would leave the meaning in colour alone, which the accessibility rules forbid.
+   * Shown on every visible cell (yours and the revealed ring), so "what is on the
+   * next hex over" is answered without walking there. Nothing for plain ground.
    */
   map.addLayer({
-    id: CELL_YIELD_LAYER,
-    type: 'circle',
+    id: CELL_ICON_LAYER,
+    type: 'symbol',
     source: CELL_SOURCE,
-    minzoom: CELL_DETAIL_MINZOOM + 2,
-    filter: ['all', ['get', 'mine'], ['has', 'yield'], ['!=', ['get', 'yield'], null]],
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['!=', ['get', 'icon'], ''],
+    layout: {
+      'text-field': ['get', 'icon'],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 13, 9, 17, 14, 19, 18],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
     paint: {
-      'circle-color': ['get', 'yield'],
-      'circle-opacity': 0.85,
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 2, 17, 3.5, 19, 5],
-      'circle-stroke-color': '#0a0612',
-      'circle-stroke-width': 1,
+      'text-color': ['get', 'iconColor'],
+      'text-halo-color': '#0a0612',
+      'text-halo-width': 1.5,
+      'text-opacity': 0.9,
     },
   });
 }
@@ -134,7 +142,7 @@ export function setTerritoryData(
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
-  for (const id of [CELL_YIELD_LAYER, CELL_CONTESTED_LAYER, CELL_LINE_LAYER, CELL_FILL_LAYER]) {
+  for (const id of [CELL_ICON_LAYER, CELL_CONTESTED_LAYER, CELL_LINE_LAYER, CELL_FILL_LAYER]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);

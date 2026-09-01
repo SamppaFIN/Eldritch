@@ -391,8 +391,14 @@ Fonts, self-hosted via @fontsource: **Cinzel** (headings), **Orbitron** (numbers
 Themes: **Cosmic only for now.** Void and Mystic are in `docs/backlog/themes.md`. Structure the
 tokens so adding a theme is one `[data-theme]` block, but do not build the other two yet.
 
-Own territory renders `--cosmic-purple` at 0.35 fill / 0.9 stroke. Other players get
-generated hues desaturated toward the palette. Contested cells pulse.
+Own territory renders `--cosmic-purple` at 0.35 fill / 0.9 stroke. **Amended
+2026-09-01 (BRDC-MAP-002):** every rival's ground renders one fixed pale dark red
+(`--danger`), not a generated hue per player — a hue arc was tried in BRDC-CLAIM-006
+and dropped the first time real rival ground rendered, because "this is hostile" reads
+faster than a rainbow of rivals nobody can tell apart on a phone screen outdoors.
+Ground seen only because it borders yours gets a neutral pale tint, never the enemy
+red. Contested cells pulse. **Fog of war:** the map draws only owned cells and their
+one-ring neighbours; everything else is bare basemap until you walk near it.
 
 Map basemap must be dark and tinted toward `--void-black`. It should never look like plain
 OpenStreetMap — v2's raster OSM tiles were the weakest part of its presentation.

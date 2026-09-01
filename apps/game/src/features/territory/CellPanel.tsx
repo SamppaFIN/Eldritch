@@ -33,6 +33,7 @@ import { BuildPanel } from './BuildPanel.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TradeControls } from './TradeControls.js';
 import type { BuildBinding, PlaceBinding, SpellBinding, TradeBinding } from './useSelection.js';
+import { terrainGlyph } from './territoryFeatures.js';
 import './cell-panel.css';
 
 type ExpandFail = NonNullable<PlaceBinding['refusal']>;
@@ -189,6 +190,7 @@ export function CellPanel({
   if (!cell) return null;
 
   const terrain = terrainForCell(cell);
+  const glyph = terrainGlyph(terrain.kind);
   const resource = resourceForCell(cell);
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const history = historyLine(cell, me, now);
@@ -208,6 +210,15 @@ export function CellPanel({
       <div className="cell-panel__head">
         <div>
           <p className="cell-panel__ground">
+            {glyph ? (
+              <span
+                className="cell-panel__terrain-icon"
+                style={{ color: glyph.color }}
+                aria-hidden
+              >
+                {glyph.char}{' '}
+              </span>
+            ) : null}
             {GROUND[terrain.kind]}
             <span className="cell-panel__source">
               {' '}
