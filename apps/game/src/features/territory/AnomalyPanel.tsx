@@ -11,7 +11,7 @@ import { RitualButton } from '@es3/ui';
 import type { AnomalyBinding } from './useAnomaly.js';
 
 const REFUSAL: Readonly<Record<string, string>> = {
-  'cannot-afford': `Not enough wisdom — an investigation costs ${ANOMALY_INVESTIGATE_COST.wisdom}. A Library beside a temple earns it.`,
+  'cannot-afford': `Not enough food — an investigation costs ${ANOMALY_INVESTIGATE_COST.food}. Any lake or shore gives it.`,
   'not-ready': 'The study is not finished yet.',
   'not-yours': 'This ground is not yours.',
   'nothing-here': 'There is nothing more to find here.',
@@ -38,7 +38,7 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
             onClick={anomaly.onInvestigate}
             disabled={!affordable}
           >
-            Investigate · {ANOMALY_INVESTIGATE_COST.wisdom} wisdom
+            Investigate · {ANOMALY_INVESTIGATE_COST.food} food
           </RitualButton>
         </>
       ) : null}

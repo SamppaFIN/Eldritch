@@ -37,7 +37,7 @@ let store: MemoryStore;
 beforeEach(async () => {
   store = new MemoryStore();
   await store.set(SCHEMA_KEY, SCHEMA_VERSION);
-  await store.set('resources', { pool: { ...EMPTY_POOL, wisdom: 100 }, since: T0, sinceDay: T0 });
+  await store.set('resources', { pool: { ...EMPTY_POOL, food: 100 }, since: T0, sinceDay: T0 });
   repo = new MockRepository({ store, newId: () => 'me', seed: 7 });
 });
 
@@ -51,20 +51,20 @@ describe('the anomaly flow', () => {
     expect(a).toMatchObject({ h3: REWARD, state: 'dormant' });
   });
 
-  it('investigating spends wisdom and starts the clock; the reward waits for the resolve', async () => {
+  it('investigating spends food and starts the clock; the reward waits for the resolve', async () => {
     await own(REWARD);
     expect((await repo.investigateAnomaly(REWARD, T0)).ok).toBe(true);
-    expect((await repo.getResources(T0)).wisdom).toBe(80);
+    expect((await repo.getResources(T0)).food).toBe(80);
     expect((await repo.getAnomalies(T0)).find((x) => x.h3 === REWARD)?.state).toBe('investigating');
 
     // Halfway: still nothing.
-    expect((await repo.getResources(T0 + ANOMALY_INVESTIGATE_MS / 2)).wisdom).toBe(80);
+    expect((await repo.getResources(T0 + ANOMALY_INVESTIGATE_MS / 2)).food).toBe(80);
 
-    const before = (await repo.getResources(DONE)).wisdom;
+    const before = (await repo.getResources(DONE)).food;
     const r = await repo.resolveAnomaly(REWARD, DONE);
     expect(r.ok && r.reward).not.toBeNull();
-    const after = (await repo.getResources(DONE)).wisdom;
-    // The reward may or may not be wisdom, but the pouch grew by something.
+    const after = (await repo.getResources(DONE)).food;
+    // The reward may or may not be food, but the pouch grew by something.
     expect(after).toBeGreaterThanOrEqual(before);
 
     // Spent — a second resolve is refused, and it drops off the list.

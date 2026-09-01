@@ -42,7 +42,7 @@ const cell = (h3: string, over: Partial<Cell> = {}): Cell => ({
   visitDays: [],
   ...over,
 });
-const rich = (): ResourcePool => ({ ...EMPTY_POOL, wisdom: 100 });
+const rich = (): ResourcePool => ({ ...EMPTY_POOL, food: 100 });
 
 describe('anomalyAt', () => {
   it('only fires on a rare cell', () => {
@@ -85,8 +85,8 @@ describe('beginInvestigation', () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.cell.anomaly).toEqual({ startedAt: 5_000 });
-    expect(r.pool.wisdom).toBe(100 - (ANOMALY_INVESTIGATE_COST.wisdom ?? 0));
-    expect(pool.wisdom).toBe(100); // untouched
+    expect(r.pool.food).toBe(100 - (ANOMALY_INVESTIGATE_COST.food ?? 0));
+    expect(pool.food).toBe(100); // untouched
   });
 
   it('refuses each way by name', () => {

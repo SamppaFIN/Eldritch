@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.3.1",
+    "date": "2026-09-01",
+    "notes": [
+      "Investigating an anomaly now costs food, not wisdom — you can do it from a fresh map, before you have a temple."
+    ]
+  },
+  {
     "version": "0.3.0",
     "date": "2026-09-01",
     "notes": [

@@ -18,8 +18,15 @@ import { canAfford, spend } from './terrain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 import type { Cell } from '../types/domain.js';
 
-/** Study costs wisdom — the resource for looking closely at something. */
-export const ANOMALY_INVESTIGATE_COST: Readonly<Partial<ResourcePool>> = { wisdom: 20 };
+/**
+ * Studying an anomaly costs supplies — you camp on the strange ground and wait it out.
+ *
+ * `food`, not `wisdom`, on purpose: wisdom comes only from a Library (which needs a
+ * temple) or the Insight spell (which needs mana, which needs a temple), so a cost in
+ * wisdom would lock anomalies behind mid-game. Food comes from any lake or shore, which
+ * is walking. Wisdom is what an anomaly *gives*, not what it takes.
+ */
+export const ANOMALY_INVESTIGATE_COST: Readonly<Partial<ResourcePool>> = { food: 20 };
 /** How long an investigation runs before it resolves. Read at `now`, never timed. */
 export const ANOMALY_INVESTIGATE_MS = 3 * 3_600_000;
 
