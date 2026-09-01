@@ -19,6 +19,7 @@ export type HelpTopic =
   | 'rite'
   | 'warding'
   | 'mana'
+  | 'anomaly'
   | 'the-wager'
   | 'hearth';
 
@@ -91,6 +92,13 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     body: [
       'Mana comes from the places the game has named — your Anchor Stone, and Temples revealed by dwelling long enough in one cell. It is the fuel spells will spend.',
       'A Temple\'s output can be raised a step at a time with stone and gold. A place stops producing if the cell it sits in goes unvisited too long, the same clock as decay.',
+    ],
+  },
+  anomaly: {
+    title: 'Anomalies',
+    body: [
+      'Now and then a cell holds something wrong — strange ground you can study. Investigating costs wisdom and takes a few hours, and what it gives you is hidden until it is done.',
+      'Some anomalies simply pay out. Others open an event: a short story with choices, and the choices have consequences. Where an anomaly is, and what it turns out to be, is fixed to the ground — the same on every phone, and a reload will not re-roll it.',
     ],
   },
   'the-wager': {

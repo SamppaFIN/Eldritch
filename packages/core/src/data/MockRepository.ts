@@ -72,7 +72,8 @@ import type { WorldImportResult } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { assignCastle } from './castle.js';
-
+import { chooseAt, describeAnomalies, investigateAt, resolveAt, type Anomaly, type ChoiceOutcome, type InvestigateOutcome, type ResolveOutcome } from './anomalyStore.js';
+import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
 
 export interface MockRepositoryOptions {
   store?: KeyValueStore;
@@ -126,36 +127,16 @@ export class MockRepository implements GameRepository {
     return updated;
   }
 
-  /* --- Runs ------------------------------------------------------------- */
+  /* --- Runs — CRUD in `runStore.js`, one run at a time ---------------- */
 
   async startRun(now: number): Promise<RunId> {
-    // One run at a time. An abandoned run left open would keep collecting points
-    // and eventually close a loop the player never walked in one outing.
-    const open = await this.getActiveRun();
-    if (open) await this.endRun(open.id);
-
-    const run: Run = {
-      id: this.newId(),
-      startedAt: now,
-      status: 'active',
-      pointCount: 0,
-      distanceM: 0,
-    };
-    await this.store.set(K.run(run.id), run);
-    await this.store.set(K.activeRun, run.id);
-    await this.store.set(K.trail(run.id), [] as TrailPoint[]);
-    return run.id;
+    return beginRun(this.store, this.newId(), now);
   }
-
   async getActiveRun(): Promise<Run | null> {
-    const id = await this.store.get<RunId>(K.activeRun);
-    if (!id) return null;
-    const run = await this.store.get<Run>(K.run(id));
-    return run && run.status === 'active' ? run : null;
+    return activeRunOf(this.store);
   }
-
   async getTrailPoints(runId: RunId): Promise<TrailPoint[]> {
-    return (await this.store.get<TrailPoint[]>(K.trail(runId))) ?? [];
+    return trailPointsOf(this.store, runId);
   }
 
   async getWalkedPaths(): Promise<WalkedEdge[]> {
@@ -172,11 +153,7 @@ export class MockRepository implements GameRepository {
   }
 
   async endRun(runId: RunId): Promise<void> {
-    const run = await this.store.get<Run>(K.run(runId));
-    if (run) await this.store.set(K.run(runId), { ...run, status: 'closed' });
-    if ((await this.store.get<RunId>(K.activeRun)) === runId) {
-      await this.store.delete(K.activeRun);
-    }
+    return closeRun(this.store, runId);
   }
 
   async seedAround(position: LatLng, now: number): Promise<void> {
@@ -303,6 +280,29 @@ export class MockRepository implements GameRepository {
 
   async expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome> {
     return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
+  }
+
+  /* --- Anomalies (BRDC-EVENT-001) ------------------------------------- */
+
+  async getAnomalies(now: number): Promise<Anomaly[]> {
+    return describeAnomalies(await this.getOwnedCells(now), now);
+  }
+
+  async investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome> {
+    return investigateAt(this.store, h3, (await this.getProfile()).id, await this.getOwnedCells(now), now);
+  }
+
+  async resolveAnomaly(h3: H3Index, now: number): Promise<ResolveOutcome> {
+    const r = await resolveAt(this.store, h3, (await this.getProfile()).id, await this.getOwnedCells(now), now);
+    if (r.ok && r.xp) await this.addXp(r.xp);
+    return r;
+  }
+
+  async chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome> {
+    const me = (await this.getProfile()).id;
+    const r = await chooseAt(this.store, h3, me, await this.getOwnedCells(now), choiceIndex, now);
+    if (r.ok && r.xp) await this.addXp(r.xp);
+    return r;
   }
 
   /* --- Territory -------------------------------------------------------- */

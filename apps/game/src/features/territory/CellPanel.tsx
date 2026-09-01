@@ -32,6 +32,8 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TradeControls } from './TradeControls.js';
+import { AnomalyPanel } from './AnomalyPanel.js';
+import type { AnomalyBinding } from './useAnomaly.js';
 import type { BuildBinding, PlaceBinding, SpellBinding, TradeBinding } from './useSelection.js';
 import { terrainGlyph } from './territoryFeatures.js';
 import './cell-panel.css';
@@ -54,8 +56,9 @@ export interface CellPanelProps {
   spell?: SpellBinding;
   /** The trade-route controls' bundle (BRDC-BUILD-004), from `useSelection`. */
   trade?: TradeBinding;
-  /** The build sub-panel's bundle (BRDC-BUILD-001), from `useSelection`. */
+  /** The build sub-panel's bundle (BRDC-BUILD-001), and the anomaly on this cell (BRDC-EVENT-001). */
   build?: BuildBinding;
+  anomaly?: AnomalyBinding;
   onClose: () => void;
 }
 
@@ -175,6 +178,7 @@ export function CellPanel({
   spell,
   trade,
   build,
+  anomaly,
   onClose,
 }: CellPanelProps) {
   /*
@@ -380,11 +384,10 @@ export function CellPanel({
         </>
       ) : null}
 
-      {spell ? (
-        <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} />
-      ) : null}
+      {spell ? <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} /> : null}
 
       {trade && mine ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
+      {anomaly?.current && mine ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
 
       {refusal ? (
         <p className="cell-panel__refusal" role="status">

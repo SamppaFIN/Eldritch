@@ -20,6 +20,7 @@ const TOPIC: Partial<Record<LogKind, HelpTopic>> = {
   spell: 'rite',
   ward: 'warding',
   expand: 'mana',
+  anomaly: 'anomaly',
   wager: 'the-wager',
   hearth: 'hearth',
 };
@@ -54,6 +55,18 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
       return { text: 'Laid a Trade Route', topic };
     case 'expand':
       return { text: `Expanded a Temple${e.count ? ` to rank ${e.count}` : ''}`, topic };
+    case 'anomaly':
+      return {
+        text:
+          e.ref === 'begin'
+            ? 'Began investigating an anomaly'
+            : e.ref === 'resolve'
+              ? 'An anomaly gave up what it held'
+              : e.ref === 'choice'
+                ? 'Made a choice at an anomaly'
+                : 'Dealt with an anomaly',
+        topic,
+      };
     case 'wager':
       return { text: `Fought the Wager against ${e.ref ?? 'a rival'} — ${e.won ? 'won' : 'lost'}`, topic };
     case 'hearth':

@@ -10,6 +10,12 @@ export { cellsToLoad, planClaim } from './claiming.js';
 export type { ClaimPlan } from './claiming.js';
 export { forecastRates } from './pouch.js';
 export type { Forecast } from './pouch.js';
+export type {
+  Anomaly,
+  ChoiceOutcome,
+  InvestigateOutcome,
+  ResolveOutcome,
+} from './anomalyStore.js';
 export {
   MAX_CHALLENGE_CELLS,
   buildChallenge,

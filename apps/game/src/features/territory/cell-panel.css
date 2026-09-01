@@ -248,6 +248,41 @@
   color: var(--warning);
 }
 
+/* --- Anomaly (BRDC-EVENT-001) --------------------------------------- */
+
+.cell-panel__anomaly {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+}
+
+.cell-panel__anomaly-text {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.cell-panel__anomaly-text--story {
+  color: var(--text);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.cell-panel__anomaly-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cell-panel__anomaly-refusal {
+  margin: 0;
+  color: var(--warning);
+  font-size: var(--text-sm);
+}
+
 @keyframes es-panel-in {
   from {
     opacity: 0;

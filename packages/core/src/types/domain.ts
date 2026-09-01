@@ -150,6 +150,13 @@ export interface Cell {
    * countdown ends. Additive, no migration.
    */
   shelteredMs?: number;
+  /**
+   * An anomaly the player is dealing with on this cell (BRDC-EVENT-001). Absent until
+   * they start investigating. `startedAt` drives the progress clock; `stage` is the
+   * event chain's position once one has opened; `done` marks it finished. Additive, no
+   * migration.
+   */
+  anomaly?: { startedAt: number; stage?: number; done?: true };
 }
 
 export interface PlayerProfile {

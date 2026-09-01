@@ -40,6 +40,12 @@ import type { ImportResult } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { LogEntry } from '../rules/log.js';
+import type {
+  Anomaly,
+  ChoiceOutcome,
+  InvestigateOutcome,
+  ResolveOutcome,
+} from '../data/anomalyStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -227,6 +233,16 @@ export interface GameRepository {
    * nothing is written: the spend and the level change happen together or not at all.
    */
   expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome>;
+
+  /* --- Anomalies (BRDC-EVENT-001) ------------------------------------- */
+  /** Anomalies on ground the player holds, with their state, for the map and the panel. */
+  getAnomalies(now: number): Promise<Anomaly[]>;
+  /** Begin studying an anomaly, paying wisdom. Refusals are named values. */
+  investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome>;
+  /** Collect a finished investigation — a hidden reward, or the first stage of a chain. */
+  resolveAnomaly(h3: H3Index, now: number): Promise<ResolveOutcome>;
+  /** Take a choice in an anomaly's event chain; it applies the effect and moves on. */
+  chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome>;
 
   /* --- Maintenance ------------------------------------------------------ */
   runDecay(now: number): Promise<DecayResult>;

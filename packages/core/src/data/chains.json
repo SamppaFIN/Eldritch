@@ -1,0 +1,59 @@
+{
+  "the-hum": {
+    "stages": [
+      {
+        "text": "The ground here hums a low note that is almost a word.",
+        "choices": [
+          { "text": "Kneel and listen closer", "effect": { "pool": { "wisdom": 10 } }, "next": 1 },
+          { "text": "Cover your ears and dig", "effect": { "pool": { "stone": 20 } }, "next": 2 },
+          { "text": "Walk away from it", "next": "end" }
+        ]
+      },
+      {
+        "text": "The note resolves into a name. You have never heard it, and you know it is yours.",
+        "choices": [
+          {
+            "text": "Say it back to the ground",
+            "effect": { "pool": { "wisdom": 25, "food": -10 }, "xp": 20 },
+            "next": "end"
+          },
+          { "text": "Keep your mouth shut", "effect": { "xp": 5 }, "next": "end" }
+        ]
+      },
+      {
+        "text": "A hand's depth down: a smooth black stone, warm, humming against your palm.",
+        "choices": [
+          { "text": "Take it", "effect": { "pool": { "gold": 25 }, "xp": 15 }, "next": "end" },
+          { "text": "Bury it deeper", "effect": { "pool": { "wisdom": 15 }, "xp": 10 }, "next": "end" }
+        ]
+      }
+    ]
+  },
+  "the-door": {
+    "stages": [
+      {
+        "text": "A door stands upright in the open ground, framed in old wood, with no house behind it.",
+        "choices": [
+          { "text": "Try the handle", "effect": { "pool": { "food": -10 } }, "next": 1 },
+          {
+            "text": "Nail it shut with what you carry",
+            "effect": { "pool": { "wood": -15 }, "xp": 15 },
+            "next": "end"
+          },
+          { "text": "Leave it standing", "next": "end" }
+        ]
+      },
+      {
+        "text": "It opens onto the same field, seen from a little higher up than you are standing.",
+        "choices": [
+          {
+            "text": "Step through",
+            "effect": { "pool": { "wisdom": 15, "gold": 20, "food": -10 }, "xp": 25 },
+            "next": "end"
+          },
+          { "text": "Step back and close it", "effect": { "xp": 10 }, "next": "end" }
+        ]
+      }
+    ]
+  }
+}

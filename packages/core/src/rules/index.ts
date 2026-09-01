@@ -40,6 +40,18 @@ export { RARITY_SHARE, revealOf } from './reveal.js';
 export type { Rarity } from './reveal.js';
 export { DARK_RADIUS_DAYS, DARK_TIME_FACTOR, darkTimeAt } from './darkTime.js';
 export type { DarkTime } from './darkTime.js';
+export {
+  ANOMALY_INVESTIGATE_COST,
+  ANOMALY_INVESTIGATE_MS,
+  anomalyAt,
+  beginInvestigation,
+  investigationProgress,
+  isResolved,
+  resolveReward,
+} from './anomaly.js';
+export type { AnomalyKind, InvestigateRefusal } from './anomaly.js';
+export { applyChoice, parseChains } from './chain.js';
+export type { Chain, ChainChoice, ChainEffect, ChainStage, ChoiceRefusal } from './chain.js';
 export { timeToAfford } from './afford.js';
 export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';

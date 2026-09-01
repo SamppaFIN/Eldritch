@@ -24,6 +24,7 @@ export type LogKind =
   | 'ward'
   | 'route'
   | 'expand'
+  | 'anomaly'
   | 'wager'
   | 'hearth';
 

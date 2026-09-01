@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-REVEAL-001, BRDC-HEX-001 |
-| **Status** | `in_progress` — 2026-09-01: pimeät ajat tehty; anomaliat ja tapahtumaketjut jäljellä |
-| **Valmius** | 35 % |
+| **Status** | `in_progress` — 2026-09-01: pimeät ajat + anomaliat + tapahtumaketjut tehty; karttamarkkeri jäljellä |
+| **Valmius** | 85 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §2.3, §2.4 |
 
 ## 🔴 RED
@@ -20,12 +20,19 @@ tapahtumaketjut ja Endless Legendin talvi.
 
 ## 🟢 GREEN
 
-- [ ] **Anomaliat**: solu, jolla on jotain outoa. Tutkiminen maksaa ja kestää,
-      ja palkinto on tiedossa vasta jälkeenpäin
-- [ ] **Tapahtumaketjut**: monivaiheisia, valinnoilla, joilla on seuraus
-      (*"Metsässä kuuluu outoa huminaa…"*)
-- [ ] Ketjut ovat **dataa, eivät koodia** — JSON, jota voi kirjoittaa lisää ilman
-      käännöstä. Sama malli kuin `docs/backlog/`in aineistolla
+- [x] **Anomaliat**: `rare`-solu on anomaliapaikka (`revealOf`, oli käyttämättä).
+      Tutkiminen maksaa 20 wisdomia ja kestää 3 h (`now`-luettu, ei ajastinta), palkinto
+      paljastuu vasta `isResolved`-hetkellä. `rules/anomaly.ts` — puhdas, 7 testiä
+- [x] **Tapahtumaketjut**: `rules/chain.ts` tilakone, tila `cell.anomaly.stage`:ssa.
+      `applyChoice` soveltaa effektin (resurssit +/-, XP) ja palauttaa `next | 'end'`
+- [x] Ketjut ovat **dataa**: `data/chains.json` (2 esimerkkiä — "the hum", "the door"),
+      `parseChains` validoi kerran latauksessa. Lisää = tiedostoon, ei käännöstä
+- [x] `describeAnomalies` → `getAnomalies` kartalle/paneeliin; `anomalyStore.ts` sauma
+      (investigate / resolve / choose), kirjaa `LogKind: 'anomaly'`
+- [x] UI: `AnomalyPanel` (CellPanelin alipaneeli, 4 tilaa), `useAnomaly`-hook, tietokirjan
+      aihe `anomaly` (WIKI-001 slice 3)
+- [~] Karttamarkkeri anomaliasolulle — siirretty: `AnomalyLayer` vaatii `MapCanvas`-
+      laajennuksen (400 r), tehdään `BRDC-ART-001`:n visuaalipassissa
 - [~] **Pimeät ajat**: tuotanto laskee (`DARK_TIME_FACTOR = 0.6`). *Mystisten tapahtumien
       yleistyminen* odottaa anomalia-/ketjumekaniikkaa
 - [x] Pimeä aika on **kalenterista johdettu** — `darkTimeAt(now)`, joulukuun 21. ympärillä

@@ -321,6 +321,7 @@ export function MapView({ onLeave }: MapViewProps) {
         spell={inspect.spell}
         trade={inspect.trade}
         build={inspect.build}
+        anomaly={inspect.anomaly}
         onClose={inspect.close}
       />
 

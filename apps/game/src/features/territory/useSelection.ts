@@ -27,6 +27,8 @@ import type {
   WardRefusal,
 } from '@es3/core';
 import { useTradeRoutes } from './useTradeRoutes.js';
+import { useAnomaly } from './useAnomaly.js';
+import type { AnomalyBinding } from './useAnomaly.js';
 
 type BuildFail = BuildRefusal | 'nothing-here';
 type ExpandFail = ExpandRefusal | 'not-a-temple';
@@ -109,6 +111,7 @@ export interface Selection {
   spell: SpellBinding;
   trade: TradeBinding;
   research: ResearchBinding;
+  anomaly: AnomalyBinding;
   refusal: WardRefusal | null;
   sanctum: boolean;
   wager: boolean;
@@ -183,6 +186,7 @@ export function useSelection({
   }, [repository, now, onWarded, refreshTerritory]);
 
   const tradeHook = useTradeRoutes(repository, now, trailVersion, afterSpend);
+  const anomaly = useAnomaly(repository, selected, now, trailVersion, afterSpend);
 
   // A new selection starts with a clean slate: a refusal about the last cell has nothing
   // to say about this one, and the two panels never share the screen. While a Trade Route
@@ -371,6 +375,7 @@ export function useSelection({
       onResearch,
     },
     trade: tradeHook.binding,
+    anomaly,
     refusal,
     sanctum,
     wager,
