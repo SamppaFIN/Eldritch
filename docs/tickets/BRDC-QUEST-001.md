@@ -53,9 +53,9 @@ Rikkinäinen tarina on sisältövirhe, joka pitää löytyä ennen julkaisua.
 
 ## Jatkoon
 
-- **Kartan tavoitemarkkerit** — kymmenen `QUEST_SITES`-koordinaattia kultaisina
-  sigileinä kartalla, kun Fuming Lake on auki. Vaatii oman karttatason; `MapCanvas` on
-  rivikatossa. Dialogi nimeää paikat sanoin siihen asti.
+- ~~Kartan tavoitemarkkerit~~ — tehty (v0.4.1). Kymmenen `QUEST_SITES`-paikkaa kultaisina
+  `✦`-sigileinä nimineen: `features/territory/QuestMarkers.ts`, staattinen taso.
+  Näkyy aina toistaiseksi; kun seikkailuja on useita, portitetaan keskeneräiseen.
 - HUD:n XP/pouch päivittyy seikkailuvalinnan jälkeen vasta minuuttipollilla — dialogi
   itse kertoo palkinnon heti. Kun `useAdventure` siirtyy MapView'hun, kytke sama
   `afterSpend`-virkistys kuin muillakin kulutuksilla.

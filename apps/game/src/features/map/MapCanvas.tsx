@@ -39,13 +39,9 @@ import {
   setPlaceData,
 } from '../territory/PlaceMarkers.js';
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
-import {
-  AWAKENING_MS,
-  ensureAwakeningLayers,
-  removeAwakeningLayers,
-  setAwakeningCells,
-  setAwakeningProgress,
-} from '../territory/AwakeningLayer.js';
+import { ensureAwakeningLayers, removeAwakeningLayers } from '../territory/AwakeningLayer.js';
+import { ensureQuestLayers, removeQuestLayers } from '../territory/QuestMarkers.js';
+import { useAwakening } from './useAwakening.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import { useTerrainResolver } from './useTerrainResolver.js';
@@ -180,12 +176,15 @@ export function MapCanvas({
     ensurePlaceLayers(map);
     // The Keep alongside places: it is a marker of the same weight, not territory.
     ensureCastleLayer(map);
+    // Adventure landmarks — a handful of gold sigils, drawn with the place markers.
+    ensureQuestLayers(map);
     // Above everything: this is a moment, and it is over in two seconds.
     ensureAwakeningLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
       if (map.loaded()) {
         removeAwakeningLayers(map);
+        removeQuestLayers(map);
         removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
@@ -317,42 +316,8 @@ export function MapCanvas({
     setCastleData(map, castle);
   }, [map, ready, castle]);
 
-  /*
-   * The ground wakes up.
-   *
-   * The claim is already painted by the time this runs — the reveal is a gold flare over
-   * the top of it, rippling out from the middle of what was taken. Driven frame by frame
-   * rather than by CSS, because the shapes are on the GPU and not in the DOM.
-   */
-  useEffect(() => {
-    if (!map || !ready || !awakening || awakening.cells.length === 0) return;
-
-    setAwakeningCells(map, awakening.cells);
-
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    if (reduced) {
-      // Still say something happened, without the sweep across the screen.
-      setAwakeningProgress(map, 1.2);
-      const timer = setTimeout(() => setAwakeningProgress(map, 0), 600);
-      return () => clearTimeout(timer);
-    }
-
-    let frame = 0;
-    const started = performance.now();
-    const tick = (t: number) => {
-      // 0 → 2: one unit of stagger across the cells, one of flare for each of them.
-      const progress = ((t - started) / AWAKENING_MS) * 2;
-      setAwakeningProgress(map, Math.min(progress, 2));
-      if (progress < 2) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      // Leaving it mid-flare would freeze a gold wash over the map until the next claim.
-      if (map.loaded()) setAwakeningProgress(map, 0);
-    };
-  }, [map, ready, awakening]);
+  // The ground wakes up: a gold flare over the fresh claim, its own file to spare lines.
+  useAwakening(map, ready, awakening);
 
   // Move the marker and the camera on each fix.
   useEffect(() => {
