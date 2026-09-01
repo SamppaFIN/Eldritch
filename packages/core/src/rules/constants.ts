@@ -231,6 +231,16 @@ export const MANA_EXPANSION_STEP = 0.5;
 export const AURA_CAP_PER_CELL = 3;
 
 /**
+ * The most a cell's defence aura can subtract from an incoming attack (BRDC-BUILD-004).
+ *
+ * `resolveCapture` does `max(0, damage - defence)`, so a cluster of Fortresses can blunt
+ * an attack to nothing on a single pass — but never make the cell un-takeable: a
+ * besieger with any neighbour bonus still gets through, it just takes more walks. Sized
+ * below `BASE_STRENGTH + NEIGHBOUR_BONUS_CAP` so that stays true.
+ */
+export const DEFENCE_AURA_CAP = 75;
+
+/**
  * Loyalty: how much each adjacent Monument or revealed place slows a cell's decay, and
  * the floor it can never push past. 0.15 each, three of them, down to 0.5 — decay runs at
  * half speed at most. It slows the Void; it never stops it (GREEN 6).

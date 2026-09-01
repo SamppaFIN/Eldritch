@@ -65,12 +65,12 @@ describe('BUILDINGS is well-formed', () => {
     }
   });
 
-  it('holds the base buildings, the improvements, and the area-effect three', () => {
+  it('holds the base buildings, the improvements, and the area-effect four', () => {
     expect(ALL.sort()).toEqual(
       [
         'granary', 'market', 'monument', 'storehouse',
         'sawmill', 'lumbermill', 'mine', 'quarry', 'farm', 'fishery', 'vineyard',
-        'library', 'temple-grove', 'lighthouse',
+        'library', 'temple-grove', 'lighthouse', 'fortress',
       ].sort(),
     );
   });

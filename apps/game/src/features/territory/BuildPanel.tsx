@@ -24,6 +24,7 @@ const NAME: Readonly<Record<BuildingId, string>> = {
   library: 'Library',
   'temple-grove': 'Temple Grove',
   lighthouse: 'Lighthouse',
+  fortress: 'Fortress',
 };
 
 /** `early-farming` → `Early Farming`. The tech table carries no display name of its own. */

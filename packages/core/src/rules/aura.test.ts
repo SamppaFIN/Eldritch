@@ -3,8 +3,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import { cellAt, neighboursOf } from '../geo/cells.js';
-import { AURA_CAP_PER_CELL, LOYALTY_MAX, LOYALTY_PER_SOURCE } from './constants.js';
-import { loyaltyFactor, loyaltySourceCells, resourceAura } from './aura.js';
+import { AURA_CAP_PER_CELL, DEFENCE_AURA_CAP, LOYALTY_MAX, LOYALTY_PER_SOURCE } from './constants.js';
+import { defenceAura, loyaltyFactor, loyaltySourceCells, resourceAura } from './aura.js';
+import { BUILDINGS } from './build.js';
 import type { BuildingId, Cell } from '../types/domain.js';
 
 const T0 = Date.parse('2026-09-01T12:00:00Z');
@@ -45,6 +46,33 @@ describe('resourceAura', () => {
 
   it('is empty with no aura buildings', () => {
     expect(resourceAura([cell(HOME), withBuilding(RING[0] as string, 'market')], T0)).toEqual({});
+  });
+});
+
+describe('defenceAura', () => {
+  const map = (cells: Cell[]) => new Map(cells.map((c) => [c.h3, c]));
+  const FORT = BUILDINGS.fortress.aura?.amount ?? 0;
+
+  it('sums the defender Fortresses within radius of the cell', () => {
+    const known = map([
+      cell(HOME, { ownerId: 'rival' }),
+      withBuilding(RING[0] as string, 'fortress', { ownerId: 'rival' }),
+      withBuilding(RING[1] as string, 'fortress', { ownerId: 'rival' }),
+    ]);
+    expect(defenceAura(known, HOME, 'rival')).toBe(2 * FORT);
+  });
+
+  it('ignores a Fortress held by someone else, and non-Fortress buildings', () => {
+    const known = map([
+      withBuilding(RING[0] as string, 'fortress', { ownerId: 'me' }),
+      withBuilding(RING[1] as string, 'monument', { ownerId: 'rival' }),
+    ]);
+    expect(defenceAura(known, HOME, 'rival')).toBe(0);
+  });
+
+  it('is capped, so a cell never becomes un-takeable', () => {
+    const forts = RING.map((h) => withBuilding(h, 'fortress', { ownerId: 'rival' }));
+    expect(defenceAura(map(forts), HOME, 'rival')).toBe(DEFENCE_AURA_CAP);
   });
 });
 

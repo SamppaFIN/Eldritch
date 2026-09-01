@@ -188,6 +188,24 @@ describe('siege — an enemy cell does not flip in one pass', () => {
     const cell = ownedBy(RIVAL, attackPower(ME) + 1, DAY(0));
     expect(resolveCapture(cell, ME, DAY(1)).outcome.kind).toBe('damaged');
   });
+
+  it('a Fortress defence blunts the blow, down to nothing (BRDC-BUILD-004)', () => {
+    const start = () => ownedBy(RIVAL, MAX_STRENGTH, DAY(0));
+    const plain = resolveCapture(start(), ME, DAY(1)).cell.strength;
+    const warded = resolveCapture(start(), ME, DAY(1), 20).cell.strength;
+    expect(warded).toBe(plain + 20);
+
+    // A defence larger than the attack bounces it off entirely — no damage, still held.
+    const bounced = resolveCapture(start(), ME, DAY(1), 9_999);
+    expect(bounced.outcome.kind).toBe('damaged');
+    expect(bounced.cell.strength).toBe(MAX_STRENGTH);
+  });
+
+  it('defence does nothing to a claim or a reinforcement', () => {
+    expect(resolveCapture(emptyCell(H3), ME, DAY(1), 9_999).outcome.kind).toBe('claimed');
+    const mine = ownedBy('me', 100, DAY(0));
+    expect(resolveCapture(mine, ME, DAY(1), 9_999).outcome.kind).toBe('reinforced');
+  });
 });
 
 describe('outcomes report both sides of the change', () => {

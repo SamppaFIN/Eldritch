@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { cellAt, ringToCells } from '../geo/cells.js';
+import { cellAt, neighboursOf, ringToCells } from '../geo/cells.js';
 import { destination } from '../geo/project.js';
+import { detectLoop } from '../geo/loopDetection.js';
 import { BASE_STRENGTH, MAX_STRENGTH } from '../rules/constants.js';
 import { utcDay } from '../rules/day.js';
 import { simulatePolygon } from '../sim/walk.js';
 import type { BBox, Cell, TrailPoint } from '../types/domain.js';
 import { MockRepository } from './MockRepository.js';
+import { planClaim } from './claiming.js';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
@@ -187,6 +189,32 @@ describe('walking over someone else', () => {
 
     const rivalLeft = (await repo.getCells(BOX, T0)).filter((c) => c.ownerId === RIVAL);
     expect(rivalLeft).toEqual([]);
+  });
+
+  it('a rival Fortress shields the ground around it (BRDC-BUILD-004)', () => {
+    // planClaim directly, so the walk cannot claim the interior before the loop resolves.
+    // A rival block weak enough to fall, with three Fortresses ringing one interior cell:
+    // that cell comes out `damaged` where its unshielded neighbours are taken.
+    const detected = detectLoop(lap(T0));
+    expect(detected.closed).toBe(true);
+    if (!detected.closed) return;
+
+    const targets = ringToCells(detected.loop.points);
+    const shielded = targets[Math.floor(targets.length / 2)] as string;
+    const forts = neighboursOf(shielded).filter((h3) => targets.includes(h3)).slice(0, 3);
+    expect(forts.length).toBe(3);
+
+    const known = new Map<string, Cell>();
+    for (const h3 of new Set([...targets, ...targets.flatMap(neighboursOf)])) {
+      known.set(h3, { h3, ownerId: RIVAL, strength: 70, lastVisitedAt: T0, visitDays: [] });
+    }
+    for (const h3 of forts) {
+      known.set(h3, { ...(known.get(h3) as Cell), building: { id: 'fortress', builtAt: T0 } });
+    }
+
+    const plan = planClaim(detected.loop, { id: 'me', level: 1 }, known, T0 + 600_000);
+    expect(plan.outcomes.find((o) => o.h3 === shielded)?.kind).toBe('damaged');
+    expect(plan.outcomes.some((o) => o.kind === 'taken')).toBe(true);
   });
 
   it('needs several laps on separate days to take a home block', async () => {

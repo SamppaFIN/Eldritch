@@ -13,6 +13,7 @@
 import { neighboursOf } from '../geo/cells.js';
 import { emptyCell, resolveCapture } from './capture.js';
 import type { Attacker } from './capture.js';
+import { defenceAura } from './aura.js';
 import type { CaptureOutcome, Cell, H3Index } from '../types/domain.js';
 
 export interface GrowthResult {
@@ -61,7 +62,14 @@ export function growInto(
     return { cell: null, outcome: null, skipped: 'not-adjacent' };
   }
 
-  const { cell, outcome } = resolveCapture(current ?? emptyCell(h3), { ...attacker, ownedNeighbours }, now);
+  const defenderId = current?.ownerId && current.ownerId !== attacker.id ? current.ownerId : null;
+  const defence = defenderId ? defenceAura(known, h3, defenderId) : 0;
+  const { cell, outcome } = resolveCapture(
+    current ?? emptyCell(h3),
+    { ...attacker, ownedNeighbours },
+    now,
+    defence,
+  );
   return { cell, outcome, skipped: null };
 }
 

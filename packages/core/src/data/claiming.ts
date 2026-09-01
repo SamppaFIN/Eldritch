@@ -11,6 +11,7 @@ import { neighboursOf } from '../geo/cells.js';
 import type { Loop } from '../geo/loopDetection.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
 import type { Attacker } from '../rules/capture.js';
+import { defenceAura } from '../rules/aura.js';
 import {
   XP_PER_CELL_CLAIMED,
   XP_PER_CELL_REINFORCED,
@@ -50,8 +51,12 @@ export function planClaim(
     const ownedNeighbours = neighboursOf(h3).filter(
       (n) => known.get(n)?.ownerId === attacker.id,
     ).length;
+    const defence =
+      before.ownerId && before.ownerId !== attacker.id
+        ? defenceAura(known, h3, before.ownerId)
+        : 0;
 
-    const { cell, outcome } = resolveCapture(before, { ...attacker, ownedNeighbours }, now);
+    const { cell, outcome } = resolveCapture(before, { ...attacker, ownedNeighbours }, now, defence);
     cells.push(cell);
     outcomes.push(outcome);
     xp += xpFor(outcome);

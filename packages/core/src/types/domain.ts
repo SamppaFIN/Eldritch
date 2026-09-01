@@ -77,10 +77,16 @@ export type BuildingId =
   // BRDC-BUILD-003: area-effect buildings
   | 'library'
   | 'temple-grove'
-  | 'lighthouse';
+  | 'lighthouse'
+  // BRDC-BUILD-004: the defensive aura
+  | 'fortress';
 
-/** What a building's area effect gives to the cells it covers (BRDC-BUILD-003). */
-export type AuraKind = 'wisdom' | 'mana' | 'food';
+/**
+ * What a building's area effect gives to the cells it covers. The resource kinds feed
+ * `perHourBonus` (BRDC-BUILD-003); `defence` reduces incoming attack damage and is read
+ * in the siege path instead (BRDC-BUILD-004).
+ */
+export type AuraKind = 'wisdom' | 'mana' | 'food' | 'defence';
 
 /**
  * One entry in a cell's ownership history (BRDC-HEX-001). Lives here, not in

@@ -12,9 +12,15 @@
  * one number, not a second clock.
  */
 import { cellsWithin, neighboursOf } from '../geo/cells.js';
-import { AURA_CAP_PER_CELL, DECAY_GRACE_HOURS, LOYALTY_MAX, LOYALTY_PER_SOURCE } from './constants.js';
+import {
+  AURA_CAP_PER_CELL,
+  DECAY_GRACE_HOURS,
+  DEFENCE_AURA_CAP,
+  LOYALTY_MAX,
+  LOYALTY_PER_SOURCE,
+} from './constants.js';
 import { BUILDINGS } from './build.js';
-import type { AuraKind, Cell, H3Index } from '../types/domain.js';
+import type { AuraKind, Cell, H3Index, PlayerId } from '../types/domain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 
 export type { AuraKind } from '../types/domain.js';
@@ -44,7 +50,7 @@ export function resourceAura(
     if (!source.building) continue;
     if (now - source.lastVisitedAt > DORMANT_AFTER_MS) continue;
     const aura = BUILDINGS[source.building.id].aura;
-    if (!aura) continue;
+    if (!aura || aura.kind === 'defence') continue; // defence is read in the siege path
 
     for (const h3 of cellsWithin(source.h3, aura.radius)) {
       if (!held.has(h3)) continue;
@@ -92,4 +98,26 @@ export function loyaltyFactor(h3: H3Index, sources: ReadonlySet<H3Index>): numbe
   if (sources.size === 0) return 1;
   const adjacent = neighboursOf(h3).filter((n) => sources.has(n)).length;
   return 1 - Math.min(LOYALTY_MAX, adjacent * LOYALTY_PER_SOURCE);
+}
+
+/**
+ * How much a defender's Fortresses blunt an attack on `h3` (BRDC-BUILD-004).
+ *
+ * Summed from every Fortress `ownerId` holds within the Fortress radius of `h3`, capped
+ * at `DEFENCE_AURA_CAP`. `resolveCapture` subtracts it from the attack with a `max(0, …)`,
+ * so it can bounce a weak pass off entirely but never make the cell un-takeable.
+ */
+export function defenceAura(
+  known: ReadonlyMap<H3Index, Cell>,
+  h3: H3Index,
+  ownerId: PlayerId,
+): number {
+  const fort = BUILDINGS.fortress.aura;
+  if (!fort) return 0;
+  let total = 0;
+  for (const src of cellsWithin(h3, fort.radius)) {
+    const cell = known.get(src);
+    if (cell?.ownerId === ownerId && cell.building?.id === 'fortress') total += fort.amount;
+  }
+  return Math.min(DEFENCE_AURA_CAP, total);
 }

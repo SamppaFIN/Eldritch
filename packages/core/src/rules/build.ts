@@ -163,6 +163,15 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     requires: [],
     aura: { kind: 'food', radius: 2, amount: 1 },
   },
+  // BRDC-BUILD-004: blunts attacks on the ground around it. Read in the siege path,
+  // not in `perHourBonus` — `defence` is not a resource.
+  fortress: {
+    cost: { stone: 120, iron: 40 },
+    terrain: 'any',
+    tech: 'fortification',
+    requires: [],
+    aura: { kind: 'defence', radius: 1, amount: 30 },
+  },
 };
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;

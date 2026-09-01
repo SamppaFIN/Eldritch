@@ -70,7 +70,12 @@ export function emptyCell(h3: H3Index): Cell {
  * The cell is returned rather than mutated, so a batch can be resolved and then written
  * in one transaction — and so a failed write cannot leave half a claim behind.
  */
-export function resolveCapture(cell: Cell, attacker: Attacker, now: number): CaptureResult {
+export function resolveCapture(
+  cell: Cell,
+  attacker: Attacker,
+  now: number,
+  defence = 0,
+): CaptureResult {
   const strengthBefore = cell.strength;
   const previousOwner = cell.ownerId;
   const today = utcDay(now);
@@ -150,7 +155,10 @@ export function resolveCapture(cell: Cell, attacker: Attacker, now: number): Cap
   }
 
   /* --- Someone else's ----------------------------------------------------- */
-  const damage = attackPower(attacker);
+  // A Fortress on or near this cell blunts the blow (BRDC-BUILD-004). `max(0, …)` so a
+  // weak pass can bounce off entirely; the defence is capped so the cell still falls to a
+  // besieger with a neighbour bonus, just over more walks.
+  const damage = Math.max(0, attackPower(attacker) - Math.max(0, defence));
   const remaining = strengthBefore - damage;
 
   if (remaining > 0) {
