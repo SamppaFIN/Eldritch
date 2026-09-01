@@ -138,19 +138,23 @@ export function resolveCapture(
     const gain = streak ? STREAK_VISIT_BONUS : DAY_VISIT_BONUS;
     const strengthAfter = Math.min(MAX_STRENGTH, strengthBefore + gain);
 
+    const reinforced: Cell = {
+      ...cell,
+      strength: strengthAfter,
+      lastVisitedAt: now,
+      // Only yesterday and today matter to the streak rule; the rest is history
+      // that would grow without bound on a cell someone walks for a year.
+      visitDays: [previousDay(today), today].filter(
+        (d) => d === today || cell.visitDays.includes(d),
+      ),
+      // This branch runs only on a new day, so every pass through it is one more day held.
+      ownedDays: (cell.ownedDays ?? 1) + 1,
+    };
+    // A fresh day's walk over contested ground reclaims the whole yield (BRDC-WAGER-JSON-002).
+    delete reinforced.shared;
+
     return {
-      cell: {
-        ...cell,
-        strength: strengthAfter,
-        lastVisitedAt: now,
-        // Only yesterday and today matter to the streak rule; the rest is history
-        // that would grow without bound on a cell someone walks for a year.
-        visitDays: [previousDay(today), today].filter(
-          (d) => d === today || cell.visitDays.includes(d),
-        ),
-        // This branch runs only on a new day, so every pass through it is one more day held.
-        ownedDays: (cell.ownedDays ?? 1) + 1,
-      },
+      cell: reinforced,
       outcome: {
         h3: cell.h3,
         kind: 'reinforced',

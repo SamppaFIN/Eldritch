@@ -71,6 +71,20 @@ describe('the Wager, carried by hand', () => {
     expect((await receiver.getCells(BOX, T0)).some((c) => c.ownerId === me.id)).toBe(true);
   });
 
+  it('tags overlapping ground as shared rather than dropping it (BRDC-WAGER-JSON-002)', async () => {
+    // Both players walked from the same point, so every claim overlaps.
+    const mineRepo = await played(9);
+    const rivalRepo = await played(3);
+    const them = await rivalRepo.getProfile();
+    const myId = (await mineRepo.getProfile()).id;
+
+    expect((await mineRepo.importChallenge(await rivalRepo.exportChallenge(T0), T0)).ok).toBe(true);
+
+    const shared = (await mineRepo.getOwnedCells(T0)).filter((c) => c.shared);
+    expect(shared.length).toBeGreaterThan(0);
+    expect(shared.every((c) => c.ownerId === myId && c.shared?.with === them.id)).toBe(true);
+  });
+
   it('refuses a challenge the player exported themselves', async () => {
     const text = await sender.exportChallenge(T0);
     expect(await sender.importChallenge(text, T0)).toEqual({ ok: false, fault: 'yourself' });

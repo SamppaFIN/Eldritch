@@ -172,6 +172,38 @@ describe('trickle', () => {
     const revisited = cellsAt([wood], T0);
     expect(trickle(revisited, HOUR, T0).wood).toBe(TRICKLE_PER_HOUR);
   });
+
+  it('splits a shared cell by strength at import (BRDC-WAGER-JSON-002)', () => {
+    const wood = sample().find((h3) => resourceOf(h3) === 'wood') as string;
+    const [c] = cellsAt([wood]);
+    const base = trickle([c as Cell], 10 * HOUR, T0).wood;
+
+    const half = trickle(
+      [{ ...(c as Cell), shared: { with: 'r', mineAtImport: 100, theirsAtImport: 100 } }],
+      10 * HOUR,
+      T0,
+    ).wood;
+    const most = trickle(
+      [{ ...(c as Cell), shared: { with: 'r', mineAtImport: 150, theirsAtImport: 50 } }],
+      10 * HOUR,
+      T0,
+    ).wood;
+
+    expect(base).toBe(TRICKLE_PER_HOUR * 10);
+    expect(half).toBe(base / 2);
+    expect(most).toBe(base * 0.75);
+  });
+
+  it('a shared cell with no strength on either side splits evenly, not by zero', () => {
+    const wood = sample().find((h3) => resourceOf(h3) === 'wood') as string;
+    const [c] = cellsAt([wood]);
+    const pool = trickle(
+      [{ ...(c as Cell), shared: { with: 'r', mineAtImport: 0, theirsAtImport: 0 } }],
+      10 * HOUR,
+      T0,
+    );
+    expect(pool.wood).toBe((TRICKLE_PER_HOUR * 10) / 2);
+  });
 });
 
 describe('settleResources', () => {

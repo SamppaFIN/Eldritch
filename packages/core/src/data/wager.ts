@@ -63,7 +63,9 @@ export type ImportResult = { ok: true; report: WagerReport } | { ok: false; faul
  * belong to two people, and the challenge is the newer claim, since it arrived after
  * everything already on the map. What it must never do is take the local player's own
  * ground. A message from a friend is not a capture; corrupting your map is not a game
- * mechanic. Cells of theirs that overlap yours are simply dropped.
+ * mechanic. Where their claim overlaps yours the cell stays yours, but it is tagged
+ * `shared` (BRDC-WAGER-JSON-002): the hourly yield is then split by each side's strength
+ * at import, and walking the cell again on a new day takes the whole yield back.
  */
 export async function openChallenge(
   store: KeyValueStore,
@@ -81,9 +83,21 @@ export async function openChallenge(
   if (fought.includes(challenge.sum)) return { ok: false, fault: 'already-fought' };
 
   const theirs = challengeToCells(challenge, now);
+  const overlap = new Set<H3Index>();
   for (const cell of theirs) {
     const existing = await store.get<Cell>(K.cell(cell.h3));
-    if (existing?.ownerId === me.id) continue;
+    if (existing?.ownerId === me.id) {
+      overlap.add(cell.h3);
+      await store.set(K.cell(cell.h3), {
+        ...existing,
+        shared: {
+          with: challenge.id,
+          mineAtImport: existing.strength,
+          theirsAtImport: cell.strength,
+        },
+      });
+      continue;
+    }
     await store.set(K.cell(cell.h3), cell);
   }
 
@@ -92,9 +106,13 @@ export async function openChallenge(
     challengeToCombatant(challenge),
   );
 
-  // Only their newly arrived ground can be softened — the spoils rule refuses to touch
-  // anything the local player owns, and nothing else of theirs is on this map.
-  const spoils = applySpoils(theirs, outcome, me.id);
+  // Only their newly arrived ground can be softened — a cell you also hold stays yours,
+  // tagged `shared`, and the spoils never touch it.
+  const spoils = applySpoils(
+    theirs.filter((c) => !overlap.has(c.h3)),
+    outcome,
+    me.id,
+  );
   for (const cell of spoils.cells) await store.set(K.cell(cell.h3), cell);
 
   await store.set(K.fought, [...fought, challenge.sum].slice(-200));

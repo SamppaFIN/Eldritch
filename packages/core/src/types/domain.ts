@@ -134,6 +134,14 @@ export interface Cell {
    * (`terrainForCell`). Additive, so no save migration.
    */
   terrain?: Terrain;
+  /**
+   * Both this player and an imported challenge claim this ground (BRDC-WAGER-JSON-002).
+   * The local player keeps ownership; the hourly trickle is split by each side's
+   * strength at the moment of import — the only "who has been here more" a one-shot
+   * text challenge carries. Cleared by reinforcing the cell on a new day. Additive, no
+   * migration.
+   */
+  shared?: { with: PlayerId; mineAtImport: number; theirsAtImport: number };
   /** The one building on this cell, if any (BRDC-BUILD-001). One cell, one building. */
   building?: { id: BuildingId; builtAt: number };
   /**

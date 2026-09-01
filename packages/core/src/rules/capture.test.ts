@@ -224,6 +224,25 @@ describe('siege — an enemy cell does not flip in one pass', () => {
   });
 });
 
+describe('a shared tag is cleared by a fresh day\'s walk (BRDC-WAGER-JSON-002)', () => {
+  const shared = (): Cell => ({
+    ...ownedBy('me', 120, DAY(0), [utcDay(DAY(0))]),
+    shared: { with: 'r', mineAtImport: 100, theirsAtImport: 100 },
+  });
+
+  it('a new-day reinforce drops it — the whole yield comes back', () => {
+    const { cell: after, outcome } = resolveCapture(shared(), ME, DAY(1));
+    expect(outcome.kind).toBe('reinforced');
+    expect(after.shared).toBeUndefined();
+  });
+
+  it('a same-day revisit leaves it in place', () => {
+    const { cell: after, outcome } = resolveCapture(shared(), ME, DAY(0) + 3_600_000);
+    expect(outcome.kind).toBe('unchanged');
+    expect(after.shared).toBeDefined();
+  });
+});
+
 describe('outcomes report both sides of the change', () => {
   it('carries strength before and after', () => {
     const cell = ownedBy(RIVAL, 300, DAY(0));

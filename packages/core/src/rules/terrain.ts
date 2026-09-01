@@ -196,12 +196,27 @@ export function trickle(cells: readonly Cell[], ms: number, now: number): Resour
   for (const cell of cells) {
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
     const resource = resourceForCell(cell);
-    if (resource) pool[resource] += TRICKLE_PER_HOUR * hours;
+    if (resource) pool[resource] += TRICKLE_PER_HOUR * hours * localShare(cell);
   }
 
   const floored = { ...EMPTY_POOL };
   for (const k of RESOURCE_KINDS) floored[k] = Math.floor(pool[k]);
   return floored;
+}
+
+/**
+ * The fraction of a cell's trickle the local player keeps.
+ *
+ * `1` for ground held outright. A cell an imported challenge also claimed
+ * (`cell.shared`, BRDC-WAGER-JSON-002) is split by each side's strength at the moment of
+ * import — the closest thing to "who has been here more" that a one-shot text challenge
+ * carries. Reinforcing the cell on a new day drops `shared` and takes the whole yield
+ * back.
+ */
+function localShare(cell: Cell): number {
+  if (!cell.shared) return 1;
+  const total = cell.shared.mineAtImport + cell.shared.theirsAtImport;
+  return total > 0 ? cell.shared.mineAtImport / total : 0.5;
 }
 
 export interface ResourceState {
