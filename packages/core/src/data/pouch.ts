@@ -27,6 +27,21 @@ import type { KeyValueStore } from './kv.js';
 
 const KEY = 'resources';
 
+/**
+ * A full, finite pool from whatever was stored (BRDC-ECON-002). A pouch written before the
+ * resource set reached nine is missing fields; the first `undefined + n` mints `NaN`, and
+ * a `NaN` pool reads on screen as empty — the "my resources vanished" bug. So every read
+ * is normalised: missing or non-finite becomes 0, every known key present.
+ */
+export function normalizePool(pool: Partial<ResourcePool> | null | undefined): ResourcePool {
+  const out = { ...EMPTY_POOL };
+  for (const k of RESOURCE_KINDS) {
+    const v = pool?.[k];
+    if (typeof v === 'number' && Number.isFinite(v)) out[k] = v;
+  }
+  return out;
+}
+
 /** Add one partial pool into another, in place. */
 function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void {
   for (const [k, v] of Object.entries(from) as [ResourceKind, number][]) {
@@ -71,7 +86,11 @@ async function perHourBonus(
  * minting `NaN` — is gone with it.
  */
 async function read(store: KeyValueStore, now: number): Promise<ResourceState> {
-  return (await store.get<ResourceState>(KEY)) ?? { pool: EMPTY_POOL, since: now, sinceDay: now };
+  const stored = await store.get<ResourceState>(KEY);
+  if (!stored) return { pool: EMPTY_POOL, since: now, sinceDay: now };
+  // A pouch written before the resource set reached nine is missing fields; left alone,
+  // the first sum on it is NaN and the pouch reads as empty (BRDC-ECON-002).
+  return { ...stored, pool: normalizePool(stored.pool) };
 }
 
 /**
@@ -167,6 +186,23 @@ export async function awardClaims(
   let pool = state.pool;
   for (const outcome of taken) pool = addClaimYield(pool, outcome.h3);
   await store.set<ResourceState>(KEY, { ...state, pool });
+}
+
+/**
+ * Dev only: top every resource up by `amount`, capped. Wired to a menu button behind
+ * `import.meta.env.DEV` so a field test that has lost its pouch can carry on.
+ */
+export async function grantAll(
+  store: KeyValueStore,
+  owned: readonly Cell[],
+  now: number,
+  amount: number,
+): Promise<void> {
+  const state = await settlePouch(store, owned, now);
+  const cap = storageCap(buildingsOf(owned));
+  const pool = { ...state.pool };
+  for (const k of RESOURCE_KINDS) pool[k] = Math.min(cap, pool[k] + amount);
+  await writePouch(store, pool, now);
 }
 
 /**

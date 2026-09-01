@@ -273,4 +273,6 @@ export interface GameRepository {
   runDecay(now: number): Promise<DecayResult>;
   /** Deliberate, user-initiated wipe. Clears timers as well as state. */
   resetAll(): Promise<void>;
+  /** Dev only: refill the pouch (BRDC-ECON-002). Shown behind `import.meta.env.DEV`. */
+  debugGrant(now: number): Promise<void>;
 }

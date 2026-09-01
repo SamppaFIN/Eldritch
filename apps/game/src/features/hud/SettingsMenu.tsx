@@ -29,6 +29,8 @@ export interface SettingsMenuProps {
   /** For the field report — the log tail and a rough position (BRDC-BUGREPORT-001). */
   repository: GameRepository | null;
   position: { lat: number; lng: number } | null;
+  /** Dev only: top the pouch up (BRDC-ECON-002). Absent in a production build. */
+  onDebugGrant?: () => void;
   /** Hidden while a cell or the Hearth has the top of the screen. */
   visible?: boolean;
 }
@@ -41,6 +43,7 @@ export function SettingsMenu({
   onOpenLog,
   repository,
   position,
+  onDebugGrant,
   visible = true,
 }: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
@@ -152,6 +155,15 @@ export function SettingsMenu({
           >
             Delete progress
           </button>
+          {import.meta.env.DEV && onDebugGrant ? (
+            <button
+              type="button"
+              className="settings-menu__action settings-menu__action--dev"
+              onClick={() => run(onDebugGrant)}
+            >
+              Debug · +200 every resource
+            </button>
+          ) : null}
         </GlassPanel>
       ) : null}
       </div>

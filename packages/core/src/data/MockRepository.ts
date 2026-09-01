@@ -16,7 +16,7 @@ import type { AltarOutcome, ChannelOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { forecastRates, settlePouch, type Forecast } from './pouch.js';
+import { forecastRates, grantAll, settlePouch, type Forecast } from './pouch.js';
 import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk } from './walkFlow.js';
 import type { WalkDeps } from './walkFlow.js';
@@ -162,22 +162,22 @@ export class MockRepository implements GameRepository {
   }
 
   /* --- Resources -------------------------------------------------------- */
-
   async getResources(now: number): Promise<ResourcePool> {
     return (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
   }
-
   async getForecast(now: number): Promise<Forecast> {
     return forecastRates(this.store, await this.getOwnedCells(now), now);
   }
-
+  /** Dev only (BRDC-ECON-002): top every resource up so a lost pouch is not a dead run. */
+  async debugGrant(now: number): Promise<void> {
+    await grantAll(this.store, await this.getOwnedCells(now), now, 200);
+  }
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
     const me = await this.getProfile();
     return wardAt(this.store, h3, me.id, await this.getOwnedCells(now), now);
   }
 
   /* --- Buildings and technology ----------------------------------------- */
-
   async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
     const near = [h3, ...neighboursOf(h3)];
     const nearTemple = (await this.getPlaces()).some((p) => near.includes(p.h3));

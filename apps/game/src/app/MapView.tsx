@@ -378,6 +378,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onOpenLog={() => setLogOpen(true)}
         repository={repository}
         position={point}
+        onDebugGrant={() => void repository?.debugGrant(clock.now()).then(() => repository?.getResources(clock.now()).then(setResources))}
         visible={inspect.cell === null && !inspect.sanctum}
       />
 

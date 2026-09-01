@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.4.6",
+    "date": "2026-09-02",
+    "notes": [
+      "Fixed the vanishing pouch: an older save whose resource list was shorter now heals itself on load instead of reading as empty.",
+      "Dev builds get a \"+200 every resource\" button in the menu, so a broken run can carry on."
+    ]
+  },
+  {
     "version": "0.4.5",
     "date": "2026-09-01",
     "notes": [
