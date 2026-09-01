@@ -42,8 +42,7 @@ import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
-import { loadSettings, saveSettings } from '../features/hud/settings.js';
-import type { Settings } from '../features/hud/settings.js';
+import { useSettings } from '../features/hud/useSettings.js';
 import { HelpPanel } from '../features/help/HelpPanel.js';
 import type { HelpTopic } from '../features/help/help.js';
 import { createRepository } from '../data/createRepository.js';
@@ -64,14 +63,10 @@ export function MapView({ onLeave }: MapViewProps) {
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [castle, setCastle] = useState<H3Index | null>(null);
-  const [settings, setSettings] = useState(loadSettings);
+  const [settings, onSettingsChange] = useSettings();
   const [help, setHelp] = useState<HelpTopic | null>(null);
   const [logOpen, setLogOpen] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const onSettingsChange = useCallback((next: Settings) => {
-    setSettings(next);
-    saveSettings(next);
-  }, []);
 
   /*
    * Held open by the player, never by default.
@@ -382,6 +377,8 @@ export function MapView({ onLeave }: MapViewProps) {
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
         onOpenLog={() => setLogOpen(true)}
+        repository={repository}
+        position={point}
         visible={inspect.cell === null && !inspect.sanctum}
       />
 

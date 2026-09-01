@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.4.2",
+    "date": "2026-09-01",
+    "notes": [
+      "Report a bug or improvement, from the menu: write it or speak it, and it goes to WhatsApp with the build, roughly where you were, and your last few actions attached."
+    ]
+  },
+  {
     "version": "0.4.1",
     "date": "2026-09-01",
     "notes": [

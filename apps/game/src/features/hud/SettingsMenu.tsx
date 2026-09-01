@@ -12,8 +12,10 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { APP_VERSION } from '@es3/core';
+import type { GameRepository } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { ChangelogPanel } from '../changelog/ChangelogPanel.js';
+import { BugReport } from '../report/BugReport.js';
 import type { Settings } from './settings.js';
 import './settings-menu.css';
 
@@ -24,6 +26,9 @@ export interface SettingsMenuProps {
   onDeleteProgress: () => void;
   /** Opens the action log (BRDC-LOG-001). */
   onOpenLog: () => void;
+  /** For the field report — the log tail and a rough position (BRDC-BUGREPORT-001). */
+  repository: GameRepository | null;
+  position: { lat: number; lng: number } | null;
   /** Hidden while a cell or the Hearth has the top of the screen. */
   visible?: boolean;
 }
@@ -34,10 +39,13 @@ export function SettingsMenu({
   onRetreat,
   onDeleteProgress,
   onOpenLog,
+  repository,
+  position,
   visible = true,
 }: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
   const [changelog, setChangelog] = useState(false);
+  const [report, setReport] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,10 +64,18 @@ export function SettingsMenu({
     };
   }, [open]);
 
-  const changelogPanel = (
-    <ChangelogPanel open={changelog} onClose={() => setChangelog(false)} />
+  const overlays = (
+    <>
+      <ChangelogPanel open={changelog} onClose={() => setChangelog(false)} />
+      <BugReport
+        open={report}
+        onClose={() => setReport(false)}
+        repository={repository}
+        position={position}
+      />
+    </>
   );
-  if (!visible) return changelogPanel;
+  if (!visible) return overlays;
 
   const toggle = (key: keyof Settings) => onChange({ ...settings, [key]: !settings[key] });
   const run = (action: () => void) => {
@@ -69,7 +85,7 @@ export function SettingsMenu({
 
   return (
     <>
-      {changelogPanel}
+      {overlays}
       <div className="settings-menu" ref={rootRef}>
       <RitualButton
         variant="ghost"
@@ -104,6 +120,13 @@ export function SettingsMenu({
 
           <button type="button" className="settings-menu__action" onClick={() => run(onOpenLog)}>
             History
+          </button>
+          <button
+            type="button"
+            className="settings-menu__action"
+            onClick={() => run(() => setReport(true))}
+          >
+            Report a bug or improvement
           </button>
           <button
             type="button"
