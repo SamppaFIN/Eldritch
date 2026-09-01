@@ -3,8 +3,10 @@
 
 .hearth-panel {
   position: fixed;
-  inset-inline: var(--space-3);
-  inset-block-start: var(--space-3);
+  /* Respect the notch and the curved edges — S23 Ultra clips a plain inset (BRDC-MOBILE-001). */
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
   z-index: var(--z-hud);
   display: flex;
   flex-direction: column;
@@ -12,6 +14,11 @@
   padding: var(--space-4);
   max-inline-size: 26rem;
   margin-inline: auto;
+  /* The research rites can push this panel past the viewport; cap and scroll inside so
+     the Wager button and the fade warning are always reachable (BRDC-TECH-001). */
+  max-block-size: 75dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: es-panel-in 0.2s var(--ease-out) both;
 }
 

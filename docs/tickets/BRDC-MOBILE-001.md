@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | kaikki Vaiheen 2.5 tiketit |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `todo` — koodivalmistelu tehty 2026-09-01, ulkotesti ajamatta |
+| **Valmius** | 10 % |
 | **Lähde** | Infinite 2026-08-31: *"tällä hetkellä tärkeintä on saada mobiilikokemus täydelliseksi"* |
 
 ## 🔴 RED
@@ -64,6 +64,23 @@ rungon päälle, jota kukaan ei ole vienyt ulos, on täsmälleen v2:n virhe.
 - [ ] **Tumma tila ja auto-kirkkaus** eivät muuta värejä tunnistamattomiksi
 - [ ] Reduced motion todennetaan päälle kytkettynä, ei vain koodissa
 - [ ] Ruudun kääntö kesken kävelyn ei kaada karttaa eikä keskeytä juoksua
+
+## Koodivalmistelu 2026-09-01 (ennen ensimmäistä ulkotestiä)
+
+Ei mittauksia — nämä ovat ilmiselviä korjauksia jotka tekisivät testistä hyödyttömän
+jos ne löytyisivät vasta kentällä. Havainnot ja luvut kirjataan silti alle testin jälkeen.
+
+- **`env(safe-area-inset-*)` solu- ja Hearth-paneeliin** (`cell-panel.css`,
+  `hearth-panel.css`): olivat pelkällä `--space-3`:lla, joten S23 Ultran lovi olisi
+  leikannut sulkunapin ja curved-reunat sisällön. `inset-block-start` ja `inset-inline`
+  nyt `max(--space-3, env(...))`. HUD:lla oli jo (`hud.css:12`); `viewport-fit=cover` on
+  `index.html`:ssä, joten inseti toimivat.
+- **Hearth-paneeli voi vieriä** (`max-block-size: 75dvh; overflow-y: auto`): `BRDC-TECH-001`
+  lisäsi siihen tutkimusrivit, jotka voivat työntää Wager-napin ja himmenemisvaroituksen
+  näytön ulkopuolelle. Solupaneelilla oli jo tämä; nyt molemmilla.
+- **Modaali vierii** (`modal.css`): natiivi `<dialog>` ei vieritä sisältöään, joten pitkä
+  Wager-muster jätti alatunnisteen (Confirm/Cancel) ulottumattomiin. `overflow: auto` +
+  `max-block-size` huomioi nyt safe-arean.
 
 ## Toteutus
 

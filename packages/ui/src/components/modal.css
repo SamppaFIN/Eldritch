@@ -6,7 +6,12 @@
   background: transparent;
   color: var(--text);
   max-inline-size: min(100% - 2rem, 26rem);
-  max-block-size: calc(100dvh - 4rem);
+  /* Leave room for the notch and the gesture bar, and scroll inside when the content
+     (a Wager muster, say) is taller than that — so the footer is always reachable
+     one-handed (BRDC-MOBILE-001). */
+  max-block-size: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .es-modal::backdrop {
