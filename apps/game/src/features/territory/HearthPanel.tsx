@@ -25,7 +25,7 @@ import './hearth-panel.css';
 type KeepTab = 'mana' | 'wisdom' | 'buildings' | 'train';
 const TABS: readonly { id: KeepTab; label: string }[] = [
   { id: 'mana', label: 'Mana' },
-  { id: 'wisdom', label: 'Wisdom' },
+  { id: 'wisdom', label: 'Rites' },
   { id: 'buildings', label: 'Buildings' },
   { id: 'train', label: 'Train' },
 ];

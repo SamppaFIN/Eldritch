@@ -90,7 +90,9 @@ export function ensureCastleLayer(map: MapLibreMap): void {
       'text-font': ['Noto Sans Regular'],
       'text-size': 11,
       'text-letter-spacing': 0.16,
-      'text-offset': [0, 1.6],
+      // Below the core, and clear of the building glyph that sits at [0, 1.1] on this
+      // same cell (BRDC-ART-002) — at 1.6 the label buried a monument on the Keep.
+      'text-offset': [0, 2.6],
       'text-anchor': 'top',
       'text-allow-overlap': false,
     },

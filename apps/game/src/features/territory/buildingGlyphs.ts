@@ -31,13 +31,17 @@ export const BUILDING_ROLE: Readonly<Record<BuildingId, BuildingRole>> = {
   vineyard: 'culture',
 };
 
-/** Distinct from the terrain glyphs (`♣ △ ▲ ≈ ◆`) and the anomaly glyphs (`◌ ◐ ✦`). */
+/**
+ * All from the Geometric Shapes block (U+25xx) so every font covers them — an earlier
+ * set used `⚒ ❋ ❦` which are dingbats MapLibre's bundled Noto Sans does not carry, and
+ * they rendered as nothing. Distinct from terrain (`♣ △ ▲ ≈ ◆`) and anomaly (`◌ ◐ ✦`).
+ */
 const ROLE_GLYPH: Readonly<Record<BuildingRole, string>> = {
-  produce: '⚒',
+  produce: '▦',
   store: '▤',
-  knowledge: '❋',
-  defence: '▣',
-  culture: '❦',
+  knowledge: '◉',
+  defence: '▧',
+  culture: '◍',
 };
 
 /** Same hexes as `RESOURCE_COLOUR` / the tokens — literal here to avoid an import cycle. */

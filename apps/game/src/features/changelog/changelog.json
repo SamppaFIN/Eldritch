@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.2",
+    "date": "2026-09-02",
+    "notes": [
+      "Starting a game now claims the ring of six cells around your Hearth, not just the one — a home region that usually holds something that produces.",
+      "Building marks switched to shapes every font can draw, and the \"THE KEEP\" label moved down so a building on your Hearth cell is no longer hidden behind it.",
+      "The research tab in the Keep is labelled Rites now — that is the tech tree, and it is where you spend wisdom."
+    ]
+  },
+  {
     "version": "0.5.1",
     "date": "2026-09-02",
     "notes": [

@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { destination } from '../geo/project.js';
-import { cellAt } from '../geo/cells.js';
+import { cellAt, neighboursOf } from '../geo/cells.js';
 import { BASE_STRENGTH } from '../rules/constants.js';
 import { MockRepository } from './MockRepository.js';
 
@@ -31,6 +31,16 @@ describe('the Hearth', () => {
       ownerId: me.id,
       strength: BASE_STRENGTH,
     });
+  });
+
+  it('claims the ring around it — a home region, not a lone cell (BRDC-HEARTH-002)', async () => {
+    const h3 = await repo.setHome(ORIGIN, T0);
+    const me = await repo.getProfile();
+    const owned = new Set((await repo.getOwnedCells(T0)).filter((c) => c.ownerId === me.id).map((c) => c.h3));
+
+    expect(owned.has(h3)).toBe(true);
+    for (const nb of neighboursOf(h3)) expect(owned.has(nb)).toBe(true);
+    expect(owned.size).toBeGreaterThanOrEqual(7);
   });
 
   it('holds the Anchor Stone from the moment it is accepted', async () => {

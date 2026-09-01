@@ -126,12 +126,12 @@ describe('building glyph (BRDC-ART-002)', () => {
 
   it('a built cell carries its role glyph and colour', () => {
     const p = cellProperties(built(ME), ME);
-    expect(p.building).toBe('⚒'); // produce
+    expect(p.building).toBe('▦'); // produce
     expect(p.buildingColor).toMatch(/^#[0-9a-f]{6}$/i);
   });
 
   it('a rival’s building shows too — it is intel', () => {
-    expect(cellProperties(built(RIVAL), ME).building).toBe('⚒');
+    expect(cellProperties(built(RIVAL), ME).building).toBe('▦');
   });
 
   it('an empty cell has no building glyph', () => {
