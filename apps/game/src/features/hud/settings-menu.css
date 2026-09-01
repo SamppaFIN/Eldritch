@@ -1,0 +1,73 @@
+/* The hamburger and its panel — top-left, above the HUD, clear of the notch. */
+.settings-menu {
+  position: fixed;
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  inset-inline-start: max(var(--space-3), env(safe-area-inset-left));
+  z-index: var(--z-hud);
+}
+
+.settings-menu__button {
+  min-block-size: var(--touch-min);
+  min-inline-size: var(--touch-min);
+  padding: 0;
+  font-size: var(--text-h3);
+  line-height: 1;
+}
+
+.settings-menu__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 14rem;
+  padding: var(--space-2);
+}
+
+.settings-menu__switch,
+.settings-menu__action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--touch-min);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+}
+
+.settings-menu__switch {
+  justify-content: space-between;
+}
+
+.settings-menu__switch[aria-checked='true'] .settings-menu__state {
+  color: var(--awareness-green);
+}
+
+.settings-menu__switch[aria-checked='false'] .settings-menu__state {
+  color: var(--text-dim);
+}
+
+.settings-menu__action--danger {
+  color: var(--danger);
+}
+
+.settings-menu__rule {
+  inline-size: 100%;
+  border: none;
+  border-block-start: 1px solid var(--glass-border);
+  margin: var(--space-1) 0;
+}
+
+.settings-menu__button:focus-visible,
+.settings-menu__switch:focus-visible,
+.settings-menu__action:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

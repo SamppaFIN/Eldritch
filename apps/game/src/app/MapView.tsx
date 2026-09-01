@@ -39,7 +39,9 @@ import { Hud } from '../features/hud/Hud.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
-import { loadSettings } from '../features/hud/settings.js';
+import { SettingsMenu } from '../features/hud/SettingsMenu.js';
+import { loadSettings, saveSettings } from '../features/hud/settings.js';
+import type { Settings } from '../features/hud/settings.js';
 import { createRepository } from '../data/createRepository.js';
 import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
@@ -61,8 +63,11 @@ export function MapView({ onLeave }: MapViewProps) {
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [resources, setResources] = useState<ResourcePool | null>(null);
   const [forecast, setForecast] = useState<Forecast | null>(null);
-  // The setter arrives with the settings menu (BRDC-HUD-003).
-  const [settings] = useState(loadSettings);
+  const [settings, setSettings] = useState(loadSettings);
+  const onSettingsChange = useCallback((next: Settings) => {
+    setSettings(next);
+    saveSettings(next);
+  }, []);
 
   /*
    * Held open by the player, never by default.
@@ -369,9 +374,15 @@ export function MapView({ onLeave }: MapViewProps) {
         standing={standingOn !== null}
         onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
         unobservedMs={trail.unobservedMs}
-        onWithdraw={() => setConfirming('withdraw')}
-        onReset={() => setConfirming('reset')}
         settings={settings}
+      />
+
+      <SettingsMenu
+        settings={settings}
+        onChange={onSettingsChange}
+        onRetreat={() => setConfirming('withdraw')}
+        onDeleteProgress={() => setConfirming('reset')}
+        visible={inspect.cell === null && !inspect.sanctum}
       />
 
       <SanctumDialogs

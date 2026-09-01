@@ -46,8 +46,6 @@ export interface HudProps {
   standing?: boolean;
   onInspectHere?: () => void;
   unobservedMs?: number;
-  onWithdraw: () => void;
-  onReset: () => void;
   /** Sound and vibration switches — the claim chime and buzz read these. */
   settings: Settings;
 }
@@ -168,8 +166,6 @@ export function Hud({
   standing = false,
   onInspectHere,
   unobservedMs = 0,
-  onWithdraw,
-  onReset,
   settings,
 }: HudProps) {
   const level = levelState(profile?.xp ?? 0);
@@ -336,32 +332,22 @@ export function Hud({
             </span>
           </p>
 
+          {/*
+            The walking bar keeps only what a walking thumb needs: Vigil, and the way
+            onto the cell underfoot. Retreat and Delete moved to the menu (BRDC-HUD-003)
+            — a destructive action does not belong one mis-tap from Here.
+
+            Here is also the keyboard path onto the map: tapping a hexagon is a pointer
+            gesture with no equivalent, and the cell under your feet is the one you most
+            want anyway.
+          */}
           <div className="hud__actions">
             <Vigil keepAlive={keepAlive} />
-            {/*
-              The one verb a walking player needs, sharing the row rather than taking one.
-
-              It is also the keyboard path onto the map: selecting a hexagon by tapping it
-              is a pointer gesture with no equivalent, and the cell under your feet is the
-              one you most want anyway. A button makes both true at once.
-            */}
             {standing && onInspectHere ? (
               <RitualButton variant="ghost" className="hud__here" onClick={onInspectHere}>
                 <span aria-hidden>⬢</span> Here
               </RitualButton>
             ) : null}
-            <RitualButton
-              variant="ghost"
-              className="hud__icon-btn"
-              onClick={onReset}
-              aria-label="Return everything to the Void"
-              title="Return everything to the Void"
-            >
-              <span aria-hidden>⬡</span>
-            </RitualButton>
-            <RitualButton variant="ghost" className="hud__withdraw" onClick={onWithdraw}>
-              Withdraw
-            </RitualButton>
           </div>
         </div>
       </GlassPanel>
