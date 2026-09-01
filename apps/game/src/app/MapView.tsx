@@ -271,6 +271,7 @@ export function MapView({ onLeave }: MapViewProps) {
         position={point}
         accuracyM={point?.accuracy}
         trail={trail.points}
+        walkedPaths={trail.walkedPaths}
         cells={territory.cells}
         playerId={profile?.id ?? null}
         places={places}
@@ -285,7 +286,6 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <ClaimBurst claim={territory.lastClaim} />
-
       <PlaceReveal revealed={trail.revealed} />
 
       {inspect.sanctum ? (

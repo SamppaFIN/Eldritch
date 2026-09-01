@@ -25,6 +25,7 @@ import type {
   TrailResult,
 } from './domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
+import type { WalkedEdge } from '../geo/paths.js';
 import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
@@ -44,6 +45,14 @@ export interface GameRepository {
   submitTrail(runId: RunId, points: TrailPoint[]): Promise<TrailResult>;
   getTrailPoints(runId: RunId): Promise<TrailPoint[]>;
   endRun(runId: RunId): Promise<void>;
+
+  /**
+   * Every stretch ever walked, as drawable edges thickening with use (BRDC-TRAIL-003).
+   *
+   * Survives a loop closing and a new run starting — it is stored apart from any run.
+   * Read wholesale; the store is capped so "wholesale" stays bounded.
+   */
+  getWalkedPaths(): Promise<WalkedEdge[]>;
 
   /**
    * Build the starting neighbourhood around a position, once.

@@ -27,6 +27,9 @@ import { buildOn, demolishOn } from './buildStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import { expandTempleAt, readExpansions } from './templeStore.js';
 import type { ExpandOutcome } from './templeStore.js';
+import { readPaths } from './pathStore.js';
+import { walkedEdges } from '../geo/paths.js';
+import type { WalkedEdge } from '../geo/paths.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import { levelForXp } from '../rules/level.js';
@@ -148,6 +151,10 @@ export class MockRepository implements GameRepository {
 
   async getTrailPoints(runId: RunId): Promise<TrailPoint[]> {
     return (await this.store.get<TrailPoint[]>(K.trail(runId))) ?? [];
+  }
+
+  async getWalkedPaths(): Promise<WalkedEdge[]> {
+    return walkedEdges(await readPaths(this.store));
   }
 
   async submitTrail(runId: RunId, points: TrailPoint[]) {

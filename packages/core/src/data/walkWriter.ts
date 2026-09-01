@@ -11,6 +11,7 @@
  */
 import { K } from './keys.js';
 import { planWalk, walkNeighbourhood } from './walking.js';
+import { recordPaths } from './pathStore.js';
 import { XP_PER_CELL_CLAIMED } from '../rules/constants.js';
 import type { DwellMap, DwellReading } from '../rules/dwell.js';
 import type { KeyValueStore } from './kv.js';
@@ -67,6 +68,11 @@ export async function recordWalk(
     if (step.cell) await store.set(K.cell(step.cell.h3), step.cell);
   }
   await store.set(K.dwell, plan.dwell);
+
+  // The same batch wears the walked-path layer: every res-12 segment this trace crossed
+  // gets a visit (BRDC-TRAIL-003). Kept apart from the cells above because a path is a
+  // record of movement, not ground — it is never owned and never trimmed with a run.
+  await recordPaths(store, accepted, (accepted[accepted.length - 1] as TrailPoint).t);
 
   // The seam between batches. Without it the gap between the last fix of one batch and
   // the first of the next is credited to nobody, and an hour of standing still vanishes.

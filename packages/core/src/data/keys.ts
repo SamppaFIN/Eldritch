@@ -27,4 +27,6 @@ export const K = {
   researched: 'researched',
   /** Temple expansion levels, `Record<H3Index, number>` (BRDC-MANA-001). */
   expansions: 'expansions',
+  /** Every stretch ever walked, `Record<edge, PathSegment>` (BRDC-TRAIL-003). */
+  paths: 'paths',
 } as const;

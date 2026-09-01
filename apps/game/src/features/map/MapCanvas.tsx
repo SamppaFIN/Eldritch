@@ -10,8 +10,18 @@ import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 import { cellAt } from '@es3/core';
-import type { BBox, Cell, H3Index, LatLng, PlayerId, RevealedPlace, TrailPoint } from '@es3/core';
+import type {
+  BBox,
+  Cell,
+  H3Index,
+  LatLng,
+  PlayerId,
+  RevealedPlace,
+  TrailPoint,
+  WalkedEdge,
+} from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
+import { ensurePathLayers, removePathLayers, setPathData } from '../trail/PathLayer.js';
 import {
   CELL_FILL_LAYER,
   ensureTerritoryLayers,
@@ -53,6 +63,8 @@ export interface MapCanvasProps {
   accuracyM?: number | undefined;
   /** The ley-line so far. */
   trail?: readonly TrailPoint[];
+  /** Every stretch ever walked, thickening with use (BRDC-TRAIL-003). */
+  walkedPaths?: readonly WalkedEdge[];
   /** Visible territory. */
   cells?: readonly Cell[];
   playerId?: PlayerId | null;
@@ -87,6 +99,7 @@ export function MapCanvas({
   position,
   accuracyM,
   trail,
+  walkedPaths,
   cells,
   playerId = null,
   places,
@@ -145,6 +158,8 @@ export function MapCanvas({
   useEffect(() => {
     if (!map || !ready) return;
     ensureTerritoryLayers(map);
+    // Under the live ley-line: a worn path is history, the trail is now (BRDC-TRAIL-003).
+    ensurePathLayers(map);
     ensureTrailLayers(map);
     // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
@@ -159,6 +174,7 @@ export function MapCanvas({
         removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
+        removePathLayers(map);
         removeTerritoryLayers(map);
       }
     };
@@ -245,6 +261,11 @@ export function MapCanvas({
     if (!map || !ready || !trail) return;
     setTrailData(map, trail);
   }, [map, ready, trail]);
+
+  useEffect(() => {
+    if (!map || !ready) return;
+    setPathData(map, walkedPaths ?? []);
+  }, [map, ready, walkedPaths]);
 
   useEffect(() => {
     if (!map || !ready || !places) return;

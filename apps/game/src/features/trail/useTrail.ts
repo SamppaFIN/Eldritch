@@ -14,6 +14,7 @@ import type {
   RevealedPlace,
   RunId,
   TrailPoint,
+  WalkedEdge,
 } from '@es3/core';
 
 export interface TrailState {
@@ -31,6 +32,8 @@ export interface TrailState {
   unobservedMs: number;
   /** Places that named themselves in the most recent batch. Drives the reveal. */
   revealed: RevealedPlace[];
+  /** Every stretch ever walked, thickening with use — outlives the run (BRDC-TRAIL-003). */
+  walkedPaths: WalkedEdge[];
   /** True once an existing run has been restored or a new one opened. */
   ready: boolean;
 }
@@ -76,6 +79,7 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
     lastRejection: null,
     unobservedMs: 0,
     revealed: [],
+    walkedPaths: [],
     ready: false,
   });
 
@@ -96,6 +100,7 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
       const existing = await repository.getActiveRun();
       const runId = existing ? existing.id : await repository.startRun(Date.now());
       const points = existing ? await repository.getTrailPoints(runId) : [];
+      const walkedPaths = await repository.getWalkedPaths();
       if (cancelled) return;
 
       runIdRef.current = runId;
@@ -106,6 +111,7 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
         lastRejection: null,
         unobservedMs: 0,
         revealed: [],
+        walkedPaths,
         ready: true,
       });
     })();
@@ -133,10 +139,13 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
 
     const result = await repository.submitTrail(runId, batch);
     const points = await repository.getTrailPoints(runId);
+    // The batch just wore the walked-path store; re-read so the layer thickens live.
+    const walkedPaths = await repository.getWalkedPaths();
 
     setState((s) => ({
       ...s,
       points,
+      walkedPaths,
       distanceM: s.distanceM + result.distanceM,
       lastRejection: actionableRejection(result.rejected),
       unobservedMs: s.unobservedMs + result.unobservedMs,

@@ -219,6 +219,30 @@ export const MAX_TEMPLE_EXPANSION = 3;
 /** Each expansion level adds this fraction of the temple's base rate. */
 export const MANA_EXPANSION_STEP = 0.5;
 
+/* --- Walked paths (BRDC-TRAIL-003) ---------------------------------- */
+
+/**
+ * The resolution a walked path is broken into. Res 12 is about 9 m across — a path is
+ * one cell wide and its corners still turn, where res 11 (~25 m) rounds them off and
+ * res 13 (~6 m) multiplies the stored segments past what a phone should hold.
+ */
+export const PATH_SEGMENT_RES = 12;
+
+/**
+ * Wear tiers, and the visit count each one begins at. A segment walked once is a `path`;
+ * walked forty times it is a `rail` and stays one — the last tier has no ceiling. The
+ * curve is deliberately steep at the top so a daily commute takes weeks to pave, not days.
+ */
+export const PATH_TIERS = ['path', 'track', 'road', 'avenue', 'rail'] as const;
+export const PATH_TIER_VISITS = [1, 4, 10, 20, 40] as const;
+
+/**
+ * Most walked segments kept before the least-worn are dropped. A month of city walking
+ * sits well under this; the cap is the guard against an unbounded store, not a budget a
+ * player is meant to feel.
+ */
+export const MAX_PATH_SEGMENTS = 6_000;
+
 /* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
 
 /**
