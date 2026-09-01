@@ -2,10 +2,11 @@
  * BRDC-SPELL-001 — casting through the repository: research yields, protection shelters.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EMPTY_POOL, SPELLS } from '@es3/core';
+import { EMPTY_POOL, SPELLS, neighboursOf } from '@es3/core';
 import type { ResourcePool } from '@es3/core';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
+import { K } from './keys.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
 
 const ORIGIN = { lat: 61.47290805294704, lng: 23.725882485862012 };
@@ -25,10 +26,11 @@ async function repoWith(pool: Partial<ResourcePool>, researched: string[]) {
 
 describe('spells through the repository', () => {
   let repo: MockRepository;
+  let store: MemoryStore;
   let home: string;
 
   beforeEach(async () => {
-    ({ repo, home } = await repoWith({ mana: 500 }, ['astronomy', 'fortification']));
+    ({ repo, store, home } = await repoWith({ mana: 500 }, ['astronomy', 'fortification']));
   });
 
   it('casts a research spell, spends mana, and wisdom then accrues to the domain', async () => {
@@ -53,12 +55,20 @@ describe('spells through the repository', () => {
   });
 
   it('a protection spell shelters its cell from decay, and the hours outlast the spell', async () => {
-    const bare = (await repoWith({ mana: 0 }, [])).repo;
-    await repo.castSpell('bulwark', home, T0);
+    // Not the Hearth — it no longer decays at all (BRDC-HEARTH-002), so it cannot
+    // show a Bulwark's slowdown. A held cell one step away does.
+    const ward = neighboursOf(home)[0] as string;
+    const seedWard = (s: MemoryStore) =>
+      s.set(K.cell(ward), { h3: ward, ownerId: 'me', strength: 100, lastVisitedAt: T0, visitDays: [] });
+
+    const bareSetup = await repoWith({ mana: 0 }, []);
+    await seedWard(store);
+    await seedWard(bareSetup.store);
+    await repo.castSpell('bulwark', ward, T0);
 
     const at = T0 + GRACE + 72 * HOUR;
-    const shielded = (await repo.getOwnedCells(at)).find((c) => c.h3 === home);
-    const exposed = (await bare.getOwnedCells(at)).find((c) => c.h3 === home);
+    const shielded = (await repo.getOwnedCells(at)).find((c) => c.h3 === ward);
+    const exposed = (await bareSetup.repo.getOwnedCells(at)).find((c) => c.h3 === ward);
 
     expect(shielded && exposed).toBeTruthy();
     expect((shielded as { strength: number }).strength).toBeGreaterThan(

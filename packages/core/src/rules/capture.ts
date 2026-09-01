@@ -75,6 +75,13 @@ export function resolveCapture(
   attacker: Attacker,
   now: number,
   defence = 0,
+  /**
+   * The defender's Hearth, if this cell is it. A Hearth can be besieged but never
+   * actually taken (BRDC-HEARTH-002). No live path reaches this yet — `wager.ts` and
+   * `spoils.ts` already refuse to touch local ground — but Phase 5's real shared-world
+   * combat will, and the guard costs nothing now.
+   */
+  defenderHome: H3Index | null = null,
 ): CaptureResult {
   const strengthBefore = cell.strength;
   const previousOwner = cell.ownerId;
@@ -159,7 +166,10 @@ export function resolveCapture(
   // weak pass can bounce off entirely; the defence is capped so the cell still falls to a
   // besieger with a neighbour bonus, just over more walks.
   const damage = Math.max(0, attackPower(attacker) - Math.max(0, defence));
-  const remaining = strengthBefore - damage;
+  // The Hearth holds at 1 rather than falling: two or three walks can wear it down to
+  // nothing, and it still never changes hands.
+  const floor = defenderHome !== null && cell.h3 === defenderHome ? 1 : 0;
+  const remaining = Math.max(floor, strengthBefore - damage);
 
   if (remaining > 0) {
     return {

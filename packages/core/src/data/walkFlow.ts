@@ -81,13 +81,15 @@ export async function closeWalk(d: WalkDeps, runId: RunId, now: number): Promise
   const detected = detectLoop(points, { level: profile.level });
   if (!detected.closed) return { closed: false };
 
+  const home = (await d.store.get<string>(K.home)) ?? null;
   const known = new Map<string, Cell>();
   for (const h3 of cellsToLoad(detected.loop)) {
     const stored = await d.store.get<Cell>(K.cell(h3));
     // Aged first: besieging a cell that has already rotted away should find
-    // empty ground, not a defender who stopped existing last week.
+    // empty ground, not a defender who stopped existing last week. The Hearth is
+    // exempt — a loop that clips it must never be what deletes it (BRDC-HEARTH-002).
     if (stored) {
-      const [alive] = sweepDecay([stored], now).cells;
+      const [alive] = sweepDecay([stored], now, undefined, home).cells;
       if (alive) known.set(h3, alive);
       else await d.store.delete(K.cell(h3));
     }

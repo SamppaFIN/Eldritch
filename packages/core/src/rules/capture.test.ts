@@ -206,6 +206,22 @@ describe('siege — an enemy cell does not flip in one pass', () => {
     const mine = ownedBy('me', 100, DAY(0));
     expect(resolveCapture(mine, ME, DAY(1), 9_999).outcome.kind).toBe('reinforced');
   });
+
+  it('the defender\'s Hearth holds at 1 and never flips (BRDC-HEARTH-002)', () => {
+    let cell = ownedBy(RIVAL, MAX_STRENGTH, DAY(0));
+    for (let pass = 1; pass <= 20; pass++) {
+      const { cell: after, outcome } = resolveCapture(cell, ME, DAY(pass), 0, cell.h3);
+      cell = after;
+      expect(outcome.kind).toBe('damaged');
+      expect(cell.ownerId).toBe(RIVAL);
+    }
+    expect(cell.strength).toBe(1);
+  });
+
+  it('the Hearth floor is opt-in — without the argument it falls like any cell', () => {
+    const cell = ownedBy(RIVAL, 50, DAY(0));
+    expect(resolveCapture(cell, ME, DAY(1)).outcome.kind).toBe('taken');
+  });
 });
 
 describe('outcomes report both sides of the change', () => {

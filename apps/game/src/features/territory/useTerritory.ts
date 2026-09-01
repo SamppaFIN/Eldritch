@@ -43,6 +43,8 @@ export interface UseTerritoryOptions {
   trailVersion: number;
   bbox: BBox | null;
   now: () => number;
+  /** The Hearth cell — it never fades, so it is left out of the fade warning. */
+  home?: string | null;
 }
 
 export function useTerritory({
@@ -52,6 +54,7 @@ export function useTerritory({
   bbox,
   now,
   position = null,
+  home = null,
 }: UseTerritoryOptions): TerritoryState {
   const [cells, setCells] = useState<Cell[]>([]);
   const [owned, setOwned] = useState<Cell[]>([]);
@@ -150,6 +153,7 @@ export function useTerritory({
   let fading = 0;
 
   for (const cell of owned) {
+    if (cell.h3 === home) continue; // the Hearth cannot fade (BRDC-HEARTH-002)
     const elapsed = (at - cell.lastVisitedAt) / 3_600_000;
     const remaining = hoursUntilReleased(cell.strength) - elapsed;
     if (remaining <= FADING_WARNING_HOURS) {

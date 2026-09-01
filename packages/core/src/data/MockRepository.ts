@@ -319,13 +319,14 @@ export class MockRepository implements GameRepository {
   async getCells(bbox: BBox, now: number): Promise<Cell[]> {
     const inView = await cellsInBBox(this.store, bbox);
     const loyalty = await this.loyaltyOver(inView);
-    return (await sweepAndPersist(this.store, inView, now, loyalty)).cells;
+    return (await sweepAndPersist(this.store, inView, now, loyalty, await this.getHome())).cells;
   }
 
   async getOwnedCells(now: number): Promise<Cell[]> {
     const me = await this.getProfile();
     const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
-    return (await sweepAndPersist(this.store, mine, now, await this.loyaltyOver(mine))).cells;
+    const loyalty = await this.loyaltyOver(mine);
+    return (await sweepAndPersist(this.store, mine, now, loyalty, await this.getHome())).cells;
   }
 
   /** A decay-multiplier resolver: <1 for my cells next to my Monuments or a place, else 1.
@@ -348,7 +349,8 @@ export class MockRepository implements GameRepository {
 
   async runDecay(now: number): Promise<DecayResult> {
     const all = await allCells(this.store);
-    const sweep = await sweepAndPersist(this.store, all, now, await this.loyaltyOver(all));
+    const loyalty = await this.loyaltyOver(all);
+    const sweep = await sweepAndPersist(this.store, all, now, loyalty, await this.getHome());
     return { weakened: sweep.weakened, released: sweep.released };
   }
 

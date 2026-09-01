@@ -185,3 +185,26 @@ describe('imported cells do not decay (BRDC-SHARE-001)', () => {
     expect(sweep).toEqual({ cells: [fromWorld], weakened: [], released: [] });
   });
 });
+
+describe('the Hearth does not decay (BRDC-HEARTH-002)', () => {
+  it('projectCell returns the home cell unchanged 60 days on', () => {
+    const home = cell(BASE_STRENGTH, 'hearth');
+    expect(projectCell(home, days(60), 1, 'hearth')).toEqual(home);
+  });
+
+  it('a non-home cell at the same age is long gone', () => {
+    expect(projectCell(cell(BASE_STRENGTH, 'other'), days(60), 1, 'hearth')).toBeNull();
+  });
+
+  it('sweepDecay never weakens or releases the home cell', () => {
+    const home = cell(BASE_STRENGTH, 'hearth');
+    const sweep = sweepDecay([home, cell(BASE_STRENGTH, 'other')], days(60), undefined, 'hearth');
+    expect(sweep.released).toEqual(['other']);
+    expect(sweep.weakened).toEqual([]);
+    expect(sweep.cells).toEqual([home]);
+  });
+
+  it('without a home argument it decays like any cell — the guard is opt-in', () => {
+    expect(projectCell(cell(BASE_STRENGTH, 'hearth'), days(60))).toBeNull();
+  });
+});

@@ -50,13 +50,18 @@ describe('area auras through the repository', () => {
   it('a Monument makes the ground beside it decay slower, not never', async () => {
     const { repo, store, home } = await repoWith({ stone: 999, culture: 999 });
     const beside = neighboursOf(home)[0] as string;
+    // A held cell next to the Monument but not the Hearth — the Hearth no longer
+    // decays at all (BRDC-HEARTH-002), so it cannot show a slowdown.
+    const ward = neighboursOf(beside).find((h) => h !== home && h !== beside) as string;
     await own(store, beside);
+    await own(store, ward);
     expect(await repo.build(beside, 'monument', T0)).toMatchObject({ ok: true });
 
-    const bare = (await repoWith({})).repo;
+    const bare = await repoWith({});
+    await own(bare.store, ward);
     const at = T0 + GRACE + 72 * HOUR;
-    const loyal = (await repo.getOwnedCells(at)).find((c) => c.h3 === home);
-    const exposed = (await bare.getOwnedCells(at)).find((c) => c.h3 === home);
+    const loyal = (await repo.getOwnedCells(at)).find((c) => c.h3 === ward);
+    const exposed = (await bare.repo.getOwnedCells(at)).find((c) => c.h3 === ward);
 
     expect(loyal && exposed).toBeTruthy();
     expect((loyal as { strength: number }).strength).toBeGreaterThan(

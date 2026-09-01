@@ -13,7 +13,7 @@
  * static site, and in Phase 3 the same arithmetic runs in SQL — a scheduled job would
  * put the two out of step, and the golden-fixture tests would be right to fail.
  */
-import type { Cell } from '../types/domain.js';
+import type { Cell, H3Index } from '../types/domain.js';
 import {
   DECAY_GRACE_HOURS,
   DECAY_LATE_AFTER_DAYS,
@@ -40,8 +40,17 @@ import {
  * very weak cell, it is unowned ground again, and a caller that treats it as still-held
  * would keep a ghost on the map forever.
  */
-export function projectCell(cell: Cell, now: number, loyalty = 1): Cell | null {
+export function projectCell(
+  cell: Cell,
+  now: number,
+  loyalty = 1,
+  home: H3Index | null = null,
+): Cell | null {
   if (cell.ownerId === null) return cell;
+
+  // The Hearth cannot be lost (BRDC-HEARTH-002). It is the cell the player agreed to
+  // start from; the Void does not get to take it back, however long they stay away.
+  if (home && cell.h3 === home) return cell;
 
   // A cell from world.json is someone else's ground, refreshed by cron. This device
   // never witnesses its visits, so ageing it here would invent a decay nobody agreed to
@@ -110,13 +119,14 @@ export function sweepDecay(
   cells: readonly Cell[],
   now: number,
   loyalty?: (cell: Cell) => number,
+  home: H3Index | null = null,
 ): DecaySweep {
   const kept: Cell[] = [];
   const weakened: string[] = [];
   const released: string[] = [];
 
   for (const cell of cells) {
-    const after = projectCell(cell, now, loyalty?.(cell) ?? 1);
+    const after = projectCell(cell, now, loyalty?.(cell) ?? 1, home);
     if (after === null) {
       released.push(cell.h3);
       continue;

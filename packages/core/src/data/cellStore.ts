@@ -16,7 +16,7 @@ import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
-import type { BBox, Cell, PlayerId, Terrain } from '../types/domain.js';
+import type { BBox, Cell, H3Index, PlayerId, Terrain } from '../types/domain.js';
 
 export const CELL_PREFIX = 'cell:';
 
@@ -87,8 +87,9 @@ export async function sweepAndPersist(
   cells: readonly Cell[],
   now: number,
   loyalty?: (cell: Cell) => number,
+  home: H3Index | null = null,
 ): Promise<DecaySweep> {
-  const sweep = sweepDecay(cells, now, loyalty);
+  const sweep = sweepDecay(cells, now, loyalty, home);
   for (const h3 of sweep.released) await store.delete(K.cell(h3));
   return sweep;
 }

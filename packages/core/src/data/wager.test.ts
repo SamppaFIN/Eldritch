@@ -129,11 +129,13 @@ describe('the Wager, carried by hand', () => {
   });
 
   it('sends ground that is still standing, not ground the Void already took', async () => {
-    // Exported forty days later: everything of theirs has decayed away, and an empty
-    // challenge is the honest thing to send.
+    // Exported forty days later: everything of theirs has decayed away except the
+    // Hearth, which cannot be lost (BRDC-HEARTH-002) — so a challenge that carries
+    // only the home cell is the honest thing to send.
     const late = T0 + 40 * 86_400_000;
     const text = await sender.exportChallenge(late);
-    expect(JSON.parse(text).cells).toEqual([]);
+    const home = await sender.getCastle();
+    expect(JSON.parse(text).cells.map((c: { h3: string }) => c.h3)).toEqual([home]);
   });
 
   it('carries their Keep', async () => {

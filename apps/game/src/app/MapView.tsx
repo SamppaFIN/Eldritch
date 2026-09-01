@@ -163,6 +163,7 @@ export function MapView({ onLeave }: MapViewProps) {
     bbox,
     now: clock.now,
     position: point,
+    home: castle,
   });
 
   const worldStirredMs = useWorld({
