@@ -69,6 +69,9 @@ const GROUND: Readonly<Record<TerrainKind, string>> = {
   market: 'A place of trade',
 };
 
+/** Where the terrain reading came from (BRDC-TERRAIN-002, -003). */
+const SOURCE_LABEL = { tiles: '(from the map)', seed: '(surveyed)', hash: '(estimated)' } as const;
+
 const YIELD: Readonly<Record<TerrainKind, string>> = {
   plain: 'yields nothing',
   forest: 'yields timber',
@@ -220,10 +223,7 @@ export function CellPanel({
               </span>
             ) : null}
             {GROUND[terrain.kind]}
-            <span className="cell-panel__source">
-              {' '}
-              {terrain.source === 'tiles' ? '(from the map)' : '(estimated)'}
-            </span>
+            <span className="cell-panel__source"> {SOURCE_LABEL[terrain.source]}</span>
           </p>
           <p className="cell-panel__yield">
             {here ? 'You are here · ' : ''}

@@ -3,9 +3,13 @@ import { CLAIM_YIELD, cellAt, neighboursOf, resourceOf } from '@es3/core';
 import type { CaptureOutcome } from '@es3/core';
 import { gainsLine, isRewardClaim, resourceGainsFor } from './claimFeedback.js';
 
-/** A patch of real cells, grown outward from one point until we have enough. */
+/**
+ * A patch of real cells, grown outward from one point until we have enough. Started
+ * well away from the Härmälä survey box (BRDC-TERRAIN-003) so the terrain here is the
+ * hash and every resource kind actually turns up.
+ */
 function sample(n = 400): string[] {
-  const start = cellAt({ lat: 61.47290805294704, lng: 23.725882485862012 });
+  const start = cellAt({ lat: 62.6, lng: 25.7 });
   const seen = new Set<string>([start]);
   const queue = [start];
   while (seen.size < n && queue.length) {

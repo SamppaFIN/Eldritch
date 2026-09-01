@@ -51,7 +51,7 @@ export type TerrainKind =
   | 'market';
 
 /** Whether a cell's terrain was read from the map's vector tiles or stood in by a hash. */
-export type TerrainSource = 'tiles' | 'hash';
+export type TerrainSource = 'tiles' | 'hash' | 'seed';
 
 export interface Terrain {
   kind: TerrainKind;

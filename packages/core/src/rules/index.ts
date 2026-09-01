@@ -73,6 +73,7 @@ export {
   terrainOf,
   trickle,
 } from './terrain.js';
+export { SEED_BOX, seededTerrainOf } from './terrainSeed.js';
 export type {
   BuildSite,
   ResourceKind,
