@@ -272,6 +272,7 @@ export function MapView({ onLeave }: MapViewProps) {
         accuracyM={point?.accuracy}
         trail={trail.points}
         walkedPaths={trail.walkedPaths}
+        auraCells={inspect.auraCells}
         cells={territory.cells}
         playerId={profile?.id ?? null}
         places={places}

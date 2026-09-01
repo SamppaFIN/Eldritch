@@ -22,6 +22,7 @@ import type {
 } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import { ensurePathLayers, removePathLayers, setPathData } from '../trail/PathLayer.js';
+import { ensureAuraLayers, removeAuraLayers, setAuraData } from './AuraLayer.js';
 import {
   CELL_FILL_LAYER,
   ensureTerritoryLayers,
@@ -65,6 +66,8 @@ export interface MapCanvasProps {
   trail?: readonly TrailPoint[];
   /** Every stretch ever walked, thickening with use (BRDC-TRAIL-003). */
   walkedPaths?: readonly WalkedEdge[];
+  /** Hexes the selected cell's aura or loyalty reaches (BRDC-BUILD-004). */
+  auraCells?: readonly string[];
   /** Visible territory. */
   cells?: readonly Cell[];
   playerId?: PlayerId | null;
@@ -100,6 +103,7 @@ export function MapCanvas({
   accuracyM,
   trail,
   walkedPaths,
+  auraCells,
   cells,
   playerId = null,
   places,
@@ -160,6 +164,8 @@ export function MapCanvas({
     ensureTerritoryLayers(map);
     // Under the live ley-line: a worn path is history, the trail is now (BRDC-TRAIL-003).
     ensurePathLayers(map);
+    // Above territory, under the trail: it answers "what does this cell reach".
+    ensureAuraLayers(map);
     ensureTrailLayers(map);
     // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
@@ -174,6 +180,7 @@ export function MapCanvas({
         removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
+        removeAuraLayers(map);
         removePathLayers(map);
         removeTerritoryLayers(map);
       }
@@ -266,6 +273,11 @@ export function MapCanvas({
     if (!map || !ready) return;
     setPathData(map, walkedPaths ?? []);
   }, [map, ready, walkedPaths]);
+
+  useEffect(() => {
+    if (!map || !ready) return;
+    setAuraData(map, auraCells ?? []);
+  }, [map, ready, auraCells]);
 
   useEffect(() => {
     if (!map || !ready || !places) return;

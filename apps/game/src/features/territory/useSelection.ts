@@ -6,7 +6,7 @@
  * and it reads better here — nothing else in the map screen needs to know how it works.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { emptyCell } from '@es3/core';
+import { BUILDINGS, cellsWithin, emptyCell } from '@es3/core';
 import type {
   ActiveSpell,
   BuildRefusal,
@@ -75,6 +75,8 @@ export interface SpellBinding {
 export interface Selection {
   selected: H3Index | null;
   cell: Cell | null;
+  /** The hexes the selected cell's aura or loyalty touches, for the map overlay. */
+  auraCells: readonly H3Index[];
   place: PlaceBinding;
   spell: SpellBinding;
   refusal: WardRefusal | null;
@@ -270,9 +272,20 @@ export function useSelection({
 
   const here = selected ? (livePlaces.find((p) => p.h3 === selected) ?? null) : null;
 
+  // What the selected cell reaches: a building's aura radius, or the loyalty ring around
+  // a Monument or a revealed place (BRDC-BUILD-004). Empty for plain ground.
+  const auraCells = useMemo<readonly H3Index[]>(() => {
+    if (!cell) return [];
+    const aura = cell.building ? BUILDINGS[cell.building.id].aura : undefined;
+    if (aura) return cellsWithin(cell.h3, aura.radius);
+    if (cell.building?.id === 'monument' || here) return cellsWithin(cell.h3, 1);
+    return [];
+  }, [cell, here]);
+
   return {
     selected,
     cell,
+    auraCells,
     place: {
       dwellMs,
       hasAnchor: livePlaces.some((p) => p.kind === 'anchor'),

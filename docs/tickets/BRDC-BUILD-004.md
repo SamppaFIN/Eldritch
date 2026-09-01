@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-003, BRDC-CLAIM-004, BRDC-INSPECT-001 |
-| **Status** | `in_progress` — 2026-09-01: Linnoitus + Kauppareitti tehty; karttaoverlay jäljellä |
-| **Valmius** | 75 % |
+| **Status** | `in_progress` — 2026-09-01: Linnoitus + Kauppareitti + overlay tehty; kauppareitin kaksinapautus-UI jäljellä |
+| **Valmius** | 90 % |
 | **Lähde** | BRDC-BUILD-003:n siirretyt kohdat (2026-09-01) |
 
 ## 🔴 RED
@@ -37,8 +37,10 @@ kohtaa jäi, koska ne eivät folddaa olemassa oleviin saumoihin yhtä siististi:
       ≤ `TRADE_ROUTE_MAX_HEXES` päässä, ei duplikaattia; `routeGoldBonus` → `perHourBonus`
       (`TRADE_ROUTE_GOLD`/h kun molemmat päät hereillä). Ei `cell.building`issa
 - [x] `removeRouteAt` hyvittää puolikkaan (`routeRefund`, `DEMOLISH_REFUND`)
-- [~] **Vaikutusalue kartalla** — jäljellä. `AuraLayer.ts` + `useSelection`-bindaus +
-      `MapCanvas`. Ydin toimii ilman sitä
+- [x] **Vaikutusalue kartalla**: `AuraLayer.ts` (GeoJSON, täyttö + katkoviivareunus)
+      piirtää `useSelection.auraCells`:n — rakennuksen `aura.radius`, tai Monumentin /
+      paikan uskollisuus­renkaan (säde 1). Territoryn päällä, ley-linen alla. `[~]`
+      selaimessa todentamatta
 - [x] Puhtaat funktiot testattu: `aura.test.ts` (defenceAura päällekkäisillä + katto),
       `capture.test.ts` (max(0)-lattia), `trade.test.ts` (sidos, etäisyys, duplikaatti,
       kulta, hyvitys)
