@@ -77,6 +77,8 @@ export interface MapCanvasProps {
   questSites?: readonly string[];
   /** The Keep — the published location, the Hearth cell (BRDC-CASTLE-001). Null before one exists. */
   castle?: H3Index | null;
+  /** Game time, for the blight wash on decaying cells (BRDC-BLIGHT-001). */
+  now?: number;
   /**
    * Cells a closure has just taken, and when.
    *
@@ -114,6 +116,7 @@ export function MapCanvas({
   places,
   questSites,
   castle = null,
+  now = 0,
   awakening = null,
   initialZoom,
   follow = true,
@@ -201,8 +204,8 @@ export function MapCanvas({
 
   useEffect(() => {
     if (!map || !ready || !cells) return;
-    setTerritoryData(map, cells, playerId);
-  }, [map, ready, cells, playerId]);
+    setTerritoryData(map, cells, playerId, now, castle);
+  }, [map, ready, cells, playerId, now, castle]);
 
   /*
    * Tapping a hexagon — any hexagon, claimed or not. A rendered cell carries its H3 as

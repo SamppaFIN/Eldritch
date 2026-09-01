@@ -11,12 +11,13 @@
 import type { FeatureCollection, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { MAX_STRENGTH } from '@es3/core';
-import type { Cell, PlayerId } from '@es3/core';
+import type { Cell, H3Index, PlayerId } from '@es3/core';
 import { CONTESTED_STROKE, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 
 export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
+export const CELL_BLIGHT_LAYER = 'cells-blight';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';
@@ -65,6 +66,23 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
         MAX_STRENGTH,
         0.5,
       ],
+    },
+  });
+
+  /*
+   * The blight (BRDC-BLIGHT-001) — decay wearing a face. A near-black wash over a cell
+   * that has gone too long unwalked, deepening with the days and worse at the border of
+   * your ground. Above the fill, below the strokes, so the dashed `contested` line still
+   * reads on top. `blight` is 0..1; a single visit clears it.
+   */
+  map.addLayer({
+    id: CELL_BLIGHT_LAYER,
+    type: 'fill',
+    source: CELL_SOURCE,
+    filter: ['>', ['get', 'blight'], 0.02],
+    paint: {
+      'fill-color': '#0a0612',
+      'fill-opacity': ['*', ['get', 'blight'], 0.6],
     },
   });
 
@@ -189,10 +207,12 @@ export function setTerritoryData(
   map: MapLibreMap,
   cells: readonly Cell[],
   me: PlayerId | null,
+  now = 0,
+  home: H3Index | null = null,
 ): void {
   const source = map.getSource(CELL_SOURCE);
   (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
-    cellsToGeoJson(cells, me),
+    cellsToGeoJson(cells, me, now, home),
   );
 }
 
@@ -203,6 +223,7 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
     CELL_ICON_LAYER,
     CELL_CONTESTED_LAYER,
     CELL_LINE_LAYER,
+    CELL_BLIGHT_LAYER,
     CELL_FILL_LAYER,
   ]) {
     if (map.getLayer(id)) map.removeLayer(id);

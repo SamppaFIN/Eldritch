@@ -15,6 +15,7 @@
  */
 import type { Cell, H3Index } from '../types/domain.js';
 import {
+  BLIGHT_FULL_HOURS,
   DECAY_GRACE_HOURS,
   DECAY_LATE_AFTER_DAYS,
   DECAY_PER_DAY,
@@ -70,6 +71,24 @@ export function projectCell(
 
   // lastVisitedAt is untouched, which is what keeps the projection honest.
   return { ...cell, strength };
+}
+
+/**
+ * How blighted a cell looks, 0..1 (BRDC-BLIGHT-001). Rendering only — the Void's *hold*
+ * on the ground, not its arithmetic.
+ *
+ * The same three exemptions `projectCell` makes: an unowned cell, an `imported` one, and
+ * the Hearth never blight. Nothing happens inside the grace period. After it, the stain
+ * deepens purely with time unwalked — `BLIGHT_FULL_HOURS` past grace and it is at full
+ * depth. Strength is deliberately not in it: "how long since a visit" is the whole
+ * signal, and a single visit clears it (it resets `lastVisitedAt`).
+ */
+export function blightLevel(cell: Cell, now: number, home: H3Index | null = null): number {
+  if (cell.ownerId === null || cell.imported || (home && cell.h3 === home)) return 0;
+  const hours = Math.max(0, now - cell.lastVisitedAt - (cell.shelteredMs ?? 0)) / 3_600_000;
+  const past = hours - DECAY_GRACE_HOURS;
+  if (past <= 0) return 0;
+  return Math.min(1, past / BLIGHT_FULL_HOURS);
 }
 
 /** Strength lost after `hours` without a visit. */

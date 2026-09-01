@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import type { Cell } from '../types/domain.js';
 import {
   BASE_STRENGTH,
+  BLIGHT_FULL_HOURS,
   DECAY_GRACE_HOURS,
   DECAY_LATE_AFTER_DAYS,
   DECAY_PER_DAY,
   DECAY_PER_DAY_LATE,
   MAX_STRENGTH,
 } from './constants.js';
-import { decayAmount, hoursUntilReleased, projectCell, sweepDecay } from './decay.js';
+import { blightLevel, decayAmount, hoursUntilReleased, projectCell, sweepDecay } from './decay.js';
 import { utcDay } from './day.js';
 
 const T0 = Date.parse('2026-08-27T12:00:00Z');
@@ -46,6 +47,35 @@ describe('grace period', () => {
     expect(loyal).toBeGreaterThan(full);
     expect(loyal).toBeLessThan(300);
     expect(loyal - 300).toBeCloseTo((full - 300) * 0.5, 5);
+  });
+});
+
+describe('blightLevel (BRDC-BLIGHT-001)', () => {
+  it('is zero inside the grace period', () => {
+    expect(blightLevel(cell(300), hours(DECAY_GRACE_HOURS - 1))).toBe(0);
+    expect(blightLevel(cell(300), hours(DECAY_GRACE_HOURS))).toBe(0);
+  });
+
+  it('rises with time past grace and caps at one', () => {
+    const half = blightLevel(cell(300), hours(DECAY_GRACE_HOURS + BLIGHT_FULL_HOURS / 2));
+    expect(half).toBeCloseTo(0.5, 2);
+    expect(blightLevel(cell(300), hours(DECAY_GRACE_HOURS + BLIGHT_FULL_HOURS))).toBe(1);
+    expect(blightLevel(cell(300), hours(DECAY_GRACE_HOURS + BLIGHT_FULL_HOURS * 5))).toBe(1);
+  });
+
+  it('never blights the Hearth, an imported cell, or unowned ground', () => {
+    const old = hours(DECAY_GRACE_HOURS + BLIGHT_FULL_HOURS * 3);
+    expect(blightLevel(cell(300, 'home'), old, 'home')).toBe(0);
+    expect(blightLevel({ ...cell(300), imported: true }, old)).toBe(0);
+    expect(blightLevel({ ...cell(300), ownerId: null }, old)).toBe(0);
+  });
+
+  it('a Bulwark shelter pushes the onset back', () => {
+    const at = hours(DECAY_GRACE_HOURS + 100);
+    const plain = cell(300);
+    const sheltered = { ...plain, shelteredMs: 100 * 3_600_000 };
+    expect(blightLevel(sheltered, at)).toBe(0);
+    expect(blightLevel(plain, at)).toBeGreaterThan(0);
   });
 });
 

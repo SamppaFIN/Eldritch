@@ -259,6 +259,7 @@ export function MapView({ onLeave }: MapViewProps) {
         places={places}
         questSites={quest.questSites}
         castle={castle}
+        now={clock.now()}
         awakening={awakening}
         initialZoom={openingZoom}
         onBasemapChange={setBasemap}

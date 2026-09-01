@@ -61,7 +61,7 @@ export type {
   AdventureStage,
 } from './adventure.js';
 export { timeToAfford } from './afford.js';
-export { projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
+export { blightLevel, projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
 export { growInto, growthNeighbourhood } from './growth.js';
 export type { GrowthResult } from './growth.js';

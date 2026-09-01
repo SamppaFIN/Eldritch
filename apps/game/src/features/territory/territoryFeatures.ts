@@ -6,7 +6,15 @@
  * and decisions deserve tests. What is left in TerritoryLayer is MapLibre plumbing.
  */
 import type { Feature, FeatureCollection, Polygon } from 'geojson';
-import { anomalyAt, emptyCell, neighboursOf, terrainOf, TERRAIN_TABLE } from '@es3/core';
+import {
+  BLIGHT_EDGE_FACTOR,
+  anomalyAt,
+  blightLevel,
+  emptyCell,
+  neighboursOf,
+  terrainOf,
+  TERRAIN_TABLE,
+} from '@es3/core';
 import { cellBoundary } from '@es3/core';
 import type { Cell, CaptureOutcome, H3Index, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
 import { buildingGlyph } from './buildingGlyphs.js';
@@ -69,6 +77,8 @@ export interface CellProperties {
   building: string;
   /** The building glyph's colour, by role. `''` alongside an empty building glyph. */
   buildingColor: string;
+  /** Blight, 0..1 (BRDC-BLIGHT-001) — how far the Void has crept in. Rendering only. */
+  blight: number;
 }
 
 /**
@@ -155,7 +165,13 @@ export function anomalyGlyphFor(cell: Cell): string {
   return a.stage !== undefined ? '✦' : '◐';
 }
 
-export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties {
+export function cellProperties(
+  cell: Cell,
+  me: PlayerId | null,
+  now = 0,
+  home: H3Index | null = null,
+  isBorder = false,
+): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const rival = cell.ownerId !== null && !mine;
   const glyph = terrainGlyph(terrainOf(cell.h3).kind);
@@ -173,14 +189,21 @@ export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties 
     anomaly: mine ? anomalyGlyphFor(cell) : '',
     building: bg?.char ?? '',
     buildingColor: bg?.color ?? '',
+    blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
   };
 }
 
-export function cellToFeature(cell: Cell, me: PlayerId | null): Feature<Polygon, CellProperties> {
+export function cellToFeature(
+  cell: Cell,
+  me: PlayerId | null,
+  now = 0,
+  home: H3Index | null = null,
+  isBorder = false,
+): Feature<Polygon, CellProperties> {
   return {
     type: 'Feature',
     id: cell.h3,
-    properties: cellProperties(cell, me),
+    properties: cellProperties(cell, me, now, home, isBorder),
     geometry: { type: 'Polygon', coordinates: [cellBoundary(cell.h3)] },
   };
 }
@@ -188,6 +211,16 @@ export function cellToFeature(cell: Cell, me: PlayerId | null): Feature<Polygon,
 export function cellsToGeoJson(
   cells: readonly Cell[],
   me: PlayerId | null,
+  now = 0,
+  home: H3Index | null = null,
 ): FeatureCollection<Polygon, CellProperties> {
-  return { type: 'FeatureCollection', features: cells.map((cell) => cellToFeature(cell, me)) };
+  // A border cell is one of mine with at least one neighbour I do not hold — the blight
+  // creeps in from there, so it is drawn a little deeper (BRDC-BLIGHT-001).
+  const ownedH3 = new Set(cells.filter((c) => c.ownerId === me).map((c) => c.h3));
+  const isBorder = (c: Cell): boolean =>
+    c.ownerId === me && neighboursOf(c.h3).some((n) => !ownedH3.has(n));
+  return {
+    type: 'FeatureCollection',
+    features: cells.map((cell) => cellToFeature(cell, me, now, home, isBorder(cell))),
+  };
 }

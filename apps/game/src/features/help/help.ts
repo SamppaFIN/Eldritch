@@ -66,6 +66,7 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     body: [
       'Ground nobody walks fades. Two days\' grace after your last visit, then a slow bleed of strength, then a faster one after a fortnight. At zero the cell is released — it is unowned ground again, not a very weak cell you still hold.',
       'A maxed cell survives about 33 days untouched; a freshly claimed one about 12. This is what keeps the map alive with only a couple of players. Your Hearth is the exception: it never fades.',
+      'The dark stain that creeps over neglected ground is the Void\'s hold made visible — deeper the longer you stay away, and worst at the edge of what you hold. A single walk across the cell clears it.',
     ],
   },
   work: {

@@ -96,6 +96,15 @@ export const DECAY_PER_DAY = 10;
 export const DECAY_PER_DAY_LATE = 25;
 export const DECAY_LATE_AFTER_DAYS = 14;
 
+/* --- Blight: decay wearing a face (BRDC-BLIGHT-001) ---------------------
+   A stain on a cell that deepens the longer it goes unwalked. Rendering only;
+   the numbers that matter to the game are the DECAY_* ones above. */
+
+/** Hours past grace at which the stain is at full depth. Tunable on sight. */
+export const BLIGHT_FULL_HOURS = 240;
+/** A blighted cell that borders unowned ground looks this much worse. */
+export const BLIGHT_EDGE_FACTOR = 1.5;
+
 /* --- Consciousness levels (v2 GameConfig.consciousness) -------------------
    v2's table stopped at 20 but its code let a player reach 118 and corrupted
    the save. The cap is the fix, and it is not optional. */
@@ -175,7 +184,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.3';
+export const APP_VERSION = '0.5.4';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 

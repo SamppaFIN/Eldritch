@@ -233,7 +233,7 @@ export function Hud({
         {fading > 0 ? (
           <p className="hud__note hud__note--warn" role="status">
             {fading} {fading === 1 ? 'cell fades' : 'cells fade'}
-            {fadingInHours !== null ? ` in ${formatHours(fadingInHours)}` : ''} — walk them
+            {fadingInHours !== null ? ` in ${formatHours(fadingInHours)}` : ''} — the blight is on them, walk them
           </p>
         ) : null}
 

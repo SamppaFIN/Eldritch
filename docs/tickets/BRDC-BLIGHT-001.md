@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S–M (render + copy -kerros olemassa olevan decayn päälle) |
 | **Riippuvuudet** | BRDC-CLAIM-005 (decay/sweep), BRDC-MAP-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` |
+| **Valmius** | 100 % |
 | **Lähde** | Infinite 2026-09-02: *"esim hirviöt"* → rappio hirviönä; Aavistuksen ehdotus |
 
 ## 🔴 RED
@@ -17,19 +17,21 @@ taistella, vain numero joka pienenee. Sama matikka voisi näkyä asiana.
 
 ## 🟢 GREEN
 
-- [ ] **Blight = decay-tila renderöitynä.** Ruutu jonka `strength` on grace-ajan alle ja
-      laskussa saa kartalla asteittaisen tumman tahran (fill-opacity nousee kun strength
-      lähenee nollaa). Ei uutta tilaa storeen — johdettu `projectCell`in tuloksesta.
-- [ ] **Turmelus leviää reunalta.** Jos omistetun ruudun **naapuri on omistamaton JA**
-      itse ruutu on jo blightissa, blight etenee visuaalisesti nopeammin (ei mekaanisesti —
-      pelkkä render­painotus, jotta reuna näyttää murenevan sisäänpäin).
-- [ ] **Kävely puhdistaa.** Blightatun ruudun vierailu (= `lastVisitedAt` päivittyy, kuten
-      nyt) poistaa tahran. Ei uutta verbiä — olemassa oleva reinforcement.
-- [ ] **HUD/loki copy:** "The Void reclaims" → "Turmelus vie N ruutua" + rivi "kävele ne
-      ennen kuin ne mätänevät". `describe.ts` `reclaim`-kind pysyy, teksti vaihtuu.
-- [ ] Puhdas `blightLevel(cell, now): 0..1` (`rules/decay.ts` tai `territoryFeatures.ts`),
-      testattu: grace-ajan sisällä 0, nollastrengthissä 1.
-- [ ] `prefers-reduced-motion`: tahra on staattinen, ei sykkivä.
+- [x] **Blight = decay-tila renderöitynä.** `blightLevel(cell, now, home?)` (`rules/decay.ts`,
+      puhdas): 0 grace-ajan sisällä, `clamp01((hoursPastGrace) / BLIGHT_FULL_HOURS)` sen
+      jälkeen, kaikki 1 kymmenen päivän jälkeen. Ei uutta tilaa. `CELL_BLIGHT_LAYER` on
+      near-black fill `fill-opacity = blight × 0.6`, fillin päällä, viivojen alla.
+- [x] **Turmelus leviää reunalta.** `cellsToGeoJson` laskee omistus-setin ja merkitsee
+      reunasolun (omistettu + ≥1 omistamaton naapuri); `blight × BLIGHT_EDGE_FACTOR (1.5)`,
+      katolla 1. Pelkkä render­painotus, ei mekaniikkaa.
+- [x] **Kävely puhdistaa.** Automaattista — vierailu nollaa `lastVisitedAt`in → past-grace
+      → blight 0 seuraavassa renderissä. Ei uutta verbiä.
+- [x] **Copy:** HUD:n himmenemisvaroitus "— the blight is on them, walk them";
+      `decay`-codexiin lause tahrasta. "The Void reclaims" jää fiktioksi, "blight" on vain
+      sen ilmiasun nimi — ei muuta uudelleennimetty.
+- [x] Puhdas `blightLevel` testattu (`decay.test.ts`): grace, ramppi, katto, Hearth/imported
+      poikkeukset, Bulwark-suoja. `territoryFeatures.test.ts` laajennettu. 834 vihreää.
+- [x] `prefers-reduced-motion`: tahra on staattinen fill, ei animaatiota purettavana.
 
 ## Ei tässä
 

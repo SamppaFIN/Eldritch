@@ -141,6 +141,27 @@ describe('building glyph (BRDC-ART-002)', () => {
   });
 });
 
+describe('blight (BRDC-BLIGHT-001)', () => {
+  const T0 = Date.parse('2026-09-02T12:00:00Z');
+  const long = (over: Partial<Cell> = {}): Cell => ({ ...cell(ME, 200), lastVisitedAt: 0, ...over });
+
+  it('a long-unvisited owned cell carries blight; a fresh one does not', () => {
+    expect(cellProperties(long(), ME, T0).blight).toBeGreaterThan(0);
+    expect(cellProperties(long({ lastVisitedAt: T0 }), ME, T0).blight).toBe(0); // just visited
+  });
+
+  it('the Hearth never blights', () => {
+    expect(cellProperties(long(), ME, T0, long().h3).blight).toBe(0);
+  });
+
+  it('a border cell blights deeper, still clamped to one', () => {
+    const plain = cellProperties(long(), ME, T0, null, false).blight;
+    const edge = cellProperties(long(), ME, T0, null, true).blight;
+    expect(edge).toBeGreaterThanOrEqual(plain);
+    expect(edge).toBeLessThanOrEqual(1);
+  });
+});
+
 describe('withFogOfWar', () => {
   it('keeps my cells and their neighbours, and nothing else', () => {
     const owned = [cell(ME, 200, H3)];
