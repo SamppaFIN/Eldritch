@@ -6,11 +6,12 @@
  * timestamped, no reward attached yet. Non-modal like the rest of the map's panels.
  */
 import { useEffect, useRef, useState } from 'react';
-import { QUEST_ITEMS, SECRET_SITES, levelState } from '@es3/core';
+import { QUEST_ITEMS, SECRET_SITES, SHARD_COUNT, levelState } from '@es3/core';
 import type { AchievementView, GameRepository, SecretSiteId } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { HelpTopic } from '../help/help.js';
 import { relativeTime } from '../log/describe.js';
+import { Heptagram } from '../cipher/heptagram.js';
 import { MILESTONES, milestoneForLevel } from './consciousness.js';
 import { useCharacter } from './useCharacter.js';
 import './character.css';
@@ -69,7 +70,7 @@ function Found({ finds, onTopic }: { finds: readonly SecretSiteId[]; onTopic: (t
 }
 
 export function CharacterPanel({ open, repository, now, version, onTopic, onClose }: CharacterPanelProps) {
-  const { profile, finds, achievements, onRename } = useCharacter(repository, now, open, version);
+  const { profile, finds, achievements, cipher, onRename } = useCharacter(repository, now, open, version);
   const [draft, setDraft] = useState('');
   const ref = useRef<HTMLElement>(null);
 
@@ -130,6 +131,33 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
 
       <h3 className="character__section">Found ({finds.length}/{SECRET_SITES.length})</h3>
       <Found finds={finds} onTopic={onTopic} />
+
+      {cipher.held.length > 0 ? (
+        <>
+          <h3 className="character__section">
+            The Cipher ({cipher.held.length}/{SHARD_COUNT})
+          </h3>
+          <div className="character__cipher">
+            <span className="character__cipher-sigil" aria-hidden>
+              <Heptagram held={cipher.held} size={104} />
+            </span>
+            <ul className="character__cipher-lines">
+              {cipher.fragments
+                .filter((f) => f.held)
+                .map((f) => (
+                  <li key={f.index}>{f.line}</li>
+                ))}
+            </ul>
+          </div>
+          {cipher.inscription ? (
+            <p className="character__cipher-whole">{cipher.inscription}</p>
+          ) : (
+            <p className="character__cipher-note">
+              More is scattered on the ground out there. Walk, and it gathers.
+            </p>
+          )}
+        </>
+      ) : null}
 
       <h3 className="character__section">Achievements</h3>
       <Achievements list={achievements} now={now()} />

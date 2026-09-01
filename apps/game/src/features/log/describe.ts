@@ -79,6 +79,7 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
         topic,
       };
     case 'quest': {
+      if (e.ref?.startsWith('shard:')) return { text: 'Found a fragment of the cipher', topic };
       const found = e.ref?.startsWith('found:') ? (e.ref.slice(6) as SecretSiteId) : null;
       return {
         text: found ? `Found ${QUEST_ITEMS[found]?.name ?? 'something'}` : 'Took a step in an adventure',

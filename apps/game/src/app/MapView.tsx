@@ -32,6 +32,8 @@ import { usePouchPolling } from '../features/territory/usePouchPolling.js';
 import { awakeningReveal, withFogOfWar } from '../features/territory/territoryFeatures.js';
 import { useFumingLake } from '../features/quest/useFumingLake.js';
 import { QuestReveal } from '../features/quest/QuestReveal.js';
+import { useCipher } from '../features/cipher/useCipher.js';
+import { CipherReveal } from '../features/cipher/CipherReveal.js';
 import { AdventureDialog } from '../features/quest/AdventureDialog.js';
 import { useCellTerrain } from '../features/map/useCellTerrain.js';
 import { useMapAside } from '../features/map/useMapAside.js';
@@ -212,6 +214,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
   const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
+  const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
 
   /*
    * A player who owns nothing has never seen the game do anything, so the map opens
@@ -269,6 +272,7 @@ export function MapView({ onLeave }: MapViewProps) {
       <ClaimBurst claim={territory.lastClaim} />
       <PlaceReveal revealed={trail.revealed} />
       <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />
+      <CipherReveal found={cipher.justFound} view={cipher.view} settings={settings} onDismiss={cipher.dismiss} />
       {quest.questHex ? (
         <AdventureDialog binding={quest.adventures} onClose={() => quest.openQuestHex(null)} />
       ) : null}

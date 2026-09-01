@@ -43,4 +43,6 @@ export const K = {
   questFinds: 'quest-finds',
   /** Achievement id → the ms it was first earned (BRDC-CHAR-001). */
   achievements: 'achievements',
+  /** Cipher fragment indices the player has walked onto, `number[]` (BRDC-CIPHER-001). */
+  cipherShards: 'cipher-shards',
 } as const;

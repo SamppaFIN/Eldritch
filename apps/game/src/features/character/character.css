@@ -179,3 +179,42 @@
   font: inherit;
   cursor: pointer;
 }
+
+.character__cipher {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.character__cipher-sigil {
+  flex: 0 0 auto;
+  color: var(--sacred-gold);
+}
+
+.character__cipher-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.character__cipher-whole {
+  margin: var(--space-1) 0 0;
+  color: var(--sacred-gold);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.55;
+}
+
+.character__cipher-note {
+  margin: var(--space-1) 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}

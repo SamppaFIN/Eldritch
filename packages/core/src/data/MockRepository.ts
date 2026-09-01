@@ -76,6 +76,7 @@ import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
 import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, getQuestFindsFor, investigateAnomalyFor, recordQuestFindFor, resolveAnomalyFor, startAdventureFor, type SecretSiteId } from './storyRepo.js';
+import { cipherView, recordShard, type CipherView } from './cipherStore.js';
 import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
 
 export interface MockRepositoryOptions {
@@ -297,6 +298,12 @@ export class MockRepository implements GameRepository {
   }
   recordQuestFind(id: SecretSiteId, now: number): Promise<SecretSiteId | null> {
     return recordQuestFindFor(this.store, id, now);
+  }
+  getCipher(): Promise<CipherView> {
+    return cipherView(this.store);
+  }
+  recordCipherShard(index: number, now: number): Promise<number | null> {
+    return recordShard(this.store, index, now);
   }
 
   /* --- Territory -------------------------------------------------------- */

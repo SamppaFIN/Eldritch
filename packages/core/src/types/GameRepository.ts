@@ -54,6 +54,7 @@ import type {
 } from '../data/adventureStore.js';
 import type { SecretSiteId } from '../data/questSites.js';
 import type { AchievementView } from '../data/achievementStore.js';
+import type { CipherView } from '../data/cipherStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -275,6 +276,10 @@ export interface GameRepository {
   getQuestFinds(): Promise<SecretSiteId[]>;
   /** Record a walk onto a secret site; returns the id if new, `null` if already found. */
   recordQuestFind(id: SecretSiteId, now: number): Promise<SecretSiteId | null>;
+  /** The scattered cipher — fragments held, and the writing once whole (BRDC-CIPHER-001). */
+  getCipher(): Promise<CipherView>;
+  /** Record a walk onto a cipher fragment cell; the index if new, `null` if already held. */
+  recordCipherShard(index: number, now: number): Promise<number | null>;
 
   /* --- Maintenance ------------------------------------------------------ */
   runDecay(now: number): Promise<DecayResult>;

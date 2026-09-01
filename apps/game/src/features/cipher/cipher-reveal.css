@@ -1,0 +1,78 @@
+/* Found a cipher fragment (BRDC-CIPHER-001). Waits for a tap. */
+
+.cipher-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: min(var(--space-6), 6vw);
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+  background: radial-gradient(
+    circle at 50% 45%,
+    color-mix(in oklch, var(--void-black) 74%, transparent),
+    color-mix(in oklch, var(--void-black) 94%, transparent) 60%
+  );
+  animation: cipher-reveal-in 0.6s var(--ease-out, ease-out) both;
+}
+
+.cipher-reveal__sigil {
+  color: var(--sacred-gold);
+  filter: drop-shadow(0 0 24px color-mix(in oklch, var(--sacred-gold) 42%, transparent));
+}
+
+.cipher-reveal__name {
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  letter-spacing: 0.05em;
+}
+
+.cipher-reveal__line {
+  max-inline-size: 34ch;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.cipher-reveal__count {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.cipher-reveal__hint {
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cipher-sigil__chord--on {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: cipher-draw 900ms var(--ease-out, ease-out) forwards;
+}
+
+@keyframes cipher-reveal-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cipher-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cipher-reveal { animation-duration: 0.01ms; }
+  .cipher-sigil__chord--on { animation: none; stroke-dashoffset: 0; }
+}

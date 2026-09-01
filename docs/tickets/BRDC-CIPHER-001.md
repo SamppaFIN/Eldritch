@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio (backlogia täyttöön, ei omaa featurea — §6 sääntö 6) |
 | **Effort** | M (1–2 tikettiä: keräys+kokoaminen, sitten repeämä-event) |
 | **Riippuvuudet** | BRDC-EVENT-001 (chain-engine), BRDC-CHAR-001 (found-items-osio), BRDC-REVEAL-001 (hash-tierit) |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `in-progress` — Vaihe 1 (keräys + kokoaminen) valmis v0.5.3, Vaihe 2 (repeämä) `todo` |
+| **Valmius** | 55 % |
 | **Lähde** | Infinite 2026-09-02: *"löydät reissuilta random viestejä jotka yhdessä kokoavat mystisen kirjoituksen ja kartan, millä pääsee toiseen ulottuvuuteen"* |
 
 ## 🔴 RED
@@ -17,30 +17,39 @@ deterministinen hash (`reveal.ts`, `anomaly.ts`), chain-engine ja Character-näk
 found-items-osio — kaikki palaset ovat jo olemassa, mutta mikään ei yhdistä niitä
 metsästykseen jolla on maali.
 
-## 🟢 GREEN
+## 🟢 GREEN — Vaihe 1 (valmis v0.5.3)
 
-- [ ] **`cipher`-hash-tier** `reveal.ts`:ään — hyvin harvinainen (~1 %), oma FNV-suola.
-      Deterministinen: sama ruutu joka puhelimessa, reload ei re-rollaa.
-- [ ] **Sirpaleen poiminta** kävelemällä collect-säteelle (discovery-vakiot: `collect 5 m`).
-      Yksi sirpale per `cipher`-ruutu, kertaalleen. Tallentuu `K.cipherShards`.
-- [ ] **Sirpale kantaa palan** kirjoitusta (rivi tekstiä) **ja palan SVG-sigiliä** (stroke,
-      ei täyttöä — §12). Deterministinen sirpalenumero ruudun hashista.
-- [ ] **Kokoaminen**: N sirpaletta (esim. 7) → "Broken Cipher" Character-näkymässä. Koottuna
-      renderöityy **yksi kokonainen kirjoitus + yksi kokonainen sigili**.
-- [ ] **Kartta**: koottu cipher osoittaa yhteen H3-ruutuun — deterministinen **globaalista**
-      siemenestä, ei pelaajakohtaisesta, jotta kaverit kilpailevat tai tekevät yhteistyötä.
-      Ruutu näkyy kartalla kultaisena sigilinä kun cipher on koossa.
-- [ ] **Repeämä**: kävele ruudulle + pidä hetki → kertakäyttöinen chain-event
-      (`chains.json`-muoto). Ei oikeaa toista karttaa (se on oma vaiheensa) — **hetki**:
-      lyhyt kirjoitettu sekvenssi + pysyvä codex-avaus ja kosmeettinen merkki.
-- [ ] Kaikki keräys- ja kokoamislogiikka `packages/core`:ssa puhtaana + Vitest.
+- [x] **`cipherShardAt(h3)`** (`rules/cipher.ts`, puhdas): sirpale vain `common`-ruudulla
+      jonka suolattu FNV-hash alittaa ~1.4 % → n. 1 % kaikesta maasta. Indeksi 0..6 toisesta
+      hashista. Deterministinen, reload ei re-rollaa. Ei koske `rare`/`legendary`-tiereihin.
+- [x] **Sirpaleen poiminta** kävelemällä ruudun päälle (`useCipher`, `useQuestFinds`-kaava).
+      `K.cipherShards` = `number[]`. Kerran per indeksi.
+- [x] **Sirpale kantaa rivin** kirjoitusta (`data/cipher.json`) ja **sointu sigiliä**
+      (`Heptagram`, laskettu {7/3}-tähti, stroke, ei dataa — §12).
+- [x] **Kokoaminen**: 7 sirpaletta → Character-näkymän **The Cipher** -osio: osittainen
+      tähti + kerätyt rivit + `N/7`. 7/7 → koko sigili + koko kirjoitus.
+- [x] `CipherReveal`-toast löydöllä (sigili + rivi + pling), jää napautukseen.
+- [x] Puhdas + Vitest: `rules/cipher.test.ts`, `data/cipher.repo.test.ts`. 827 vihreää.
+
+## 🟢 GREEN — Vaihe 2 (`todo`)
+
+- [ ] **`cipherTargetCell()`** — repeämän sijainti. Auki: kiinteä ruutu offsetilla Fuming
+      Laken patsaskoordinaatista (jaettu, Härmälä-ankkuroitu kuten maastokysely) **vai**
+      globaali suunta+etäisyys sovellettuna kunkin pelaajan omaan Hearthiin (jaettu
+      *matka*, saavutettavissa missä tahansa). Päätös Vaihe 2:n alkaessa.
+- [ ] Kultainen markkeri sille ruudulle kun cipher on koossa (territory-GeoJSONiin kuten
+      quest-markkerit, tai oma taso).
+- [ ] **`the-rift`** seikkailu `adventures.json`:iin + walk-onto-target-liipaisin joka
+      kutsuu `startAdventure('the-rift')`; päättyy codex-avaukseen (`cipher-rift`) + XP.
+- [ ] Ei oikeaa toista karttaa — oma vaiheensa jos repeämä toimii.
 
 ## Toteutus
 
 Sirpalenumerointi ja kokoamistarkistus ovat puhtaita funktioita (`rules/cipher.ts`).
-Kirjoituksen tekstit + sigilin palat ovat dataa (`data/cipher.json`). Repeämä on
-`chainStore`in kautta kuten anomalian ketju. Found-items-UI laajenee yhdellä
-"Broken Cipher · 4/7" -rivillä.
+Tekstit `data/cipher.json`:issa; sigili laskettu (`heptagram.tsx`), ei path-dataa.
+`data/cipherStore.ts` on seam (`adventureStore.ts`-muotoa). Repeämä (Vaihe 2) ajetaan
+`adventureStore`in kautta, ei chain-enginellä — chain sitoo anomalia-solun tilaan,
+seikkailu ei.
 
 ## Ei tässä
 
