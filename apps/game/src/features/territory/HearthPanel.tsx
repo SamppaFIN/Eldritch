@@ -13,6 +13,8 @@ import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS } from '@es3/core';
 import type { Cell, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
+import { ResearchPanel } from './ResearchPanel.js';
+import type { ResearchBinding } from './useSelection.js';
 import './hearth-panel.css';
 
 export interface HearthPanelProps {
@@ -23,6 +25,8 @@ export interface HearthPanelProps {
   level: number;
   levelName: string;
   now: number;
+  /** The research screen's bundle (BRDC-TECH-001), from `useSelection`. */
+  research: ResearchBinding;
   onWager: () => void;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
@@ -47,6 +51,7 @@ export function HearthPanel({
   level,
   levelName,
   now,
+  research,
   onWager,
   onWeakest,
   onClose,
@@ -119,6 +124,8 @@ export function HearthPanel({
           Pouch · {resources.food} food · {resources.wood} timber · {resources.gold} gold
         </p>
       ) : null}
+
+      <ResearchPanel research={research} wisdom={resources?.wisdom ?? 0} />
 
       <p className="hearth-panel__line">
         {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,

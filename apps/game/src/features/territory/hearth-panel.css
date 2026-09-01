@@ -78,6 +78,38 @@
   color: var(--warning);
 }
 
+/* The research screen (BRDC-TECH-001). */
+.hearth-panel__research {
+  margin-block: var(--space-1);
+  border-block-start: 1px solid var(--glass-border);
+  padding-block-start: var(--space-2);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.hearth-panel__research-head {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hearth-panel__research-era {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}
+
+.hearth-panel__research-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
 .hearth-panel__actions {
   display: flex;
   flex-wrap: wrap;

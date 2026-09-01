@@ -6,13 +6,14 @@
  * and it reads better here — nothing else in the map screen needs to know how it works.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BUILDINGS, cellsWithin, emptyCell } from '@es3/core';
+import { BUILDINGS, cellsWithin, emptyCell, eraOf, researchable } from '@es3/core';
 import type {
   ActiveSpell,
   BuildRefusal,
   BuildingId,
   CastRefusal,
   Cell,
+  Era,
   ExpandRefusal,
   GameRepository,
   H3Index,
@@ -21,13 +22,14 @@ import type {
   RouteRefusal,
   SpellId,
   TechId,
+  TechRefusal,
   TradeRoute,
   WardRefusal,
 } from '@es3/core';
+import { useTradeRoutes } from './useTradeRoutes.js';
 
 type BuildFail = BuildRefusal | 'nothing-here';
 type ExpandFail = ExpandRefusal | 'not-a-temple';
-type RouteFail = RouteRefusal | 'no-such-route';
 
 export interface UseSelectionOptions {
   repository: GameRepository | null;
@@ -75,12 +77,24 @@ export interface SpellBinding {
   onCast: (id: SpellId, target: H3Index | null) => void;
 }
 
+/** The research screen's bundle: the frontier, the era, and the ceremony (BRDC-TECH-001). */
+export interface ResearchBinding {
+  researched: readonly TechId[];
+  era: Era;
+  /** Techs researchable right now — every prerequisite met, not yet known. */
+  options: readonly TechId[];
+  refusal: TechRefusal | null;
+  /** Set for one render after a research crossed an era boundary. */
+  lastEra: Era | null;
+  onResearch: (id: TechId) => void;
+}
+
 /** Trade Routes: the ones held, and the two-tap flow to lay one (BRDC-BUILD-004). */
 export interface TradeBinding {
   routes: readonly TradeRoute[];
   /** The cell a link started from, while waiting for the second tap. */
   linkFrom: H3Index | null;
-  refusal: RouteFail | null;
+  refusal: RouteRefusal | 'no-such-route' | null;
   onStartLink: (h3: H3Index) => void;
   onCancelLink: () => void;
   onRemove: (a: H3Index, b: H3Index) => void;
@@ -94,6 +108,7 @@ export interface Selection {
   place: PlaceBinding;
   spell: SpellBinding;
   trade: TradeBinding;
+  research: ResearchBinding;
   refusal: WardRefusal | null;
   sanctum: boolean;
   wager: boolean;
@@ -120,9 +135,8 @@ export function useSelection({
   const [buildRefusal, setBuildRefusal] = useState<BuildFail | null>(null);
   const [expandRefusal, setExpandRefusal] = useState<ExpandFail | null>(null);
   const [castRefusal, setCastRefusal] = useState<CastRefusal | null>(null);
-  const [routeRefusal, setRouteRefusal] = useState<RouteFail | null>(null);
-  const [linkFrom, setLinkFrom] = useState<H3Index | null>(null);
-  const [routes, setRoutes] = useState<readonly TradeRoute[]>([]);
+  const [techRefusal, setTechRefusal] = useState<TechRefusal | null>(null);
+  const [lastEra, setLastEra] = useState<Era | null>(null);
   const [spells, setSpells] = useState<readonly ActiveSpell[]>([]);
   const [researched, setResearched] = useState<readonly TechId[]>([]);
   const [dwellMs, setDwellMs] = useState(0);
@@ -151,9 +165,6 @@ export function useSelection({
     void repository.getActiveSpells(now()).then((s) => {
       if (alive) setSpells(s);
     });
-    void repository.getTradeRoutes().then((r) => {
-      if (alive) setRoutes(r);
-    });
     return () => {
       alive = false;
     };
@@ -161,36 +172,30 @@ export function useSelection({
   const [sanctum, setSanctum] = useState(false);
   const [wager, setWager] = useState(false);
 
+  /** Build, demolish, expand, cast and research all pay: re-read the pouch and the map. */
+  const afterSpend = useCallback(async () => {
+    if (!repository) return;
+    onWarded(await repository.getResources(now()));
+    setLivePlaces(await repository.getPlaces());
+    await refreshTerritory();
+  }, [repository, now, onWarded, refreshTerritory]);
+
+  const tradeHook = useTradeRoutes(repository, now, trailVersion, afterSpend);
+
   // A new selection starts with a clean slate: a refusal about the last cell has nothing
-  // to say about this one, and the two panels never share the screen.
-  //
-  // While a Trade Route link is open, a tap on a *different* cell is the second end of it
-  // rather than a new selection (BRDC-BUILD-004).
+  // to say about this one, and the two panels never share the screen. While a Trade Route
+  // link is open, a tap on another cell is its far end, not a new selection.
   const onCellTap = useCallback(
     (h3: H3Index) => {
-      if (linkFrom && repository && h3 !== linkFrom) {
-        const from = linkFrom;
-        setLinkFrom(null);
-        void (async () => {
-          const r = await repository.layTradeRoute(from, h3, now());
-          setRouteRefusal(r.ok ? null : r.refused);
-          if (r.ok) {
-            setRoutes(await repository.getTradeRoutes());
-            onWarded(await repository.getResources(now()));
-            await refreshTerritory();
-          }
-        })();
-        return;
-      }
+      if (tradeHook.interceptTap(h3)) return;
       setSelected(h3);
       setRefusal(null);
       setBuildRefusal(null);
       setExpandRefusal(null);
       setCastRefusal(null);
-      setRouteRefusal(null);
       setSanctum(false);
     },
-    [linkFrom, repository, now, onWarded, refreshTerritory],
+    [tradeHook],
   );
 
   /*
@@ -253,14 +258,6 @@ export function useSelection({
     [repository, now, onWarded, refreshTerritory],
   );
 
-  /** Build, demolish and expand share warding's shape: pay, refuse by name, then re-read. */
-  const afterSpend = useCallback(async () => {
-    if (!repository) return;
-    onWarded(await repository.getResources(now()));
-    setLivePlaces(await repository.getPlaces());
-    await refreshTerritory();
-  }, [repository, now, onWarded, refreshTerritory]);
-
   const onBuild = useCallback(
     (h3: H3Index, id: BuildingId) => {
       if (!repository) return;
@@ -312,14 +309,16 @@ export function useSelection({
     [repository, now, afterSpend],
   );
 
-  const onRemoveRoute = useCallback(
-    (a: H3Index, b: H3Index) => {
+  const onResearch = useCallback(
+    (id: TechId) => {
       if (!repository) return;
+      setLastEra(null);
       void (async () => {
-        const r = await repository.removeTradeRoute(a, b, now());
-        setRouteRefusal(r.ok ? null : r.refused);
+        const r = await repository.researchTech(id, now());
+        setTechRefusal(r.ok ? null : r.refused);
         if (r.ok) {
-          setRoutes(await repository.getTradeRoutes());
+          setResearched(r.researched);
+          if (r.era) setLastEra(r.era);
           await afterSpend();
         }
       })();
@@ -354,14 +353,15 @@ export function useSelection({
       onExpand,
     },
     spell: { active: spells, refusal: castRefusal, onCast },
-    trade: {
-      routes,
-      linkFrom,
-      refusal: routeRefusal,
-      onStartLink: setLinkFrom,
-      onCancelLink: useCallback(() => setLinkFrom(null), []),
-      onRemove: onRemoveRoute,
+    research: {
+      researched,
+      era: eraOf(researched),
+      options: researchable([...researched]),
+      refusal: techRefusal,
+      lastEra,
+      onResearch,
     },
+    trade: tradeHook.binding,
     refusal,
     sanctum,
     wager,
