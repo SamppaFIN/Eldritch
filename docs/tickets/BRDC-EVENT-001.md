@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-REVEAL-001, BRDC-HEX-001 |
-| **Status** | `in_progress` — 2026-09-01: pimeät ajat + anomaliat + tapahtumaketjut tehty; karttamarkkeri jäljellä |
-| **Valmius** | 85 % |
+| **Status** | `done` — 2026-09-01: pimeät ajat + anomaliat + tapahtumaketjut + karttamarkkeri |
+| **Valmius** | 95 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §2.3, §2.4 |
 
 ## 🔴 RED
@@ -31,8 +31,9 @@ tapahtumaketjut ja Endless Legendin talvi.
       (investigate / resolve / choose), kirjaa `LogKind: 'anomaly'`
 - [x] UI: `AnomalyPanel` (CellPanelin alipaneeli, 4 tilaa), `useAnomaly`-hook, tietokirjan
       aihe `anomaly` (WIKI-001 slice 3)
-- [~] Karttamarkkeri anomaliasolulle — siirretty: `AnomalyLayer` vaatii `MapCanvas`-
-      laajennuksen (400 r), tehdään `BRDC-ART-001`:n visuaalipassissa
+- [x] Karttamarkkeri: `CELL_ANOMALY_LAYER` symbol-kerros `TerritoryLayer`iin, ratsastaa
+      olemassa olevalla territory-GeoJSON-lähteellä (ei `MapCanvas`-muutosta). `◌` paikka,
+      `◐` tutkinnassa, `✦` ketjussa — glyfi kantaa tilan, ei väri. `--mystic-cyan`
 - [~] **Pimeät ajat**: tuotanto laskee (`DARK_TIME_FACTOR = 0.6`). *Mystisten tapahtumien
       yleistyminen* odottaa anomalia-/ketjumekaniikkaa
 - [x] Pimeä aika on **kalenterista johdettu** — `darkTimeAt(now)`, joulukuun 21. ympärillä

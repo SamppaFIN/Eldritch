@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { cellAt, neighboursOf } from '@es3/core';
+import { anomalyAt, cellAt, neighboursOf } from '@es3/core';
 import type { Cell, TerrainKind } from '@es3/core';
 import {
   CONTESTED_BELOW,
   ENEMY_FILL,
   OWN_FILL,
   REVEAL_FILL,
+  anomalyGlyphFor,
   cellProperties,
   cellToFeature,
   cellsToGeoJson,
@@ -48,6 +49,40 @@ describe('ownership colour', () => {
 
   it('is not mine when nobody is signed in', () => {
     expect(cellProperties(cell(ME, 200), null).mine).toBe(false);
+  });
+});
+
+describe('anomaly glyph', () => {
+  // A cell the reveal hash marks rare — an anomaly site.
+  const disk = [H3, ...neighboursOf(H3)];
+  for (let i = 0; i < 40 && !disk.some((h) => anomalyAt(h)); i++) {
+    for (const h of [...disk]) for (const n of neighboursOf(h)) if (!disk.includes(n)) disk.push(n);
+  }
+  const RARE = disk.find((h) => anomalyAt(h)) as string;
+  const ORDINARY = disk.find((h) => !anomalyAt(h)) as string;
+  const at = (over: Partial<Cell>): Cell => ({
+    h3: RARE,
+    ownerId: ME,
+    strength: 100,
+    lastVisitedAt: 0,
+    visitDays: [],
+    ...over,
+  });
+
+  it('marks an untouched site, and shows nothing on ordinary ground', () => {
+    expect(anomalyGlyphFor(at({}))).toBe('◌');
+    expect(anomalyGlyphFor({ ...at({}), h3: ORDINARY })).toBe('');
+  });
+
+  it('changes with the anomaly state, and clears when finished', () => {
+    expect(anomalyGlyphFor(at({ anomaly: { startedAt: 1 } }))).toBe('◐');
+    expect(anomalyGlyphFor(at({ anomaly: { startedAt: 1, stage: 0 } }))).toBe('✦');
+    expect(anomalyGlyphFor(at({ anomaly: { startedAt: 1, done: true } }))).toBe('');
+  });
+
+  it('only appears on your own ground', () => {
+    expect(cellProperties(at({}), ME).anomaly).toBe('◌');
+    expect(cellProperties({ ...at({}), ownerId: RIVAL }, ME).anomaly).toBe('');
   });
 });
 

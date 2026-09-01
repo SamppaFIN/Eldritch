@@ -20,6 +20,7 @@ export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';
+export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
 /**
  * Below this, individual res-11 cells are smaller than a finger and stop being
@@ -128,6 +129,32 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
       'text-opacity': 0.9,
     },
   });
+
+  /*
+   * An anomaly on your own ground (BRDC-EVENT-001). Above the terrain glyph and offset
+   * up so the two do not sit on each other. `--mystic-cyan`, one colour — the glyph
+   * carries the state (`◌` a site, `◐` under study, `✦` a chain), never colour alone.
+   */
+  map.addLayer({
+    id: CELL_ANOMALY_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['!=', ['get', 'anomaly'], ''],
+    layout: {
+      'text-field': ['get', 'anomaly'],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 13, 11, 17, 17, 19, 22],
+      'text-offset': [0, -1.1],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#00d4ff',
+      'text-halo-color': '#0a0612',
+      'text-halo-width': 2,
+    },
+  });
 }
 
 export function setTerritoryData(
@@ -142,7 +169,13 @@ export function setTerritoryData(
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
-  for (const id of [CELL_ICON_LAYER, CELL_CONTESTED_LAYER, CELL_LINE_LAYER, CELL_FILL_LAYER]) {
+  for (const id of [
+    CELL_ANOMALY_LAYER,
+    CELL_ICON_LAYER,
+    CELL_CONTESTED_LAYER,
+    CELL_LINE_LAYER,
+    CELL_FILL_LAYER,
+  ]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);

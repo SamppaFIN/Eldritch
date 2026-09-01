@@ -6,7 +6,7 @@
  * and decisions deserve tests. What is left in TerritoryLayer is MapLibre plumbing.
  */
 import type { Feature, FeatureCollection, Polygon } from 'geojson';
-import { emptyCell, neighboursOf, terrainOf, TERRAIN_TABLE } from '@es3/core';
+import { anomalyAt, emptyCell, neighboursOf, terrainOf, TERRAIN_TABLE } from '@es3/core';
 import { cellBoundary } from '@es3/core';
 import type { Cell, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
 
@@ -47,6 +47,8 @@ export interface CellProperties {
   icon: string;
   /** The glyph's colour — the resource the terrain gives. `''` alongside an empty icon. */
   iconColor: string;
+  /** Anomaly mark on your own ground: `◌` a site, `◐` under study, `✦` in a chain, `''` none. */
+  anomaly: string;
 }
 
 /**
@@ -107,6 +109,19 @@ export function withFogOfWar(all: readonly Cell[], owned: readonly Cell[]): Cell
   return [...visible].map((h3) => byH3.get(h3) ?? emptyCell(h3));
 }
 
+/**
+ * The anomaly mark for one of your cells (BRDC-EVENT-001). Different glyphs, not just a
+ * tint — the state has to read without colour. `''` for ground with nothing on it, and
+ * for a finished anomaly.
+ */
+export function anomalyGlyphFor(cell: Cell): string {
+  if (anomalyAt(cell.h3) === null) return '';
+  const a = cell.anomaly;
+  if (!a) return '◌';
+  if (a.done) return '';
+  return a.stage !== undefined ? '✦' : '◐';
+}
+
 export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const rival = cell.ownerId !== null && !mine;
@@ -120,6 +135,7 @@ export function cellProperties(cell: Cell, me: PlayerId | null): CellProperties 
     color: mine ? OWN_FILL : rival ? ENEMY_FILL : REVEAL_FILL,
     icon: glyph?.char ?? '',
     iconColor: glyph?.color ?? '',
+    anomaly: mine ? anomalyGlyphFor(cell) : '',
   };
 }
 
