@@ -273,6 +273,7 @@ export function MapView({ onLeave }: MapViewProps) {
         trail={trail.points}
         walkedPaths={trail.walkedPaths}
         auraCells={inspect.auraCells}
+        tradeRoutes={inspect.trade.routes}
         cells={territory.cells}
         playerId={profile?.id ?? null}
         places={places}
@@ -315,6 +316,7 @@ export function MapView({ onLeave }: MapViewProps) {
         place={inspect.place}
         onWard={inspect.onWard}
         spell={inspect.spell}
+        trade={inspect.trade}
         build={inspect.build}
         onClose={inspect.close}
       />

@@ -18,13 +18,16 @@ import type {
   H3Index,
   ResourcePool,
   RevealedPlace,
+  RouteRefusal,
   SpellId,
   TechId,
+  TradeRoute,
   WardRefusal,
 } from '@es3/core';
 
 type BuildFail = BuildRefusal | 'nothing-here';
 type ExpandFail = ExpandRefusal | 'not-a-temple';
+type RouteFail = RouteRefusal | 'no-such-route';
 
 export interface UseSelectionOptions {
   repository: GameRepository | null;
@@ -72,6 +75,17 @@ export interface SpellBinding {
   onCast: (id: SpellId, target: H3Index | null) => void;
 }
 
+/** Trade Routes: the ones held, and the two-tap flow to lay one (BRDC-BUILD-004). */
+export interface TradeBinding {
+  routes: readonly TradeRoute[];
+  /** The cell a link started from, while waiting for the second tap. */
+  linkFrom: H3Index | null;
+  refusal: RouteFail | null;
+  onStartLink: (h3: H3Index) => void;
+  onCancelLink: () => void;
+  onRemove: (a: H3Index, b: H3Index) => void;
+}
+
 export interface Selection {
   selected: H3Index | null;
   cell: Cell | null;
@@ -79,6 +93,7 @@ export interface Selection {
   auraCells: readonly H3Index[];
   place: PlaceBinding;
   spell: SpellBinding;
+  trade: TradeBinding;
   refusal: WardRefusal | null;
   sanctum: boolean;
   wager: boolean;
@@ -105,6 +120,9 @@ export function useSelection({
   const [buildRefusal, setBuildRefusal] = useState<BuildFail | null>(null);
   const [expandRefusal, setExpandRefusal] = useState<ExpandFail | null>(null);
   const [castRefusal, setCastRefusal] = useState<CastRefusal | null>(null);
+  const [routeRefusal, setRouteRefusal] = useState<RouteFail | null>(null);
+  const [linkFrom, setLinkFrom] = useState<H3Index | null>(null);
+  const [routes, setRoutes] = useState<readonly TradeRoute[]>([]);
   const [spells, setSpells] = useState<readonly ActiveSpell[]>([]);
   const [researched, setResearched] = useState<readonly TechId[]>([]);
   const [dwellMs, setDwellMs] = useState(0);
@@ -133,6 +151,9 @@ export function useSelection({
     void repository.getActiveSpells(now()).then((s) => {
       if (alive) setSpells(s);
     });
+    void repository.getTradeRoutes().then((r) => {
+      if (alive) setRoutes(r);
+    });
     return () => {
       alive = false;
     };
@@ -142,14 +163,35 @@ export function useSelection({
 
   // A new selection starts with a clean slate: a refusal about the last cell has nothing
   // to say about this one, and the two panels never share the screen.
-  const onCellTap = useCallback((h3: H3Index) => {
-    setSelected(h3);
-    setRefusal(null);
-    setBuildRefusal(null);
-    setExpandRefusal(null);
-    setCastRefusal(null);
-    setSanctum(false);
-  }, []);
+  //
+  // While a Trade Route link is open, a tap on a *different* cell is the second end of it
+  // rather than a new selection (BRDC-BUILD-004).
+  const onCellTap = useCallback(
+    (h3: H3Index) => {
+      if (linkFrom && repository && h3 !== linkFrom) {
+        const from = linkFrom;
+        setLinkFrom(null);
+        void (async () => {
+          const r = await repository.layTradeRoute(from, h3, now());
+          setRouteRefusal(r.ok ? null : r.refused);
+          if (r.ok) {
+            setRoutes(await repository.getTradeRoutes());
+            onWarded(await repository.getResources(now()));
+            await refreshTerritory();
+          }
+        })();
+        return;
+      }
+      setSelected(h3);
+      setRefusal(null);
+      setBuildRefusal(null);
+      setExpandRefusal(null);
+      setCastRefusal(null);
+      setRouteRefusal(null);
+      setSanctum(false);
+    },
+    [linkFrom, repository, now, onWarded, refreshTerritory],
+  );
 
   /*
    * A place answers a tap with what it is.
@@ -270,6 +312,21 @@ export function useSelection({
     [repository, now, afterSpend],
   );
 
+  const onRemoveRoute = useCallback(
+    (a: H3Index, b: H3Index) => {
+      if (!repository) return;
+      void (async () => {
+        const r = await repository.removeTradeRoute(a, b, now());
+        setRouteRefusal(r.ok ? null : r.refused);
+        if (r.ok) {
+          setRoutes(await repository.getTradeRoutes());
+          await afterSpend();
+        }
+      })();
+    },
+    [repository, now, afterSpend],
+  );
+
   const here = selected ? (livePlaces.find((p) => p.h3 === selected) ?? null) : null;
 
   // What the selected cell reaches: a building's aura radius, or the loyalty ring around
@@ -297,6 +354,14 @@ export function useSelection({
       onExpand,
     },
     spell: { active: spells, refusal: castRefusal, onCast },
+    trade: {
+      routes,
+      linkFrom,
+      refusal: routeRefusal,
+      onStartLink: setLinkFrom,
+      onCancelLink: useCallback(() => setLinkFrom(null), []),
+      onRemove: onRemoveRoute,
+    },
     refusal,
     sanctum,
     wager,

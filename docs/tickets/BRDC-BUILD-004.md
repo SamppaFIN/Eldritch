@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-003, BRDC-CLAIM-004, BRDC-INSPECT-001 |
-| **Status** | `in_progress` — 2026-09-01: Linnoitus + Kauppareitti + overlay tehty; kauppareitin kaksinapautus-UI jäljellä |
-| **Valmius** | 90 % |
+| **Status** | `done` — 2026-09-01 (UI `[~]` selaimessa todentamatta) |
+| **Valmius** | 95 % |
 | **Lähde** | BRDC-BUILD-003:n siirretyt kohdat (2026-09-01) |
 
 ## 🔴 RED
@@ -60,12 +60,19 @@ sääntö + kirjoita vain onnistuessa. `geo/cells.ts#hexDistance`. `perHourBonus
 `routeGoldBonus`:n. `GameRepository` + `MockRepository` (`importChallenge` tiivistettiin
 rivibudjetin vuoksi, 399/400). Testit +10. **636 vihreää.**
 
+## UI 2026-09-01 (commit 4, `[~]` selaimessa todentamatta)
+
+- `AuraLayer.ts` — vaikutusalue­overlay (täyttö + katkoviivareunus), `useSelection.auraCells`.
+- `TradeLayer.ts` — kauppareitit viivoina solukeskusten välillä.
+- `TradeControls.tsx` (peili `SpellPanel`:lle) — "Link a trade route" arming; `onCellTap`
+  haaroittuu: kun `linkFrom` on asetettu, seuraava napautus toiseen soluun on reitin
+  toinen pää. Unlink per reitti. Kiellot nimeltä.
+- `useSelection` `trade`-bindaus; `MapCanvas` + `MapView` (391/400).
+
 ## Ei tässä
 
 - Kaupunkivaltioiden kauppareitit → `BRDC-CITY-001`
 - Aura­efektien grafiikka (hehku, animaatio) → `BRDC-ART-001`
-- Kaksisoluinen valintavuo (napauta A, napauta B) kauppareitin UI:hin — tulee overlayn
-  kanssa
 
 ## Toteutus
 

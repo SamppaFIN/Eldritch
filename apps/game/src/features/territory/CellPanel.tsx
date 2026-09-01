@@ -31,7 +31,8 @@ import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
 import { SpellPanel } from './SpellPanel.js';
-import type { BuildBinding, PlaceBinding, SpellBinding } from './useSelection.js';
+import { TradeControls } from './TradeControls.js';
+import type { BuildBinding, PlaceBinding, SpellBinding, TradeBinding } from './useSelection.js';
 import './cell-panel.css';
 
 type ExpandFail = NonNullable<PlaceBinding['refusal']>;
@@ -50,6 +51,8 @@ export interface CellPanelProps {
   onWard: (h3: string) => void;
   /** The rites sub-panel's bundle (BRDC-SPELL-001), from `useSelection`. */
   spell?: SpellBinding;
+  /** The trade-route controls' bundle (BRDC-BUILD-004), from `useSelection`. */
+  trade?: TradeBinding;
   /** The build sub-panel's bundle (BRDC-BUILD-001), from `useSelection`. */
   build?: BuildBinding;
   onClose: () => void;
@@ -166,6 +169,7 @@ export function CellPanel({
   place,
   onWard,
   spell,
+  trade,
   build,
   onClose,
 }: CellPanelProps) {
@@ -368,6 +372,8 @@ export function CellPanel({
       {spell ? (
         <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} />
       ) : null}
+
+      {trade && mine ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
 
       {refusal ? (
         <p className="cell-panel__refusal" role="status">

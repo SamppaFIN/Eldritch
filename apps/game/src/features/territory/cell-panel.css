@@ -204,6 +204,35 @@
   color: var(--mystic-cyan);
 }
 
+/* Trade-route controls (BRDC-BUILD-004). */
+.cell-panel__trade {
+  margin-block-start: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+  padding-block-start: var(--space-2);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.cell-panel__trade-head {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cell-panel__trade-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.cell-panel__trade-btn {
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+}
+
 .cell-panel__refusal {
   color: var(--warning);
 }

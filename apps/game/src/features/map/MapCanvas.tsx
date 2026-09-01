@@ -17,12 +17,14 @@ import type {
   LatLng,
   PlayerId,
   RevealedPlace,
+  TradeRoute,
   TrailPoint,
   WalkedEdge,
 } from '@es3/core';
 import { ensureTrailLayers, removeTrailLayers, setTrailData } from '../trail/TrailLayer.js';
 import { ensurePathLayers, removePathLayers, setPathData } from '../trail/PathLayer.js';
 import { ensureAuraLayers, removeAuraLayers, setAuraData } from './AuraLayer.js';
+import { ensureTradeLayer, removeTradeLayer, setTradeData } from './TradeLayer.js';
 import {
   CELL_FILL_LAYER,
   ensureTerritoryLayers,
@@ -68,6 +70,8 @@ export interface MapCanvasProps {
   walkedPaths?: readonly WalkedEdge[];
   /** Hexes the selected cell's aura or loyalty reaches (BRDC-BUILD-004). */
   auraCells?: readonly string[];
+  /** Trade Routes, drawn as lines between the cells they bind (BRDC-BUILD-004). */
+  tradeRoutes?: readonly TradeRoute[];
   /** Visible territory. */
   cells?: readonly Cell[];
   playerId?: PlayerId | null;
@@ -104,6 +108,7 @@ export function MapCanvas({
   trail,
   walkedPaths,
   auraCells,
+  tradeRoutes,
   cells,
   playerId = null,
   places,
@@ -166,6 +171,7 @@ export function MapCanvas({
     ensurePathLayers(map);
     // Above territory, under the trail: it answers "what does this cell reach".
     ensureAuraLayers(map);
+    ensureTradeLayer(map);
     ensureTrailLayers(map);
     // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
@@ -180,6 +186,7 @@ export function MapCanvas({
         removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
+        removeTradeLayer(map);
         removeAuraLayers(map);
         removePathLayers(map);
         removeTerritoryLayers(map);
@@ -278,6 +285,11 @@ export function MapCanvas({
     if (!map || !ready) return;
     setAuraData(map, auraCells ?? []);
   }, [map, ready, auraCells]);
+
+  useEffect(() => {
+    if (!map || !ready) return;
+    setTradeData(map, tradeRoutes ?? []);
+  }, [map, ready, tradeRoutes]);
 
   useEffect(() => {
     if (!map || !ready || !places) return;
