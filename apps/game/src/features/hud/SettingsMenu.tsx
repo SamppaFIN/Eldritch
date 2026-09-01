@@ -11,7 +11,9 @@
  * something you flick open and shut. ESC and a tap outside close it.
  */
 import { useEffect, useRef, useState } from 'react';
+import { APP_VERSION } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
+import { ChangelogPanel } from '../changelog/ChangelogPanel.js';
 import type { Settings } from './settings.js';
 import './settings-menu.css';
 
@@ -35,6 +37,7 @@ export function SettingsMenu({
   visible = true,
 }: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
+  const [changelog, setChangelog] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,7 +56,10 @@ export function SettingsMenu({
     };
   }, [open]);
 
-  if (!visible) return null;
+  const changelogPanel = (
+    <ChangelogPanel open={changelog} onClose={() => setChangelog(false)} />
+  );
+  if (!visible) return changelogPanel;
 
   const toggle = (key: keyof Settings) => onChange({ ...settings, [key]: !settings[key] });
   const run = (action: () => void) => {
@@ -62,7 +68,9 @@ export function SettingsMenu({
   };
 
   return (
-    <div className="settings-menu" ref={rootRef}>
+    <>
+      {changelogPanel}
+      <div className="settings-menu" ref={rootRef}>
       <RitualButton
         variant="ghost"
         className="settings-menu__button"
@@ -100,6 +108,16 @@ export function SettingsMenu({
           <button
             type="button"
             className="settings-menu__action"
+            onClick={() => run(() => setChangelog(true))}
+          >
+            <span>What&rsquo;s new</span>
+            <span className="settings-menu__state" aria-hidden>
+              v{APP_VERSION}
+            </span>
+          </button>
+          <button
+            type="button"
+            className="settings-menu__action"
             onClick={() => run(onRetreat)}
           >
             Retreat from the map
@@ -113,6 +131,7 @@ export function SettingsMenu({
           </button>
         </GlassPanel>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }

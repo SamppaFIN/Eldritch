@@ -7,7 +7,7 @@
     "types": ["vite/client"],
     "noEmit": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/**/*.json"],
   "references": [
     { "path": "../../packages/core" },
     { "path": "../../packages/ui" }

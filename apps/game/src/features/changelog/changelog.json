@@ -1,0 +1,32 @@
+[
+  {
+    "version": "0.3.0",
+    "date": "2026-09-01",
+    "notes": [
+      "The ground can hold an anomaly now — strange cells you investigate for a hidden reward, or a short branching story.",
+      "A History log of everything you have done, opened from the claim line or the menu. Each entry links to the codex.",
+      "A codex: turn Vigil on and a blue link explains it; the log links into ten more entries.",
+      "Fog of war — the map only shows the ground you hold and the ring around it, with a small terrain glyph on each.",
+      "The Hearth cannot be lost: it never decays and never changes hands.",
+      "A hamburger menu at the top holds sound, vibration, Retreat and Delete; the walking bar keeps only Here and Vigil.",
+      "A claim plays a chime and a buzz, switchable off. Ground taken from a rival gets a fuller sound.",
+      "The Keep opens the nation panel. Härmälä has hand-surveyed terrain around the test area.",
+      "Ground two players both hold splits its yield by who has walked it more."
+    ]
+  },
+  {
+    "version": "0.2.0",
+    "date": "2026-08-31",
+    "notes": [
+      "Phase 2.5: the Hearth, adjacency growth, dwell, terrain, warding, and the Wager by hand.",
+      "Buildings, a technology tree, mana from temples, spells, and dark times."
+    ]
+  },
+  {
+    "version": "0.1.0",
+    "date": "2026-08-27",
+    "notes": [
+      "Walk a closed loop, claim the land inside it. GPS tracking, the ley-line, loop detection, H3 cells, capture, reinforcement and decay."
+    ]
+  }
+]

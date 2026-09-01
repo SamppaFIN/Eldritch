@@ -169,6 +169,13 @@ export const CHALLENGE_VERSION = 2;
  * rejected by name, never merged.
  */
 export const WORLD_VERSION = 1;
+
+/**
+ * The build's own version, shown in the menu and headed each `changelog.json` block
+ * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
+ * feature. Kept in step with `package.json` and `claude.md` §2.
+ */
+export const APP_VERSION = '0.3.0';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 
