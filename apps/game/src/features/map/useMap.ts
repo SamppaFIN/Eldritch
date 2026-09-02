@@ -44,6 +44,8 @@ export const ZOOM_FIRST_LOOK = 14.6;
 export function useMap({ centre, zoom = ZOOM_WALKING }: UseMapOptions): UseMapResult {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  // Set once if the GL context cannot be made, so StrictMode's second run does not retry.
+  const glFailedRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
 
@@ -53,22 +55,33 @@ export function useMap({ centre, zoom = ZOOM_WALKING }: UseMapOptions): UseMapRe
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || mapRef.current) return;
+    if (!container || mapRef.current || glFailedRef.current) return;
 
-    const map = new MapLibreMap({
-      container,
-      style: createMapStyle(),
-      center: [initial.current.lng, initial.current.lat],
-      zoom,
-      attributionControl: { compact: true },
-      // The player is walking. Tilt and rotate are accidents waiting to happen.
-      pitchWithRotate: false,
-      dragRotate: false,
-      touchPitch: false,
-      // Battery: no continuous repaint, and no fade-in of collided labels.
-      fadeDuration: 0,
-    });
-    map.touchZoomRotate.disableRotation();
+    let map: MapLibreMap;
+    try {
+      map = new MapLibreMap({
+        container,
+        style: createMapStyle(),
+        center: [initial.current.lng, initial.current.lat],
+        zoom,
+        attributionControl: { compact: true },
+        // The player is walking. Tilt and rotate are accidents waiting to happen.
+        pitchWithRotate: false,
+        dragRotate: false,
+        touchPitch: false,
+        // Battery: no continuous repaint, and no fade-in of collided labels.
+        fadeDuration: 0,
+      });
+      // A device with no WebGL2 (old Androids, Chrome DevTools device mode) hands back
+      // a half-built Map whose gesture handlers never attached; this line is where that
+      // surfaces as a TypeError. Caught below rather than left to unmount the whole app.
+      map.touchZoomRotate.disableRotation();
+    } catch (err) {
+      console.error('Map could not start — WebGL2 unavailable?', err);
+      glFailedRef.current = true;
+      setBasemap('void');
+      return;
+    }
     mapRef.current = map;
 
     /*
