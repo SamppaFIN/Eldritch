@@ -348,6 +348,53 @@ päälle rakentuvia.
 
 ---
 
+## Kenttätesti 2026-09-02 — korjaukset ensin, sitten moduulit
+
+Infiniten kenttätesti puhelimella. Linjaus hänen sanoillaan: *"tehdään nää korjaukset eka
+ja lähdetään sitten parantaan moduuleita"* ja *"Kaikki backend ja multiplayer asiat tehdään
+sit, kun saadaan lokaali versio toimiin."*
+
+Kaksi havaintoa tarkistettiin koodista ennen tikettien kirjoittamista, ja ne muuttivat
+diagnoosia: **Keepin välilehdet ovat olemassa** (`HearthPanel.tsx`, KEEP-002 `done`) —
+ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimessä**
+(`resources.test.ts`) — pouchin vika on sovelluskerroksessa tai datassa, ei säännössä.
+
+### 🔧 Korjaukset — nämä ensin
+
+| ID | Nimi | Effort | Ydin |
+|---|---|:---:|---|
+| [BRDC-ECON-003](BRDC-ECON-003.md) | Pouch ei täyty, valtaus ei kilise, versiolahja | M | juurisyy mitataan · pling valtauksesta · 100/res + 30 mana + 30 wisdom versiota vaihtaessa |
+| [BRDC-DWELL-002](BRDC-DWELL-002.md) | Dwell-kello hyppää refreshissä | S | 1,4 h → 6 min. Rankaisee juuri siitä mitä mekaniikka pyytää |
+| [BRDC-QUEST-003](BRDC-QUEST-003.md) | Seikkailu etenee vain oikealla heksalla | S | `canAct` katsoo valittua, ei seisottua — koko tarinan voi klikata sohvalta |
+| [BRDC-KEEP-003](BRDC-KEEP-003.md) | Keep löytyy, ja Rites sen mukana | S | välilehdet ovat olemassa, kukaan ei löydä niitä. Tutkimus on näkymätön |
+| [BRDC-BUILD-005](BRDC-BUILD-005.md) | Heksa näyttää vain sen mitä voi tehdä | M | `+`-nappi loppuihin · temppeli resursseilla, dwell antaa alennusta |
+| [BRDC-MAP-003](BRDC-MAP-003.md) | Sumu peittää myös maaston | S | `?` paljastamattomalle — sumu vuotaa maastotyypin |
+| [BRDC-WIKI-002](BRDC-WIKI-002.md) | Kirja täyttyy kohdatessa, You näyttää vain nähdyn | M | rekisteri kohdatuista aiheista; tasot vain saavutettuun asti |
+| [BRDC-WAGER-JSON-004](BRDC-WAGER-JSON-004.md) | Vastaanotettu kartta päivittää omistajuudet | S | ainoa moninpelikohta joka toimii ilman palvelinta |
+| [BRDC-VIGIL-002](BRDC-VIGIL-002.md) | Keepalive kuolee lukitussa puhelimessa | M+L | **mittaus, ei arvaus.** Jos vastaus on APK, se nousee kaiken edelle |
+
+### 🧩 Moduulit — korjausten jälkeen
+
+| ID | Nimi | Effort | Ydin |
+|---|---|:---:|---|
+| [BRDC-EVENT-002](BRDC-EVENT-002.md) | Heksaan astuminen arpoo tapahtuman | L | *"kuljin pitkän matkan"* eikä mitään tapahtunut · 30+ kohtaamista · päiväarpa |
+| [BRDC-CITY-002](BRDC-CITY-002.md) | Kalastuskylä: ensimmäinen kaupunkivaltio | M | vartijat, kauppapaikka, resurssien vaihto · CITY-001:n pienin pala |
+| [BRDC-BUILD-006](BRDC-BUILD-006.md) | Vartiotorni näkee, muuri pitää | M | 2 rengasta paljastusta, ei vallattavissa ilman joukkoja · muuri heksan reunalle |
+| [BRDC-TRADE-001](BRDC-TRADE-001.md) | Taverna: kulta kulttuuriksi | S | avaa monumenttien umpisolmun |
+| [BRDC-SPELL-002](BRDC-SPELL-002.md) | Scrying, ja loput koulukunnat | M | SPELL-001 lupasi tämän nimeltä · taika näyttää ja unohtaa, kävely muistaa |
+| [BRDC-TRAIL-004](BRDC-TRAIL-004.md) | Käyntikerrat kantana: polku → junarata | M | viisi porrasta, kerran per kalenteripäivä |
+| [BRDC-FX-001](BRDC-FX-001.md) | Kun jotain tapahtuu, ruutu näyttää sen | M | §12:n pyhä geometria hetkinä · katto per minuutti |
+
+### Tietoisesti siirretty
+
+| Havainto | Minne | Miksi |
+|---|---|---|
+| Nimen muokkaus nykii, kontrolli menettää fokuksen | hahmocustomointi | Infiniten oma rajaus: *"eipä tuo vielä niin oleellista"* |
+| Kulkutapavalinta (kävely / pyörä / auto) | oma tikettinsä VIGIL-002:n mittauksen jälkeen | muuttaa anti-cheatin mallin — `claude.md` §15: älä heikennä ilman pyyntöä |
+| Debug-nappi `+200 joka resurssia` | poistetaan kun ECON-003 on kentällä todettu | *"jos ton saa toimiin, niin ei tartte"* |
+
+---
+
 ## Suhde muihin dokumentteihin
 
 | Tiedosto | Rooli |
