@@ -6,7 +6,6 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { EMPTY_POOL, siteCell } from '@es3/core';
-import { cellAt } from '../geo/cells.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
@@ -14,7 +13,6 @@ import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
 import type { Cell } from '../types/domain.js';
 
 const T0 = Date.parse('2026-09-01T12:00:00Z');
-const LAKE = cellAt({ lat: 62.6, lng: 25.7 });
 
 let repo: MockRepository;
 let store: MemoryStore;
@@ -52,12 +50,14 @@ describe('the Fuming Lake', () => {
     expect((a?.choices?.length ?? 0)).toBeGreaterThan(0);
   });
 
-  it('locks the lake route until a lake cell is held', async () => {
+  it('the opening choice is always open — the walk to the lake is the gate', async () => {
     await repo.startAdventure('fuming-lake', T0);
-    expect((await fuming())?.choices?.[0]?.locked).toBe(true);
+    const a = await fuming();
+    expect(a?.stageId).toBe('statue');
+    expect(a?.choices?.[0]?.locked).toBe(false);
 
-    await own(LAKE, { kind: 'lake', source: 'seed' });
-    expect((await fuming())?.choices?.[0]?.locked).toBe(false);
+    expect((await repo.chooseInAdventure('fuming-lake', 0, T0)).ok).toBe(true);
+    expect((await fuming())?.stageId).toBe('lake');
   });
 
   it('refuses a second start on a running adventure', async () => {
@@ -67,7 +67,6 @@ describe('the Fuming Lake', () => {
 
   it('the wisdom route beats the troll, pays XP, logs, and the ending unlocks the codex', async () => {
     await repo.startAdventure('fuming-lake', T0);
-    await own(LAKE, { kind: 'lake', source: 'seed' });
     await own(siteCell('wisdom'));
 
     const step = (i: number) => repo.chooseInAdventure('fuming-lake', i, T0);

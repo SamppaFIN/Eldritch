@@ -6,30 +6,11 @@
       "statue": {
         "speaker": "Narrator",
         "text": [
-          "A boy's statue holds a propeller that should not exist. It is not impossible — it is aggressively possible, in ways that make reality uncomfortable.",
-          "At his feet, a map. It points to a lake. The map is also screaming, very quietly. In tiny apologetic handwriting: \"Sorry about this. Lake's fuming. Probably nothing. Definitely something. Good luck. You'll need it. — Management\""
+          "A boy's statue holds a propeller that should not exist. It is not impossible — it is aggressively possible, in ways that make reality uncomfortable. The propeller turns though there is no wind, pointing down the slope, toward the water.",
+          "At his feet, a map. It points to a lake, and it is screaming, very quietly. In tiny apologetic handwriting: \"Sorry about this. Lake's fuming. Probably nothing. Definitely something. Good luck. You'll need it. — Management\"",
+          "The map's meaning is not subtle. You take the way it offers — but the walk to the lake is yours to make, on your own feet."
         ],
-        "choices": [
-          { "text": "Follow the map to the lake", "requires": { "terrain": "lake" }, "next": "lake" },
-          { "text": "Touch the propeller", "next": "propeller" },
-          { "text": "Study the boy's too-pleasant face", "next": "boy-face" }
-        ]
-      },
-      "propeller": {
-        "speaker": "Narrator",
-        "text": [
-          "The propeller turns under your hand though there is no wind, and keeps turning after you let go. It is pointing — the insistent way a compass points — down the slope, toward the water.",
-          "The map at the statue's feet has stopped screaming. It is tapping its foot now. Waiting for you to walk to the lake."
-        ],
-        "choices": [{ "text": "Take the hint — back to the statue", "next": "statue" }]
-      },
-      "boy-face": {
-        "speaker": "Narrator",
-        "text": [
-          "Up close the boy is smiling the way a door smiles just before it opens onto something. His stone eyes are wet.",
-          "A whisper, from no particular direction: \"The lake. You have to go to the lake. Walk there — actually there, on your feet — and claim the ground. Then the map lets you follow it.\" Helpful. Unsettling. Both."
-        ],
-        "choices": [{ "text": "Step back from the statue", "next": "statue" }]
+        "choices": [{ "text": "Follow the map — set off for the lake", "next": "lake" }]
       },
       "lake": {
         "speaker": "Narrator",

@@ -6,7 +6,7 @@
       "The codex is now a browsable Guide, opened from the menu: a front page grouping every topic, and a How to Play that lays out the whole loop — walk a loop to claim the land inside, walk it again on later days to hold it, ignore it and it rots. Plus a first-walk checklist and a page that translates the game's own words.",
       "Every codex entry has a back link to the Guide and a \"See also\" list, so a link from the Vigil readout or a History line now opens the whole book, not just one page.",
       "Fixed a black screen on a browser with no WebGL2 (including Chrome's device-emulation mode): the map falls back to the void and the HUD, Guide and History still work.",
-      "The Fuming Lake's opening choices lead somewhere now — touching the propeller and studying the boy's face each show a short scene instead of doing nothing, and the boy spells out that you have to walk to the lake."
+      "The Fuming Lake no longer strands you at the statue. The opening step now moves the tale straight to the lake — the walk there is the gate, not a locked choice with nothing to unlock it. The dead-end flavour options are gone."
     ]
   },
   {
