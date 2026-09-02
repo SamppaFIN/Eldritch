@@ -47,6 +47,11 @@ oman tikettinsä asia.
 - [~] Kerran kävelty, valtaamaton solu **pysyvästi** paljastettuna — tarvitsee jälki­-
       pohjaisen `explored`in (per-solu-leima). Nyt `here` kattaa "seison siinä nyt";
       pysyvyys jää jatkoon.
+      **Infiniten tarkennus 2026-09-02:** *"? heksojen sisältä tiedetään, mutta
+      tutkimattomien ei"* — pelaaja tietää mitä kävelemässään `?`-solussa on, ja peli
+      sanoo silti "Not explored". Seuraava askel: `exploredH3 = Set(trail.points ⇒ cellAt)`
+      MapView:ssä → `hasDetail` ja `cellProperties`n `?`/maastoglyfi lukevat sitä;
+      `withFogOfWar` pitää käveltyä solua näkyvissä vaikka siitä kävelisi pois.
 - [x] Puhdas `explored(cell, me, standingOn)` `territoryFeatures.ts`:ssä, testattu:
       oma solu · rivaali · pelkkä reveal · seisottu.
 - [ ] Todennus kentällä: uusi peli, katso karttaa — mikään rengas ei paljasta maastoa
