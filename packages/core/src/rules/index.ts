@@ -8,6 +8,7 @@ export { appendChange } from './history.js';
 export type { OwnershipChange } from './history.js';
 export { appendLog } from './log.js';
 export type { LogEntry, LogKind } from './log.js';
+export { population, provinceCount } from './nation.js';
 export {
   ERAS,
   TECHS,

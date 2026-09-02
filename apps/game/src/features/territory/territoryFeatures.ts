@@ -93,7 +93,14 @@ export interface CellProperties {
   buildingColor: string;
   /** Blight, 0..1 (BRDC-BLIGHT-001) — how far the Void has crept in. Rendering only. */
   blight: number;
+  /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
+  flag: string;
 }
+
+/** The map flag glyph and its colour (BRDC-BANNER-001). Geometric Shapes block, so it
+ *  renders in MapLibre's bundled font; one mark, not the full banner (see the ticket). */
+export const FLAG_GLYPH = '◈';
+export const FLAG_COLOR = '#ffd700';
 
 /**
  * One colour per resource the ground can give. Drives both the map's terrain glyph and
@@ -207,6 +214,8 @@ export function cellProperties(
     building: bg?.char ?? '',
     buildingColor: bg?.color ?? '',
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
+    // Your flag on ground you hold — but not where a building already carries the mark.
+    flag: mine && !cell.building ? FLAG_GLYPH : '',
   };
 }
 

@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-ART-002, BRDC-MAP-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-02 (v0.5.12), kentän lippu `[~]` |
+| **Valmius** | 85 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED
@@ -20,25 +20,23 @@ mukaan koskaan yksin kanna tietoa. Lippu on se merkki.
 
 ## 🟢 GREEN
 
-- [ ] **6–8 esivalittua banneria**, jokainen puhdasta stroke-SVG:tä ilman fillia
-      (`claude.md` §12): geometrinen kuvio + 1–2 väriä palettista. Nimetty
-      (`bannerId`), piirretty samasta datasta kahdessa koossa: iso Keepin valitsimeen,
-      pikkuruinen kartalle. Esim. *vesica*, *heptagram*, *split pale*, *chevron*,
-      *eye*, *triquetra*.
-- [ ] **Banneri­valitsin** `packages/ui`hin tai `features/nation`iin — ruudukko, valittu
-      korostettu, `aria-pressed`, näppäimistöllä. Käyttää `BRDC-NATION-001`:n `es3:nation`ia.
-- [ ] **Lippu omilla heksoilla** — uusi symbol-layer `buildingGlyphs`in mallilla
-      (`CELL_BUILDING_LAYER`), oma offset ettei mene rakennusmerkin päälle. Piirretään
-      vain omistetuille soluille; harva kynnys ettei jokaisessa heksassa ole lippua
-      (esim. vain solut joilla ei ole rakennusta, tai vain alueen reunasolut — päätä
-      kentällä kumpi lukee paremmin).
-- [ ] Renderöinti on **font-glyfi tai yksi merkki**, ei rasteria — MapLibren symbol-layer
-      piirtää bundlatun Noto Sansin, ja monimutkainen SVG ei sinne mene (`BRDC-ART-002`:n
-      opetus: `⚒ ❋` eivät renderöityneet, Geometric Shapes -lohko renderöityi). Jos
-      6–8 banneria ei mahdu siihen lohkoon, kartalla lippu on yksi geometrinen merkki
-      pelaajan väreissä ja **täysi banneri näkyy vain Keepissä ja detail-dialogissa**.
-- [ ] Testit: jokainen `bannerId` resolvoituu merkiksi ja väreiksi · valitsin vaihtaa
-      `es3:nation`in · tuntematon `bannerId` putoaa oletukseen.
+- [x] **Kuusi esivalittua banneria**, jokainen inline stroke-SVG ilman fillia
+      (`claude.md` §12), 1–2 palettiväriä: `vesica`, `heptagram`, `chevron`, `pale`,
+      `eye`, `triquetra`. `Banner.tsx` (`<Banner id size />`), yksi `viewBox="0 0 48 48"`.
+- [x] **Banneri­valitsin** `features/nation/BannerPicker.tsx` — 3×2-ruudukko, valittu
+      `aria-pressed` + kulta­reunus, näppäimistöllä. `NationIdentity` committaa `es3:nation`iin.
+- [x] **Lippu omilla heksoilla** — `CELL_FLAG_LAYER` symbol-layer `CELL_BUILDING_LAYER`in
+      mallilla, `text-offset [0, 1.1]`, `opacity 0.7`. `cellProperties.flag = mine &&
+      !cell.building ? '◈' : ''` — harva kynnys (ei rakennuksen solulle). **Ei riipu
+      nation-tilasta:** yksi merkki = "minun", täysi banneri on Keepissä.
+- [x] Renderöinti on **yksi Geometric Shapes -merkki** (`◈`, `FLAG_GLYPH`), ei rasteria —
+      `BRDC-ART-002`:n opetus. Täysi banneri-SVG vain Keepissä / valitsimessa.
+- [x] Testit: `banners.test.ts` — `resolveBannerId` tuntematon → `vesica`, `displayName`
+      oletukset, 6 uniikkia id:tä. `territoryFeatures.test.ts` — `flag` omalla
+      rakennuksettomalla solulla `◈`, rakennuksella/rivaalilla/vapaalla `''`.
+- [~] **Kartan lippu kentällä:** jos `◈` joka omalla rakennuksettomalla solulla on
+      meluisa 360 px:llä, se on yksi `filter`-muutos (esim. vain reunasolut) tai poisto.
+      Todennetaan ulkona.
 
 ## Ei tässä
 

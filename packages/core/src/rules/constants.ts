@@ -119,6 +119,14 @@ export const BLIGHT_FULL_HOURS = 240;
 /** A blighted cell that borders unowned ground looks this much worse. */
 export const BLIGHT_EDGE_FACTOR = 1.5;
 
+/* --- Nation (BRDC-NATION-001) -----------------------------------------------
+   A population figure shown beside the flag in the Keep. A gauge, not a
+   system — no growth, no food, no unrest. Sized so a first block reads as a
+   village and a neighbourhood as a town. Tunable freely. */
+
+export const POP_PER_CELL = 40;
+export const POP_PER_BUILDING = 120;
+
 /* --- Consciousness levels (v2 GameConfig.consciousness) -------------------
    v2's table stopped at 20 but its code let a player reach 118 and corrupted
    the save. The cap is the fix, and it is not optional. */
@@ -198,7 +206,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.11';
+export const APP_VERSION = '0.5.12';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 

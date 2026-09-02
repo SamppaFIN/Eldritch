@@ -17,6 +17,7 @@ import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
 import { ManaPanel } from './ManaPanel.js';
 import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
+import { NationIdentity } from '../nation/NationIdentity.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { ResearchBinding } from './useSelection.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
@@ -127,6 +128,8 @@ export function HearthPanel({
           <span aria-hidden>✕</span>
         </RitualButton>
       </div>
+
+      <NationIdentity owned={owned} />
 
       <dl className="hearth-panel__stats">
         <div>

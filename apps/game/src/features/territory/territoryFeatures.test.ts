@@ -182,6 +182,22 @@ describe('fog of war hides the ground (BRDC-MAP-003)', () => {
   });
 });
 
+describe('the map flag (BRDC-BANNER-001)', () => {
+  it('marks ground you hold that carries no building', () => {
+    expect(cellProperties(cell(ME, 200), ME).flag).toBe('◈');
+  });
+
+  it('yields to a building on the same cell', () => {
+    const built = { ...cell(ME, 200), building: { id: 'sawmill' as const, builtAt: 0 } };
+    expect(cellProperties(built, ME).flag).toBe('');
+  });
+
+  it("never flies over a rival's or an unclaimed cell", () => {
+    expect(cellProperties(cell(RIVAL, 200), ME).flag).toBe('');
+    expect(cellProperties(cell(null, 0), ME).flag).toBe('');
+  });
+});
+
 describe('hasDetail (BRDC-MAP-003)', () => {
   it('opens a panel for ground held by anyone', () => {
     expect(hasDetail(cell(ME, 100), null)).toBe(true);

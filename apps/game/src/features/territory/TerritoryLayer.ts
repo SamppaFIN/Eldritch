@@ -22,6 +22,7 @@ export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';
 export const CELL_BUILDING_LAYER = 'cells-building';
+export const CELL_FLAG_LAYER = 'cells-flag';
 export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
 /**
@@ -177,6 +178,33 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
+   * Your flag on ground you hold that carries no building (BRDC-BANNER-001). One mark —
+   * the full banner is Keep-only — and it takes the building's spot because the two are
+   * never on the same cell. Says "this is mine" without reading the colour (`claude.md` §14).
+   */
+  map.addLayer({
+    id: CELL_FLAG_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['!=', ['get', 'flag'], ''],
+    layout: {
+      'text-field': ['get', 'flag'],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 13, 8, 17, 12, 19, 15],
+      'text-offset': [0, 1.1],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#ffd700',
+      'text-opacity': 0.7,
+      'text-halo-color': '#0a0612',
+      'text-halo-width': 2,
+    },
+  });
+
+  /*
    * An anomaly on your own ground (BRDC-EVENT-001). Above the terrain glyph and offset
    * up so the two do not sit on each other. `--mystic-cyan`, one colour — the glyph
    * carries the state (`◌` a site, `◐` under study, `✦` a chain), never colour alone.
@@ -219,6 +247,7 @@ export function setTerritoryData(
 export function removeTerritoryLayers(map: MapLibreMap): void {
   for (const id of [
     CELL_ANOMALY_LAYER,
+    CELL_FLAG_LAYER,
     CELL_BUILDING_LAYER,
     CELL_ICON_LAYER,
     CELL_CONTESTED_LAYER,

@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CASTLE-002, BRDC-CHAR-001, BRDC-BANNER-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-02 (v0.5.12), kenttätodennus `[~]` |
+| **Valmius** | 90 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED
@@ -19,22 +19,21 @@ on `claude.md` §10:n mukaan se julkinen kasvo jonka muut näkevät; kasvolla pi
 
 ## 🟢 GREEN
 
-- [ ] **Valtion identiteetti tallessa.** Yksi `es3:nation`-avain: `{ name, bannerId }`.
-      Nimi ja lippu asetetaan Keepin identiteettiosiossa; tyhjä nimi näyttää arvotun
-      oletuksen (`"The Nameless Reach"` tms.), ei estä pelaamista.
-- [ ] **Identiteettiosio on paneelin ensimmäinen** — nimi, lippu (`BRDC-BANNER-001`:n
-      esivalituista), ja sen alla tilastorivi.
-- [ ] **Tilastot:** *lääni* = omistettujen res 6 -alueiden (`H3_RES_REGION`) määrä —
-      montako erillistä maakuntaa hallitset. *Asukasmäärä* = johdettu luku
-      omistetuista soluista ja rakennuksista (esim. `Σ cells * K + Σ housingOf(building)`);
-      puhdas funktio `packages/core`ssa, ei tallennettu kenttä. Ei väestömekaniikkaa —
-      luku on lipun vieressä oleva mittari, ei resurssi.
-- [ ] Nimen muokkaus **ei nyi eikä menetä fokusta** — `BRDC-CHAR-001`:n kenttähavainto
-      samasta ongelmasta koskee tätäkin. Kontrolloitu input, ei uudelleenrenderöi joka
-      näppäimenpainalluksella koko paneelia.
-- [ ] Nimi ja lippu näkyvät Wager-viestissä ja (Vaihe 5) `world.json`issa — kirjaa kenttä
-      nyt, käytä myöhemmin.
-- [ ] Puhtaat funktiot testattu: `provinceCount(owned)`, `population(owned, buildings)`.
+- [x] **Valtion identiteetti tallessa.** `es3:nation` = `{ name, bannerId }`
+      (`features/nation/nation.ts`, `load`/`saveNow`). Tyhjä nimi → `displayName` →
+      *"The Nameless Reach"*, ei estä pelaamista. Tuntematon `bannerId` → `vesica`.
+- [x] **Identiteettiosio on paneelin ensimmäinen** — `<NationIdentity>` heti Keepin
+      `hearth-panel__head`in jälkeen: nimikenttä, lippu, tilastorivi.
+- [x] **Tilastot:** `provinceCount(owned)` = `new Set(owned.map(regionOf)).size` (res 6);
+      `population(cellCount, buildingCount)` = `cells*POP_PER_CELL + buildings*POP_PER_BUILDING`
+      (`rules/nation.ts`, puhtaat, `constants.ts`:ssä luvut). "N provinces · M souls".
+- [x] Nimen muokkaus: paikallinen `draft`-`useState`, `onChange` päivittää vain sen,
+      `onBlur`/Enter committaa. `HearthPanel` ei renderöidy per näppäin.
+- [~] Nimi/lippu Wager-viestiin ja `world.json`iin — kenttä on olemassa; vienti on
+      `BRDC-WAGER-JSON-004`.
+- [x] Testit `nation.test.ts`: läänit lasketaan kerran, väkiluku skaalautuu, ei mene
+      negatiiviseksi. 873 vihreää.
+- [~] Kenttätodennus: nimikentän tuntuma oikealla puhelimella — ensi testipäivänä.
 
 ## Ei tässä
 
