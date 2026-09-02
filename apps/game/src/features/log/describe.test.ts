@@ -44,6 +44,13 @@ describe('describeLogEntry', () => {
     );
   });
 
+  it('tells consecrating a temple apart from the Altar', () => {
+    expect(describeLogEntry({ at: 0, kind: 'mana', ref: 'consecrate' }).text).toBe(
+      'Consecrated a temple',
+    );
+    expect(describeLogEntry({ at: 0, kind: 'mana' }).text).toBe('Raised the Altar');
+  });
+
   it('names the opponent and the result of a Wager', () => {
     expect(describeLogEntry({ at: 0, kind: 'wager', ref: 'Seeker', won: false }).text).toBe(
       'Fought the Wager against Seeker — lost',

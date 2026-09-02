@@ -29,6 +29,7 @@ import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
+import { ConsecratePanel } from './ConsecratePanel.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TradeControls } from './TradeControls.js';
 import { AnomalyPanel } from './AnomalyPanel.js';
@@ -349,6 +350,14 @@ export function CellPanel({
           <p className="cell-panel__note">
             A ward adds strength. It does not reset the clock — only your feet do that.
           </p>
+          {place.kind === null ? (
+            <ConsecratePanel
+              cell={cell}
+              resources={resources}
+              dwellMs={place.dwellMs}
+              onConsecrate={place.onConsecrate}
+            />
+          ) : null}
           {me && build ? (
             <BuildPanel
               cell={cell}

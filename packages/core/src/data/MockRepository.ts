@@ -24,8 +24,8 @@ import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
-import { expandTempleAt } from './templeStore.js';
-import type { ExpandOutcome } from './templeStore.js';
+import { consecrateAt, expandTempleAt } from './templeStore.js';
+import type { ConsecrateOutcome, ExpandOutcome } from './templeStore.js';
 import { readPaths } from './pathStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges } from '../geo/paths.js';
@@ -252,9 +252,7 @@ export class MockRepository implements GameRepository {
   }
 
   /* --- Places and the Keep's economy — seam in keepStore.js ------------- */
-  getPlaces(): Promise<RevealedPlace[]> {
-    return readPlaces(this.store, () => this.getHome());
-  }
+  getPlaces = (): Promise<RevealedPlace[]> => readPlaces(this.store, () => this.getHome());
   getDwellFor(h3: string): Promise<number> {
     return readDwellFor(this.store, h3);
   }
@@ -267,6 +265,8 @@ export class MockRepository implements GameRepository {
   async expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome> {
     return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   }
+  consecrateTemple = async (h3: H3Index, now: number): Promise<ConsecrateOutcome> =>
+    consecrateAt(this.store, h3, await this.getOwnedCells(now), await this.getHome(), now);
 
   /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
   getAnomalies(now: number): Promise<Anomaly[]> {

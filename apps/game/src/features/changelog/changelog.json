@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.21",
+    "date": "2026-09-02",
+    "notes": [
+      "A temple can be consecrated with resources now, not only earned by standing in one cell for ninety minutes. Open a cell you hold and it offers 'Consecrate a temple' for stone and gold — and any time already spent in that cell pays the price down, so a cell walked to often is cheap and one dwelt to the full threshold is free. A consecrated temple draws mana every hour, the same as a revealed one."
+    ]
+  },
+  {
     "version": "0.5.20",
     "date": "2026-09-02",
     "notes": [

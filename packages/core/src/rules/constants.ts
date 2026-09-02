@@ -206,7 +206,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.20';
+export const APP_VERSION = '0.5.21';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 
@@ -265,6 +265,15 @@ export const MANA_TEMPLE_MIN = 1;
 export const MAX_TEMPLE_EXPANSION = 3;
 /** Each expansion level adds this fraction of the temple's base rate. */
 export const MANA_EXPANSION_STEP = 0.5;
+
+/**
+ * Consecrating a temple with resources instead of time (BRDC-TEMPLE-001).
+ *
+ * Full price at zero dwell; the dwell already banked in the cell knocks it down pro rata,
+ * and at `TEMPLE_THRESHOLD_MS` it is free — the same point the temple would have revealed
+ * itself for nothing. Sized so a first temple is a real spend, not a rounding error.
+ */
+export const TEMPLE_CONSECRATE_COST = { stone: 120, gold: 80 } as const;
 
 /* --- The Altar and channelling (BRDC-KEEP-002) -------------------------
    The Altar is the Anchor invested in: it uses the temple expansion curve

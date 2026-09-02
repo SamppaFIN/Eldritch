@@ -21,9 +21,11 @@ import {
   MANA_TEMPLE_MIN,
   MANA_TEMPLE_RATE,
   MAX_TEMPLE_EXPANSION,
+  TEMPLE_CONSECRATE_COST,
 } from './constants.js';
+import { TEMPLE_THRESHOLD_MS } from './dwell.js';
 import { DORMANT_AFTER_MS, spend } from './terrain.js';
-import type { ResourcePool } from './terrain.js';
+import type { ResourceKind, ResourcePool } from './terrain.js';
 
 export type ChannelRefusal = 'cannot-afford' | 'wisdom-full';
 export type ChannelResult =
@@ -54,6 +56,20 @@ export function manaRate(place: Place, expansion: number): number {
 /** The cost of the next expansion level (`nextLevel` in 1..`MAX_TEMPLE_EXPANSION`). Rises. */
 export function expansionCost(nextLevel: number): Partial<ResourcePool> {
   return { stone: 40 * nextLevel, gold: 30 * nextLevel };
+}
+
+/**
+ * Stone and gold to consecrate a temple on a cell (BRDC-TEMPLE-001), discounted by the
+ * dwell already banked there. `{}` — free — at or past `TEMPLE_THRESHOLD_MS`.
+ */
+export function consecrateCost(dwellMs: number): Partial<ResourcePool> {
+  const owedFraction = 1 - Math.min(1, Math.max(0, dwellMs) / TEMPLE_THRESHOLD_MS);
+  const out: Partial<ResourcePool> = {};
+  for (const [k, v] of Object.entries(TEMPLE_CONSECRATE_COST) as [ResourceKind, number][]) {
+    const owed = Math.ceil(v * owedFraction);
+    if (owed > 0) out[k] = owed;
+  }
+  return out;
 }
 
 /**

@@ -381,7 +381,8 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-CITY-002](BRDC-CITY-002.md) | Kalastuskylä: ensimmäinen kaupunkivaltio | M | vartijat, kauppapaikka, resurssien vaihto · CITY-001:n pienin pala |
 | [BRDC-BUILD-006](BRDC-BUILD-006.md) | Vartiotorni näkee, muuri pitää | M | 2 rengasta paljastusta, ei vallattavissa ilman joukkoja · muuri heksan reunalle |
 | [BRDC-TRADE-001](BRDC-TRADE-001.md) | Taverna: kulta kulttuuriksi | S | avaa monumenttien umpisolmun |
-| [BRDC-TEMPLE-001](BRDC-TEMPLE-001.md) | Temppeli resursseilla, dwell antaa alennusta | M | irrotettu BUILD-005:stä · tietoinen mekaniikkamuutos |
+| [BRDC-TEMPLE-001](BRDC-TEMPLE-001.md) | Temppeli resursseilla, dwell antaa alennusta | M | **done v0.5.21** · vihi solu temppeliksi stone+gold, dwell alentaa |
+| [BRDC-TEMPLE-002](BRDC-TEMPLE-002.md) | Temppeli = tutkimusrakennus, koulukunnat | L–XL | valitse koulukunta, opi sen riitit sieltä · tutkimus Keepistä temppeliin |
 | [BRDC-SPELL-002](BRDC-SPELL-002.md) | Scrying, ja loput koulukunnat | M | SPELL-001 lupasi tämän nimeltä · taika näyttää ja unohtaa, kävely muistaa |
 | [BRDC-TRAIL-004](BRDC-TRAIL-004.md) | Käyntikerrat kantana: polku → junarata | M | viisi porrasta, kerran per kalenteripäivä |
 | [BRDC-FX-001](BRDC-FX-001.md) | Kun jotain tapahtuu, ruutu näyttää sen | M | §12:n pyhä geometria hetkinä · katto per minuutti |

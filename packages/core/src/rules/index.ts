@@ -114,7 +114,15 @@ export type { WardRefusal, WardResult } from './ward.js';
 export { ACHIEVEMENTS, earnedNow } from './achievements.js';
 export type { Achievement, AchievementSnapshot } from './achievements.js';
 export { SHARD_COUNT, cipherComplete, cipherShardAt } from './cipher.js';
-export { channelMana, expandTemple, expansionCost, manaBonus, manaRate, placesWithMana } from './mana.js';
+export {
+  channelMana,
+  consecrateCost,
+  expandTemple,
+  expansionCost,
+  manaBonus,
+  manaRate,
+  placesWithMana,
+} from './mana.js';
 export type { ChannelRefusal, ChannelResult, ExpandRefusal, ExpandResult } from './mana.js';
 export {
   BULWARK_SHELTER_MS,

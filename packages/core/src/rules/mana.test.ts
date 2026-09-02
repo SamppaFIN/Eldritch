@@ -7,6 +7,7 @@ import {
   MANA_TEMPLE_MIN,
   MANA_TEMPLE_RATE,
   MAX_TEMPLE_EXPANSION,
+  TEMPLE_CONSECRATE_COST,
 } from './constants.js';
 import {
   ANCHOR_THRESHOLD_MS,
@@ -19,6 +20,7 @@ import { EMPTY_POOL } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
 import {
   channelMana,
+  consecrateCost,
   expandTemple,
   expansionCost,
   manaBonus,
@@ -64,6 +66,29 @@ describe('expansionCost', () => {
   it('rises with each level', () => {
     expect(expansionCost(2).stone ?? 0).toBeGreaterThan(expansionCost(1).stone ?? 0);
     expect(expansionCost(2).gold ?? 0).toBeGreaterThan(expansionCost(1).gold ?? 0);
+  });
+});
+
+describe('consecrateCost (BRDC-TEMPLE-001)', () => {
+  it('is the full price with no time banked', () => {
+    expect(consecrateCost(0)).toEqual({ ...TEMPLE_CONSECRATE_COST });
+  });
+
+  it('is free once the cell is dwelt to the temple threshold', () => {
+    expect(consecrateCost(TEMPLE_THRESHOLD_MS)).toEqual({});
+    expect(consecrateCost(TEMPLE_THRESHOLD_MS * 2)).toEqual({});
+  });
+
+  it('falls as dwell rises, and never below zero', () => {
+    const full = consecrateCost(0).stone ?? 0;
+    const half = consecrateCost(TEMPLE_THRESHOLD_MS / 2).stone ?? 0;
+    expect(half).toBeGreaterThan(0);
+    expect(half).toBeLessThan(full);
+    expect(consecrateCost(TEMPLE_THRESHOLD_MS * 0.9).stone ?? 0).toBeLessThan(half);
+  });
+
+  it('treats a negative dwell as zero', () => {
+    expect(consecrateCost(-1000)).toEqual({ ...TEMPLE_CONSECRATE_COST });
   });
 });
 

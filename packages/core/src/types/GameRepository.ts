@@ -30,7 +30,7 @@ import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
-import type { ExpandOutcome } from '../data/templeStore.js';
+import type { ConsecrateOutcome, ExpandOutcome } from '../data/templeStore.js';
 import type { AltarOutcome, ChannelOutcome } from '../data/keepStore.js';
 import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
@@ -248,6 +248,8 @@ export interface GameRepository {
    * nothing is written: the spend and the level change happen together or not at all.
    */
   expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome>;
+  /** Consecrate an owned cell as a temple with stone and gold (BRDC-TEMPLE-001). */
+  consecrateTemple(h3: H3Index, now: number): Promise<ConsecrateOutcome>;
   /** Raise the Altar — the Anchor cell — one expansion step (BRDC-KEEP-002). */
   raiseAltar(now: number): Promise<AltarOutcome>;
   /** Channel a fixed step of mana into wisdom at the Altar. Refuses if short or wisdom-full. */

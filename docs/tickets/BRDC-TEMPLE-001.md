@@ -5,9 +5,10 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (mekaniikkamuutos + persistointi + testit) |
 | **Riippuvuudet** | BRDC-MANA-001, BRDC-DWELL-001, BRDC-DWELL-002, BRDC-BUILD-005 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` (v0.5.21) |
+| **Valmius** | 100 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 (irrotettu `BRDC-BUILD-005`:stä) |
+| **Jatko** | `BRDC-TEMPLE-002` — temppeli tutkimusrakennuksena, koulukunnat |
 
 ## 🔴 RED
 
@@ -27,25 +28,32 @@ plan-mode-suunnitelmansa.
 
 ## 🟢 GREEN
 
-- [ ] **"Consecrate a temple" -toiminto** solulla jonka omistat: maksaa resursseja
-      (stone + gold, hintakäyrä `constants.ts`:ään), luo `Place`-rivin `kind: 'temple'`
-      samaan tapaan kuin dwell-paljastus. Ei `BUILDINGS`-rivi — Place, koska mana-koodi
-      (`mana.ts`, `manaBonus`) lukee Placeja.
-- [ ] **Dwell antaa portaittaisen alennuksen.** Solun kertynyt dwell vähentää hintaa:
-      0 dwell → täysi hinta, `TEMPLE_THRESHOLD_MS` → ilmainen (= nykyinen paljastus).
-      Väliltä lineaarinen tai 3–4 porrasta. Käyrä vakiona, ei paneelissa.
-- [ ] **Rakennettu temppeli on kaikin puolin temppeli:** tuottaa manaa (`manaRate`),
-      laajennettavissa (`expandTemple`), täyttää `templeAdjacent`-gaten libraryille ja
-      temple-grovelle, rappeutuu saman kellon mukaan jos sitä ei käydä katsomassa.
-- [ ] **Ei tuplatemppeliä:** jos solu on jo temppeli (dwell tai rakennettu), toiminto ei
-      näy. Anchor/Hearth ei voi olla temppeli.
-- [ ] Persistointi: rakennetut temppelit talteen (`K.builtTemples` tms. tai laajennettu
-      places-store), `resetAll` siivoaa. `SCHEMA_VERSION` vain jos vanhaa ei voi lukea.
-- [ ] Puhtaat funktiot + testit: `templeCost(dwellMs)` porras/lineaari · consecrate
-      luo Placen ja veloittaa · gate estää tuplan · rakennettu temppeli tuottaa manaa ja
-      täyttää `templeAdjacent`in · rappeutuu.
-- [ ] `docs/backlog/` mahdollinen lore-rivi temppelin vihkimiselle (Cthulhu-henki), jos
-      sopii — mekaniikka ensin.
+- [x] **"Consecrate a temple" -toiminto** solulla jonka omistat: maksaa `stone + gold`
+      (`TEMPLE_CONSECRATE_COST = { stone: 120, gold: 80 }` `constants.ts`:ssä).
+      `ConsecratePanel.tsx` renderöi `CellPanel`in `mine`-haarassa kun `place.kind === null`.
+      Ei `BUILDINGS`-rivi.
+- [x] **Dwell antaa lineaarisen alennuksen.** `consecrateCost(dwellMs)` (`mana.ts`):
+      0 dwell → täysi hinta, `>= TEMPLE_THRESHOLD_MS` → `{}` (ilmainen, = nykyinen
+      paljastus), väliltä `ceil(v * (1 - dwellMs/threshold))` per laji. Ei paneelissa
+      muuta kuin "your time here has paid N%".
+- [x] **Vihitty temppeli on kaikin puolin temppeli.** `consecrateAt` kirjoittaa
+      `K.dwell[h3] = max(dwell, TEMPLE_THRESHOLD_MS)` — se *on* koko temppelin luonti.
+      `placesWithHome` / `revealPlaces` / `manaBonus` johtavat temppelit `K.dwell`:istä,
+      joten solu on nyt identtinen dwell-paljastetun temppelin kanssa: tuottaa manaa
+      (todennettu `temple.repo.test.ts`), laajennettavissa (`expandTempleAt` lukee
+      `getPlaces`istä, sama polku kuin `mana.repo.test.ts`:n testaama), täyttää
+      `needs-a-temple`-gaten, rappeutuu omistuksen mukana.
+- [x] **Ei tuplatemppeliä.** `dwell[h3] >= TEMPLE_THRESHOLD_MS` → `already-a-place`;
+      `h3 === home` → `is-hearth`. `ConsecratePanel` näkyy vain kun `place.kind === null`.
+- [x] Persistointi: ei uutta avainta — `K.dwell` on yhä `Record<h3, number>`, vain arvo
+      nousee. `resetAll` siivoaa sen jo. Ei `SCHEMA_VERSION`-nostoa.
+- [x] Puhtaat funktiot + testit: `consecrateCost` — täysi 0:lla, `{}` kynnyksellä,
+      monotoninen väliltä, negatiivinen dwell = 0 (`mana.test.ts`, 5 testiä) ·
+      `temple.repo.test.ts` (8 testiä): vihkiminen luo temppelin, veloittaa pouchin,
+      tuottaa manaa, alennus laskee hintaa, refusalit köyhä / Hearth / vieras maa /
+      jo place. `describe.ts` `mana` + `ref:'consecrate'` → "Consecrated a temple".
+- [~] Lore-rivi `docs/backlog/`:iin — ohitettu, "mekaniikka ensin". Siirtyy
+      `BRDC-TEMPLE-002`:n yhteyteen jos koulukunnat tuovat vihkimisrituaalille tekstiä.
 
 ## Ei tässä
 

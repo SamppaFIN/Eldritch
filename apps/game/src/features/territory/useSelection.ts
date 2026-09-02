@@ -70,6 +70,8 @@ export interface PlaceBinding {
   expansion: number;
   refusal: ExpandFail | null;
   onExpand: (h3: H3Index) => void;
+  /** Consecrate this owned, un-named cell as a temple, paying stone and gold (BRDC-TEMPLE-001). */
+  onConsecrate: (h3: H3Index) => void;
 }
 
 /** Spell casting for the selected cell and the domain, in one bundle (BRDC-SPELL-001). */
@@ -283,29 +285,28 @@ export function useSelection({
     [repository, now, afterSpend],
   );
 
-  const onDemolish = useCallback(
-    (h3: H3Index) => {
-      if (!repository) return;
-      void (async () => {
-        const r = await repository.demolish(h3, now());
-        setBuildRefusal(r.ok ? null : r.refused);
-        if (r.ok) await afterSpend();
-      })();
-    },
-    [repository, now, afterSpend],
-  );
+  const onDemolish = useCallback((h3: H3Index) => {
+    if (!repository) return;
+    void repository.demolish(h3, now()).then((r) => {
+      setBuildRefusal(r.ok ? null : r.refused);
+      if (r.ok) void afterSpend();
+    });
+  }, [repository, now, afterSpend]);
 
-  const onExpand = useCallback(
-    (h3: H3Index) => {
-      if (!repository) return;
-      void (async () => {
-        const r = await repository.expandTemple(h3, now());
-        setExpandRefusal(r.ok ? null : r.refused);
-        if (r.ok) await afterSpend();
-      })();
-    },
-    [repository, now, afterSpend],
-  );
+  const onExpand = useCallback((h3: H3Index) => {
+    if (!repository) return;
+    void repository.expandTemple(h3, now()).then((r) => {
+      setExpandRefusal(r.ok ? null : r.refused);
+      if (r.ok) void afterSpend();
+    });
+  }, [repository, now, afterSpend]);
+
+  const onConsecrate = useCallback((h3: H3Index) => {
+    if (!repository) return;
+    void repository.consecrateTemple(h3, now()).then((r) => {
+      if (r.ok) void afterSpend();
+    });
+  }, [repository, now, afterSpend]);
 
   const onCast = useCallback(
     (id: SpellId, target: H3Index | null) => {
@@ -364,6 +365,7 @@ export function useSelection({
       expansion: here?.expansion ?? 0,
       refusal: expandRefusal,
       onExpand,
+      onConsecrate,
     },
     spell: { active: spells, refusal: castRefusal, onCast },
     research: {
