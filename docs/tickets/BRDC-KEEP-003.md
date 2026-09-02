@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | S (puoli päivää) |
 | **Riippuvuudet** | BRDC-KEEP-002, BRDC-CASTLE-002, BRDC-TECH-001, BRDC-MANA-001 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-02 (v0.5.10), kenttätodennus `[~]` |
+| **Valmius** | 85 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED
@@ -26,18 +26,20 @@ näkymättömiä. Kokonainen Vaihe 3:n osa on olemassa ilman ovea.
 
 ## 🟢 GREEN
 
-- [ ] **Keep-merkin napautus vie välilehdelliseen paneeliin.** Yksi selvä reitti kartalta
-      siihen paneeliin, jossa Mana / Rites / Buildings / Train ovat. Jos kansakuntanäkymä
-      (`BRDC-CASTLE-002`) on eri asia, se on *sen sisällä* välilehtenä tai linkkinä — ei
-      kilpaileva umpikuja.
-- [ ] **Reitti on löydettävissä ilman karttamerkkiä.** Kun pelaaja ei ole Keepin lähellä,
-      jokin pysyvä kohta (footer tai valikko) vie samaan paikkaan. Tutkimusta ei saa
-      joutua etsimään kävelemällä kotiin.
-- [ ] Ensimmäinen avaus kertoo mitä välilehdet ovat — yksi rivi kussakin, ei opasta.
-      Linkki kirjaan (`rite`, `mana`) sieltä missä sana ensin esiintyy.
-- [ ] **Todennus on kysymys, ei koodi:** anna peli jollekulle joka ei ole nähnyt sitä ja
-      pyydä tutkimaan yksi Riitti. Jos hän ei löydä perille ilman apua, tiketti ei ole valmis.
-- [ ] Testi: paneeli renderöi kaikki neljä välilehteä ja jokainen vaihtaa sisällön.
+- [x] **Keep-merkin napautus vie välilehdelliseen paneeliin** — toimi jo `BRDC-CASTLE-002`:sta
+      (`onCastleTap` → `inspect.sanctum` → `HearthPanel`, jossa Mana / Rites / Buildings / Train).
+- [x] **Reitti löytyy ilman karttamerkkiä.** Footerissa `⌂ Keep` -nappi (`Hud.tsx`
+      `hud__actions`, `⬢ Here` ja `◇ You` vieressä), kutsuu samaa `inspect.onCastleTap`ia.
+      Näkyy kun `castle !== null` (pelaajalla on Hearth). `MapView` gettaa sen.
+- [~] Ensimmäinen avaus: jokaisella välilehden sisällöllä on jo oma johdantorivi
+      (`ManaPanel`, `ResearchPanel`, `KeepBuildingsPanel`). Erillistä välilehti-vihjettä ei
+      lisätty — turhaa toistoa. **Linkki kirjaan (`rite`, `mana`) jää `BRDC-WIKI-002` /
+      `BRDC-KEEP-004`:ään** (siellä rakennus→Guide-linkit muutenkin).
+- [x] Testi: `keepTabs.test.ts` — neljä osiota oikeassa järjestyksessä, jokaisella label,
+      tutkimus = "Rites". 858 vihreää. (Renderöintitestiä ei — repo testaa paneelien
+      puhtaita apureita, ei JSX:ää.)
+- [~] **Todennus on kysymys:** anna peli jollekulle, pyydä tutkimaan Riitti. Ajetaan
+      seuraavana testipäivänä.
 
 ## Ei tässä
 

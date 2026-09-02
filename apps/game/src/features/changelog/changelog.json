@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.10",
+    "date": "2026-09-02",
+    "notes": [
+      "A ⌂ Keep button in the footer. The Keep — where mana, Rites and buildings are all run from — used to be reachable only by walking home and tapping its marker. Now it is one tap from anywhere, once you have a Hearth."
+    ]
+  },
+  {
     "version": "0.5.9",
     "date": "2026-09-02",
     "notes": [

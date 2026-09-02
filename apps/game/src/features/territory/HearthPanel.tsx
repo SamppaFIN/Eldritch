@@ -22,8 +22,11 @@ import type { ResearchBinding } from './useSelection.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
 
-type KeepTab = 'mana' | 'wisdom' | 'buildings' | 'train';
-const TABS: readonly { id: KeepTab; label: string }[] = [
+export type KeepTab = 'mana' | 'wisdom' | 'buildings' | 'train';
+
+/** The Keep's sections: where mana, Rites and buildings are all run from (BRDC-KEEP-002,
+ *  -003). Opened from the map marker or the ⌂ Keep button in the footer. */
+export const TABS: readonly { id: KeepTab; label: string }[] = [
   { id: 'mana', label: 'Mana' },
   { id: 'wisdom', label: 'Rites' },
   { id: 'buildings', label: 'Buildings' },

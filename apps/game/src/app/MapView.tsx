@@ -364,6 +364,7 @@ export function MapView({ onLeave }: MapViewProps) {
         waypoint={quest.waypoint}
         onWaypointSeen={quest.onWaypointSeen}
         onOpenCharacter={aside.openCharacter}
+        onOpenKeep={castle ? inspect.onCastleTap : undefined}
         onHelp={aside.openHelp}
         onOpenLog={aside.openLog}
       />

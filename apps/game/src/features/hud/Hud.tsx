@@ -54,6 +54,8 @@ export interface HudProps {
   waypoint?: string | null;
   onWaypointSeen?: () => void;
   onOpenCharacter?: () => void;
+  /** Opens the Keep — buildings, mana, research — from anywhere, not just its marker (BRDC-KEEP-003). */
+  onOpenKeep?: (() => void) | undefined;
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
@@ -180,6 +182,7 @@ export function Hud({
   waypoint = null,
   onWaypointSeen,
   onOpenCharacter,
+  onOpenKeep,
   onHelp,
   onOpenLog,
 }: HudProps) {
@@ -368,20 +371,18 @@ export function Hud({
             </span>
           </p>
 
-          {/*
-            The walking bar keeps only what a walking thumb needs: Vigil, and the way
-            onto the cell underfoot. Retreat and Delete moved to the menu (BRDC-HUD-003)
-            — a destructive action does not belong one mis-tap from Here.
-
-            Here is also the keyboard path onto the map: tapping a hexagon is a pointer
-            gesture with no equivalent, and the cell under your feet is the one you most
-            want anyway.
-          */}
+          {/* The walking bar keeps only what a walking thumb needs. Destructive actions
+              are in the menu (BRDC-HUD-003); Here is also the keyboard path onto the map. */}
           <div className="hud__actions">
             <Vigil keepAlive={keepAlive} />
             {standing && onInspectHere ? (
               <RitualButton variant="ghost" className="hud__here" onClick={onInspectHere}>
                 <span aria-hidden>⬢</span> Here
+              </RitualButton>
+            ) : null}
+            {onOpenKeep ? (
+              <RitualButton variant="ghost" className="hud__here" onClick={onOpenKeep}>
+                <span aria-hidden>⌂</span> Keep
               </RitualButton>
             ) : null}
             {onOpenCharacter ? (
