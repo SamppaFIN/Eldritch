@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.9",
+    "date": "2026-09-02",
+    "notes": [
+      "An adventure step happens where it happens. You can no longer tap a quest landmark from across the map and take the step — the button only appears while you are standing on that hex, and a stage viewed from afar says \"Walk here to take this step\". If you open a stage and then walk off, you can still read it, but its choices lock until you walk back."
+    ]
+  },
+  {
     "version": "0.5.8",
     "date": "2026-09-02",
     "notes": [

@@ -278,7 +278,7 @@ export function MapView({ onLeave }: MapViewProps) {
       <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />
       <CipherReveal found={cipher.justFound} view={cipher.view} settings={settings} onDismiss={cipher.dismiss} />
       {quest.questHex ? (
-        <AdventureDialog binding={quest.adventures} onClose={() => quest.openQuestHex(null)} />
+        <AdventureDialog binding={quest.adventures} onHex={quest.atStageHex} onClose={() => quest.openQuestHex(null)} />
       ) : null}
 
       {inspect.sanctum ? (

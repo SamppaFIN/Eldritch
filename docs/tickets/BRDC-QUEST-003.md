@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | S (puoli päivää) |
 | **Riippuvuudet** | BRDC-QUEST-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-02 (v0.5.9), kenttätodennus `[~]` |
+| **Valmius** | 90 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED
@@ -28,17 +28,23 @@ mekaniikasta jää mitään jäljelle.
 
 ## 🟢 GREEN
 
-- [ ] **`canAct` vaatii että pelaaja on heksalla.** `questCellInfo` saa `standingOn`-tiedon
-      ja `canAct` on tosi vain kun `site === here && selected === standingOn`.
-      `MapView`illa on `standingOn` jo valmiina.
-- [ ] **Etäältä katsottu etappi kertoo miksi se ei aukea** — ei harmaa nappi ilman syytä,
-      vaan rivi tyyliin *"Olet liian kaukana — kävele tänne."* (`claude.md` §14: virheet
-      kertovat mitä tehdä, ei mikä meni rikki.)
-- [ ] Sama sääntö koskee **aloitusta**: `fuming-lake` alkaa vain patsaan heksalla seisten.
-- [ ] Testi `questCell.test.ts`:ään: sama etappi, sama vaihe, `standingOn` eri heksa →
-      `canAct: false`; `standingOn` sama heksa → `canAct: true`.
-- [ ] Todennus kentällä: avaa dialogi patsaalla, kävele järvelle, avaa siellä. Sohvalta
-      ei pääse eteenpäin.
+- [x] **`canAct` vaatii että pelaaja on heksalla.** `questCellInfo(h3, fuming, finds,
+      standingOn = h3)` — `canAct` tosi vain kun `h3 === standingOn` *ja* etappi on
+      toiminnallinen. `useFumingLake` antaa `standingOn`in (jonka DWELL-002 teki
+      sticky-vakaaksi). Oletus `= h3` pitää olemassa olevat `questCell.test.ts`-tapaukset
+      vihreinä.
+- [x] **Etäältä katsottu etappi kertoo mitä tehdä** — `history`-rivi *"Walk here to take
+      this step."* / *"Walk to the statue to begin."*; `label` näkyy maamerkkinä, ei
+      nappina (`claude.md` §14).
+- [x] **Aloitus:** `fuming-lake` alkaa vain patsaan heksalla seisten — `questCellInfo`n
+      "Begin"-haara **ja** `openQuestHex`in `h3 === standingOn` -vartija.
+- [x] **Jälkikäteen kävely pois:** dialogi jää luettavaksi, mutta valinnat lukkiutuvat.
+      `atStageHex(fuming, standingOn)` (uusi puhdas funktio), `AdventureDialog` saa
+      `onHex`-propin → `disabled` + rivi *"Walk to where this happens to choose."*
+- [x] Testit `questCell.test.ts`: eri `standingOn` → `canAct: false` + oikea history;
+      `atStageHex` true/false/loop/available/undefined. 855 vihreää.
+- [~] **Kenttätodennus:** avaa dialogi patsaalla, kävele järvelle, avaa siellä; sohvalta
+      ei pääse eteenpäin. Ajetaan seuraavana testipäivänä.
 
 ## Ei tässä
 

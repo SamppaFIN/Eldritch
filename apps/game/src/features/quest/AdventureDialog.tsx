@@ -43,10 +43,13 @@ function Shelf({ list, onStart }: { list: readonly AdventureView[]; onStart: (id
 
 export interface AdventureDialogProps {
   binding: AdventureBinding;
+  /** True while the player stands on the hex this stage is acted on (BRDC-QUEST-003).
+   *  When false the tale can still be read, but its choices are locked. */
+  onHex?: boolean;
   onClose: () => void;
 }
 
-export function AdventureDialog({ binding, onClose }: AdventureDialogProps) {
+export function AdventureDialog({ binding, onHex = true, onClose }: AdventureDialogProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -82,7 +85,7 @@ export function AdventureDialog({ binding, onClose }: AdventureDialogProps) {
               <RitualButton
                 key={i}
                 variant="ghost"
-                disabled={c.locked}
+                disabled={c.locked || !onHex}
                 title={c.locked ? 'Not yet — walk and claim what it needs.' : undefined}
                 onClick={() => binding.onChoose(i)}
               >
@@ -90,6 +93,11 @@ export function AdventureDialog({ binding, onClose }: AdventureDialogProps) {
               </RitualButton>
             ))}
           </div>
+          {!onHex ? (
+            <p className="adventure__refusal" role="status">
+              Walk to where this happens to choose.
+            </p>
+          ) : null}
           <RitualButton variant="ghost" className="adventure__abandon" onClick={() => binding.onAbandon(a.id)}>
             Abandon this tale
           </RitualButton>

@@ -12,7 +12,7 @@ import { useAdventure } from './useAdventure.js';
 import type { AdventureBinding } from './useAdventure.js';
 import { useQuestFinds } from './useQuestFinds.js';
 import { useQuestWaypoint } from './useQuestWaypoint.js';
-import { questCellInfo } from './questCell.js';
+import { atStageHex, questCellInfo } from './questCell.js';
 import type { QuestCellInfo } from './questCell.js';
 
 export interface FumingLake {
@@ -25,6 +25,8 @@ export interface FumingLake {
   dismissFound: () => void;
   questHex: H3Index | null;
   openQuestHex: (h3: H3Index | null) => void;
+  /** True while the player stands on the hex the open stage is acted on (BRDC-QUEST-003). */
+  atStageHex: boolean;
 }
 
 export function useFumingLake(
@@ -47,15 +49,19 @@ export function useFumingLake(
   return {
     adventures,
     questSites,
-    questCell: selected ? questCellInfo(selected, fuming, finds.finds) : null,
+    questCell: selected ? questCellInfo(selected, fuming, finds.finds, standingOn) : null,
     waypoint: wp.waypoint,
     onWaypointSeen: wp.dismiss,
     justFound: finds.justFound,
     dismissFound: finds.dismiss,
     questHex,
-    // Tapping the statue's action begins the tale and shows its first page in one step.
+    atStageHex: atStageHex(fuming, standingOn),
+    // Tapping the statue's action begins the tale and shows its first page in one step —
+    // and only from the statue's own hex (BRDC-QUEST-003).
     openQuestHex: (h3: H3Index | null) => {
-      if (h3 && notStarted && h3 === siteCell('statue')) adventures.onStart('fuming-lake');
+      if (h3 && notStarted && h3 === siteCell('statue') && h3 === standingOn) {
+        adventures.onStart('fuming-lake');
+      }
       setQuestHex(h3);
     },
   };
