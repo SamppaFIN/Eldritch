@@ -385,6 +385,21 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-TRAIL-004](BRDC-TRAIL-004.md) | Käyntikerrat kantana: polku → junarata | M | viisi porrasta, kerran per kalenteripäivä |
 | [BRDC-FX-001](BRDC-FX-001.md) | Kun jotain tapahtuu, ruutu näyttää sen | M | §12:n pyhä geometria hetkinä · katto per minuutti |
 
+### 🏰 Keep-ohjaamo — Infiniten spec 2026-09-02
+
+Kenttätestin jälkeen: Keep-paneelista (`HearthPanel`) tehdään se paikka josta *kaikkea*
+hallitaan — valtion identiteetti, resurssit vauhteineen, rakennukset, mana, tutkimus.
+Neljä tikettiä, koska yksi olisi 600 riviä. `BRDC-ECON-003` korjasi jo footerin pouchin
+näyttämään kaikki 9 lajia; sama 3-lajin bugi on yhä `HearthPanel`in omalla pouch-rivillä,
+ja se korjaantuu `BRDC-ECON-004`:n Resources-osiossa.
+
+| ID | Nimi | Effort | Ydin |
+|---|---|:---:|---|
+| [BRDC-NATION-001](BRDC-NATION-001.md) | Valtion nimi, lippu, tilastot | M | `es3:nation` · lääni = res 6 -alueet · asukasmäärä johdettu luku |
+| [BRDC-BANNER-001](BRDC-BANNER-001.md) | Esivalitut bannerit + lippu heksoilla | M | 6–8 stroke-SVG:tä · symbol-layer `buildingGlyphs`in malliin |
+| [BRDC-KEEP-004](BRDC-KEEP-004.md) | Keep on ohjaamo: nimetyt osiot | M–L | 6 osiota, taitettavat · rakennus→Guide-linkit · `HearthPanel` < 400 r |
+| [BRDC-ECON-004](BRDC-ECON-004.md) | Resurssit: määrä, /h, Collect-nappi | S–M | **suositus: kosmeettinen Collect** — ei riskiä ECON-001:lle |
+
 ### Tietoisesti siirretty
 
 | Havainto | Minne | Miksi |
