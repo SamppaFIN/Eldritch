@@ -1,0 +1,61 @@
+/* The sacred-geometry sigil that bursts off each cell as its lid lifts (BRDC-CLAIM-008). */
+
+.gift-sigil {
+  position: absolute;
+  z-index: calc(var(--z-hud, 100) - 1);
+  transform: translate(-50%, -50%) scale(0.35);
+  transform-origin: center;
+  pointer-events: none;
+  opacity: 0;
+  animation: gift-unwrap 1s var(--ease-out, ease-out) forwards;
+}
+
+.gift-sigil polygon {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: gift-draw 0.85s var(--ease-out, ease-out) forwards;
+}
+
+/* Reduced motion: it appears, holds a beat, fades. Nothing travels. */
+.gift-sigil--still {
+  transform: translate(-50%, -50%) scale(1);
+  animation: gift-unwrap-still 0.6s steps(2, end) forwards;
+}
+
+.gift-sigil--still polygon {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
+@keyframes gift-unwrap {
+  0% {
+    transform: translate(-50%, -50%) scale(0.35);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes gift-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes gift-unwrap-still {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 0;
+  }
+}

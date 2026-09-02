@@ -20,29 +20,43 @@ export const AWAKENING_LINE_LAYER = 'awakening-line';
 const GOLD = '#ffd700'; // --sacred-gold
 
 /** How long the whole ripple takes, edge included. */
-export const AWAKENING_MS = 2_000;
+export const AWAKENING_MS = 2_400;
 
 /**
  * A cell's own moment, expressed against the single animated number.
  *
- * `progress` runs 0 → 2. A cell whose delay has not been reached yet is dark; it flares
- * as `progress` passes, holds briefly, then fades. The stagger is 1.0 wide and the flare
- * itself 1.0, which is why progress runs past 1.
+ * `progress` runs 0 → 2, `delay` 0 → 1, so `progress - delay` runs -1 → 2. It is the
+ * opening of a parcel, not a flare: every cell sits under opaque gold — its territory
+ * fill hidden — until `progress` reaches its `delay`, and then the lid lifts.
+ *
+ * FILL is the wrapping: high at or below 0, gone a third of a unit later. LINE is the
+ * cell's edge: a faint outline on the wrapped parcel, a bright tear as the lid lifts,
+ * then nothing, leaving the ordinary territory stroke underneath.
  */
-function opacityFor(progress: number, peak: number): ExpressionSpecification {
+export const WRAP_ALPHA_STOPS: readonly (readonly [number, number])[] = [
+  [-1, 0.9],
+  [0, 0.9],
+  [0.35, 0],
+];
+
+export const TEAR_ALPHA_STOPS: readonly (readonly [number, number])[] = [
+  [-1, 0.3],
+  [0, 0.4],
+  [0.12, 1],
+  [0.55, 0.45],
+  [1, 0],
+];
+
+function curve(
+  progress: number,
+  stops: readonly (readonly [number, number])[],
+): ExpressionSpecification {
   return [
     'interpolate',
     ['linear'],
     ['-', progress, ['get', 'delay']],
-    0,
-    0,
-    0.25,
-    peak,
-    0.6,
-    peak,
-    1,
-    0,
-  ];
+    ...stops.flat(),
+  ] as unknown as ExpressionSpecification;
 }
 
 export function ensureAwakeningLayers(map: MapLibreMap): void {
@@ -85,8 +99,21 @@ export function setAwakeningCells(map: MapLibreMap, cells: readonly H3Index[]): 
 
 export function setAwakeningProgress(map: MapLibreMap, progress: number): void {
   if (!map.getLayer(AWAKENING_FILL_LAYER)) return;
-  map.setPaintProperty(AWAKENING_FILL_LAYER, 'fill-opacity', opacityFor(progress, 0.75));
-  map.setPaintProperty(AWAKENING_LINE_LAYER, 'line-opacity', opacityFor(progress, 1));
+  map.setPaintProperty(AWAKENING_FILL_LAYER, 'fill-opacity', curve(progress, WRAP_ALPHA_STOPS));
+  map.setPaintProperty(AWAKENING_LINE_LAYER, 'line-opacity', curve(progress, TEAR_ALPHA_STOPS));
+}
+
+/**
+ * The resting state — nothing wrapped, no edge, the ordinary territory showing through.
+ *
+ * Its own function because the wrap curve is inverted: `setAwakeningProgress(map, 0)`
+ * now means "everything still wrapped", not "cleared". Cleanup and the reduced-motion
+ * path want this instead.
+ */
+export function clearAwakening(map: MapLibreMap): void {
+  if (!map.getLayer(AWAKENING_FILL_LAYER)) return;
+  map.setPaintProperty(AWAKENING_FILL_LAYER, 'fill-opacity', 0);
+  map.setPaintProperty(AWAKENING_LINE_LAYER, 'line-opacity', 0);
 }
 
 export function removeAwakeningLayers(map: MapLibreMap): void {

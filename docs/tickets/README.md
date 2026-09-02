@@ -386,6 +386,7 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-SPELL-002](BRDC-SPELL-002.md) | Scrying, ja loput koulukunnat | M | SPELL-001 lupasi tämän nimeltä · taika näyttää ja unohtaa, kävely muistaa |
 | [BRDC-TRAIL-004](BRDC-TRAIL-004.md) | Käyntikerrat kantana: polku → junarata | M | viisi porrasta, kerran per kalenteripäivä |
 | [BRDC-FX-001](BRDC-FX-001.md) | Kun jotain tapahtuu, ruutu näyttää sen | M | §12:n pyhä geometria hetkinä · katto per minuutti |
+| [BRDC-CLAIM-008](BRDC-CLAIM-008.md) | Vallattu heksa avautuu kuin lahjapaketti | M | **done v0.5.22** · kansi nousee keskeltä, sigili purkautuu · reduced-motion staattinen |
 
 ### 🏰 Keep-ohjaamo — Infiniten spec 2026-09-02
 
