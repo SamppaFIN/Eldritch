@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.16",
+    "date": "2026-09-02",
+    "notes": [
+      "The Keep is in sections now. A Resources view lists every resource you hold with its per-hour rate, a Collect button that settles the trickle and stamps when you last looked, and the production line. Identity, then Resources, then the Mana / Rites / Buildings tabs, then Realm — what fades, the dark time, the Wager."
+    ]
+  },
+  {
     "version": "0.5.15",
     "date": "2026-09-02",
     "notes": [

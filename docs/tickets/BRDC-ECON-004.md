@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S–M (päivä) |
 | **Riippuvuudet** | BRDC-ECON-001, BRDC-ECON-003, BRDC-STATS-001, BRDC-KEEP-004 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-02 (v0.5.16), kenttätodennus [~] |
+| **Valmius** | 75 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED

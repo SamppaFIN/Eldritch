@@ -10,8 +10,8 @@ import { describe, expect, it } from 'vitest';
 import { TABS } from './HearthPanel.js';
 
 describe('the Keep tabs', () => {
-  it('are the four sections, in order', () => {
-    expect(TABS.map((t) => t.id)).toEqual(['mana', 'wisdom', 'buildings', 'train']);
+  it('are the tabbed sections, in order', () => {
+    expect(TABS.map((t) => t.id)).toEqual(['mana', 'wisdom', 'buildings']);
   });
 
   it('every tab has a non-empty label', () => {

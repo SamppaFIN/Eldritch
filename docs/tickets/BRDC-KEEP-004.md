@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M–L (1–2 päivää) |
 | **Riippuvuudet** | BRDC-KEEP-002, BRDC-KEEP-003, BRDC-NATION-001, BRDC-ECON-004, BRDC-WIKI-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` — 2026-09-02 (v0.5.16), kenttätodennus [~] |
+| **Valmius** | 75 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED
@@ -46,3 +46,21 @@ Pelaaja etsii tutkimusta ja mana­kanavointia rivien seasta.
   esitystapa: löydettävä, jäsennelty, linkitetty.
 - Footerin reitti Keepiin — `BRDC-KEEP-003`.
 - Keräysmekaniikka — `BRDC-ECON-004`.
+
+## Tehty v0.5.16
+
+`HearthPanel` (248 → 190 r) = runko: head → `<NationIdentity>` → `<KeepResources>` →
+tab-strip (Mana · Rites · Buildings) → `<KeepRealm>`. `features/keep/`: `KeepResources.tsx`
+(BRDC-ECON-004), `KeepRealm.tsx`, `keep.css`. `Train`-välilehti poistettu.
+
+- [x] Nimetyt osiot h3-otsikoin, ei irrallisia rivejä
+- [x] Resources-osio: per-laji + `/h` + Collect + "Last collected" (ECON-004)
+- [x] Realm-osio: rappio, dark time, "muut näkevät Keepin", Wager
+- [~] Rakennus→Guide-linkit — `BRDC-WIKI-002`
+- [~] Taitettavat osiot — nyt aina näkyvissä (lyhyitä); tabit hoitavat pitkät
+- [ ] **Temppelilista Keepiin (Infinite 2026-09-02):** *"pistä keep sivuille lista
+      temppeleistä ja nappi millä saa temppelivalikon auki"* — pelaaja ei pääse
+      laajentamaan temppeliä kun se on kaukana kartalla. Mana-välilehdelle lista
+      omista temppeleistä + per-temppeli "avaa" joka näyttää `expandTemple`-toiminnon
+      ilman kartalle kävelyä. Tarvitsee `MapView`iltä `places` + expand-handlerin
+      `HearthPanel`iin.

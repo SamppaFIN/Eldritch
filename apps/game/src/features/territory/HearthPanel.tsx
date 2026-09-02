@@ -12,26 +12,27 @@
 import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, Forecast, GameRepository, ResourceKind, ResourcePool } from '@es3/core';
+import type { Cell, Forecast, GameRepository, ResourcePool } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
 import { ManaPanel } from './ManaPanel.js';
 import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
 import { NationIdentity } from '../nation/NationIdentity.js';
+import { KeepResources } from '../keep/KeepResources.js';
+import { KeepRealm } from '../keep/KeepRealm.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { ResearchBinding } from './useSelection.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
 
-export type KeepTab = 'mana' | 'wisdom' | 'buildings' | 'train';
+export type KeepTab = 'mana' | 'wisdom' | 'buildings';
 
-/** The Keep's sections: where mana, Rites and buildings are all run from (BRDC-KEEP-002,
- *  -003). Opened from the map marker or the ⌂ Keep button in the footer. */
+/** The Keep's tabbed sections — mana, Rites and buildings, all run from here
+ *  (BRDC-KEEP-002, -003). Opened from the map marker or the ⌂ Keep button. */
 export const TABS: readonly { id: KeepTab; label: string }[] = [
   { id: 'mana', label: 'Mana' },
   { id: 'wisdom', label: 'Rites' },
   { id: 'buildings', label: 'Buildings' },
-  { id: 'train', label: 'Train' },
 ];
 
 export interface HearthPanelProps {
@@ -63,13 +64,6 @@ function area(m2: number): string {
   return m2 < 10_000 ? `${Math.round(m2)} m²` : `${(m2 / 10_000).toFixed(1)} ha`;
 }
 
-function hours(h: number | null): string {
-  if (h === null) return '—';
-  if (h <= 1) return 'within the hour';
-  if (h < 48) return `${Math.round(h)} h`;
-  return `${Math.round(h / 24)} days`;
-}
-
 export function HearthPanel({
   owned,
   resources,
@@ -98,11 +92,6 @@ export function HearthPanel({
     : null;
   const d = dominionOf(owned, now);
   const dark = darkTimeAt(now);
-  const perHour = forecast?.perHour ?? {};
-  const forecastLine = (Object.keys(perHour) as ResourceKind[])
-    .filter((k) => (perHour[k] ?? 0) > 0)
-    .map((k) => `${perHour[k]} ${k}/h`)
-    .join(' · ');
   const rate = RESOURCE_KINDS.reduce((sum, k) => sum + d.perHour[k], 0);
   const producingCount = RESOURCE_KINDS.reduce((sum, k) => sum + d.producing[k], 0);
   // BRDC-ECON-001: a full resource stops earning rather than overflowing silently, and
@@ -150,47 +139,17 @@ export function HearthPanel({
         </div>
       </dl>
 
-      <p className="hearth-panel__line">
-        {/* Production is the number that explains why one walk was worth more than
-            another, and it exists nowhere else in the interface. */}
-        {rate > 0
-          ? `${producingCount} of your cells produce — ${rate} an hour in all.`
-          : 'None of your ground produces yet. Woodland, water and places of trade do.'}
-        {d.resting > 0
-          ? ` ${d.resting} more ${d.resting === 1 ? 'is' : 'are'} resting — walk them to wake them.`
-          : ''}
-      </p>
-
-      {/* The forecast: what the pouch will actually fill at, buildings and auras and the
-          storage ceiling all folded in (BRDC-STATS-001). */}
-      {forecastLine ? (
-        <p className="hearth-panel__line es-numeric">Forecast · {forecastLine}</p>
-      ) : null}
-
-      {full ? (
-        <p className="hearth-panel__line hearth-panel__line--warn">
-          Storage is full — production has stalled. Spend some to make room.
-        </p>
-      ) : null}
-
-      {/* The world's winter — predictable from the calendar, so it is said before it
-          bites, not after (BRDC-EVENT-001). */}
-      {dark.active ? (
-        <p className="hearth-panel__line hearth-panel__line--warn">
-          The dark time holds. Everything you make comes slower — {dark.inDays}{' '}
-          {dark.inDays === 1 ? 'day' : 'days'} until it lifts.
-        </p>
-      ) : dark.inDays <= 21 ? (
-        <p className="hearth-panel__line">
-          The dark time comes in {dark.inDays} days. Production will slow while it lasts.
-        </p>
-      ) : null}
-
-      {resources ? (
-        <p className="hearth-panel__line es-numeric">
-          Pouch · {resources.food} food · {resources.wood} timber · {resources.gold} gold
-        </p>
-      ) : null}
+      <KeepResources
+        resources={resources}
+        forecast={forecast}
+        producing={producingCount}
+        rate={rate}
+        resting={d.resting}
+        full={full}
+        repository={repository}
+        now={now}
+        onPouch={onPouch}
+      />
 
       <div className="hearth-panel__tabs" aria-label="Keep">
         {TABS.map((t) => (
@@ -215,37 +174,17 @@ export function HearthPanel({
         />
       ) : null}
       {tab === 'buildings' ? <KeepBuildingsPanel /> : null}
-      {tab === 'train' ? (
-        <p className="hearth-panel__line hearth-panel__tabbody">Troops come later.</p>
-      ) : null}
 
       {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
 
-      <p className="hearth-panel__line">
-        {/* The one sentence BRDC-CASTLE-001 asks for: no settings page, just said once,
-            where a player already comes to ask "what have I built". */}
-        Other players will only ever see your Keep, never your Hearth.
-      </p>
-
-      {d.weakest && d.firstLossInHours !== null ? (
-        <p className={`hearth-panel__line${d.atRisk > 0 ? ' hearth-panel__line--warn' : ''}`}>
-          {d.atRisk > 0
-            ? `${d.atRisk} ${d.atRisk === 1 ? 'cell fades' : 'cells fade'} within the day.`
-            : 'Nothing fades today.'}{' '}
-          The first goes {hours(d.firstLossInHours)} from now.
-        </p>
-      ) : null}
-
-      <div className="hearth-panel__actions">
-        {d.weakest ? (
-          <RitualButton variant="ghost" onClick={() => onWeakest((d.weakest as Cell).h3)}>
-            Show the first to fade
-          </RitualButton>
-        ) : null}
-        <RitualButton variant="ghost" onClick={onWager}>
-          The Wager
-        </RitualButton>
-      </div>
+      <KeepRealm
+        weakestH3={d.weakest?.h3 ?? null}
+        atRisk={d.atRisk}
+        firstLossInHours={d.firstLossInHours}
+        dark={dark}
+        onWager={onWager}
+        onWeakest={onWeakest}
+      />
     </GlassPanel>
   );
 }
