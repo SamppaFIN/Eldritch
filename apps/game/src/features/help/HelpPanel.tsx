@@ -1,5 +1,10 @@
 /**
- * A codex entry, opened over the map.
+ * The in-game guide, opened over the map (BRDC-WIKI-001).
+ *
+ * Two modes in one panel: an `index` — the grouped front page, reached from the menu —
+ * and a single entry, reached from the index or straight from where a concept appears
+ * (the Vigil readout, a History line, the Character screen). An entry carries a back
+ * link to the index and a "See also" list, so any deep link still opens the whole book.
  *
  * Not a modal — the player may be walking, and a focus trap is the wrong shape for
  * something you glance at. ESC and the close button dismiss it; it caps its height above
@@ -7,16 +12,20 @@
  */
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
-import { HELP } from './help.js';
+import { GROUPS, HELP } from './help.js';
 import type { HelpTopic } from './help.js';
 import './help-panel.css';
 
+/** What the panel is showing: the front page, or one entry. `null` is closed. */
+export type HelpView = HelpTopic | 'index';
+
 export interface HelpPanelProps {
-  topic: HelpTopic | null;
+  topic: HelpView | null;
+  onNavigate: (to: HelpView) => void;
   onClose: () => void;
 }
 
-export function HelpPanel({ topic, onClose }: HelpPanelProps) {
+export function HelpPanel({ topic, onNavigate, onClose }: HelpPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,18 +39,24 @@ export function HelpPanel({ topic, onClose }: HelpPanelProps) {
   }, [topic, onClose]);
 
   if (!topic) return null;
-  const entry = HELP[topic];
+  const entry = topic === 'index' ? null : HELP[topic];
 
   return (
     <GlassPanel
       as="section"
       ref={panelRef}
       className="help-panel"
-      aria-label={entry.title}
+      aria-label={entry ? entry.title : 'Guide'}
       tabIndex={-1}
     >
+      {entry ? (
+        <button type="button" className="help-panel__back" onClick={() => onNavigate('index')}>
+          <span aria-hidden>‹</span> Guide
+        </button>
+      ) : null}
+
       <div className="help-panel__head">
-        <h2 className="help-panel__title">{entry.title}</h2>
+        <h2 className="help-panel__title">{entry ? entry.title : 'Guide'}</h2>
         <RitualButton
           variant="ghost"
           className="help-panel__close"
@@ -51,11 +66,55 @@ export function HelpPanel({ topic, onClose }: HelpPanelProps) {
           <span aria-hidden>✕</span>
         </RitualButton>
       </div>
-      {entry.body.map((para, i) => (
-        <p key={i} className="help-panel__para">
-          {para}
-        </p>
-      ))}
+
+      {entry ? (
+        <>
+          {entry.body.map((para, i) => (
+            <p key={i} className="help-panel__para">
+              {para}
+            </p>
+          ))}
+          {entry.see && entry.see.length > 0 ? (
+            <div className="help-panel__see">
+              <h3 className="help-panel__see-heading">See also</h3>
+              <ul className="help-panel__see-list">
+                {entry.see.map((t) => (
+                  <li key={t}>
+                    <button
+                      type="button"
+                      className="help-panel__link"
+                      onClick={() => onNavigate(t)}
+                    >
+                      {HELP[t].title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <nav className="help-panel__groups" aria-label="All topics">
+          {GROUPS.map((group) => (
+            <section key={group.heading} className="help-panel__group">
+              <h3 className="help-panel__group-heading">{group.heading}</h3>
+              <ul className="help-panel__index-list">
+                {group.topics.map((t) => (
+                  <li key={t}>
+                    <button
+                      type="button"
+                      className="help-panel__link help-panel__index-item"
+                      onClick={() => onNavigate(t)}
+                    >
+                      {HELP[t].title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </nav>
+      )}
     </GlassPanel>
   );
 }

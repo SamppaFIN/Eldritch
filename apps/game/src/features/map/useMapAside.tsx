@@ -8,13 +8,17 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { GameRepository, LogEntry } from '@es3/core';
 import { HelpPanel } from '../help/HelpPanel.js';
+import type { HelpView } from '../help/HelpPanel.js';
 import type { HelpTopic } from '../help/help.js';
 import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
 
 export interface MapAside {
   node: ReactNode;
+  /** Straight to one entry, from where the concept appears. */
   openHelp: (topic: HelpTopic) => void;
+  /** The guide's front page, from the menu. */
+  openGuide: () => void;
   openLog: () => void;
   openCharacter: () => void;
 }
@@ -25,7 +29,7 @@ export function useMapAside(
   /** Bumped after a lap, so the log and the character screen re-read. */
   version: number,
 ): MapAside {
-  const [help, setHelp] = useState<HelpTopic | null>(null);
+  const [help, setHelp] = useState<HelpView | null>(null);
   const [logOpen, setLogOpen] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [characterOpen, setCharacterOpen] = useState(false);
@@ -37,7 +41,7 @@ export function useMapAside(
 
   const node = (
     <>
-      <HelpPanel topic={help} onClose={() => setHelp(null)} />
+      <HelpPanel topic={help} onNavigate={setHelp} onClose={() => setHelp(null)} />
       <LogPanel
         open={logOpen}
         entries={logEntries}
@@ -59,6 +63,7 @@ export function useMapAside(
   return {
     node,
     openHelp: setHelp,
+    openGuide: () => setHelp('index'),
     openLog: () => setLogOpen(true),
     openCharacter: () => setCharacterOpen(true),
   };

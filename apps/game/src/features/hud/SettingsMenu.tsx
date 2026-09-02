@@ -26,6 +26,8 @@ export interface SettingsMenuProps {
   onDeleteProgress: () => void;
   /** Opens the action log (BRDC-LOG-001). */
   onOpenLog: () => void;
+  /** Opens the in-game guide's front page (BRDC-WIKI-001). */
+  onOpenGuide: () => void;
   /** For the field report — the log tail and a rough position (BRDC-BUGREPORT-001). */
   repository: GameRepository | null;
   position: { lat: number; lng: number } | null;
@@ -41,6 +43,7 @@ export function SettingsMenu({
   onRetreat,
   onDeleteProgress,
   onOpenLog,
+  onOpenGuide,
   repository,
   position,
   onDebugGrant,
@@ -121,6 +124,9 @@ export function SettingsMenu({
 
           <hr className="settings-menu__rule" />
 
+          <button type="button" className="settings-menu__action" onClick={() => run(onOpenGuide)}>
+            Guide
+          </button>
           <button type="button" className="settings-menu__action" onClick={() => run(onOpenLog)}>
             History
           </button>

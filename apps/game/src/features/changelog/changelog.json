@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.5",
+    "date": "2026-09-02",
+    "notes": [
+      "The codex is now a browsable Guide, opened from the menu: a front page grouping every topic, and a How to Play that lays out the whole loop — walk a loop to claim the land inside, walk it again on later days to hold it, ignore it and it rots. Plus a first-walk checklist and a page that translates the game's own words.",
+      "Every codex entry has a back link to the Guide and a \"See also\" list, so a link from the Vigil readout or a History line now opens the whole book, not just one page."
+    ]
+  },
+  {
     "version": "0.5.4",
     "date": "2026-09-02",
     "notes": [
