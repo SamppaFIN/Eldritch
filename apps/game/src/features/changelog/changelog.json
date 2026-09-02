@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.17",
+    "date": "2026-09-02",
+    "notes": [
+      "Tapping bare map past your border does nothing now, instead of opening a detail panel for a hex you have never seen. A quest sigil out there still selects its own place."
+    ]
+  },
+  {
     "version": "0.5.16",
     "date": "2026-09-02",
     "notes": [

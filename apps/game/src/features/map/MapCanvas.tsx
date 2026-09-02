@@ -9,13 +9,14 @@
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
-import { cellAt } from '@es3/core';
+import { QUEST_SITES, siteCell } from '@es3/core';
 import type {
   BBox,
   Cell,
   H3Index,
   LatLng,
   PlayerId,
+  QuestSiteId,
   RevealedPlace,
   TradeRoute,
   TrailPoint,
@@ -40,7 +41,13 @@ import {
 } from '../territory/PlaceMarkers.js';
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import { ensureAwakeningLayers, removeAwakeningLayers } from '../territory/AwakeningLayer.js';
-import { ensureQuestLayers, removeQuestLayers, setQuestData } from '../territory/QuestMarkers.js';
+import {
+  QUEST_HALO_LAYER,
+  QUEST_MARK_LAYER,
+  ensureQuestLayers,
+  removeQuestLayers,
+  setQuestData,
+} from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
@@ -208,8 +215,10 @@ export function MapCanvas({
   }, [map, ready, cells, playerId, now, castle]);
 
   /*
-   * Tapping a hexagon — any hexagon, claimed or not. A rendered cell carries its H3 as
-   * the feature id; empty ground has none, so the index comes from where the tap landed.
+   * Tapping a hexagon — but only one that is actually drawn. A rendered cell carries its
+   * H3 as the feature id; a tap on bare basemap past the fog ring is ignored, rather than
+   * opening a detail panel for a hex the player has never seen (field report 2026-09-02).
+   * A quest sigil out there still selects its own cell, so the tale stays reachable.
    */
   useEffect(() => {
     if (!map || !ready || !onCellTap) return;
@@ -221,11 +230,19 @@ export function MapCanvas({
         map.getLayer(CASTLE_CORE_LAYER) &&
         map.queryRenderedFeatures(e.point, { layers: [CASTLE_CORE_LAYER, CASTLE_HALO_LAYER] }).length;
       if (onKeep) return;
-      const hit = map.getLayer(CELL_FILL_LAYER)
-        ? map.queryRenderedFeatures(e.point, { layers: [CELL_FILL_LAYER] })[0]
+
+      const questId = map.getLayer(QUEST_MARK_LAYER)
+        ? map.queryRenderedFeatures(e.point, { layers: [QUEST_MARK_LAYER, QUEST_HALO_LAYER] })[0]?.id
         : undefined;
-      const id = hit?.id;
-      onCellTap(typeof id === 'string' ? id : cellAt({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
+      if (typeof questId === 'string' && questId in QUEST_SITES) {
+        onCellTap(siteCell(questId as QuestSiteId));
+        return;
+      }
+
+      const id = map.getLayer(CELL_FILL_LAYER)
+        ? map.queryRenderedFeatures(e.point, { layers: [CELL_FILL_LAYER] })[0]?.id
+        : undefined;
+      if (typeof id === 'string') onCellTap(id);
     };
     const enter = () => {
       map.getCanvas().style.cursor = 'pointer';
