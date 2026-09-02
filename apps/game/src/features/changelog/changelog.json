@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.11",
+    "date": "2026-09-02",
+    "notes": [
+      "A cell's build menu shows only what you can build there right now. The wall of \"Wrong ground\" rows is behind a \"+ N more\" tap, and each one names its single blocker — timber, a Rite, or the ground."
+    ]
+  },
+  {
     "version": "0.5.10",
     "date": "2026-09-02",
     "notes": [
