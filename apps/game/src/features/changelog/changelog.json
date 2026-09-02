@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.6",
+    "date": "2026-09-02",
+    "notes": [
+      "The pouch shows every resource it holds, not just food, wood, gold and mana. Walk hills and mountains, get stone and iron — and now you can see them. Only the non-zero ones are drawn.",
+      "A starter pouch on every new version while the game is in testing: 100 of each material, 30 mana, 30 wisdom, granted once so buildings and research can be tried straight away. It tops up to that floor without shrinking a fuller pouch."
+    ]
+  },
+  {
     "version": "0.5.5",
     "date": "2026-09-02",
     "notes": [

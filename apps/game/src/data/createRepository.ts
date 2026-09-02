@@ -6,19 +6,23 @@
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
 import {
-  EMPTY_POOL,
+  APP_VERSION,
   MemoryStore,
   MockRepository,
-  SCHEMA_KEY,
-  SCHEMA_VERSION,
   enableTerrainSurvey,
+  grantVersionGift,
+  load,
+  saveNow,
 } from '@es3/core';
-import type { GameRepository, KeyValueStore } from '@es3/core';
+import type { GameRepository } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
 // The hand survey of the field-test area is client content, not a rule — on for the
 // running game, off in the core test suite (BRDC-TERRAIN-003).
 enableTerrainSurvey();
+
+/** localStorage flag: the APP_VERSION whose starter pouch has already been granted. */
+const GIFT_KEY = 'granted-version';
 
 export interface RepositoryHandle {
   repository: GameRepository;
@@ -31,22 +35,17 @@ export interface RepositoryHandle {
 export async function createRepository(): Promise<RepositoryHandle> {
   const durable = await idbAvailable();
   const store = durable ? new IdbStore() : new MemoryStore();
-  if (import.meta.env.DEV) await devGrant(store);
 
   const repository = new MockRepository({ store });
   const reset = (await repository.schemaOutcome()) === 'reset';
-  return { repository, durable, reset };
-}
 
-/**
- * Dev only: a starting pouch, so buildings and warding can be exercised before a walk has
- * filled one. Runs once, on a genuinely empty store — it never overwrites a real session.
- */
-async function devGrant(store: KeyValueStore): Promise<void> {
-  if (await store.get('resources')) return; // `resources` is pouch.ts's key
-  await store.set(SCHEMA_KEY, SCHEMA_VERSION);
-  await store.set('resources', {
-    pool: { ...EMPTY_POOL, wood: 400, stone: 400, food: 300, gold: 300, iron: 200, culture: 200 },
-    since: Date.now(),
-  });
+  // A starter pouch, once per version — so a fresh deploy can be tested (buildings, mana,
+  // research) without walking an hour to fund the first one (BRDC-ECON-003). Gated in
+  // localStorage, granted after the schema check so a stale-schema wipe cannot erase it.
+  if (load<string | null>(GIFT_KEY, null) !== APP_VERSION) {
+    await grantVersionGift(store, await repository.getOwnedCells(Date.now()), Date.now());
+    saveNow(GIFT_KEY, APP_VERSION);
+  }
+
+  return { repository, durable, reset };
 }

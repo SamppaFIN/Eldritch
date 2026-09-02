@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { EMPTY_POOL } from '../rules/terrain.js';
-import { normalizePool } from './pouch.js';
+import { grantVersionGift, normalizePool } from './pouch.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
@@ -62,5 +62,41 @@ describe('the repository heals an old pouch instead of reading it as empty', () 
     const pool = await repo.getResources(T0);
     expect(pool.wood).toBe(200);
     expect(pool.mana).toBe(200);
+  });
+});
+
+describe('grantVersionGift — a starter pouch on a version change (BRDC-ECON-003)', () => {
+  const T0 = Date.parse('2026-09-02T12:00:00Z');
+  let store: MemoryStore;
+  let repo: MockRepository;
+
+  beforeEach(async () => {
+    store = new MemoryStore();
+    await store.set(SCHEMA_KEY, SCHEMA_VERSION);
+    repo = new MockRepository({ store, newId: () => 'me' });
+  });
+
+  it('tops an empty pouch to the floor: 100 material, 30 mana and wisdom', async () => {
+    await grantVersionGift(store, [], T0);
+    const pool = await repo.getResources(T0);
+    expect(pool.wood).toBe(100);
+    expect(pool.gold).toBe(100);
+    expect(pool.culture).toBe(100);
+    expect(pool.tokens).toBe(100);
+    expect(pool.mana).toBe(30);
+    expect(pool.wisdom).toBe(30);
+  });
+
+  it('never reduces a resource that is already above the floor', async () => {
+    await store.set('resources', {
+      pool: { ...EMPTY_POOL, stone: 400, mana: 50 },
+      since: T0,
+      sinceDay: T0,
+    });
+    await grantVersionGift(store, [], T0);
+    const pool = await repo.getResources(T0);
+    expect(pool.stone).toBe(400); // untouched, already past 100
+    expect(pool.mana).toBe(50); // untouched, already past 30
+    expect(pool.iron).toBe(100); // was 0, lifted to the floor
   });
 });

@@ -281,36 +281,29 @@
 .hud__pouch {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
-  /* Four pips and their counts stay on one line even in a quarter-panel column — a
-     wrapped pouch turned the numbers into a scrambled block (BRDC-MOBILE-001). Half a
-     step down in size buys the room for the fourth (mana) without another row. */
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  /* Any of the nine resources can be in the pouch now (BRDC-ECON-003), so it wraps
+     rather than scrambling into one line. Only the non-zero ones are drawn, so in
+     practice this is three or four items, not nine. */
+  flex-wrap: wrap;
+  gap: 0.15em 0.5em;
   font-size: 0.9em;
 }
 
-/* The same three colours the map uses for a cell's yield, so the pip in the HUD and
-   the pip on the hexagon are recognisably the same thing. */
+/* One resource: its pip and its count, kept together when the row wraps. */
+.hud__res {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  white-space: nowrap;
+}
+
+/* The same colour the map uses for a cell's yield, so the pip in the HUD and the pip on
+   the hexagon are recognisably the same thing (colour set inline from RESOURCE_COLOUR). */
 .hud__pip {
   inline-size: 0.5em;
   block-size: 0.5em;
   border-radius: var(--radius-full);
 }
-
-/* Space before each pip except the first, so three numbers do not run together. */
-.hud__pouch .hud__pip + * {
-  margin-inline-end: 0.2em;
-}
-
-.hud__pouch .hud__pip:not(:first-child) {
-  margin-inline-start: 0.4em;
-}
-
-.hud__pip--food { background: #4fc3dc; }
-.hud__pip--wood { background: #7cbf63; }
-.hud__pip--gold { background: #e0b04a; }
-.hud__pip--mana { background: var(--mystic-cyan); }
 
 /* Shares the actions row. Still thumb-sized, and first in the row because it is the
    thing a walking player reaches for. */

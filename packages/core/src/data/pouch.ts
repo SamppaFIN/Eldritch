@@ -189,6 +189,30 @@ export async function awardClaims(
 }
 
 /**
+ * A one-off starter pouch on a version change (BRDC-ECON-003).
+ *
+ * Test-phase generosity: after a deploy the player should be able to try buildings, mana
+ * and research straight away instead of walking an hour to fund the first one. Tops each
+ * resource up to a floor — 100 for the materials, 30 for mana and wisdom — without
+ * reducing a fuller pouch or passing the cap. The once-per-version gate is the caller's
+ * (`createRepository`), so this stays a plain grant.
+ */
+export async function grantVersionGift(
+  store: KeyValueStore,
+  owned: readonly Cell[],
+  now: number,
+): Promise<void> {
+  const state = await settlePouch(store, owned, now);
+  const cap = storageCap(buildingsOf(owned));
+  const pool = { ...state.pool };
+  for (const k of RESOURCE_KINDS) {
+    const floor = k === 'mana' || k === 'wisdom' ? 30 : 100;
+    pool[k] = Math.min(cap, Math.max(pool[k], floor));
+  }
+  await writePouch(store, pool, now);
+}
+
+/**
  * Dev only: top every resource up by `amount`, capped. Wired to a menu button behind
  * `import.meta.env.DEV` so a field test that has lost its pouch can carry on.
  */

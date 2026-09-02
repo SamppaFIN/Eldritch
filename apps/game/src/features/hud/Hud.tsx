@@ -9,10 +9,11 @@
  * nothing here and players concluded the game had frozen.
  */
 import { useEffect, useRef } from 'react';
-import { levelState, msToKmh, spellRemaining } from '@es3/core';
+import { RESOURCE_KINDS, levelState, msToKmh, spellRemaining } from '@es3/core';
 import type { ActiveSpell, PlayerProfile, RejectReason, ResourcePool } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
+import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
 import { Vigil, vigilLine } from './Vigil.js';
@@ -290,21 +291,18 @@ export function Hud({
           <div className="hud__stat">
             <span className="hud__label">Pouch</span>
             <span className="hud__value es-numeric">
-              {resources &&
-              resources.food + resources.wood + resources.gold + resources.mana > 0 ? (
+              {resources && RESOURCE_KINDS.some((k) => resources[k] > 0) ? (
                 <span className="hud__pouch">
-                  <span className="hud__pip hud__pip--food" aria-hidden />
-                  {resources.food}
-                  <span className="hud__pip hud__pip--wood" aria-hidden />
-                  {resources.wood}
-                  <span className="hud__pip hud__pip--gold" aria-hidden />
-                  {resources.gold}
-                  {resources.mana > 0 ? (
-                    <>
-                      <span className="hud__pip hud__pip--mana" aria-hidden />
-                      {resources.mana}
-                    </>
-                  ) : null}
+                  {RESOURCE_KINDS.filter((k) => resources[k] > 0).map((k) => (
+                    <span key={k} className="hud__res" title={k}>
+                      <span
+                        className="hud__pip"
+                        style={{ background: RESOURCE_COLOUR[k] }}
+                        aria-hidden
+                      />
+                      {resources[k]}
+                    </span>
+                  ))}
                 </span>
               ) : (
                 EMPTY
