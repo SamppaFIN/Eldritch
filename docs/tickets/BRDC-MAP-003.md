@@ -5,9 +5,23 @@
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | S (puoli päivää) |
 | **Riippuvuudet** | BRDC-MAP-002, BRDC-REVEAL-001 |
-| **Status** | `done` — 2026-09-02 (v0.5.7), kaksi kohtaa `[~]` jatkoon |
-| **Valmius** | 80 % |
+| **Status** | `reverted` — 2026-09-02 (v0.5.14), Infiniten pyynnöstä |
+| **Valmius** | — (peruttu) |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
+
+## ⏪ Peruttu 2026-09-02 (v0.5.14)
+
+Infinite: *"haluan että se vanha mekaniikka, missä omistetun alueen viereiset maat on
+tiedossa palautetaan.. mutta jos on fog of war alueella niin ei näytetä tietoja."*
+
+Rajasolu **on** tiedossa — se näyttää maastonsa ja omistajansa kuten ennen MAP-003:a.
+Sumu = kaikki mitä `withFogOfWar` ei piirrä (renkaan ulkopuoli), ja se ei näy lainkaan.
+Poistettu: `cellProperties`n `?`-glyfi ja rivaali/reveal-erottelu ikonissa,
+`UnexploredNote`, `hasDetail`, `REVEAL_STROKE`. `withFogOfWar` (omat + yksi rengas) jää.
+
+Alkuperäinen RED (*"sumu vuotaa maastotyypin"*) hyväksytään tietoisesti: rengas **saa**
+vuotaa maaston, koska se on "viereinen maa". Jos joskus halutaan käveltypohjainen
+`explored` (kävele → pysyvä paljastus, muuten ei), se on uusi tiketti eikä tämä.
 
 ## 🔴 RED
 

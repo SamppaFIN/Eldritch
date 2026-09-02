@@ -39,11 +39,22 @@ export async function createRepository(): Promise<RepositoryHandle> {
   const repository = new MockRepository({ store });
   const reset = (await repository.schemaOutcome()) === 'reset';
 
-  // A starter pouch, once per version — so a fresh deploy can be tested (buildings, mana,
-  // research) without walking an hour to fund the first one (BRDC-ECON-003). Gated in
-  // localStorage, granted after the schema check so a stale-schema wipe cannot erase it.
-  if (load<string | null>(GIFT_KEY, null) !== APP_VERSION) {
-    await grantVersionGift(store, await repository.getOwnedCells(Date.now()), Date.now());
+  /*
+   * A starter pouch (BRDC-ECON-003). Test-phase generosity: the player should be able to
+   * try buildings, mana and research without walking an hour to fund the first one.
+   *
+   * Granted when the version changed — or, as a safety net, whenever a player who has
+   * already founded a Hearth is sitting on a completely empty pouch. Field reports kept
+   * coming in with "no resources from anywhere"; the version flag alone was too fragile
+   * (a `Delete progress`, a half-applied deploy). An empty pouch on a live game is never
+   * intended, so refill it. `grantVersionGift` only ever raises to the floor.
+   */
+  const now = Date.now();
+  const stale = load<string | null>(GIFT_KEY, null) !== APP_VERSION;
+  const started = (await repository.getHome()) !== null;
+  const empty = started && !Object.values(await repository.getResources(now)).some((v) => v > 0);
+  if (stale || empty) {
+    await grantVersionGift(store, await repository.getOwnedCells(now), now);
     saveNow(GIFT_KEY, APP_VERSION);
   }
 

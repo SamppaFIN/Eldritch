@@ -48,9 +48,16 @@ uuden alueen omistamisesta"*. Pelaaja käveli pitkän matkan eikä talous reagoi
       `.hud__pip--*` -luokkaa poistettu (tämän muutoksen tekemänä).
 - [x] **Versiolahja.** `grantVersionGift(store, owned, now)` (`data/pouch.js`): nostaa joka
       lajin lattiaan — **100** materiaaleille, **30** manalle ja wisdomille — vähentämättä
-      täydempää pouchia tai ylittämättä kattoa. Portti `createRepository`issa:
-      `es3:granted-version !== APP_VERSION` → aja + tallenna. Kerran per versio, ajetaan
-      skeematarkistuksen jälkeen ettei stale-wipe pyyhi sitä.
+      täydempää pouchia tai ylittämättä kattoa. Portti `createRepository`issa,
+      skeematarkistuksen jälkeen.
+- [x] **Turvaverkko (v0.5.14):** kenttäraportit jatkuivat *"en saa resursseja mistään"*.
+      Versiolippu yksin oli hauras (`Delete progress`, puolittain mennyt deploy). Lahja
+      ajetaan nyt myös kun **pelaajalla on Hearth ja pouch on täysin tyhjä** —
+      tarkoituksellisesti tyhjä pouch elävässä pelissä ei ole mahdollinen tila.
+      `grantVersionGift` nostaa vain lattiaan, ei koskaan pienennä.
+- [x] **PWA-päivitys (v0.5.14):** `main.tsx` lataa sivun uudelleen kun uusi service worker
+      ottaa vallan (`controllerchange`). Standalone-PWA jäi vanhaan bundleen päiviksi —
+      siksi lahja ja HUD-korjaus eivät koskaan tavoittaneet kenttätestaajaa.
 - [x] **Tyhjä pouch latauksessa** katettu versiolahjalla — erillistä "tyhjä → 100"
       -logiikkaa ei tehty, koska se rankaisisi laillisesti nollilla olevaa pelaajaa.
       Vanha DEV-only `devGrant` poistettu `createRepository`ista, versiolahja korvaa sen

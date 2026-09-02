@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.14",
+    "date": "2026-09-02",
+    "notes": [
+      "A new build now reloads itself the moment it reaches your phone, instead of waiting for you to close and reopen the app. Field testers were stuck on stale code.",
+      "The starter pouch refills whenever a game with a Hearth is sitting on nothing — not only on a version change. If your resources have been stuck at empty, they will not be after this.",
+      "Reverted the fog change: a hex bordering your land shows its terrain again. Only ground you have never come near stays hidden, and that is simply not drawn."
+    ]
+  },
+  {
     "version": "0.5.13",
     "date": "2026-09-02",
     "notes": [
