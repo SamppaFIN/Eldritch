@@ -9,7 +9,8 @@
  * out, and says so only once it is sure. That is the whole idea, and it is the reason
  * this is worth building before anything else in the new notes.
  */
-import { OBSERVATION_GAP_MS } from './constants.js';
+import { DWELL_MOVE_CONFIRM_MS, OBSERVATION_GAP_MS } from './constants.js';
+import { neighboursOf } from '../geo/cells.js';
 import type { H3Index } from '../types/domain.js';
 
 /**
@@ -64,6 +65,50 @@ export function accrueDwell(
   const cap = previous.h3 === next.h3 ? MAX_DWELL_GAP_MS : OBSERVATION_GAP_MS;
   const credited = Math.min(gap, cap);
   return { ...dwell, [previous.h3]: (dwell[previous.h3] ?? 0) + credited };
+}
+
+/**
+ * The sticky-dwell anchor: the cell time is really being spent in, plus a candidate the
+ * player may be moving into and how long it has held (BRDC-DWELL-002).
+ */
+export interface DwellAnchor {
+  h3: H3Index;
+  pendingH3: H3Index | null;
+  pendingSince: number;
+}
+
+/** A fresh anchor sitting squarely on `h3`. */
+export function dwellAnchorAt(h3: H3Index): DwellAnchor {
+  return { h3, pendingH3: null, pendingSince: 0 };
+}
+
+/**
+ * Which cell this reading's time belongs to, holding against GPS jitter between adjacent
+ * hexes (BRDC-DWELL-002).
+ *
+ * `stationary` is the caller's call — fixes close in time, or a near-zero speed. While it
+ * holds and the raw cell is only a neighbour of the anchor, time stays on the anchor. A
+ * fix a full cell away is a real move and commits at once; a neighbour that holds for
+ * `DWELL_MOVE_CONFIRM_MS` commits too, so a genuine slow drift is not stuck forever.
+ */
+export function stickyDwell(
+  anchor: DwellAnchor,
+  raw: H3Index,
+  t: number,
+  stationary: boolean,
+): { cell: H3Index; anchor: DwellAnchor } {
+  if (raw === anchor.h3) return { cell: raw, anchor: dwellAnchorAt(raw) };
+
+  const adjacent = neighboursOf(anchor.h3).includes(raw);
+  if (!stationary || !adjacent) return { cell: raw, anchor: dwellAnchorAt(raw) };
+
+  if (anchor.pendingH3 !== raw) {
+    return { cell: anchor.h3, anchor: { ...anchor, pendingH3: raw, pendingSince: t } };
+  }
+  if (t - anchor.pendingSince >= DWELL_MOVE_CONFIRM_MS) {
+    return { cell: raw, anchor: dwellAnchorAt(raw) };
+  }
+  return { cell: anchor.h3, anchor };
 }
 
 /** Fold a whole sequence of readings, for replaying a recorded walk. */

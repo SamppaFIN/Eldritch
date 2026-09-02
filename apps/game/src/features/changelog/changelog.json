@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.8",
+    "date": "2026-09-02",
+    "notes": [
+      "Standing still no longer scatters your dwell. A stationary phone's GPS wanders the width of a hex, so the cell you were \"in\" used to flip to a neighbour and back — splitting an hour of waiting across three cells and revealing no place. Now the game holds the cell put while you are still, on the map and in the record, until you actually walk out of it."
+    ]
+  },
+  {
     "version": "0.5.7",
     "date": "2026-09-02",
     "notes": [

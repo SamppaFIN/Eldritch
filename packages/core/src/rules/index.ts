@@ -72,11 +72,13 @@ export {
   accrueAll,
   accrueDwell,
   anchorOf,
+  dwellAnchorAt,
   placesWithHome,
   revealPlaces,
   revealProgress,
+  stickyDwell,
 } from './dwell.js';
-export type { DwellMap, DwellReading, Place, PlaceKind } from './dwell.js';
+export type { DwellAnchor, DwellMap, DwellReading, Place, PlaceKind } from './dwell.js';
 export {
   BASE_STORAGE_CAP,
   CLAIM_YIELD,

@@ -9,10 +9,10 @@
  * out, and so the same steps can be replayed against a recorded walk.
  */
 import { cellAt } from '../geo/cells.js';
-import { OBSERVATION_GAP_MS } from '../rules/constants.js';
+import { DWELL_JITTER_GAP_MS, OBSERVATION_GAP_MS } from '../rules/constants.js';
 import type { Attacker } from '../rules/capture.js';
-import { accrueDwell, revealPlaces } from '../rules/dwell.js';
-import type { DwellMap, DwellReading, Place } from '../rules/dwell.js';
+import { accrueDwell, dwellAnchorAt, revealPlaces, stickyDwell } from '../rules/dwell.js';
+import type { DwellAnchor, DwellMap, DwellReading, Place } from '../rules/dwell.js';
 import { growInto, growthNeighbourhood } from '../rules/growth.js';
 import type { CaptureOutcome, Cell, H3Index, TrailPoint } from '../types/domain.js';
 
@@ -34,6 +34,12 @@ export interface WalkPlan {
   places: Place[];
   /** Total time this batch spent with the page asleep. Nothing was observed in it. */
   unobservedMs: number;
+  /**
+   * The last dwell reading, on its *effective* cell — jitter held to the anchor
+   * (BRDC-DWELL-002). The caller persists this as the seam, so a reload's first batch
+   * measures its gap against where the player really was, not a noisy last fix.
+   */
+  lastReading: DwellReading | null;
 }
 
 export interface WalkContext {
@@ -69,14 +75,16 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
   let dwell = context.dwell;
   let previous = context.previous;
   let hasTerritory = context.hasTerritory;
+  // The sticky dwell anchor (BRDC-DWELL-002) — where the player's time is really going,
+  // held against a fix that flips to a neighbouring hex.
+  let anchor: DwellAnchor | null = context.previous ? dwellAnchorAt(context.previous.h3) : null;
 
   const before = new Set(revealPlaces(dwell).map((p) => `${p.h3}:${p.kind}`));
 
   let unobservedMs = 0;
 
   for (const point of points) {
-    const h3 = cellAt(point);
-    const reading: DwellReading = { h3, t: point.t };
+    const raw = cellAt(point);
 
     /*
      * A silence long enough to mean the page was frozen.
@@ -89,16 +97,25 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
     const resumed = gap >= OBSERVATION_GAP_MS;
     if (resumed) unobservedMs += gap;
 
+    // Dense fixes and no resume gap = the player has not had time to walk a cell, so a
+    // flip to a neighbour is jitter. Growth and `steps[].h3` keep the raw cell; only the
+    // dwell reading is settled onto the anchor.
+    const stationary = !resumed && gap > 0 && gap <= DWELL_JITTER_GAP_MS;
+    if (!anchor) anchor = dwellAnchorAt(raw);
+    const settled = stickyDwell(anchor, raw, point.t, stationary);
+    anchor = settled.anchor;
+    const reading: DwellReading = { h3: settled.cell, t: point.t };
+
     dwell = accrueDwell(dwell, previous, reading);
     previous = reading;
 
-    const grown = growInto(h3, known, attacker, point.t, hasTerritory && !resumed);
+    const grown = growInto(raw, known, attacker, point.t, hasTerritory && !resumed);
     if (grown.cell) {
-      known.set(h3, grown.cell);
+      known.set(raw, grown.cell);
       if (grown.cell.ownerId === attacker.id) hasTerritory = true;
     }
 
-    steps.push({ h3, cell: grown.cell, outcome: grown.outcome, skipped: grown.skipped, resumed });
+    steps.push({ h3: raw, cell: grown.cell, outcome: grown.outcome, skipped: grown.skipped, resumed });
   }
 
   const places = revealPlaces(dwell);
@@ -107,6 +124,7 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
     dwell,
     places,
     unobservedMs,
+    lastReading: previous,
     // Only what is new. A place already revealed is not news every ten seconds.
     revealed: places.filter((p) => !before.has(`${p.h3}:${p.kind}`)),
   };

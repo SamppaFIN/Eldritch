@@ -41,6 +41,20 @@ export const MIN_POINT_INTERVAL_MS = 5_000;
 /** v2 PathMarkerService: points closer than this merged instead of adding a row. */
 export const CONSOLIDATE_RADIUS_M = 5;
 
+/**
+ * Dwell jitter tolerance (BRDC-DWELL-002).
+ *
+ * A res-11 cell is ~46 m across and a stationary phone's fixes wander that far, so the
+ * hex a standing player is "in" flips to a neighbour and back. Without a hold, an hour
+ * spent in one spot splits across two or three cells and no place ever reveals. While
+ * fixes are close in time (`DWELL_JITTER_GAP_MS`) or the player is barely moving
+ * (`STILL_SPEED_MS`), time keeps going to the cell they were already in — until a fix
+ * lands a full cell away, or a neighbour holds for `DWELL_MOVE_CONFIRM_MS`.
+ */
+export const DWELL_MOVE_CONFIRM_MS = 60_000;
+export const DWELL_JITTER_GAP_MS = 30_000;
+export const STILL_SPEED_MS = 0.6;
+
 /* --- Loop detection ------------------------------------------------------ */
 
 export const LOOP_CLOSE_RADIUS_M = 25;
@@ -184,7 +198,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.7';
+export const APP_VERSION = '0.5.8';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 

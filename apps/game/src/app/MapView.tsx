@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { cellAt, levelState, load, saveNow, speedMs } from '@es3/core';
+import { levelState, load, saveNow, speedMs } from '@es3/core';
 import type {
   BBox,
   GameRepository,
@@ -37,6 +37,7 @@ import { useCipher } from '../features/cipher/useCipher.js';
 import { CipherReveal } from '../features/cipher/CipherReveal.js';
 import { AdventureDialog } from '../features/quest/AdventureDialog.js';
 import { useCellTerrain } from '../features/map/useCellTerrain.js';
+import { useStandingCell } from '../features/map/useStandingCell.js';
 import { useMapAside } from '../features/map/useMapAside.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
@@ -210,8 +211,15 @@ export function MapView({ onLeave }: MapViewProps) {
     refreshTerritory: territory.refresh,
   });
 
-  /** The cell under the player's feet, which is the one they most often want. */
-  const standingOn = useMemo(() => (point ? cellAt(point) : null), [point]);
+  const pace = useMemo(() => {
+    const pts = trail.points;
+    if (pts.length < 2) return null;
+    return speedMs(pts[pts.length - 2] as TrailPoint, pts[pts.length - 1] as TrailPoint);
+  }, [trail.points]);
+
+  // The cell underfoot — held against GPS jitter while still, so dwell does not scatter
+  // (BRDC-DWELL-002). The one the player most often wants.
+  const standingOn = useStandingCell(point, pace);
 
   // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
   const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
@@ -226,12 +234,6 @@ export function MapView({ onLeave }: MapViewProps) {
   const [openingZoom] = useState(() =>
     load<number>('opening-zoom', 0) > 0 ? ZOOM_WALKING : ZOOM_FIRST_LOOK,
   );
-
-  const pace = useMemo(() => {
-    const pts = trail.points;
-    if (pts.length < 2) return null;
-    return speedMs(pts[pts.length - 2] as TrailPoint, pts[pts.length - 1] as TrailPoint);
-  }, [trail.points]);
 
   if (!settled || !repository) {
     return (

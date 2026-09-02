@@ -6,11 +6,15 @@ import {
   accrueAll,
   accrueDwell,
   anchorOf,
+  dwellAnchorAt,
   placesWithHome,
   revealPlaces,
   revealProgress,
+  stickyDwell,
 } from './dwell.js';
-import type { DwellMap } from './dwell.js';
+import type { DwellMap, DwellReading } from './dwell.js';
+import { DWELL_MOVE_CONFIRM_MS } from './constants.js';
+import { cellAt, neighboursOf } from '../geo/cells.js';
 
 const HOME = 'cell-home';
 const WORK = 'cell-work';
@@ -51,6 +55,55 @@ describe('accrueDwell', () => {
     const before: DwellMap = { [HOME]: min(5) };
     accrueDwell(before, { h3: HOME, t: T0 }, { h3: SHOP, t: T0 + min(10) });
     expect(before).toEqual({ [HOME]: min(5) });
+  });
+});
+
+describe('stickyDwell — holding against GPS jitter (BRDC-DWELL-002)', () => {
+  const A = cellAt({ lat: 61.47290805294704, lng: 23.725882485862012 });
+  const B = neighboursOf(A)[0] as string;
+  const FAR = cellAt({ lat: 61.5, lng: 23.75 });
+
+  it('keeps a stationary player on the anchor when a fix flips to a neighbour', () => {
+    const r = stickyDwell(dwellAnchorAt(A), B, T0 + min(1), true);
+    expect(r.cell).toBe(A);
+    expect(r.anchor.pendingH3).toBe(B);
+  });
+
+  it('commits to a neighbour that holds past the confirm window', () => {
+    let a = dwellAnchorAt(A);
+    a = stickyDwell(a, B, T0, true).anchor; // pending starts
+    const r = stickyDwell(a, B, T0 + DWELL_MOVE_CONFIRM_MS, true);
+    expect(r.cell).toBe(B);
+    expect(r.anchor.h3).toBe(B);
+  });
+
+  it('commits at once when the fix is a full cell away', () => {
+    const r = stickyDwell(dwellAnchorAt(A), FAR, T0 + min(1), true);
+    expect(r.cell).toBe(FAR);
+    expect(r.anchor.h3).toBe(FAR);
+  });
+
+  it('does not hold when the player is moving', () => {
+    expect(stickyDwell(dwellAnchorAt(A), B, T0 + min(1), false).cell).toBe(B);
+  });
+
+  it('an hour and a half of A/B jitter lands almost entirely on A', () => {
+    // Exactly what planWalk does: fold each raw reading through stickyDwell, then
+    // accrue the gap to the effective cell it hands back.
+    let dwell: DwellMap = {};
+    let anchor = dwellAnchorAt(A);
+    let prev: DwellReading | null = null;
+    for (let i = 0; i <= 540; i++) {
+      const raw = i % 2 === 0 ? A : B;
+      const t = T0 + i * 10_000;
+      const step = stickyDwell(anchor, raw, t, true);
+      anchor = step.anchor;
+      const reading: DwellReading = { h3: step.cell, t };
+      dwell = accrueDwell(dwell, prev, reading);
+      prev = reading;
+    }
+    expect(dwell[A]).toBeGreaterThan(540 * 10_000 * 0.95);
+    expect(dwell[B] ?? 0).toBe(0);
   });
 });
 

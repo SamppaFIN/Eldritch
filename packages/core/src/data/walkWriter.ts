@@ -76,12 +76,10 @@ export async function recordWalk(
 
   // The seam between batches. Without it the gap between the last fix of one batch and
   // the first of the next is credited to nobody, and an hour of standing still vanishes.
-  const last = plan.steps[plan.steps.length - 1];
-  if (last) {
-    await store.set<DwellReading>(K.lastReading, {
-      h3: last.h3,
-      t: (accepted[accepted.length - 1] as TrailPoint).t,
-    });
+  // The reading is on its effective cell — jitter held to the anchor (BRDC-DWELL-002) —
+  // so a reload measures its first gap against where the player really was.
+  if (plan.lastReading) {
+    await store.set<DwellReading>(K.lastReading, plan.lastReading);
   }
 
   const grown = plan.steps.map((s) => s.outcome).filter((o): o is CaptureOutcome => o !== null);
