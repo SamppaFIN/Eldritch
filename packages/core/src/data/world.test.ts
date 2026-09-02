@@ -18,6 +18,7 @@ import {
   worldAgeMs,
   worldToCells,
 } from './world.js';
+import { toWireCell } from './challenge.js';
 import type { WorldSource } from './world.js';
 import type { Cell } from '../types/domain.js';
 
@@ -169,5 +170,51 @@ describe('submission — the signed message into the world', () => {
     if (!parsed.ok) throw new Error('unreachable');
     const shards = buildShards([parsed.source], T0);
     expect(shards.size).toBeGreaterThan(0);
+  });
+});
+
+describe('extended cell metadata through a shard (BRDC-WAGER-JSON-004)', () => {
+  // Distinct res-11 cells: vary the bearing as well as the distance.
+  const h3s = [0, 1, 2].map((i) => cellAt(destination(ORIGIN, i * 90, 80 + i * 60)));
+  const rich: WorldSource = {
+    id: 'pale',
+    name: 'player-pale',
+    nation: 'The Pale March',
+    banner: 'eye',
+    castle: cellAt(ORIGIN),
+    cells: [
+      toWireCell({ ...cell(h3s[0]!, 'pale'), terrain: { kind: 'forest', source: 'tiles' } }),
+      toWireCell({ ...cell(h3s[1]!, 'pale'), building: { id: 'sawmill', builtAt: T0 } }),
+      toWireCell(cell(h3s[2]!, 'pale')),
+    ],
+  };
+
+  it('round-trips terrain, building, nation and flag into imported cells', () => {
+    const shard = [...buildShards([rich], T0).values()][0]!;
+    const parsed = parseWorld(encodeWorld(shard));
+    if (!parsed.ok) throw new Error('bad shard');
+
+    const byH3 = new Map(
+      worldToCells(parsed.shard, 'me', T0 + 3 * 86_400_000).map((c) => [c.h3, c]),
+    );
+    expect(byH3.get(h3s[0]!)?.terrain).toEqual({ kind: 'forest', source: 'hash' });
+    expect(byH3.get(h3s[1]!)?.building?.id).toBe('sawmill');
+    expect(byH3.get(h3s[2]!)?.terrain).toBeUndefined();
+    expect(byH3.get(h3s[0]!)?.importedFrom).toEqual({
+      name: 'The Pale March',
+      banner: 'eye',
+      seenAt: T0,
+    });
+    expect([...byH3.values()].every((c) => c.imported === true)).toBe(true);
+  });
+
+  it('still reads a shard built without any of it, naming the player instead', () => {
+    const shard = [...buildShards([source('a', ORIGIN, 2)], T0).values()][0]!;
+    const parsed = parseWorld(encodeWorld(shard));
+    if (!parsed.ok) throw new Error('bad shard');
+    const cells = worldToCells(parsed.shard, 'me', T0);
+    expect(cells[0]?.importedFrom?.name).toBe('player-a');
+    expect(cells[0]?.importedFrom?.banner).toBeUndefined();
+    expect(cells[0]?.terrain).toBeUndefined();
   });
 });

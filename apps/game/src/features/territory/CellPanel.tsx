@@ -30,6 +30,7 @@ import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
+import { ImportedNote } from './ImportedNote.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TradeControls } from './TradeControls.js';
 import { AnomalyPanel } from './AnomalyPanel.js';
@@ -228,6 +229,8 @@ export function CellPanel({
       <p className="cell-panel__owner">
         {mine ? 'Yours' : cell.ownerId === null ? 'Unclaimed' : 'Held by another'}
       </p>
+
+      {cell.importedFrom ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
 
       {history ? (
         <p className="cell-panel__history">

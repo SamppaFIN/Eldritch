@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CHALLENGE_VERSION } from '../rules/constants.js';
 import { cellAt } from '../geo/cells.js';
 import { destination } from '../geo/project.js';
+import { projectCell } from '../rules/decay.js';
 import {
   MAX_CHALLENGE_CELLS,
   buildChallenge,
@@ -26,8 +27,9 @@ function ground(count: number, owner = THEM): Cell[] {
   }));
 }
 
-const source = (cells = ground(6)) => ({
+const source = (cells = ground(6), extra: { nation?: string; banner?: string } = {}) => ({
   name: 'Infinite',
+  ...extra,
   id: THEM,
   level: 4,
   cells,
@@ -135,5 +137,89 @@ describe('challengeToCells', () => {
 
     const at = T0 + 30 * 86_400_000;
     expect(challengeToCells(result.challenge, at).every((c) => c.lastVisitedAt === at)).toBe(true);
+  });
+
+  it('marks every cell imported, so it does not decay or produce here', () => {
+    const result = parseChallenge(sent(), ME);
+    if (!result.ok) throw new Error('expected a challenge');
+    const cells = challengeToCells(result.challenge, T0);
+    expect(cells.every((c) => c.imported === true)).toBe(true);
+
+    // A month on with no visit — projectCell leaves an imported cell exactly as it is.
+    const far = T0 + 30 * 86_400_000;
+    expect(cells.map((c) => projectCell(c, far))).toEqual(cells);
+  });
+});
+
+describe('the extended metadata (BRDC-WAGER-JSON-004)', () => {
+  // buildChallenge sorts by strength, so identify metadata cells by their h3, not index.
+  const withMeta = () => {
+    const cells = ground(3);
+    cells[0] = { ...cells[0]!, terrain: { kind: 'forest', source: 'tiles' } };
+    cells[1] = { ...cells[1]!, building: { id: 'sawmill', builtAt: T0 } };
+    return { text: sent(cells), forestH3: cells[0]!.h3, millH3: cells[1]!.h3, bareH3: cells[2]!.h3 };
+  };
+
+  it('round-trips terrain, building, nation and flag', () => {
+    const cells = ground(3);
+    cells[0] = { ...cells[0]!, terrain: { kind: 'mountain', source: 'seed' } };
+    cells[1] = { ...cells[1]!, building: { id: 'library', builtAt: T0 } };
+    const text = encodeChallenge(
+      buildChallenge(source(cells, { nation: 'The Pale March', banner: 'eye' })),
+    );
+
+    const parsed = parseChallenge(text, ME);
+    if (!parsed.ok) throw new Error('expected a challenge');
+    expect(parsed.challenge.nation).toBe('The Pale March');
+    expect(parsed.challenge.banner).toBe('eye');
+    const byH3 = new Map(parsed.challenge.cells.map((c) => [c.h3, c]));
+    expect(byH3.get(cells[0]!.h3)?.t).toBe('mountain');
+    expect(byH3.get(cells[1]!.h3)?.b).toBe('library');
+    expect(byH3.get(cells[2]!.h3)?.t).toBeUndefined();
+  });
+
+  it('still reads a message from before the metadata existed', () => {
+    // A plain `source()` produces exactly the old shape: no nation/banner keys, cells
+    // with only h3 and strength. It must parse, and the new fields come back undefined.
+    const built = buildChallenge(source(ground(2)));
+    expect('nation' in built).toBe(false);
+    expect('banner' in built).toBe(false);
+
+    const parsed = parseChallenge(encodeChallenge(built), ME);
+    if (!parsed.ok) throw new Error('expected a challenge');
+    expect(parsed.challenge.nation).toBeUndefined();
+    expect(parsed.challenge.cells[0]?.t).toBeUndefined();
+    expect(challengeToCells(parsed.challenge, T0)).toHaveLength(2);
+  });
+
+  it('carries the sender terrain into the imported cell as an estimate', () => {
+    const { text, forestH3, millH3, bareH3 } = withMeta();
+    const parsed = parseChallenge(text, ME);
+    if (!parsed.ok) throw new Error('expected a challenge');
+    const byH3 = new Map(challengeToCells(parsed.challenge, T0 + 86_400_000).map((c) => [c.h3, c]));
+    expect(byH3.get(forestH3)?.terrain).toEqual({ kind: 'forest', source: 'hash' });
+    expect(byH3.get(millH3)?.building?.id).toBe('sawmill');
+    expect(byH3.get(bareH3)?.terrain).toBeUndefined();
+  });
+
+  it('records who the ground was seen from, and when', () => {
+    const text = encodeChallenge(
+      buildChallenge(source(ground(2), { nation: 'The Pale March', banner: 'eye' })),
+    );
+    const parsed = parseChallenge(text, ME);
+    if (!parsed.ok) throw new Error('expected a challenge');
+    const cell = challengeToCells(parsed.challenge, T0 + 3 * 86_400_000)[0]!;
+    expect(cell.importedFrom).toEqual({ name: 'The Pale March', banner: 'eye', seenAt: T0 });
+  });
+
+  it('falls back to the player name when there is no nation', () => {
+    const parsed = parseChallenge(sent(ground(1)), ME);
+    if (!parsed.ok) throw new Error('expected a challenge');
+    expect(challengeToCells(parsed.challenge, T0)[0]?.importedFrom?.name).toBe('Infinite');
+  });
+
+  it('is refused when the terrain is edited on the way', () => {
+    const text = withMeta().text.replace('"forest"', '"market"');
+    expect(parseChallenge(text, ME)).toEqual({ ok: false, fault: 'damaged' });
   });
 });

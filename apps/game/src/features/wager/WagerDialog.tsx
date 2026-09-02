@@ -11,7 +11,9 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
-import type { ChallengeFault, Defence, GameRepository, WagerReport } from '@es3/core';
+import type { ChallengeFault, Defence, GameRepository, WagerIdentity, WagerReport } from '@es3/core';
+import { regionOf } from '@es3/core';
+import { readNation } from '../nation/nation.js';
 import { WagerFight } from './WagerFight.js';
 import './wager.css';
 
@@ -61,7 +63,10 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
 
   const seal = useCallback(() => {
     if (!repository) return;
-    void repository.exportChallenge(Date.now()).then((json) => {
+    const n = readNation();
+    const identity: WagerIdentity = { banner: n.bannerId };
+    if (n.name.trim()) identity.nation = n.name.trim();
+    void repository.exportChallenge(Date.now(), identity).then((json) => {
       setText(json);
       setPhase('sealed');
     });
@@ -103,6 +108,10 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
       setOutcome({ report: result.report, me: me.id });
     })();
   }, [repository, incoming]);
+
+  const provinces = outcome
+    ? new Set(outcome.report.challenge.cells.map((c) => regionOf(c.h3))).size
+    : 0;
 
   return (
     <Modal
@@ -188,10 +197,11 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
           </RitualButton>
         </div>
 
-        {phase === 'accepted' ? (
+        {phase === 'accepted' && outcome ? (
           <p className="wager__note" role="status">
-            Their ground is on your map — {took} {took === 1 ? 'cell' : 'cells'}. Walk it to
-            take it.
+            {outcome.report.challenge.nation ?? outcome.report.challenge.name}&rsquo;s ground
+            is on your map — {took} {took === 1 ? 'cell' : 'cells'} across{' '}
+            {provinces} {provinces === 1 ? 'province' : 'provinces'}. Walk it to take it.
           </p>
         ) : null}
 

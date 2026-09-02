@@ -142,6 +142,13 @@ export interface Cell {
    * migration.
    */
   shared?: { with: PlayerId; mineAtImport: number; theirsAtImport: number };
+  /**
+   * Where this cell's picture came from, when it was not this device (BRDC-WAGER-JSON-004).
+   * A Wager message or `world.json` carries the owner's nation, flag and the moment they
+   * sealed it — the detail panel reads it as "held by X, as they saw it 3 days ago".
+   * Set alongside `imported`. Additive, no migration.
+   */
+  importedFrom?: { name: string; banner?: string; seenAt: number };
   /** The one building on this cell, if any (BRDC-BUILD-001). One cell, one building. */
   building?: { id: BuildingId; builtAt: number };
   /**

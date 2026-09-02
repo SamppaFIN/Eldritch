@@ -10,7 +10,7 @@
  * repository gathers it once; these functions turn it into a challenge or a combatant.
  */
 import { openChallenge, ownCombatant, sealChallenge } from './wager.js';
-import type { ImportResult } from './wager.js';
+import type { ImportResult, WagerIdentity } from './wager.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerProfile } from '../types/domain.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -40,8 +40,8 @@ export async function muster(d: MusterDeps, now: number): Promise<Muster> {
 }
 
 /** Everything a friend's game needs to hold you as a rival, as text. */
-export function exportChallengeFrom(m: Muster, now: number): string {
-  return sealChallenge(m.me, m.owned, m.castle, m.defence, now);
+export function exportChallengeFrom(m: Muster, now: number, identity?: WagerIdentity): string {
+  return sealChallenge(m.me, m.owned, m.castle, m.defence, now, identity);
 }
 
 /** Accept a Wager: take their ground on, fight it, settle the spoils. */

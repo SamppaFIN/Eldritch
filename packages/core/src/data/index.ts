@@ -46,9 +46,16 @@ export {
   encodeChallenge,
   parseChallenge,
   challengeToCombatant,
+  toWireCell,
 } from './challenge.js';
-export type { Challenge, ChallengeFault, ChallengeResult, ChallengeSource } from './challenge.js';
-export type { ImportResult, WagerReport } from './wager.js';
+export type {
+  Challenge,
+  ChallengeFault,
+  ChallengeResult,
+  ChallengeSource,
+  WireCell,
+} from './challenge.js';
+export type { ImportResult, WagerIdentity, WagerReport } from './wager.js';
 export {
   buildShards,
   buildSubmission,

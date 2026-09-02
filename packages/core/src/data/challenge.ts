@@ -13,16 +13,42 @@
  */
 import { CHALLENGE_VERSION } from '../rules/constants.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
-import type { Cell, H3Index, PlayerId } from '../types/domain.js';
+import type { BuildingId, Cell, H3Index, PlayerId, TerrainKind } from '../types/domain.js';
+
+/**
+ * One cell on the wire (BRDC-WAGER-JSON-004).
+ *
+ * `h3` and `strength` are the fight; `t` and `b` are the picture — the terrain the sender
+ * had resolved and the building on the border. Both optional: a message from before this
+ * change, or a cell whose terrain was never read, simply omits them and imports as bare
+ * ground. `world.ts` sends the same shape.
+ */
+export interface WireCell {
+  h3: H3Index;
+  strength: number;
+  t?: TerrainKind;
+  b?: BuildingId;
+}
+
+/** A stored cell, trimmed to what travels. */
+export function toWireCell(c: Cell): WireCell {
+  const w: WireCell = { h3: c.h3, strength: Math.round(c.strength) };
+  if (c.terrain) w.t = c.terrain.kind;
+  if (c.building) w.b = c.building.id;
+  return w;
+}
 
 export interface Challenge {
   v: number;
   /** Who sent it. Display only — it never becomes the local player. */
   name: string;
+  /** Their nation's name and flag (BRDC-NATION-001, -004), if they have set one. */
+  nation?: string;
+  banner?: string;
   id: PlayerId;
   level: number;
   /** Ground held, at the moment of export. */
-  cells: Array<{ h3: H3Index; strength: number }>;
+  cells: WireCell[];
   /**
    * Their Keep — the Hearth cell, since the BRDC-CASTLE-001 reversal. Only ever read as a
    * null check for the Anchor bonus (`wagerBattle.ts`), so the exact cell never matters
@@ -84,6 +110,9 @@ export function checksum(payload: object): string {
 
 export interface ChallengeSource {
   name: string;
+  /** Nation name and flag, from `es3:nation` — threaded in at the app boundary. */
+  nation?: string;
+  banner?: string;
   id: PlayerId;
   level: number;
   cells: readonly Cell[];
@@ -96,13 +125,15 @@ export function buildChallenge(from: ChallengeSource): Challenge {
   const payload: Omit<Challenge, 'sum'> = {
     v: CHALLENGE_VERSION,
     name: from.name,
+    ...(from.nation ? { nation: from.nation } : {}),
+    ...(from.banner ? { banner: from.banner } : {}),
     id: from.id,
     level: from.level,
     // Strongest first, so a challenge that has to be truncated keeps what matters.
     cells: [...from.cells]
       .sort((a, b) => b.strength - a.strength)
       .slice(0, MAX_CHALLENGE_CELLS)
-      .map((c) => ({ h3: c.h3, strength: Math.round(c.strength) })),
+      .map(toWireCell),
     home: from.home,
     defence: from.defence,
     sentAt: from.now,
@@ -153,14 +184,25 @@ export function parseChallenge(text: string, mine: PlayerId): ChallengeResult {
 
 /** The rival's ground, as cells this game can store and draw. */
 export function challengeToCells(challenge: Challenge, now: number): Cell[] {
+  const from = { name: challenge.nation ?? challenge.name, seenAt: challenge.sentAt } as {
+    name: string;
+    banner?: string;
+    seenAt: number;
+  };
+  if (challenge.banner) from.banner = challenge.banner;
   return challenge.cells.map((c) => ({
     h3: c.h3,
     ownerId: challenge.id,
     strength: c.strength,
-    // Their clock is not ours and their timestamps cannot be trusted to be sane. Dating
-    // the ground to the moment of import means it decays from here, like everything else.
     lastVisitedAt: now,
     visitDays: [],
+    // Their truth, not ours: it must not decay or produce on this device
+    // (BRDC-WAGER-JSON-004), though feet still take it like any ground.
+    imported: true as const,
+    importedFrom: from,
+    // Their reading, carried over — not a firm local one, so it reads as estimated.
+    ...(c.t ? { terrain: { kind: c.t, source: 'hash' as const } } : {}),
+    ...(c.b ? { building: { id: c.b, builtAt: now } } : {}),
   }));
 }
 

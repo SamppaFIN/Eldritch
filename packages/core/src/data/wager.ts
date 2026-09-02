@@ -23,16 +23,28 @@ import type { KeyValueStore } from './kv.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { Cell, H3Index, PlayerProfile } from '../types/domain.js';
 
+/**
+ * The nation's face, from `es3:nation` (BRDC-NATION-001, -004). Passed in at the app
+ * boundary because `packages/core` does not read localStorage.
+ */
+export interface WagerIdentity {
+  nation?: string;
+  banner?: string;
+}
+
 export function sealChallenge(
   profile: PlayerProfile,
   cells: readonly Cell[],
   home: H3Index | null,
   defence: Defence,
   now: number,
+  identity?: WagerIdentity,
 ): string {
   return encodeChallenge(
     buildChallenge({
       name: profile.name,
+      ...(identity?.nation ? { nation: identity.nation } : {}),
+      ...(identity?.banner ? { banner: identity.banner } : {}),
       id: profile.id,
       level: profile.level,
       cells,

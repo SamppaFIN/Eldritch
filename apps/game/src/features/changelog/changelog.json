@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.23",
+    "date": "2026-09-02",
+    "notes": [
+      "A Wager or shared-world map now carries more than ownership. Each cell brings its terrain and any border building, and the message carries the sender's nation name and flag. Received ground shows as forest, hill or market instead of grey boxes, does not decay on your device, and its detail panel reads 'Held by <nation>, as they saw it 3 days ago'. Accepting a Wager tells you whose ground it is and how many provinces it spans."
+    ]
+  },
+  {
     "version": "0.5.22",
     "date": "2026-09-02",
     "notes": [

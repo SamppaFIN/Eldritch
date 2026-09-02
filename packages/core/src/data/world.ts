@@ -19,14 +19,18 @@
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { regionOf } from '../geo/cells.js';
 import { checksum } from './challenge.js';
+import type { WireCell } from './challenge.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 
 export interface WorldPlayer {
   id: PlayerId;
   name: string;
+  /** Their nation's name and flag (BRDC-NATION-001, BRDC-WAGER-JSON-004), if set. */
+  nation?: string;
+  banner?: string;
   /** Their Keep — the Hearth cell, published (BRDC-CASTLE-001 reversal). */
   castle: H3Index | null;
-  cells: Array<{ h3: H3Index; strength: number }>;
+  cells: WireCell[];
 }
 
 export interface WorldShard {
@@ -50,9 +54,15 @@ export type WorldImportResult =
 export interface WorldSource {
   id: PlayerId;
   name: string;
+  /** Nation name and flag, threaded in from `es3:nation` at the app boundary. */
+  nation?: string;
+  banner?: string;
   castle: H3Index | null;
-  /** Only h3 and strength travel — a full `Cell` is accepted, the rest is ignored. */
-  cells: ReadonlyArray<{ h3: H3Index; strength: number }>;
+  /**
+   * h3, strength, and — when known — terrain and the border building. A full `Cell` is
+   * accepted (it satisfies `WireCell`); `toWireCell` trims one that carries terrain.
+   */
+  cells: readonly WireCell[];
 }
 
 /**
@@ -66,9 +76,19 @@ export interface WorldSubmission {
   v: number;
   id: PlayerId;
   name: string;
+  nation?: string;
+  banner?: string;
   castle: H3Index | null;
-  cells: Array<{ h3: H3Index; strength: number }>;
+  cells: WireCell[];
   sum: string;
+}
+
+/** h3, strength, and terrain/building when the source carried them. */
+function trimWire(c: WireCell): WireCell {
+  const w: WireCell = { h3: c.h3, strength: Math.round(c.strength) };
+  if (c.t) w.t = c.t;
+  if (c.b) w.b = c.b;
+  return w;
 }
 
 export function buildSubmission(source: WorldSource): WorldSubmission {
@@ -76,11 +96,13 @@ export function buildSubmission(source: WorldSource): WorldSubmission {
     v: WORLD_VERSION,
     id: source.id,
     name: source.name,
+    ...(source.nation ? { nation: source.nation } : {}),
+    ...(source.banner ? { banner: source.banner } : {}),
     castle: source.castle,
     cells: [...source.cells]
       .sort((a, b) => b.strength - a.strength)
       .slice(0, MAX_SHARD_CELLS)
-      .map((c) => ({ h3: c.h3, strength: Math.round(c.strength) })),
+      .map(trimWire),
   };
   return { ...payload, sum: checksum(payload) };
 }
@@ -122,7 +144,14 @@ export function parseSubmission(text: string): SubmissionParse {
 
   return {
     ok: true,
-    source: { id: s.id, name: s.name, castle: s.castle ?? null, cells: s.cells },
+    source: {
+      id: s.id,
+      name: s.name,
+      ...(s.nation ? { nation: s.nation } : {}),
+      ...(s.banner ? { banner: s.banner } : {}),
+      castle: s.castle ?? null,
+      cells: s.cells,
+    },
   };
 }
 
@@ -138,15 +167,23 @@ export function buildShards(
   sources: readonly WorldSource[],
   now: number,
 ): Map<H3Index, WorldShard> {
-  const names = new Map<PlayerId, { name: string; castle: H3Index | null }>();
-  const byRegion = new Map<H3Index, Array<{ id: PlayerId; h3: H3Index; strength: number }>>();
+  const who = new Map<
+    PlayerId,
+    { name: string; nation?: string; banner?: string; castle: H3Index | null }
+  >();
+  const byRegion = new Map<H3Index, Array<{ id: PlayerId } & WireCell>>();
 
   for (const source of sources) {
-    names.set(source.id, { name: source.name, castle: source.castle });
+    who.set(source.id, {
+      name: source.name,
+      ...(source.nation ? { nation: source.nation } : {}),
+      ...(source.banner ? { banner: source.banner } : {}),
+      castle: source.castle,
+    });
     for (const cell of source.cells) {
       const region = regionOf(cell.h3);
       const bucket = byRegion.get(region) ?? [];
-      bucket.push({ id: source.id, h3: cell.h3, strength: Math.round(cell.strength) });
+      bucket.push({ id: source.id, ...trimWire(cell) });
       byRegion.set(region, bucket);
     }
   }
@@ -155,17 +192,24 @@ export function buildShards(
   for (const [region, flat] of byRegion) {
     const kept = [...flat].sort((a, b) => b.strength - a.strength).slice(0, MAX_SHARD_CELLS);
 
-    const grouped = new Map<PlayerId, Array<{ h3: H3Index; strength: number }>>();
-    for (const { id, h3, strength } of kept) {
+    const grouped = new Map<PlayerId, WireCell[]>();
+    for (const { id, ...wire } of kept) {
       const list = grouped.get(id) ?? [];
-      list.push({ h3, strength });
+      list.push(wire);
       grouped.set(id, list);
     }
 
     const players: WorldPlayer[] = [];
     for (const [id, cells] of grouped) {
-      const who = names.get(id);
-      players.push({ id, name: who?.name ?? id, castle: who?.castle ?? null, cells });
+      const w = who.get(id);
+      players.push({
+        id,
+        name: w?.name ?? id,
+        ...(w?.nation ? { nation: w.nation } : {}),
+        ...(w?.banner ? { banner: w.banner } : {}),
+        castle: w?.castle ?? null,
+        cells,
+      });
     }
 
     const payload = { v: WORLD_VERSION, region, generatedAt: now, players };
@@ -227,6 +271,12 @@ export function worldToCells(shard: WorldShard, mineId: PlayerId, now: number): 
   const cells: Cell[] = [];
   for (const player of shard.players) {
     if (player.id === mineId) continue;
+    const from = { name: player.nation ?? player.name, seenAt: shard.generatedAt } as {
+      name: string;
+      banner?: string;
+      seenAt: number;
+    };
+    if (player.banner) from.banner = player.banner;
     for (const c of player.cells) {
       cells.push({
         h3: c.h3,
@@ -235,6 +285,9 @@ export function worldToCells(shard: WorldShard, mineId: PlayerId, now: number): 
         lastVisitedAt: now,
         visitDays: [],
         imported: true,
+        importedFrom: from,
+        ...(c.t ? { terrain: { kind: c.t, source: 'hash' as const } } : {}),
+        ...(c.b ? { building: { id: c.b, builtAt: now } } : {}),
       });
     }
   }

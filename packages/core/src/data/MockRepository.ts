@@ -66,7 +66,7 @@ import { versioned } from './schema.js';
 import type { SchemaOutcome, VersionedStore } from './schema.js';
 import { seedCells } from './seed.js';
 import { K } from './keys.js';
-import { readDefence, writeDefence, type ImportResult } from './wager.js';
+import { readDefence, writeDefence, type ImportResult, type WagerIdentity } from './wager.js';
 import { combatantFrom, exportChallengeFrom, importChallengeInto, muster } from './wagerRepo.js';
 import { mergeWorld } from './worldStore.js';
 import type { WorldImportResult } from './world.js';
@@ -207,8 +207,8 @@ export class MockRepository implements GameRepository {
 
   /* --- The Wager, carried by hand — store half in `wagerRepo.js` -------- */
 
-  async exportChallenge(now: number): Promise<string> {
-    return exportChallengeFrom(await muster(this, now), now);
+  async exportChallenge(now: number, identity?: WagerIdentity): Promise<string> {
+    return exportChallengeFrom(await muster(this, now), now, identity);
   }
 
   async importChallenge(text: string, now: number): Promise<ImportResult> {

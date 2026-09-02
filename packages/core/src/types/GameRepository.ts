@@ -37,7 +37,7 @@ import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { RouteOutcome } from '../data/tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
 import type { Forecast } from '../data/pouch.js';
-import type { ImportResult } from '../data/wager.js';
+import type { ImportResult, WagerIdentity } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { LogEntry } from '../rules/log.js';
@@ -183,7 +183,7 @@ export interface GameRepository {
    * Phases 0-2 have no server, so this is what multiplayer is: a block of JSON sent
    * through whatever app people already use, and read back by the other phone.
    */
-  exportChallenge(now: number): Promise<string>;
+  exportChallenge(now: number, identity?: WagerIdentity): Promise<string>;
   /** What the player built on their border, and the choice of it. */
   getDefence(): Promise<Defence>;
   setDefence(defence: Defence): Promise<void>;
