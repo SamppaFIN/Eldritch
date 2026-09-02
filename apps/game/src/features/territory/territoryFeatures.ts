@@ -62,6 +62,20 @@ export const CONTESTED_STROKE = '#d94a4a';
  */
 export const CONTESTED_BELOW = 100;
 
+/** The dim mark on a cell you can see but have not walked (BRDC-MAP-003). */
+export const REVEAL_STROKE = '#8a8494';
+
+/**
+ * A cell worth opening a detail panel for: ground held by anyone (yours to manage, a
+ * rival's owner and strength being legitimate border intel), or the hex underfoot right
+ * now. A cell drawn only because it borders your territory is fog — its panel says "not
+ * explored" instead, and its terrain never renders on the map (BRDC-MAP-003). A
+ * persistent walked-but-unclaimed record is a later refinement (BRDC-BUILD-006).
+ */
+export function hasDetail(cell: Cell, standingOn: H3Index | null): boolean {
+  return cell.ownerId !== null || cell.h3 === standingOn;
+}
+
 export interface CellProperties {
   strength: number;
   mine: boolean;
@@ -184,8 +198,11 @@ export function cellProperties(
     // Three tiers: mine, a rival's, or seen-but-unclaimed. Strength drives opacity in
     // the paint expression, so a fresh reveal (strength 0) is naturally faint.
     color: mine ? OWN_FILL : rival ? ENEMY_FILL : REVEAL_FILL,
-    icon: glyph?.char ?? '',
-    iconColor: glyph?.color ?? '',
+    // Fog of war (BRDC-MAP-003): terrain reads only on ground you hold. A rival's cell
+    // shows nothing here — its red fill and strength carry the intel — and a cell seen
+    // only because it borders yours shows a dim '?'.
+    icon: mine ? (glyph?.char ?? '') : rival ? '' : '?',
+    iconColor: mine ? (glyph?.color ?? '') : rival ? '' : REVEAL_STROKE,
     anomaly: mine ? anomalyGlyphFor(cell) : '',
     building: bg?.char ?? '',
     buildingColor: bg?.color ?? '',

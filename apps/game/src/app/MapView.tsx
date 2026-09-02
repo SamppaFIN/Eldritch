@@ -26,10 +26,11 @@ import { useSimulateKey } from '../features/trail/useSimulateKey.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
+import { UnexploredNote } from '../features/territory/UnexploredNote.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
-import { awakeningReveal, withFogOfWar } from '../features/territory/territoryFeatures.js';
+import { awakeningReveal, hasDetail, withFogOfWar } from '../features/territory/territoryFeatures.js';
 import { useFumingLake } from '../features/quest/useFumingLake.js';
 import { QuestReveal } from '../features/quest/QuestReveal.js';
 import { useCipher } from '../features/cipher/useCipher.js';
@@ -299,23 +300,27 @@ export function MapView({ onLeave }: MapViewProps) {
 
       <WagerDialog open={inspect.wager} repository={repository} onClose={inspect.closeWager} />
 
-      <CellPanel
-        cell={inspect.cell}
-        me={profile?.id ?? null}
-        resources={resources}
-        now={clock.now()}
-        refusal={inspect.refusal}
-        here={inspect.selected !== null && inspect.selected === standingOn}
-        place={inspect.place}
-        onWard={inspect.onWard}
-        spell={inspect.spell}
-        trade={inspect.trade}
-        build={inspect.build}
-        anomaly={inspect.anomaly}
-        quest={quest.questCell}
-        onQuestOpen={() => quest.openQuestHex(inspect.selected)}
-        onClose={inspect.close}
-      />
+      {inspect.cell && !hasDetail(inspect.cell, standingOn) ? (
+        <UnexploredNote onClose={inspect.close} />
+      ) : (
+        <CellPanel
+          cell={inspect.cell}
+          me={profile?.id ?? null}
+          resources={resources}
+          now={clock.now()}
+          refusal={inspect.refusal}
+          here={inspect.selected !== null && inspect.selected === standingOn}
+          place={inspect.place}
+          onWard={inspect.onWard}
+          spell={inspect.spell}
+          trade={inspect.trade}
+          build={inspect.build}
+          anomaly={inspect.anomaly}
+          quest={quest.questCell}
+          onQuestOpen={() => quest.openQuestHex(inspect.selected)}
+          onClose={inspect.close}
+        />
+      )}
 
       <FirstLook
         show={territory.owned.length === 0 && territory.lastClaim === null}

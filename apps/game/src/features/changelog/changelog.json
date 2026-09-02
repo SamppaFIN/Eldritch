@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.7",
+    "date": "2026-09-02",
+    "notes": [
+      "Fog of war stops leaking. An unexplored hex no longer shows its terrain on the map — a dim question mark instead — and tapping one now says \"Not explored — walk here to see what it holds\" rather than opening the full detail panel. Ground you hold, and the hex under your feet, read in full as before."
+    ]
+  },
+  {
     "version": "0.5.6",
     "date": "2026-09-02",
     "notes": [

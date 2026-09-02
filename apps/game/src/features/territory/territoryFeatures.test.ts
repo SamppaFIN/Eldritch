@@ -6,11 +6,13 @@ import {
   ENEMY_FILL,
   OWN_FILL,
   REVEAL_FILL,
+  REVEAL_STROKE,
   anomalyGlyphFor,
   awakeningReveal,
   cellProperties,
   cellToFeature,
   cellsToGeoJson,
+  hasDetail,
   terrainGlyph,
   withFogOfWar,
 } from './territoryFeatures.js';
@@ -159,6 +161,39 @@ describe('blight (BRDC-BLIGHT-001)', () => {
     const edge = cellProperties(long(), ME, T0, null, true).blight;
     expect(edge).toBeGreaterThanOrEqual(plain);
     expect(edge).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('fog of war hides the ground (BRDC-MAP-003)', () => {
+  it('never marks one of my own cells with the fog question mark', () => {
+    expect(cellProperties(cell(ME, 200), ME).icon).not.toBe('?');
+  });
+
+  it("shows no terrain glyph on a rival's cell — the red fill carries the intel", () => {
+    const p = cellProperties(cell(RIVAL, 200), ME);
+    expect(p.icon).toBe('');
+    expect(p.iconColor).toBe('');
+  });
+
+  it('marks a cell seen only because it borders yours with a dim question mark', () => {
+    const p = cellProperties(cell(null, 0), ME);
+    expect(p.icon).toBe('?');
+    expect(p.iconColor).toBe(REVEAL_STROKE);
+  });
+});
+
+describe('hasDetail (BRDC-MAP-003)', () => {
+  it('opens a panel for ground held by anyone', () => {
+    expect(hasDetail(cell(ME, 100), null)).toBe(true);
+    expect(hasDetail(cell(RIVAL, 100), null)).toBe(true);
+  });
+
+  it('opens for the hex underfoot even when it is unclaimed', () => {
+    expect(hasDetail(cell(null, 0), H3)).toBe(true);
+  });
+
+  it('stays shut for a fogged neighbour', () => {
+    expect(hasDetail(cell(null, 0), null)).toBe(false);
   });
 });
 
