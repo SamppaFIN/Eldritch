@@ -22,10 +22,12 @@ export type HelpView = HelpTopic | 'index';
 export interface HelpPanelProps {
   topic: HelpView | null;
   onNavigate: (to: HelpView) => void;
+  /** Topics the player has met — the index shows only these (BRDC-WIKI-002). */
+  seen: ReadonlySet<HelpTopic>;
   onClose: () => void;
 }
 
-export function HelpPanel({ topic, onNavigate, onClose }: HelpPanelProps) {
+export function HelpPanel({ topic, onNavigate, seen, onClose }: HelpPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,24 +97,28 @@ export function HelpPanel({ topic, onNavigate, onClose }: HelpPanelProps) {
         </>
       ) : (
         <nav className="help-panel__groups" aria-label="All topics">
-          {GROUPS.map((group) => (
-            <section key={group.heading} className="help-panel__group">
-              <h3 className="help-panel__group-heading">{group.heading}</h3>
-              <ul className="help-panel__index-list">
-                {group.topics.map((t) => (
-                  <li key={t}>
-                    <button
-                      type="button"
-                      className="help-panel__link help-panel__index-item"
-                      onClick={() => onNavigate(t)}
-                    >
-                      {HELP[t].title}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          {GROUPS.map((group) => {
+            const topics = group.topics.filter((t) => seen.has(t));
+            if (topics.length === 0) return null;
+            return (
+              <section key={group.heading} className="help-panel__group">
+                <h3 className="help-panel__group-heading">{group.heading}</h3>
+                <ul className="help-panel__index-list">
+                  {topics.map((t) => (
+                    <li key={t}>
+                      <button
+                        type="button"
+                        className="help-panel__link help-panel__index-item"
+                        onClick={() => onNavigate(t)}
+                      >
+                        {HELP[t].title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
         </nav>
       )}
     </GlassPanel>

@@ -51,3 +51,13 @@ export function milestoneForLevel(level: number): Milestone {
   for (const m of MILESTONES) if (level >= m.level) hit = m;
   return hit;
 }
+
+/**
+ * What the Character screen shows: the milestones the player has reached, and the next
+ * one named but not explained (BRDC-WIKI-002 — the game does not spoil the ladder).
+ */
+export function visibleMilestones(level: number): { reached: Milestone[]; next: Milestone | null } {
+  const reached = MILESTONES.filter((m) => level >= m.level);
+  const next = MILESTONES.find((m) => level < m.level) ?? null;
+  return { reached, next };
+}

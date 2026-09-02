@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.19",
+    "date": "2026-09-02",
+    "notes": [
+      "The Guide fills as you play. Its front page now lists only the topics you have met — the first claim adds Awakening, the first decay adds The Void, and so on — plus the three that are always there because they are the instructions. A new page announces itself with one gold line you can tap.",
+      "The Character screen no longer spoils the ladder: it shows the Consciousness levels you have reached, and the next one named but not explained."
+    ]
+  },
+  {
     "version": "0.5.18",
     "date": "2026-09-02",
     "notes": [

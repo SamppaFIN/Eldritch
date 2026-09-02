@@ -10,7 +10,8 @@ import { QUEST_ITEMS } from '@es3/core';
 import { BUILDING_NAME, SPELL_NAME, titleCase } from '../territory/names.js';
 import type { HelpTopic } from '../help/help.js';
 
-const TOPIC: Partial<Record<LogKind, HelpTopic>> = {
+/** Which codex topic each log kind teaches — the seam the encounter registry reads too. */
+export const LOG_TOPIC: Partial<Record<LogKind, HelpTopic>> = {
   awaken: 'awakening',
   corrupt: 'corruption',
   reinforce: 'reinforcement',
@@ -34,7 +35,7 @@ const building = (ref?: string) =>
 const spell = (ref?: string) => SPELL_NAME[ref as keyof typeof SPELL_NAME] ?? titleCase(ref ?? 'spell');
 
 export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic | undefined } {
-  const topic = TOPIC[e.kind];
+  const topic = LOG_TOPIC[e.kind];
   switch (e.kind) {
     case 'awaken':
       return { text: `Awakened ${cells(e.count)} of new ground`, topic };

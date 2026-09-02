@@ -113,6 +113,11 @@
   color: var(--sacred-gold);
 }
 
+.character__rung--locked {
+  opacity: 0.55;
+  font-style: italic;
+}
+
 .character__empty,
 .character__found,
 .character__achievements {

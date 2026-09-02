@@ -12,7 +12,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import type { HelpTopic } from '../help/help.js';
 import { relativeTime } from '../log/describe.js';
 import { Heptagram } from '../cipher/heptagram.js';
-import { MILESTONES, milestoneForLevel } from './consciousness.js';
+import { milestoneForLevel, visibleMilestones } from './consciousness.js';
 import { useCharacter } from './useCharacter.js';
 import './character.css';
 
@@ -87,6 +87,7 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
 
   const state = levelState(profile?.xp ?? 0);
   const milestone = milestoneForLevel(state.level);
+  const ladder = visibleMilestones(state.level);
   const commit = () => {
     if (draft.trim() && draft.trim() !== profile?.name) onRename(draft);
   };
@@ -122,11 +123,17 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
       </div>
       <p className="character__lore">{milestone.long}</p>
       <ul className="character__ladder">
-        {MILESTONES.map((m) => (
+        {ladder.reached.map((m) => (
           <li key={m.level} className={m.name === milestone.name ? 'character__rung--here' : undefined}>
             <span className="es-numeric">{m.level}</span> {m.name} — {m.blurb}
           </li>
         ))}
+        {ladder.next ? (
+          <li className="character__rung--locked">
+            <span className="es-numeric">{ladder.next.level}</span> {ladder.next.name} — reach it
+            to learn what it means.
+          </li>
+        ) : null}
       </ul>
 
       <h3 className="character__section">Found ({finds.length}/{SECRET_SITES.length})</h3>
