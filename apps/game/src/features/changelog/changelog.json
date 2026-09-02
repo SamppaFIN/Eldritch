@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.20",
+    "date": "2026-09-02",
+    "notes": [
+      "Fixed tapping a hex doing nothing — the previous change queried a quest sigil's whole glow, which sat over the surrounding hexes and swallowed their taps, and could throw mid-render besides. Only the sigil itself is a target now, and a missing layer no longer breaks the click."
+    ]
+  },
+  {
     "version": "0.5.19",
     "date": "2026-09-02",
     "notes": [

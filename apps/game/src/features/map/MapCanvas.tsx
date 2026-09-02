@@ -42,7 +42,6 @@ import {
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import { ensureAwakeningLayers, removeAwakeningLayers } from '../territory/AwakeningLayer.js';
 import {
-  QUEST_HALO_LAYER,
   QUEST_MARK_LAYER,
   ensureQuestLayers,
   removeQuestLayers,
@@ -222,26 +221,26 @@ export function MapCanvas({
    */
   useEffect(() => {
     if (!map || !ready || !onCellTap) return;
+    // queryRenderedFeatures throws if any named layer is absent from the style — which
+    // happens mid-swap in StrictMode. Query only the layers that exist right now.
+    const hits = (e: MapMouseEvent, ids: string[]) => {
+      const present = ids.filter((id) => map.getLayer(id));
+      return present.length ? map.queryRenderedFeatures(e.point, { layers: present }) : [];
+    };
     const onClick = (e: MapMouseEvent) => {
       // The Keep has its own listener; this global one fires for every click, so without
       // the guard it would re-select the cell under the Keep and close its panel.
-      const onKeep =
-        onCastleTap &&
-        map.getLayer(CASTLE_CORE_LAYER) &&
-        map.queryRenderedFeatures(e.point, { layers: [CASTLE_CORE_LAYER, CASTLE_HALO_LAYER] }).length;
-      if (onKeep) return;
+      if (onCastleTap && hits(e, [CASTLE_CORE_LAYER, CASTLE_HALO_LAYER]).length) return;
 
-      const questId = map.getLayer(QUEST_MARK_LAYER)
-        ? map.queryRenderedFeatures(e.point, { layers: [QUEST_MARK_LAYER, QUEST_HALO_LAYER] })[0]?.id
-        : undefined;
+      // Only the sigil itself, not its wide glow — a halo hit would swallow taps on the
+      // hexes around a quest site and open nothing (field report 2026-09-02).
+      const questId = hits(e, [QUEST_MARK_LAYER])[0]?.id;
       if (typeof questId === 'string' && questId in QUEST_SITES) {
         onCellTap(siteCell(questId as QuestSiteId));
         return;
       }
 
-      const id = map.getLayer(CELL_FILL_LAYER)
-        ? map.queryRenderedFeatures(e.point, { layers: [CELL_FILL_LAYER] })[0]?.id
-        : undefined;
+      const id = hits(e, [CELL_FILL_LAYER])[0]?.id;
       if (typeof id === 'string') onCellTap(id);
     };
     const enter = () => {
