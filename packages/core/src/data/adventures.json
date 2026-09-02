@@ -11,10 +11,25 @@
         ],
         "choices": [
           { "text": "Follow the map to the lake", "requires": { "terrain": "lake" }, "next": "lake" },
-          { "text": "Follow the map to the shore", "requires": { "terrain": "coast" }, "next": "lake" },
-          { "text": "Touch the propeller", "effect": {}, "next": "statue" },
-          { "text": "Study the boy's too-pleasant face", "next": "statue" }
+          { "text": "Touch the propeller", "next": "propeller" },
+          { "text": "Study the boy's too-pleasant face", "next": "boy-face" }
         ]
+      },
+      "propeller": {
+        "speaker": "Narrator",
+        "text": [
+          "The propeller turns under your hand though there is no wind, and keeps turning after you let go. It is pointing — the insistent way a compass points — down the slope, toward the water.",
+          "The map at the statue's feet has stopped screaming. It is tapping its foot now. Waiting for you to walk to the lake."
+        ],
+        "choices": [{ "text": "Take the hint — back to the statue", "next": "statue" }]
+      },
+      "boy-face": {
+        "speaker": "Narrator",
+        "text": [
+          "Up close the boy is smiling the way a door smiles just before it opens onto something. His stone eyes are wet.",
+          "A whisper, from no particular direction: \"The lake. You have to go to the lake. Walk there — actually there, on your feet — and claim the ground. Then the map lets you follow it.\" Helpful. Unsettling. Both."
+        ],
+        "choices": [{ "text": "Step back from the statue", "next": "statue" }]
       },
       "lake": {
         "speaker": "Narrator",
