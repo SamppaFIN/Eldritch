@@ -166,9 +166,11 @@ export function MapView({ onLeave }: MapViewProps) {
     onMerged: territory.refresh,
   });
 
+  // Triggers must be stable primitives (BRDC-ECON-003 field bug): a fresh `clock` object
+  // each render re-ran this effect and cancelled every in-flight getResources().
   const { resources, forecast, gain, setResources } = usePouchPolling(repository, clock.now, [
-    clock,
-    territory.lastClaim,
+    clock.offsetDays,
+    territory.lastClaim?.at ?? 0,
     trail.points.length,
   ]);
 
@@ -176,14 +178,17 @@ export function MapView({ onLeave }: MapViewProps) {
   const aside = useMapAside(repository, clock.now, trail.points.length + (territory.lastClaim?.at ?? 0));
   const [welcomed, setWelcomed] = useState(false);
 
-  // Profile is re-read after a claim: XP and level change with the ground.
+  // Profile and pouch are re-read after a claim: XP, level and the yield all change with
+  // the ground, and this direct read is what guarantees the readout moves (the poll is a
+  // backstop, not the mechanism).
   useEffect(() => {
     if (!repository || !territory.lastClaim) return;
     void repository.getProfile().then(setProfile);
+    void repository.getResources(clock.now()).then(setResources);
     // Remembered, so the next session opens at walking zoom rather than explaining
     // the game again to someone who has already played it.
     saveNow('opening-zoom', ZOOM_WALKING);
-  }, [repository, territory.lastClaim]);
+  }, [repository, territory.lastClaim, clock.now, setResources]);
 
   // What the map should light up after a lap — the cells that changed hands (pure helper).
   const awakening = useMemo(() => awakeningReveal(territory.lastClaim), [territory.lastClaim]);

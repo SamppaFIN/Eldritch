@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.15",
+    "date": "2026-09-02",
+    "notes": [
+      "Fixed the pouch that would not update. The resource readout was re-reading on every render and cancelling each read before it finished, so only the debug button ever moved the numbers. Now a claim, an hour's trickle and the starter grant all show up as they should."
+    ]
+  },
+  {
     "version": "0.5.14",
     "date": "2026-09-02",
     "notes": [
