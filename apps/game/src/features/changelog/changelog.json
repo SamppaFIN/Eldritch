@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.18",
+    "date": "2026-09-02",
+    "notes": [
+      "The Keep's Mana tab lists your temples now, each with its mana rate and an Expand button — so a temple across the map can be raised without walking to it."
+    ]
+  },
+  {
     "version": "0.5.17",
     "date": "2026-09-02",
     "notes": [

@@ -12,13 +12,14 @@
 import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, Forecast, GameRepository, ResourcePool } from '@es3/core';
+import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
 import { dominionOf } from './dominion.js';
 import { ResearchPanel } from './ResearchPanel.js';
 import { ManaPanel } from './ManaPanel.js';
 import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
 import { NationIdentity } from '../nation/NationIdentity.js';
 import { KeepResources } from '../keep/KeepResources.js';
+import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { ResearchBinding } from './useSelection.js';
@@ -39,7 +40,8 @@ export interface HearthPanelProps {
   /** Every cell the player holds, already projected to `now`. */
   owned: readonly Cell[];
   resources: ResourcePool | null;
-  places: number;
+  /** Revealed places — Anchor and temples — so the Keep can list and expand them. */
+  places: readonly RevealedPlace[];
   level: number;
   levelName: string;
   now: number;
@@ -135,7 +137,7 @@ export function HearthPanel({
         </div>
         <div>
           <dt>Temples</dt>
-          <dd className="es-numeric">{places}</dd>
+          <dd className="es-numeric">{places.filter((p) => p.kind === 'temple').length}</dd>
         </div>
       </dl>
 
@@ -165,7 +167,18 @@ export function HearthPanel({
         ))}
       </div>
 
-      {tab === 'mana' ? <ManaPanel keep={keep} pool={resources} /> : null}
+      {tab === 'mana' ? (
+        <>
+          <ManaPanel keep={keep} pool={resources} />
+          <KeepTemples
+            places={places}
+            pool={resources}
+            repository={repository}
+            now={now}
+            onPouch={onPouch}
+          />
+        </>
+      ) : null}
       {tab === 'wisdom' ? (
         <ResearchPanel
           research={research}

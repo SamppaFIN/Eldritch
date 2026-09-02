@@ -289,7 +289,7 @@ export function MapView({ onLeave }: MapViewProps) {
         <HearthPanel
           owned={territory.owned}
           resources={resources}
-          places={places.filter((p) => p.kind === 'temple').length}
+          places={places}
           level={levelState(profile?.xp ?? 0).level}
           levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()}

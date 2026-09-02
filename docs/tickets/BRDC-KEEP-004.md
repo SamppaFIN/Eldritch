@@ -58,7 +58,7 @@ tab-strip (Mana · Rites · Buildings) → `<KeepRealm>`. `features/keep/`: `Kee
 - [x] Realm-osio: rappio, dark time, "muut näkevät Keepin", Wager
 - [~] Rakennus→Guide-linkit — `BRDC-WIKI-002`
 - [~] Taitettavat osiot — nyt aina näkyvissä (lyhyitä); tabit hoitavat pitkät
-- [ ] **Temppelilista Keepiin (Infinite 2026-09-02):** *"pistä keep sivuille lista
+- [x] **Temppelilista Keepiin (v0.5.18):** *"pistä keep sivuille lista
       temppeleistä ja nappi millä saa temppelivalikon auki"* — pelaaja ei pääse
       laajentamaan temppeliä kun se on kaukana kartalla. Mana-välilehdelle lista
       omista temppeleistä + per-temppeli "avaa" joka näyttää `expandTemple`-toiminnon
