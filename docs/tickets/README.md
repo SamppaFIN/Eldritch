@@ -387,6 +387,8 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-TRAIL-004](BRDC-TRAIL-004.md) | Käyntikerrat kantana: polku → junarata | M | viisi porrasta, kerran per kalenteripäivä |
 | [BRDC-FX-001](BRDC-FX-001.md) | Kun jotain tapahtuu, ruutu näyttää sen | M | §12:n pyhä geometria hetkinä · katto per minuutti |
 | [BRDC-CLAIM-008](BRDC-CLAIM-008.md) | Vallattu heksa avautuu kuin lahjapaketti | M | **done v0.5.22** · kansi nousee keskeltä, sigili purkautuu · reduced-motion staattinen |
+| [BRDC-CLAIM-009](BRDC-CLAIM-009.md) | Askel-valtaus: astut heksaan, se on sinun | L | **done v0.5.24** · lenkki asetuksen taakse · löytömodaali + paljasta-nappi · klikkausbugi + nimikenttä |
+| [BRDC-CLAIM-010](BRDC-CLAIM-010.md) | Lenkki takaisin opetettuna, löytöruudun rytmi | M | N ekaa modaali → toast · lenkin ehdotus kun alue kasvaa |
 
 ### 🏰 Keep-ohjaamo — Infiniten spec 2026-09-02
 

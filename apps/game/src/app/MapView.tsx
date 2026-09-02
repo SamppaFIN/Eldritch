@@ -6,7 +6,7 @@
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { levelState, load, saveNow, speedMs } from '@es3/core';
+import { levelState, load, speedMs } from '@es3/core';
 import type {
   BBox,
   GameRepository,
@@ -29,7 +29,9 @@ import { CellPanel } from '../features/territory/CellPanel.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
-import { awakeningReveal, withFogOfWar } from '../features/territory/territoryFeatures.js';
+import { withFogOfWar } from '../features/territory/territoryFeatures.js';
+import { useClaimSync } from '../features/territory/useClaimSync.js';
+import { DiscoveryModal } from '../features/territory/DiscoveryModal.js';
 import { useFumingLake } from '../features/quest/useFumingLake.js';
 import { QuestReveal } from '../features/quest/QuestReveal.js';
 import { useCipher } from '../features/cipher/useCipher.js';
@@ -110,13 +112,9 @@ export function MapView({ onLeave }: MapViewProps) {
     simulate,
   });
 
-  /*
-   * Write the accepted Hearth through, once.
-   *
-   * App records the acceptance in localStorage because it has no repository; this is
-   * where it becomes a claimed cell and an Anchor Stone. Guarded on `getHome` rather
-   * than on the note, so a save that already has one is never overwritten.
-   */
+  // Write the accepted Hearth through, once: App records it in localStorage (it has no
+  // repository); here it becomes a claimed cell and an Anchor Stone. Guarded on `getHome`
+  // so a save that already has one is never overwritten.
   useEffect(() => {
     if (!repository) return;
     const mark = load<{ position: { lat: number; lng: number } } | null>('hearth', null);
@@ -150,13 +148,13 @@ export function MapView({ onLeave }: MapViewProps) {
   const territory = useTerritory({
     repository,
     runId: trail.runId,
-    // Closure is attempted whenever the trail grows, so a lap fills the moment it
-    // closes rather than on the next timer tick.
+    // Attempted whenever the trail grows, so a lap fills the moment it closes.
     trailVersion: trail.points.length,
     bbox,
     now: clock.now,
     position: point,
     home: castle,
+    loopClosure: settings.loopClosure,
   });
 
   const worldStirredMs = useWorld({
@@ -177,21 +175,6 @@ export function MapView({ onLeave }: MapViewProps) {
   // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
   const aside = useMapAside(repository, clock.now, trail.points.length + (territory.lastClaim?.at ?? 0));
   const [welcomed, setWelcomed] = useState(false);
-
-  // Profile and pouch are re-read after a claim: XP, level and the yield all change with
-  // the ground, and this direct read is what guarantees the readout moves (the poll is a
-  // backstop, not the mechanism).
-  useEffect(() => {
-    if (!repository || !territory.lastClaim) return;
-    void repository.getProfile().then(setProfile);
-    void repository.getResources(clock.now()).then(setResources);
-    // Remembered, so the next session opens at walking zoom rather than explaining
-    // the game again to someone who has already played it.
-    saveNow('opening-zoom', ZOOM_WALKING);
-  }, [repository, territory.lastClaim, clock.now, setResources]);
-
-  // What the map should light up after a lap — the cells that changed hands (pure helper).
-  const awakening = useMemo(() => awakeningReveal(territory.lastClaim), [territory.lastClaim]);
 
   // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
   const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
@@ -224,6 +207,13 @@ export function MapView({ onLeave }: MapViewProps) {
   // The cell underfoot — held against GPS jitter while still, so dwell does not scatter
   // (BRDC-DWELL-002). The one the player most often wants.
   const standingOn = useStandingCell(point, pace);
+
+  // After ground changes hands (a loop, or a step): re-read the HUD, play the map flare,
+  // raise the "New ground" screen (BRDC-CLAIM-009).
+  const { awakening, discovery } = useClaimSync({
+    repository, lastClaim: territory.lastClaim, standingOn, now: clock.now,
+    settings, refreshTerritory: territory.refresh, setProfile, setResources,
+  });
 
   // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
   const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
@@ -278,6 +268,14 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <ClaimBurst claim={territory.lastClaim} />
+      <DiscoveryModal
+        discovered={discovery.discovered}
+        owned={territory.owned}
+        revealed={discovery.revealed}
+        onOpenCell={inspect.onCellTap}
+        onReveal={discovery.onReveal}
+        settings={settings}
+      />
       <PlaceReveal revealed={trail.revealed} />
       <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />
       <CipherReveal found={cipher.justFound} view={cipher.view} settings={settings} onDismiss={cipher.dismiss} />
@@ -321,6 +319,8 @@ export function MapView({ onLeave }: MapViewProps) {
         anomaly={inspect.anomaly}
         quest={quest.questCell}
         onQuestOpen={() => quest.openQuestHex(inspect.selected)}
+        revealed={discovery.revealed}
+        onReveal={discovery.onReveal}
         onClose={inspect.close}
       />
 

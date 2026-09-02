@@ -1,7 +1,13 @@
 # ⚡ CLAUDE.md — Eldritch Sanctuary v3
 
-GPS territory-capture game. Walk a closed loop in the real world, claim the land inside it,
-steal it from other players. Lovecraftian aesthetic and lore inherited from v2.
+GPS territory-capture game. Walk in the real world and take the ground you cross; steal it
+from other players. Lovecraftian aesthetic and lore inherited from v2.
+
+**Claiming, as of 2026-09-02 (BRDC-CLAIM-009):** the primary way is *stepping* — walk onto
+an unclaimed hex that borders yours and it is yours. Closing a loop to claim the land
+*inside* it is the game's deeper mechanic and it still exists, behind `Settings.loopClosure`
+(off by default), to be taught back in `BRDC-CLAIM-010`. The loop code (`closeLoop`,
+`planClaim`, the sim fixtures) is untouched — only the app-level trigger is gated.
 
 This is a rewrite of v2 (`SamppaFIN/EldrichHorror-v2`), not a refactor. v2 had 43 systems,
 68 `<script>` tags, no bundler, 4081-line files, and 0% verified test coverage. Its content
@@ -41,7 +47,7 @@ v2's most concrete failure was 112 markdown files with no source of truth.
 ```json
 {
   "projekti": "Eldritch Sanctuary v3",
-  "versio": "0.5.23",
+  "versio": "0.5.24",
   "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
   "tila": "toteutus",
   "vaihe": "2.6 — Mobiilikokemus ja jaettu maailma",
@@ -272,7 +278,7 @@ has taken out the door is v2's exact failure. See `docs/tickets/BRDC-MOBILE-001.
 | Code | UI / lore |
 |---|---|
 | trail | Ley-line |
-| claim / loop closure | Awakening the Ground |
+| claim (step or loop closure) | Awakening the Ground |
 | steal | Corruption |
 | cell (H3 res 11) | Warded Cell |
 | anchor | Anchor Stone |

@@ -74,7 +74,8 @@ järkevästi.
 
 | Mekaniikka | Rooli v3:ssa | Lähde |
 |---|---|---|
-| **Loop-claim** (kävelty lenkki → H3-solut) | **Ensisijainen.** Näin aluetta hankitaan ja riistetään. | Uusi |
+| **Askel-valtaus** (astut reunaheksaan → se on sinun) | **Ensisijainen 2026-09-02 alkaen (BRDC-CLAIM-009).** Nopein tapa oppia liikkuminen; alue kasvaa jalka kerrallaan reunoilta. | Uusi |
+| **Loop-claim** (kävelty lenkki → sisäalue) | Pelin syvempi mekaniikka. Koodi ennallaan, `Settings.loopClosure`in takana (oletus pois), opetetaan takaisin `BRDC-CLAIM-010`:ssä. | Uusi |
 | **Anchor-kasvu** (v2:n rajapistelaajennus) | **Toissijainen.** Anchor Stone kasvattaa hitaasti omaa vyöhykettään askelmarkkereista, mutta vain omistamiesi solujen sisällä. Antaa kotipesän ja passiivisen etenemisen. | v2:n `TerritorySystem` konsepti, uusi toteutus |
 
 Näin v2:n mekaniikka säilyy tunnelmana ("kannat markkeria, se jäähtyy 15 min") ilman että se

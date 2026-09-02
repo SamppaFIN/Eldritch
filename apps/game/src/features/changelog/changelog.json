@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.24",
+    "date": "2026-09-02",
+    "notes": [
+      "Territory now grows by walking. Step onto an unclaimed hex that touches your ground and it is yours — a 'New ground' screen names it, plays a chime, and offers a button to reveal what it holds (a resource bonus scaled by how rare the site is). Closing a loop to claim the land inside it is now a setting, off by default, in the menu.",
+      "Fixed: tapping the map did nothing when you held little or no ground. A tap with no hex drawn under it now selects the hex where it landed.",
+      "Fixed: the nation-name field losing its place as you typed. It is isolated from the map's every-second redraw now."
+    ]
+  },
+  {
     "version": "0.5.23",
     "date": "2026-09-02",
     "notes": [

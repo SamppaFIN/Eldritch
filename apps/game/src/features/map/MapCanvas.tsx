@@ -9,7 +9,7 @@
 import { useEffect, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
-import { QUEST_SITES, siteCell } from '@es3/core';
+import { cellAt, QUEST_SITES, siteCell } from '@es3/core';
 import type {
   BBox,
   Cell,
@@ -214,10 +214,11 @@ export function MapCanvas({
   }, [map, ready, cells, playerId, now, castle]);
 
   /*
-   * Tapping a hexagon — but only one that is actually drawn. A rendered cell carries its
-   * H3 as the feature id; a tap on bare basemap past the fog ring is ignored, rather than
-   * opening a detail panel for a hex the player has never seen (field report 2026-09-02).
-   * A quest sigil out there still selects its own cell, so the tale stays reachable.
+   * Tapping a hexagon. A rendered cell carries its H3 as the feature id; when the tap
+   * lands on none — the fog ring is small, or the player has no ground yet — the hex is
+   * derived from the tap's coordinates instead, so the map is never a dead surface
+   * (BRDC-CLAIM-009 reverses the 2026-09-02 "past the fog does nothing"). The panel says
+   * "Unclaimed" for far ground. A quest sigil still selects its own cell first.
    */
   useEffect(() => {
     if (!map || !ready || !onCellTap) return;
@@ -241,7 +242,12 @@ export function MapCanvas({
       }
 
       const id = hits(e, [CELL_FILL_LAYER])[0]?.id;
-      if (typeof id === 'string') onCellTap(id);
+      if (typeof id === 'string') {
+        onCellTap(id);
+        return;
+      }
+      // Nothing drawn under the tap — take the hex from where it landed.
+      onCellTap(cellAt({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
     };
     const enter = () => {
       map.getCanvas().style.cursor = 'pointer';

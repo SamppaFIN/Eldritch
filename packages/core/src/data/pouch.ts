@@ -230,6 +230,25 @@ export async function grantAll(
 }
 
 /**
+ * Add a fixed bonus pool, capped at storage. Settles first so nothing owed is lost, then
+ * writes. Used by the reveal bonus (BRDC-CLAIM-009) — a one-off grant, not a trickle.
+ */
+export async function grantBonus(
+  store: KeyValueStore,
+  owned: readonly Cell[],
+  bonus: Partial<ResourcePool>,
+  now: number,
+): Promise<void> {
+  const state = await settlePouch(store, owned, now);
+  const cap = storageCap(buildingsOf(owned));
+  const pool = { ...state.pool };
+  for (const [k, v] of Object.entries(bonus) as [ResourceKind, number][]) {
+    pool[k] = Math.min(cap, pool[k] + v);
+  }
+  await writePouch(store, pool, now);
+}
+
+/**
  * Write a pool back without touching the trickle clock.
  *
  * For spending. `since` belongs to the trickle and must survive a purchase — moving it

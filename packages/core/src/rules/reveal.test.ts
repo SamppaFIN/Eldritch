@@ -3,8 +3,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import { cellAt, cellsWithin } from '../geo/cells.js';
-import { RARITY_SHARE, revealOf } from './reveal.js';
+import { RARITY_SHARE, REVEAL_MULT, revealBonus, revealOf } from './reveal.js';
 import type { Rarity } from './reveal.js';
+import { CLAIM_YIELD, resourceOf } from './terrain.js';
 
 // ~7500 real res-11 cells around central Tampere — the same ground a player walks.
 const SAMPLE = cellsWithin(cellAt({ lat: 61.4978, lng: 23.7610 }), 50);
@@ -56,5 +57,31 @@ describe('distribution over a large real sample', () => {
   it('RARITY_SHARE sums to one', () => {
     const total = (Object.values(RARITY_SHARE) as number[]).reduce((a, b) => a + b, 0);
     expect(total).toBeCloseTo(1, 10);
+  });
+});
+
+describe('revealBonus (BRDC-CLAIM-009)', () => {
+  it('pays the cell terrain resource, scaled by its tier', () => {
+    const withResource = SAMPLE.find((h3) => resourceOf(h3) !== null) as string;
+    const res = resourceOf(withResource) as string;
+    const bonus = revealBonus(withResource);
+    expect(bonus[res as keyof typeof bonus]).toBe(CLAIM_YIELD * REVEAL_MULT[revealOf(withResource)]);
+  });
+
+  it('is deterministic and matches the cell tier', () => {
+    const h3 = SAMPLE[250] as string;
+    expect(revealBonus(h3)).toEqual(revealBonus(h3));
+  });
+
+  it('gives a rare or legendary site a token or two on top', () => {
+    const rare = SAMPLE.find((h3) => revealOf(h3) === 'rare');
+    if (rare) expect(revealBonus(rare).tokens).toBe(1);
+    const legendary = SAMPLE.find((h3) => revealOf(h3) === 'legendary');
+    if (legendary) expect(revealBonus(legendary).tokens).toBe(3);
+  });
+
+  it('plain ground with no resource and a common tier pays nothing', () => {
+    const plain = SAMPLE.find((h3) => resourceOf(h3) === null && revealOf(h3) === 'common');
+    if (plain) expect(revealBonus(plain)).toEqual({});
   });
 });

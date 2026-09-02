@@ -45,6 +45,8 @@ export interface UseTerritoryOptions {
   now: () => number;
   /** The Hearth cell — it never fades, so it is left out of the fade warning. */
   home?: string | null;
+  /** Attempt loop closure at all. Off by default now — territory grows by stepping (BRDC-CLAIM-009). */
+  loopClosure?: boolean;
 }
 
 export function useTerritory({
@@ -55,6 +57,7 @@ export function useTerritory({
   now,
   position = null,
   home = null,
+  loopClosure = false,
 }: UseTerritoryOptions): TerritoryState {
   const [cells, setCells] = useState<Cell[]>([]);
   const [owned, setOwned] = useState<Cell[]>([]);
@@ -99,7 +102,7 @@ export function useTerritory({
   }, []);
 
   const attempt = useCallback(async (): Promise<void> => {
-    if (!repository || !runId) return;
+    if (!repository || !runId || !loopClosure) return;
 
     if (busy.current) {
       queued.current = true;
@@ -122,7 +125,7 @@ export function useTerritory({
       queued.current = false;
       await attempt();
     }
-  }, [repository, runId, refresh, now]);
+  }, [repository, runId, refresh, now, loopClosure]);
 
   useEffect(() => {
     void attempt();

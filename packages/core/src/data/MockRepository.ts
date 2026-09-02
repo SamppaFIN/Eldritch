@@ -26,6 +26,8 @@ import { buildOn, demolishOn } from './buildStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import { consecrateAt, expandTempleAt } from './templeStore.js';
 import type { ConsecrateOutcome, ExpandOutcome } from './templeStore.js';
+import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
+import { readRevealed, revealAt, type RevealOutcome } from './revealStore.js';
 import { readPaths } from './pathStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges } from '../geo/paths.js';
@@ -162,6 +164,7 @@ export class MockRepository implements GameRepository {
   async getForecast(now: number): Promise<Forecast> {
     return forecastRates(this.store, await this.getOwnedCells(now), now);
   }
+  getRevealed = () => readRevealed(this.store);
   /** Dev only (BRDC-ECON-002): top every resource up so a lost pouch is not a dead run. */
   async debugGrant(now: number): Promise<void> {
     await grantAll(this.store, await this.getOwnedCells(now), now, 200);
@@ -183,10 +186,7 @@ export class MockRepository implements GameRepository {
   async demolish(h3: H3Index, now: number): Promise<DemolishOutcome> {
     return demolishOn(this.store, h3, await this.getOwnedCells(now), now);
   }
-
-  async getTradeRoutes(): Promise<TradeRoute[]> {
-    return readRoutes(this.store);
-  }
+  getTradeRoutes = (): Promise<TradeRoute[]> => readRoutes(this.store);
 
   async layTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome> {
     const me = (await this.getProfile()).id;
@@ -253,15 +253,9 @@ export class MockRepository implements GameRepository {
 
   /* --- Places and the Keep's economy — seam in keepStore.js ------------- */
   getPlaces = (): Promise<RevealedPlace[]> => readPlaces(this.store, () => this.getHome());
-  getDwellFor(h3: string): Promise<number> {
-    return readDwellFor(this.store, h3);
-  }
-  raiseAltar(now: number): Promise<AltarOutcome> {
-    return raiseAltarFor(this.store, this, now);
-  }
-  channelMana(now: number): Promise<ChannelOutcome> {
-    return channelManaFor(this.store, this, now);
-  }
+  getDwellFor = (h3: string): Promise<number> => readDwellFor(this.store, h3);
+  raiseAltar = (now: number): Promise<AltarOutcome> => raiseAltarFor(this.store, this, now);
+  channelMana = (now: number): Promise<ChannelOutcome> => channelManaFor(this.store, this, now);
   async expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome> {
     return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   }
@@ -269,9 +263,7 @@ export class MockRepository implements GameRepository {
     consecrateAt(this.store, h3, await this.getOwnedCells(now), await this.getHome(), now);
 
   /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
-  getAnomalies(now: number): Promise<Anomaly[]> {
-    return getAnomaliesFor(this, now);
-  }
+  getAnomalies = (now: number): Promise<Anomaly[]> => getAnomaliesFor(this, now);
   investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome> {
     return investigateAnomalyFor(this.store, this, h3, now);
   }
@@ -281,21 +273,15 @@ export class MockRepository implements GameRepository {
   chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome> {
     return chooseInChainFor(this.store, this, h3, choiceIndex, now);
   }
-  getAdventures(now: number): Promise<AdventureView[]> {
-    return getAdventuresFor(this.store, this, now);
-  }
+  getAdventures = (now: number): Promise<AdventureView[]> => getAdventuresFor(this.store, this, now);
   startAdventure(id: string, now: number): Promise<StartOutcome> {
     return startAdventureFor(this.store, id, now);
   }
   chooseInAdventure(id: string, choiceIndex: number, now: number): Promise<AdventureChoiceOutcome> {
     return chooseInAdventureFor(this.store, this, id, choiceIndex, now);
   }
-  abandonAdventure(id: string): Promise<void> {
-    return abandonAdventureFor(this.store, id);
-  }
-  getQuestFinds(): Promise<SecretSiteId[]> {
-    return getQuestFindsFor(this.store);
-  }
+  abandonAdventure = (id: string): Promise<void> => abandonAdventureFor(this.store, id);
+  getQuestFinds = (): Promise<SecretSiteId[]> => getQuestFindsFor(this.store);
   recordQuestFind(id: SecretSiteId, now: number): Promise<SecretSiteId | null> {
     return recordQuestFindFor(this.store, id, now);
   }
@@ -343,6 +329,18 @@ export class MockRepository implements GameRepository {
   /** Close the run's loop, if it has one, and take what it encloses. See `walkFlow.js`. */
   async closeLoop(runId: RunId, now: number): Promise<ClaimResult> {
     return closeWalk(this.walkDeps(), runId, now);
+  }
+
+  /** Claim the hex underfoot if it borders your ground (BRDC-CLAIM-009). See `stepStore.js`. */
+  async claimStep(standing: H3Index | null, now: number): Promise<StepClaimOutcome> {
+    return claimStepAt(
+      this.store, this.newId, standing,
+      await this.getOwnedCells(now), await this.getHome(), await this.getProfile(), now,
+    );
+  }
+
+  async revealCell(h3: H3Index, now: number): Promise<RevealOutcome> {
+    return revealAt(this.store, h3, await this.getOwnedCells(now), now);
   }
 
   async runDecay(now: number): Promise<DecayResult> {

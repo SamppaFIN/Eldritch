@@ -45,4 +45,6 @@ export const K = {
   achievements: 'achievements',
   /** Cipher fragment indices the player has walked onto, `number[]` (BRDC-CIPHER-001). */
   cipherShards: 'cipher-shards',
+  /** Cells the player has revealed for their tier bonus, `Record<H3Index, number>` (BRDC-CLAIM-009). */
+  revealed: 'revealed',
 } as const;

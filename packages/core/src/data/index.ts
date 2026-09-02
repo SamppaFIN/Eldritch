@@ -10,6 +10,8 @@ export { cellsToLoad, planClaim } from './claiming.js';
 export type { ClaimPlan } from './claiming.js';
 export { forecastRates, grantVersionGift } from './pouch.js';
 export type { Forecast } from './pouch.js';
+export type { StepClaimOutcome } from './stepStore.js';
+export type { RevealOutcome, RevealRefusal } from './revealStore.js';
 export type { AltarOutcome, ChannelOutcome } from './keepStore.js';
 export type { AchievementView } from './achievementStore.js';
 export type { CipherView, CipherFragment } from './cipherStore.js';

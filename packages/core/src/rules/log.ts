@@ -28,6 +28,7 @@ export type LogKind =
   | 'anomaly'
   | 'quest'
   | 'wager'
+  | 'reveal'
   | 'hearth';
 
 export interface LogEntry {

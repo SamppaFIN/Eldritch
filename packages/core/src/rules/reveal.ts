@@ -9,6 +9,9 @@
  * This is only the tier. A `legendary` cell is a wonder *site* — its content is
  * `BRDC-WONDER-001`; a `rare` one is an anomaly *site* — its story is `BRDC-EVENT-001`.
  */
+import { CLAIM_YIELD, resourceOf } from './terrain.js';
+import type { ResourcePool } from './terrain.js';
+
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
 /**
@@ -45,3 +48,32 @@ export const RARITY_SHARE: Readonly<Record<Rarity, number>> = {
   uncommon: UNCOMMON_BELOW - RARE_BELOW,
   common: 1 - UNCOMMON_BELOW,
 };
+
+/**
+ * What revealing a cell pays, as a multiple of `CLAIM_YIELD` of its terrain resource
+ * (BRDC-CLAIM-009). Free, once per cell — the reward for looking, not a trade. Tunable.
+ */
+export const REVEAL_MULT: Readonly<Record<Rarity, number>> = {
+  common: 2,
+  uncommon: 4,
+  rare: 8,
+  legendary: 16,
+};
+
+/**
+ * The pouch bonus for revealing the ground at `h3`.
+ *
+ * Its terrain resource, scaled by the tier — a forest cell pays timber, a market gold,
+ * plain ground pays nothing but its tier can still carry a token or two. Deterministic,
+ * like everything else here.
+ */
+export function revealBonus(h3: string): Partial<ResourcePool> {
+  const tier = revealOf(h3);
+  const resource = resourceOf(h3);
+  const out: Partial<ResourcePool> = resource
+    ? { [resource]: CLAIM_YIELD * REVEAL_MULT[tier] }
+    : {};
+  if (tier === 'legendary') out.tokens = 3;
+  else if (tier === 'rare') out.tokens = 1;
+  return out;
+}

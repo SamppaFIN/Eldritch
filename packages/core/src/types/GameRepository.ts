@@ -37,6 +37,8 @@ import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { RouteOutcome } from '../data/tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
 import type { Forecast } from '../data/pouch.js';
+import type { StepClaimOutcome } from '../data/stepStore.js';
+import type { RevealOutcome } from '../data/revealStore.js';
 import type { ImportResult, WagerIdentity } from '../data/wager.js';
 import type { WorldImportResult } from '../data/world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -99,6 +101,20 @@ export interface GameRepository {
   /* --- Territory -------------------------------------------------------- */
   /** Runs loop detection on the run's points; a no-op result if it has not closed. */
   closeLoop(runId: RunId, now: number): Promise<ClaimResult>;
+  /**
+   * Claim the hex underfoot if it is unclaimed and borders your ground (BRDC-CLAIM-009).
+   *
+   * The primary way territory grows while the loop is off. `{ claimed: null }` when the
+   * step takes nothing — off your border, already held, or the cell is a rival's.
+   */
+  claimStep(standing: H3Index | null, now: number): Promise<StepClaimOutcome>;
+  /**
+   * Reveal a cell you hold for its tier bonus, once (BRDC-CLAIM-009). Refusals are
+   * values: "not-yours", "already-revealed".
+   */
+  revealCell(h3: H3Index, now: number): Promise<RevealOutcome>;
+  /** Cells the player has revealed → the ms they were revealed. */
+  getRevealed(): Promise<Record<H3Index, number>>;
   /** Applies decay at read time, then returns what survives in the viewport. */
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;

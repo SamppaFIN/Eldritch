@@ -84,6 +84,11 @@ export function SettingsMenu({
   if (!visible) return overlays;
 
   const toggle = (key: keyof Settings) => onChange({ ...settings, [key]: !settings[key] });
+  const SWITCHES: [keyof Settings, string][] = [
+    ['sound', 'Sound'],
+    ['vibration', 'Vibration'],
+    ['loopClosure', 'Claim by closing a loop'],
+  ];
   const run = (action: () => void) => {
     setOpen(false);
     action();
@@ -106,7 +111,7 @@ export function SettingsMenu({
 
       {open ? (
         <GlassPanel as="div" className="settings-menu__panel" role="dialog" aria-label="Menu">
-          {(['sound', 'vibration'] as const).map((key) => (
+          {SWITCHES.map(([key, label]) => (
             <button
               key={key}
               type="button"
@@ -115,12 +120,15 @@ export function SettingsMenu({
               className="settings-menu__switch"
               onClick={() => toggle(key)}
             >
-              <span>{key === 'sound' ? 'Sound' : 'Vibration'}</span>
+              <span>{label}</span>
               <span className="settings-menu__state" aria-hidden>
                 {settings[key] ? 'On' : 'Off'}
               </span>
             </button>
           ))}
+          <p className="settings-menu__note">
+            With loop claiming off, you take ground by walking into a hex beside yours.
+          </p>
 
           <hr className="settings-menu__rule" />
 

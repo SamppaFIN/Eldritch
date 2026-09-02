@@ -31,6 +31,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
+import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TradeControls } from './TradeControls.js';
 import { AnomalyPanel } from './AnomalyPanel.js';
@@ -66,6 +67,9 @@ export interface CellPanelProps {
   /** The Fuming Lake on this hex, if it has a step or a landmark here (BRDC-QUEST-002). */
   quest?: QuestCellInfo | null;
   onQuestOpen?: () => void;
+  /** Cells the player has revealed, and the reveal action (BRDC-CLAIM-009). */
+  revealed?: Readonly<Record<string, number>>;
+  onReveal?: (h3: string) => void;
   onClose: () => void;
 }
 
@@ -161,6 +165,8 @@ export function CellPanel({
   anomaly,
   quest,
   onQuestOpen,
+  revealed,
+  onReveal,
   onClose,
 }: CellPanelProps) {
   /*
@@ -239,15 +245,8 @@ export function CellPanel({
         </p>
       ) : null}
 
-      {/*
-        What holding it is worth.
-        
-        The panel used to describe a cell without ever saying why anyone should want it.
-        Terrain, area and the two bonuses are the whole answer, and the second one — that
-        a held cell strengthens claims on its neighbours — is invisible everywhere else
-        in the game despite being the reason territory is worth more than the sum of its
-        parts.
-      */}
+      {/* What holding it is worth. The neighbour bonus — a held cell strengthens claims
+          on the six around it — is invisible everywhere else, so it is spelled out here. */}
       <dl className="cell-panel__worth">
         <div>
           <dt>Ground</dt>
@@ -353,6 +352,13 @@ export function CellPanel({
           <p className="cell-panel__note">
             A ward adds strength. It does not reset the clock — only your feet do that.
           </p>
+          {onReveal ? (
+            <RevealControl
+              h3={cell.h3}
+              revealed={revealed?.[cell.h3] !== undefined}
+              onReveal={onReveal}
+            />
+          ) : null}
           {place.kind === null ? (
             <ConsecratePanel
               cell={cell}

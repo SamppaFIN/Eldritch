@@ -37,8 +37,9 @@ export { defenceAura, loyaltyFactor, loyaltySourceCells, resourceAura } from './
 export type { AuraKind } from './aura.js';
 export { canLayRoute, routeCost, routeGoldBonus, routeRefund, sameLink } from './trade.js';
 export type { RouteCheck, RouteRefusal, TradeRoute } from './trade.js';
-export { RARITY_SHARE, revealOf } from './reveal.js';
+export { RARITY_SHARE, REVEAL_MULT, revealBonus, revealOf } from './reveal.js';
 export type { Rarity } from './reveal.js';
+export { claimableStep } from './step.js';
 export { DARK_RADIUS_DAYS, DARK_TIME_FACTOR, darkTimeAt } from './darkTime.js';
 export type { DarkTime } from './darkTime.js';
 export {

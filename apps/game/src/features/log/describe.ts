@@ -26,6 +26,7 @@ export const LOG_TOPIC: Partial<Record<LogKind, HelpTopic>> = {
   anomaly: 'anomaly',
   quest: 'adventures',
   wager: 'the-wager',
+  reveal: 'awakening',
   hearth: 'hearth',
 };
 
@@ -91,6 +92,8 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
     }
     case 'wager':
       return { text: `Fought the Wager against ${e.ref ?? 'a rival'} — ${e.won ? 'won' : 'lost'}`, topic };
+    case 'reveal':
+      return { text: 'Revealed a hex and what it holds', topic };
     case 'hearth':
       return { text: 'Founded the Hearth', topic };
   }

@@ -19,6 +19,7 @@ const ALL_KINDS: LogKind[] = [
   'anomaly',
   'quest',
   'wager',
+  'reveal',
   'hearth',
 ];
 

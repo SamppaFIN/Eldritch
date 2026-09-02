@@ -71,6 +71,14 @@
   margin: var(--space-1) 0;
 }
 
+.settings-menu__note {
+  margin: 0 0 var(--space-1);
+  padding-inline: var(--space-1);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
 .settings-menu__button:focus-visible,
 .settings-menu__switch:focus-visible,
 .settings-menu__action:focus-visible {
