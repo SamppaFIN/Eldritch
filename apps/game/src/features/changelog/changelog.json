@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.25",
+    "date": "2026-09-03",
+    "notes": [
+      "Fixed: with loop claiming off, a new game opened to an empty map and a blank cell count, and stepping into new hexes took the ground but left the screen unchanged until something else refreshed it. The map now shows the ground you already hold — your Hearth and its ring, or your whole territory on return — from the moment it loads.",
+      "Added a browser walkthrough test that starts a new game, walks a line of hexes, and checks the map, the count, the 'New ground' screen, the reveal button, the cell card and map taps — so this path stays covered."
+    ]
+  },
+  {
     "version": "0.5.24",
     "date": "2026-09-02",
     "notes": [

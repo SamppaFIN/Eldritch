@@ -54,14 +54,22 @@ export function DiscoveryModal({
   const [shown, setShown] = useState<Discovery | null>(null);
   const seen = useRef(0);
 
+  // A genuinely new discovery: show it, and sound the chime once.
   useEffect(() => {
     if (!discovered || discovered.at === seen.current) return;
     seen.current = discovered.at;
     setShown(discovered);
     if (settings.sound) playChime('claimed');
+  }, [discovered, settings.sound]);
+
+  // Auto-dismiss is armed off `shown`, not folded into the effect above — so any re-run
+  // (a StrictMode remount included) re-arms it rather than leaving the screen up until it
+  // is tapped. A step-claim lands about every 25 m.
+  useEffect(() => {
+    if (!shown) return;
     const t = setTimeout(() => setShown(null), DISMISS_MS);
     return () => clearTimeout(t);
-  }, [discovered, settings.sound]);
+  }, [shown]);
 
   if (!shown) return null;
 

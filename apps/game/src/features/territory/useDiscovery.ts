@@ -10,11 +10,23 @@
  * call rather than three effects.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameRepository, H3Index } from '@es3/core';
+import type { GameRepository, H3Index, StepClaimOutcome } from '@es3/core';
 
 export interface Discovery {
   h3: H3Index;
   at: number;
+}
+
+/**
+ * The hex a finished step-claim should surface as "New ground", or `null`.
+ *
+ * A step-claim is a write that has already happened by the time its promise resolves, so
+ * its outcome is committed unconditionally — never gated on an `alive` flag a re-fired
+ * effect or a fast walk would have flipped, the way the loop path lost a claim twice
+ * (see `useTerritory` and `claim.spec.ts`). Dedupe is by h3 (BRDC-CLAIM-011).
+ */
+export function nextDiscovery(result: StepClaimOutcome, seen: ReadonlySet<H3Index>): H3Index | null {
+  return result.claimed && !seen.has(result.claimed) ? result.claimed : null;
 }
 
 export interface DiscoveryState {
@@ -37,6 +49,7 @@ export function useDiscovery(
   const [discovered, setDiscovered] = useState<Discovery | null>(null);
   const [revealed, setRevealed] = useState<Record<H3Index, number>>({});
   const claimed = useRef<Set<H3Index>>(new Set());
+  const inFlight = useRef<Set<H3Index>>(new Set());
 
   const refreshRevealed = useCallback(() => {
     void repository?.getRevealed().then(setRevealed);
@@ -44,17 +57,21 @@ export function useDiscovery(
   useEffect(refreshRevealed, [refreshRevealed]);
 
   useEffect(() => {
-    if (loopClosure || !repository || !standingOn || claimed.current.has(standingOn)) return;
-    let alive = true;
-    void repository.claimStep(standingOn, now()).then((r) => {
-      if (!alive || !r.claimed) return;
-      claimed.current.add(r.claimed);
-      setDiscovered({ h3: r.claimed, at: now() });
+    if (loopClosure || !repository || !standingOn) return;
+    if (claimed.current.has(standingOn) || inFlight.current.has(standingOn)) return;
+    const target = standingOn;
+    inFlight.current.add(target);
+    void repository.claimStep(target, now()).then((r) => {
+      inFlight.current.delete(target);
+      const found = nextDiscovery(r, claimed.current);
+      if (!found) return;
+      claimed.current.add(found);
+      setDiscovered({ h3: found, at: now() });
       onChanged();
     });
-    return () => {
-      alive = false;
-    };
+    // No cleanup: the claim is written by the time this resolves, so cancelling on
+    // cleanup would discard a real claim (the loop path's twice-made mistake). `claimed`
+    // dedupes the result; `inFlight` keeps a re-fire or border jitter from a second call.
     // now / onChanged read fresh on fire; the real triggers are the cell and the mode.
   }, [repository, standingOn, loopClosure]);
 

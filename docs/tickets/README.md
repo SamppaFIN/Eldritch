@@ -389,6 +389,7 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-CLAIM-008](BRDC-CLAIM-008.md) | Vallattu heksa avautuu kuin lahjapaketti | M | **done v0.5.22** · kansi nousee keskeltä, sigili purkautuu · reduced-motion staattinen |
 | [BRDC-CLAIM-009](BRDC-CLAIM-009.md) | Askel-valtaus: astut heksaan, se on sinun | L | **done v0.5.24** · lenkki asetuksen taakse · löytömodaali + paljasta-nappi · klikkausbugi + nimikenttä |
 | [BRDC-CLAIM-010](BRDC-CLAIM-010.md) | Lenkki takaisin opetettuna, löytöruudun rytmi | M | N ekaa modaali → toast · lenkin ehdotus kun alue kasvaa |
+| [BRDC-CLAIM-011](BRDC-CLAIM-011.md) | Jo omistettu maa näkyviin ennen 1. askelta, e2e kävelee sen | S | **done v0.5.25** · lenkki pois → `useTerritory` ei kutsunut `refresh()`iä · `step-claim.spec.ts` |
 
 ### 🏰 Keep-ohjaamo — Infiniten spec 2026-09-02
 

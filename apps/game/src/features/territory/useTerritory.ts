@@ -77,6 +77,19 @@ export function useTerritory({
   }, [repository, bbox, now]);
 
   /*
+   * Read in the ground that is already held.
+   *
+   * With the loop off (the default since BRDC-CLAIM-009) `attempt()` returns before it
+   * reaches its `refresh()`, so nothing loaded existing territory on its own — a returning
+   * player's whole map, or a fresh player's Hearth ring, stayed invisible until the first
+   * step-claim happened to call `refresh()` through its HUD sync. This re-reads whenever
+   * the viewport, the Hearth or the run changes; `refresh` itself no-ops without a bbox.
+   */
+  useEffect(() => {
+    void refresh();
+  }, [refresh, home, runId]);
+
+  /*
    * Try to close after each batch.
    *
    * Two mistakes were made here in a row, and both lost a completed lap silently.
