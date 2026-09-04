@@ -47,7 +47,7 @@ v2's most concrete failure was 112 markdown files with no source of truth.
 ```json
 {
   "projekti": "Eldritch Sanctuary v3",
-  "versio": "0.5.28",
+  "versio": "0.5.29",
   "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
   "tila": "toteutus",
   "vaihe": "2.6 — Mobiilikokemus ja jaettu maailma",

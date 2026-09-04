@@ -5,8 +5,8 @@
 | **Vaihe** | läpileikkaava |
 | **Effort** | M |
 | **Riippuvuudet** | — |
-| **Status** | `done` (v0.5.28) — HUD-budjetti jätetty tarkoituksella auki, ks. alla |
-| **Valmius** | 95 % |
+| **Status** | `done` (v0.5.29) |
+| **Valmius** | 100 % |
 | **Lähde** | Infinite 2026-09-04: *"tee myös velka pois"* |
 
 ## 🔴 RED
@@ -49,11 +49,19 @@ Koko suite ajettuna: **21 epäonnistui, 3 skipattiin, 42 läpäisi.**
       todentaa tämän edelleen.
 - [x] **`claim.spec.ts`in "5000 heksaa" ja "tasot pysyvät" korjattu SCALE-001:n
       mukaisesti** — ks. sen oma tiketti.
-- [~] **HUD vie 31,7 % ruudusta, budjetti 30 %** (`trail-detail.spec.ts:81`). Pieni
-      (~1,7 prosenttiyksikköä), todennettu sekä desktopilla että mobile-360:lla, ei
-      viewportin muoto-ilmiö. Ei korjattu — mikä `Hud.tsx`n (398/400 riviä) sisällöstä
-      karsitaan on suunnittelupäätös, ei mekaaninen korjaus. Testi jätetty **rehellisesti
-      punaiseksi** sen sijaan että budjettia löysättäisiin sen ympärille.
+- [x] **Korjattu 2026-09-05. HUD 31,7 % → 27–30 %.** Mitattu (`.hud__stats`
+      131 → 106 px) syy: Pouch-rivin yhdeksän resurssia rivittyivät kolmelle riville
+      360 px:n leveydellä, ja "Warded cells" -rivi venyi mukana samaan ruudukon riviin.
+      Tuore peli näyttää *kaikki* yhdeksän aina (`BRDC-ECON-003`:n aloituslahja) —
+      `.hud__pouch`in oma kommentti odotti "kolmea tai neljää käytännössä", mutta
+      pahin tapaus on taattu, ei satunnainen. Korjaus: `.hud__pouch` tiiviimmäksi
+      (`font-size` 0,72em → 0,56em, `gap` pienemmäksi) niin että yhdeksän mahtuu
+      kahdelle riville viidellä per rivi; `.hud__panel`in pystysuora padding
+      `--space-2` → `--space-1` kattoi loput lyhyellä, leveällä työpöydällä (720 px oli
+      tiukin mitattu ruutu, 30,83 % ennen tätä). Kuvakaappauksin todennettu ettei
+      luettavuus kärsinyt — pipit ja värit erottuvat yhä, numerot Orbitronilla.
+      `trail-detail.spec.ts:81` vihreä molemmilla projekteilla; koko `standards`/
+      `dialogs`/`map`/`trail-detail`-sarja (39 testiä) ajettu uudelleen, ei regressiota.
 - [x] **`decay.spec.ts`: molemmat jäljellä olleet juurisyyt löytyi ja korjattiin —
       kumpikaan ei ollut se mitä ensin epäiltiin.**
       - *"ground fades and is eventually reclaimed"* odotti `warded`in putoavan
@@ -77,4 +85,4 @@ Koko suite ajettuna: **21 epäonnistui, 3 skipattiin, 42 läpäisi.**
 
 ## Ei tässä
 
-- HUD:n karsinta 30 %:n alle — vaatii päätöksen mitä `Hud.tsx`ssa vähennetään.
+- Ei mitään jäljellä. Kaikki tämän tiketin RED-kohdat GREEN, todennettu ajamalla.

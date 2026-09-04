@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.29",
+    "date": "2026-09-05",
+    "notes": [
+      "The status panel is a little more compact now — the resource pouch reflows into two rows instead of three on a fresh sanctuary, when it is holding all nine at once."
+    ]
+  },
+  {
     "version": "0.5.28",
     "date": "2026-09-04",
     "notes": [

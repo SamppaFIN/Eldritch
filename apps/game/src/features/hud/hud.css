@@ -27,7 +27,10 @@
   width: min(100%, 30rem);
   margin-inline: auto;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-4);
+  /* Vertical padding trimmed to space-1 (BRDC-E2E-001): a short, wide desktop window
+     has the least room of any measured viewport, and every pixel not spent on a label
+     or a value is a pixel over the 30% budget. */
+  padding: var(--space-1) var(--space-4);
   align-items: stretch;
   text-align: left;
 }
@@ -286,12 +289,18 @@
 .hud__pouch {
   display: inline-flex;
   align-items: center;
-  /* Any of the nine resources can be in the pouch now (BRDC-ECON-003), so it wraps
-     rather than scrambling into one line. Only the non-zero ones are drawn — three or
-     four in practice — and the type is small so a full row still fits a 360 px cell. */
+  /*
+   * Any of the nine resources can be in the pouch now (BRDC-ECON-003), so it wraps
+   * rather than scrambling into one line. Usually three or four are non-zero, but a
+   * fresh sanctuary's starter grant (BRDC-ECON-003) is all nine at once, every time —
+   * the one case that is guaranteed, not occasional — and at the previous size that
+   * wrapped to three rows and carried the whole HUD 1.7 points over its measured 30%
+   * budget (BRDC-E2E-001). Smaller and tighter fits five a row, so nine is two rows
+   * even in that worst case.
+   */
   flex-wrap: wrap;
-  gap: 0.1em 0.35em;
-  font-size: 0.72em;
+  gap: 0.05em 0.2em;
+  font-size: 0.56em;
 }
 
 /* One resource: its pip and its count, kept together when the row wraps. */
