@@ -82,11 +82,13 @@ test('ground fades and is eventually reclaimed', async ({ page }) => {
   await expect(page.locator('.hud__note--warn')).toContainText(/fade/i, { timeout: 20_000 });
   await expect(warded(page)).not.toHaveText(/^0/);
 
-  // Past its life, the Void takes it.
+  // Past its life, the Void takes it — down to the Hearth cell, which BRDC-HEARTH-002
+  // exempts from decay on purpose ("the Hearth cannot be lost"): the player agreed to
+  // stand there, and losing your own home to a clock nobody watched is not the mechanic.
   await advance(page, 6);
   await expect
     .poll(async () => Number.parseInt(await warded(page).innerText(), 10), { timeout: 30_000 })
-    .toBe(0);
+    .toBe(1);
 });
 
 test('the clock says so when it is not the real one', async ({ page }) => {
@@ -101,21 +103,51 @@ test('the clock says so when it is not the real one', async ({ page }) => {
   await expect(page.locator('.mapview__warning--dev')).toHaveCount(0);
 });
 
+/**
+ * The strongest cell's own strength, read from IndexedDB directly.
+ *
+ * `.hud__value` index 3 used to be this; it is the Pouch now (nine resources, one
+ * element) — a HUD restructuring this spec never tracked. `territory.strongest` is
+ * still computed in useTerritory but nothing renders it, so the store is the only
+ * honest source left, the same way claim.spec.ts's own batch-timing regression test
+ * reads ownership directly rather than trust a HUD number that turned out to lie.
+ */
+async function strongestCell(page: Page): Promise<number> {
+  return page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('es3', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const all = await new Promise<unknown[]>((resolve) => {
+      const request = db.transaction('kv', 'readonly').objectStore('kv').getAll();
+      request.onsuccess = () => resolve(request.result);
+    });
+    const profile = all.find(
+      (v): v is { id: string } => typeof v === 'object' && v !== null && 'colorHue' in v,
+    );
+    const mine = all.filter(
+      (v): v is { ownerId: string; strength: number } =>
+        typeof v === 'object' &&
+        v !== null &&
+        'strength' in v &&
+        (v as { ownerId?: string }).ownerId === profile?.id,
+    );
+    return mine.reduce((max, c) => Math.max(max, c.strength), 0);
+  });
+}
+
 test('walking the block again on a later day reinforces it', async ({ page }) => {
   test.setTimeout(300_000);
   await openMap(page);
   await walkBlock(page);
 
-  const strongestBefore = Number.parseInt(await page.locator('.hud__value').nth(3).innerText(), 10);
+  const strongestBefore = await strongestCell(page);
   expect(strongestBefore).toBe(100);
 
   await advance(page, 1);
   await walkBlock(page);
 
   // A consecutive day pays the streak bonus: 100 + 50 rather than 100 + 25.
-  await expect
-    .poll(async () => Number.parseInt(await page.locator('.hud__value').nth(3).innerText(), 10), {
-      timeout: 30_000,
-    })
-    .toBeGreaterThan(strongestBefore);
+  await expect.poll(() => strongestCell(page), { timeout: 30_000 }).toBeGreaterThan(strongestBefore);
 });

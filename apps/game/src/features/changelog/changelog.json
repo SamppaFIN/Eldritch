@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.28",
+    "date": "2026-09-04",
+    "notes": [
+      "Internal: the dev time-machine's day-advance tests are green again — both were checking the wrong thing (your Hearth cell is meant to never decay; a HUD number they read had quietly become the pouch). No player-facing change.",
+      "Internal: territory stopped re-reading itself on every tick of the dev clock, which was wasted work outside of testing with the clock."
+    ]
+  },
+  {
     "version": "0.5.27",
     "date": "2026-09-04",
     "notes": [

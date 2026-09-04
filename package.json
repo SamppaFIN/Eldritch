@@ -1,6 +1,6 @@
 {
   "name": "eldritch-sanctuary-v3",
-  "version": "0.5.27",
+  "version": "0.5.28",
   "private": true,
   "type": "module",
   "description": "GPS territory-capture game. Walk a closed loop, claim the land inside it.",

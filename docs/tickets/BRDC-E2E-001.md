@@ -1,12 +1,12 @@
-# BRDC-E2E-001 — Suite kuntoon kahden ajautuman jäljiltä, ja kaksi uutta löytöä
+# BRDC-E2E-001 — Suite kuntoon kahden ajautuman jäljiltä, ja neljä väärää olettamaa
 
 | | |
 |---|---|
 | **Vaihe** | läpileikkaava |
 | **Effort** | M |
 | **Riippuvuudet** | — |
-| **Status** | `in_progress` — mekaaninen korjaus tehty, kaksi löytöä jäljellä |
-| **Valmius** | 75 % |
+| **Status** | `done` (v0.5.28) — HUD-budjetti jätetty tarkoituksella auki, ks. alla |
+| **Valmius** | 95 % |
 | **Lähde** | Infinite 2026-09-04: *"tee myös velka pois"* |
 
 ## 🔴 RED
@@ -54,17 +54,27 @@ Koko suite ajettuna: **21 epäonnistui, 3 skipattiin, 42 läpäisi.**
       viewportin muoto-ilmiö. Ei korjattu — mikä `Hud.tsx`n (398/400 riviä) sisällöstä
       karsitaan on suunnittelupäätös, ei mekaaninen korjaus. Testi jätetty **rehellisesti
       punaiseksi** sen sijaan että budjettia löysättäisiin sen ympärille.
-- [~] **`decay.spec.ts`: 2/3 testiä epäonnistuu yhä** dev-serveriä vasten, senkin
-      jälkeen kun `loopClosure` on päällä. *"ground fades and is eventually reclaimed"*
-      jää lukemaan 1 solua kun pitäisi olla 0; *"reinforces it"* jää tasan
-      `BASE_STRENGTH`iin. Epäilty juurisyy, ei todennettu: `BRDC-CLAIM-011`in uusi
-      `useTerritory`-efekti (`refresh()` `[refresh, home, runId]`-riippuvuudella, ajaa
-      myös jokaisella `bbox`-muutoksella) voi kilpa-ajaa rappeutumispyyhkäisyn oman
-      `refresh()`in kanssa — kaksi päällekkäistä `getOwnedCells()`-lukua joiden
-      vastaukset saapuvat väärässä järjestyksessä veisivät React-tilan takaisin ennen
-      pyyhkäisyä. Ei tutkittu loppuun; oma istuntonsa.
+- [x] **`decay.spec.ts`: molemmat jäljellä olleet juurisyyt löytyi ja korjattiin —
+      kumpikaan ei ollut se mitä ensin epäiltiin.**
+      - *"ground fades and is eventually reclaimed"* odotti `warded`in putoavan
+        nollaan. **Väärä odotus, ei bugi:** Hearth-solu on `packages/core/rules/
+        decay.ts:54`in mukaan tarkoituksella ikuinen (*"the Hearth cannot be lost"*,
+        `BRDC-HEARTH-002`) — se ei koskaan rappeudu pois. Testi korjattu odottamaan
+        `1`ta, perusteltuna kommentilla.
+      - *"reinforces it"* luki `.hud__value`n indeksiä 3 ja odotti sen olevan solun
+        vahvuus. Se on Pouch nykyään (yhdeksän resurssia, yksi elementti) — HUD
+        järjestyi uusiksi jossain vaiheessa eikä tätä spekkiä päivitetty. `strongest`
+        lasketaan yhä `useTerritory`ssä muttei mitään näytä sitä enää. Testi lukee nyt
+        vahvimman oman solun `strength`in suoraan IndexedDB:stä, `claim.spec.ts`in
+        oman kilpa-ajo-regressiotestin tapaan.
+      - Alkuperäinen epäily (`BRDC-CLAIM-011`in uusi `refresh()`-efekti kilpa-ajaisi
+        pyyhkäisyn kanssa) **oli väärä johtolanka** — korjaus siihen ei muuttanut
+        kumpaakaan tulosta. `useTerritory.ts`n efekti kirjoitettiin silti uusiksi
+        lukemaan tuorein `refresh` `refreshRef`in kautta eikä riippuvuuslistan kautta,
+        koska se **oli** aidosti ajautumassa uudelleen joka kellonsiirrolla
+        (`refresh`in identiteetti riippuu `now`sta) — oikea, pienempi korjaus,
+        vaikkei ollutkaan tämän bugin syy.
 
 ## Ei tässä
 
-- `decay.spec.ts`in juurisyyn löytäminen ja korjaus.
 - HUD:n karsinta 30 %:n alle — vaatii päätöksen mitä `Hud.tsx`ssa vähennetään.

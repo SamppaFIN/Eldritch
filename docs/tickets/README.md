@@ -209,7 +209,7 @@ Majakan liikkumisnopeus pelissä, jossa liikkuminen on omat jalat (`BRDC-BUILD-0
 |---|---|:---:|---|
 | [BRDC-REGRESSION-000](BRDC-REGRESSION-000.md) | v2:n bugit regressiotesteiksi | M | SETUP-001 |
 | [BRDC-PERSIST-002](BRDC-PERSIST-002.md) | ✅ IndexedDB:lle skeemaversio | M | PERSIST-001, MOCK-001 |
-| [BRDC-E2E-001](BRDC-E2E-001.md) | Suite kuntoon kahden ajautuman jäljiltä | M | **in_progress 75 %** · Menu-uudelleenkytkentä + lenkki päälle · fokus- ja Wager-bugi löytyi ja korjattiin · HUD-budjetti + decay.spec.ts jäljellä |
+| [BRDC-E2E-001](BRDC-E2E-001.md) | Suite kuntoon kahden ajautuman jäljiltä | M | **done v0.5.28** · Menu + lenkki päälle · fokus- ja Wager-kilpa-ajobugi · decay.spec.ts: Hearth on ikuinen, ei bugi · HUD-budjetti jätetty auki |
 
 **Sääntö:** REGRESSION-000 ei ole erillinen työvaihe vaan **rekisteri**. Sen 12 testiä
 kirjoitetaan niissä tiketeissä, jotka rekisteri nimeää — **ennen** vastaavaa ominaisuutta,

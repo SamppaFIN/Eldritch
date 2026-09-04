@@ -76,6 +76,12 @@ export function useTerritory({
     setOwned(await repository.getOwnedCells(at));
   }, [repository, bbox, now]);
 
+  // `refresh` is read through a ref below so priming does not depend on its identity —
+  // that identity also changes with `now`, and depending on it directly re-fired this
+  // priming effect on every tick of the dev clock (BRDC-E2E-001's decay.spec.ts finding).
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
   /*
    * Read in the ground that is already held.
    *
@@ -83,11 +89,12 @@ export function useTerritory({
    * reaches its `refresh()`, so nothing loaded existing territory on its own — a returning
    * player's whole map, or a fresh player's Hearth ring, stayed invisible until the first
    * step-claim happened to call `refresh()` through its HUD sync. This re-reads whenever
-   * the viewport, the Hearth or the run changes; `refresh` itself no-ops without a bbox.
+   * the viewport, the Hearth or the run changes — not on every clock tick, which is the
+   * decay sweep's own job below — `refresh` itself no-ops without a bbox.
    */
   useEffect(() => {
-    void refresh();
-  }, [refresh, home, runId]);
+    void refreshRef.current();
+  }, [repository, bbox, home, runId]);
 
   /*
    * Try to close after each batch.
