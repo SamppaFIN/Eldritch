@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.26",
+    "date": "2026-09-04",
+    "notes": [
+      "A new game now opens with a short camera tour: once, right after you accept your Hearth, the view flies out and pauses over each of the six hexes around it, then settles back on you. Drag the map to skip it. It runs once per game."
+    ]
+  },
+  {
     "version": "0.5.25",
     "date": "2026-09-03",
     "notes": [

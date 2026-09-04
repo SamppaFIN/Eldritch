@@ -48,6 +48,7 @@ import {
   setQuestData,
 } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
+import { useHearthTour } from './useHearthTour.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import { useTerrainResolver } from './useTerrainResolver.js';
@@ -352,17 +353,20 @@ export function MapCanvas({
   // The ground wakes up: a gold flare over the fresh claim, its own file to spare lines.
   useAwakening(map, ready, awakening);
 
+  // The founding tour: once, the camera walks the six hexes around a new Hearth.
+  const touring = useHearthTour(map, ready, castle);
+
   // Move the marker and the camera on each fix.
   useEffect(() => {
     if (!map || !ready || !position || !markerRef.current) return;
 
     markerRef.current.setLngLat([position.lng, position.lat]);
 
-    if (follow) {
+    if (follow && !touring) {
       // easeTo, not jumpTo: a hard cut on every fix reads as a stutter while walking.
       map.easeTo({ center: [position.lng, position.lat], duration: 900 });
     }
-  }, [map, ready, position, follow]);
+  }, [map, ready, position, follow, touring]);
 
   // The accuracy ring is sized in metres, so it has to be redrawn on zoom.
   useEffect(() => {
