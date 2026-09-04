@@ -193,5 +193,5 @@ test('a 2000-point trail still renders and the map stays responsive', async ({ p
 
   // And the map is still alive afterwards.
   await expect(page.locator('.es-player__core')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Withdraw' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeEnabled();
 });

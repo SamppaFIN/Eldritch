@@ -90,6 +90,17 @@ export function SettingsMenu({
     ['loopClosure', 'Claim by closing a loop'],
   ];
   const run = (action: () => void) => {
+    /*
+     * Move focus to the ☰ button before the panel unmounts.
+     *
+     * The clicked row is about to leave the DOM in the same render that opens the
+     * confirmation Modal, and a focused element that is removed drops focus to
+     * <body> — before Modal's own effect ever runs. Modal captures
+     * document.activeElement to give focus back to it on close; with nothing
+     * meaningful focused at that moment, closing the confirmation dropped a
+     * keyboard user at the top of the document instead of back at the menu.
+     */
+    rootRef.current?.querySelector<HTMLButtonElement>('.settings-menu__button')?.focus();
     setOpen(false);
     action();
   };

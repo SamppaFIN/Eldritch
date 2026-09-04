@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { acceptHearth } from './hearth.js';
+import { acceptHearth, enableLoopClosure } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -10,6 +10,9 @@ import type { Page } from '@playwright/test';
  * — the dev time machine exists precisely so they can be checked in a minute.
  *
  * Dev-only, so these run against the dev server rather than the production preview.
+ *
+ * BRDC-CLAIM-009 defaulted loop closure off — territory grows by stepping now — so
+ * this whole file switches it back on: reinforcement and decay are the loop's own.
  */
 const START = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 const BLOCK_M = 140;
@@ -23,6 +26,7 @@ test.use({ permissions: ['geolocation'], geolocation: START });
 
 /** The time machine is compiled out of production, so these need the dev server. */
 test.beforeEach(async ({ page }) => {
+  await enableLoopClosure(page);
   const response = await page.goto(DEV_URL).catch(() => null);
   test.skip(
     response === null || !response.ok(),

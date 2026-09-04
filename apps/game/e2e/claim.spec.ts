@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openMap as open } from './hearth.js';
+import { enableLoopClosure, openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -8,6 +8,9 @@ import type { Page } from '@playwright/test';
  * Phase 2's gate in the form a browser can run: walk a block, watch it fill.
  * The outdoor half — tomorrow reinforces, twenty days releases — is the dev time
  * machine's job and is exercised through the clock rather than by waiting.
+ *
+ * BRDC-CLAIM-009 defaulted loop closure off — territory grows by stepping now — so
+ * this whole file switches it back on: it is the loop's own coverage.
  */
 const START = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 const BLOCK_M = 140;
@@ -19,6 +22,7 @@ const dLng = (m: number) => m / 53_000;
 test.use({ permissions: ['geolocation'], geolocation: START });
 
 async function openMap(page: Page) {
+  await enableLoopClosure(page);
   await open(page, START);
 }
 
@@ -155,23 +159,30 @@ test('a walk that encloses nothing claims no interior', async ({ page }) => {
   expect(warded).toBeLessThan(20);
 });
 
-test('the territory layers stay at three however much is claimed', async ({ page }) => {
+test('the number of territory layers does not grow with how much is claimed', async ({ page }) => {
+  // BRDC-SCALE-001: the count itself (eight, as of the terrain glyph, the Work mark,
+  // the banner flag and the anomaly mark) is not the point and will keep moving as
+  // features land — pinning it is what made this test go stale before. The point,
+  // unchanged since CLAIM-006, is that claiming does not add layers: one GeoJSON
+  // source, redrawn, never one layer per cell — the exact thing v2 got wrong with
+  // thousands of DOM markers and a cap on how much it would draw.
   test.setTimeout(180_000);
   await openMap(page);
+
+  const countLayers = () =>
+    page.evaluate(() => {
+      const map = (
+        globalThis as unknown as { __esMap?: { getStyle: () => { layers: Array<{ id: string }> } } }
+      ).__esMap;
+      return map?.getStyle().layers.filter((l) => l.id.startsWith('cells-')).length ?? 0;
+    });
+
+  const before = await countLayers();
+  expect(before).toBeGreaterThan(0);
+
   await walkBlock(page);
 
-  const layers = await page.evaluate(() => {
-    const map = (
-      globalThis as unknown as { __esMap?: { getStyle: () => { layers: Array<{ id: string }> } } }
-    ).__esMap;
-    return map?.getStyle().layers.filter((l) => l.id.startsWith('cells-')).length ?? 0;
-  });
-  /*
-   * Four since BRDC-TERRAIN-001 added the yield pip. The number is not the point — the
-   * point is that it does not grow with the amount of territory, which is exactly how
-   * v2 ended up with thousands of DOM markers and a cap on how much it would draw.
-   */
-  expect(layers).toBe(4);
+  expect(await countLayers()).toBe(before);
 });
 
 test('claimed ground survives a reload', async ({ page }) => {
@@ -196,22 +207,31 @@ test('five thousand hexagons do not stall the main thread', async ({ page }) => 
   // CLAIM-006. An evening of walking is a few hundred cells; five thousand is a
   // month of them, and the reason this is cheap is that it is one GeoJSON source
   // rather than five thousand DOM nodes.
+  //
+  // BRDC-SCALE-001's audit of this test: it timed only the synchronous setData() call,
+  // never waited for the map to actually finish drawing (`idle`), and left every symbol
+  // layer empty — cells-icon, the most text-shaping-heavy of the eight `cells-*` layers,
+  // never rendered a single glyph. All three are fixed below: every cell carries an
+  // icon, and the clock runs until MapLibre says it is done, not until setData returns.
   test.setTimeout(120_000);
   await openMap(page);
 
-  const elapsed = await page.evaluate(() => {
+  const elapsed = await page.evaluate(async () => {
     const map = (
       globalThis as unknown as {
         __esMap?: {
           getSource: (id: string) => { setData?: (d: unknown) => void };
           getCenter: () => { lat: number; lng: number };
+          once: (event: 'idle', cb: () => void) => void;
         };
       }
     ).__esMap;
     if (!map) return -1;
 
     const c = map.getCenter();
-    // A rough hex lattice; the exact geometry does not matter, the count does.
+    // A rough hex lattice; the exact geometry does not matter, the count does. Every
+    // property the eight cells-* layers read is present, so all of them draw — not
+    // just fill and line.
     const features = Array.from({ length: 5000 }, (_, i) => {
       const row = Math.floor(i / 70);
       const col = i % 70;
@@ -224,21 +244,37 @@ test('five thousand hexagons do not stall the main thread', async ({ page }) => 
       });
       return {
         type: 'Feature',
-        properties: { strength: 100, mine: true, contested: false, color: '#4a1a5c' },
+        properties: {
+          strength: 100,
+          mine: true,
+          contested: false,
+          color: '#4a1a5c',
+          icon: '♣',
+          iconColor: '#00d4ff',
+          building: '',
+          buildingColor: '',
+          flag: '',
+          anomaly: '',
+          blight: 0,
+        },
         geometry: { type: 'Polygon', coordinates: [ring] },
       };
     });
 
     const started = performance.now();
     map.getSource('cells')?.setData?.({ type: 'FeatureCollection', features });
+    await new Promise<void>((resolve) => map.once('idle', resolve));
     return performance.now() - started;
   });
 
   expect(elapsed).toBeGreaterThanOrEqual(0);
-  expect(elapsed).toBeLessThan(400);
+  // Generous next to the old 400 ms: that budget only ever covered handing the data to
+  // the worker, not the symbol layout and paint that now run inside the window too — and
+  // this file's other tests are real GPS walks, so a parallel run shares the CPU with them.
+  expect(elapsed).toBeLessThan(6_000);
 
   await expect(page.locator('.es-player__core')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Withdraw' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeEnabled();
 });
 
 test('per-cell strokes are dropped when zoomed out', async ({ page }) => {

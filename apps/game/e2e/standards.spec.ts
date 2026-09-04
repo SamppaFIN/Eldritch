@@ -49,7 +49,8 @@ test('the map screen has no automatable accessibility violations', async ({ page
 
 test('an open dialog has no automatable accessibility violations', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: 'Retreat from the map' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
 
   const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
@@ -58,7 +59,8 @@ test('an open dialog has no automatable accessibility violations', async ({ page
 
 test('headings go h1 then h2, with nothing skipped', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: 'Retreat from the map' }).click();
 
   const levels = await page.evaluate(() =>
     [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => Number(h.tagName[1])),
@@ -111,7 +113,7 @@ test('the page still works at 200% zoom without scrolling sideways', async ({ pa
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
-  await expect(page.getByRole('button', { name: 'Withdraw' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeVisible();
 });
 
 test('Core Web Vitals stay inside the budget', async ({ page }) => {

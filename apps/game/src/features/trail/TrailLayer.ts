@@ -88,7 +88,14 @@ export function ensureTrailLayers(map: MapLibreMap): void {
     generateId: false,
   });
 
-  // Underneath both ley-line layers, and filtered out of them, so a gap never glows.
+  /*
+   * Underneath both ley-line layers, and filtered out of them, so a gap never glows.
+   *
+   * Width and opacity match the core line's own zoom steps rather than a flat 1.5 px at
+   * 0.55 — outdoors, in daylight, on a phone, that read as nothing at all rather than as
+   * a marked gap, and "the ley-line vanished" is exactly the report that produced. The
+   * dash pattern and the grey hue are what say "not confirmed", not faintness.
+   */
   map.addLayer({
     id: TRAIL_GAP_LAYER,
     type: 'line',
@@ -97,9 +104,9 @@ export function ensureTrailLayers(map: MapLibreMap): void {
     layout: { 'line-cap': 'butt' },
     paint: {
       'line-color': GAP,
-      'line-width': 1.5,
-      'line-opacity': 0.55,
-      'line-dasharray': [1, 3],
+      'line-width': ['interpolate', ['linear'], ['zoom'], 12, 2, 16, 4, 19, 6],
+      'line-opacity': 0.85,
+      'line-dasharray': [1, 2],
     },
   });
 

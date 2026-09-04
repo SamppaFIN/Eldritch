@@ -8,6 +8,9 @@ import type { Page } from '@playwright/test';
  * claude.md §14: destructive actions get a confirmation; modals trap focus, close on
  * ESC, and return focus to whatever opened them. Three out of four makes a trap, so all
  * four are asserted.
+ *
+ * Retreat and Delete moved behind the "Menu" (☰) button so the walking bar keeps only
+ * what a walking thumb needs — the two triggers no longer sit directly on the HUD.
  */
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 
@@ -17,9 +20,15 @@ async function openMap(page: Page) {
   await open(page, HERE);
 }
 
+/** Open the ☰ menu and click one of its rows. */
+async function openMenuAction(page: Page, label: string) {
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: label }).click();
+}
+
 test('withdrawing asks first', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await openMenuAction(page, 'Retreat from the map');
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -31,8 +40,8 @@ test('withdrawing asks first', async ({ page }) => {
 
 test('keeping walking leaves everything alone', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
-  await page.getByRole('button', { name: 'Keep walking' }).click();
+  await openMenuAction(page, 'Retreat from the map');
+  await page.getByRole('dialog').getByRole('button', { name: 'Keep walking' }).click();
 
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.locator('.es-player__core')).toBeVisible();
@@ -40,7 +49,7 @@ test('keeping walking leaves everything alone', async ({ page }) => {
 
 test('confirming withdraws', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await openMenuAction(page, 'Retreat from the map');
   await page.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -48,7 +57,7 @@ test('confirming withdraws', async ({ page }) => {
 
 test('ESC closes the dialog', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await openMenuAction(page, 'Retreat from the map');
   await expect(page.getByRole('dialog')).toBeVisible();
 
   await page.keyboard.press('Escape');
@@ -56,23 +65,23 @@ test('ESC closes the dialog', async ({ page }) => {
   await expect(page.locator('.es-player__core')).toBeVisible();
 });
 
-test('focus returns to the control that opened it', async ({ page }) => {
-  // Without this a keyboard user is dropped at the top of the document every time
-  // they cancel, which is worse than not having the dialog.
+test('focus returns to the menu, not dropped at the top of the document', async ({ page }) => {
+  // The trigger itself ("Retreat from the map") is gone the moment the menu panel
+  // closes, so there is nothing for focus to go back to but the ☰ button that opened
+  // the menu in the first place — landing anywhere else is a keyboard user set adrift.
   await openMap(page);
-  const withdraw = page.getByRole('button', { name: 'Withdraw' });
+  const menu = page.getByRole('button', { name: 'Menu' });
 
-  await withdraw.focus();
-  await withdraw.press('Enter');
+  await openMenuAction(page, 'Retreat from the map');
   await expect(page.getByRole('dialog')).toBeVisible();
 
   await page.keyboard.press('Escape');
-  await expect(withdraw).toBeFocused();
+  await expect(menu).toBeFocused();
 });
 
 test('focus cannot leave the dialog', async ({ page }) => {
   await openMap(page);
-  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await openMenuAction(page, 'Retreat from the map');
   await expect(page.getByRole('dialog')).toBeVisible();
 
   // Tab well past the dialog's own controls; focus must still be inside it.
@@ -88,7 +97,7 @@ test('focus cannot leave the dialog', async ({ page }) => {
 test('resetting asks, and says exactly what it will do', async ({ page }) => {
   // v2 had no way out of a corrupt save; the only advice was to open the console.
   await openMap(page);
-  await page.getByRole('button', { name: 'Return everything to the Void' }).click();
+  await openMenuAction(page, 'Delete progress');
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -117,7 +126,7 @@ test('resetting actually empties the sanctuary', async ({ page }) => {
   });
   expect(before).toBeGreaterThan(0);
 
-  await page.getByRole('button', { name: 'Return everything to the Void' }).click();
+  await openMenuAction(page, 'Delete progress');
   await page.getByRole('button', { name: 'Return it all' }).click();
 
   // The reset reloads; the title screen means the session went with it.
@@ -129,15 +138,23 @@ test('resetting actually empties the sanctuary', async ({ page }) => {
   expect(leftovers).toEqual([]);
 });
 
-test('the reset control is a real button with a real name', async ({ page }) => {
+test('the menu control is a real button with a real name, and reaches Delete progress', async ({
+  page,
+}) => {
   // An icon on its own is the ch.4 anti-pattern: the glyph carries no name.
   await openMap(page);
-  const reset = page.getByRole('button', { name: 'Return everything to the Void' });
+  const menu = page.getByRole('button', { name: 'Menu' });
 
-  const box = await reset.boundingBox();
+  const box = await menu.boundingBox();
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
   expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
 
-  await reset.focus();
-  await expect(reset).toBeFocused();
+  await menu.focus();
+  await expect(menu).toBeFocused();
+
+  await menu.click();
+  const del = page.getByRole('button', { name: 'Delete progress' });
+  await expect(del).toBeVisible();
+  const delBox = await del.boundingBox();
+  expect(delBox?.height ?? 0).toBeGreaterThanOrEqual(44);
 });

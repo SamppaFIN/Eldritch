@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-MOCK-001, BRDC-CLAIM-005, BRDC-CLAIM-006, BRDC-PERSIST-002 (kohta 6) |
-| **Status** | `in_progress` — rajattu kysely tehty; `getOwnedCells` ja `claim.spec.ts` jäljellä |
-| **Valmius** | 85 % |
+| **Status** | `in_progress` — rajattu kysely tehty, `claim.spec.ts` korjattu 2026-09-04; `getOwnedCells`in `owned:`-indeksi jäljellä |
+| **Valmius** | 92 % |
 | **Lähde** | Koodiauditointi 2026-08-31, ajettu `BRDC-ATLAS-001`:n taustaksi |
 
 ## 🔴 RED
@@ -206,9 +206,16 @@ sovellus oikeasti rakentaa piirrettävän datan.
 Tämä on sama virheluokka kuin `BRDC-REGRESSION-000` #10 — v2 julkaisi coverage-raportin,
 jossa oli nolla osumaa. Luku oli totta; se ei vain mitannut sitä, mitä otsikko lupasi.
 
-- [ ] Testi mittaa **oikean polun**: `cellsToGeoJson` → `setData` → `idle`
-- [ ] `yield`-ominaisuus mukana, jotta kaikki neljä tasoa piirtyvät
-- [ ] Tikettien väite korjataan vastaamaan sitä, mitä testi mittaa
+- [x] **Korjattu 2026-09-04.** Testi odottaa nyt `map.once('idle')`ia `setData`in jälkeen
+      ja mittaa molemmat — ei enää pelkkää synkronista `setData`-kutsua. `cellsToGeoJson`
+      itseään ei kutsuta (se on sovelluspuolen moduuli, ei tuotu e2e:hen — riski jätettiin
+      ottamatta), mutta jokainen ominaisuus jonka kahdeksan `cells-*`-tasoa lukee on
+      mukana (`icon` mukaan lukien, raskain niistä — symbolitason tekstinasettelu). Budjetti
+      400 ms → 6 000 ms: vanha luku kattoi vain datan luovutuksen workerille, ei
+      symbolien asettelua tai `idle`ä asti odottamista. "Neljä tasoa" ja "3" olivat myös
+      vanhentuneita — tasoja on nyt kahdeksan; `claim.spec.ts`in oma testi tästä
+      kirjoitettiin uusiksi vertailemaan lukumäärää ennen/jälkeen vallauksen sen sijaan
+      että se pinnaisi tarkan luvun, joka rikkoutuu taas seuraavan tason myötä.
 
 ## Ei tässä
 

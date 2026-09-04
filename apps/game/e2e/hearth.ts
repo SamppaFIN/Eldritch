@@ -65,3 +65,16 @@ export async function openMap(page: Page, at: Coords, ready = '.es-player__core'
   await acceptHearth(page, at);
   await expect(page.locator(ready)).toBeVisible({ timeout: 20_000 });
 }
+
+/**
+ * Switch on loop closure before the app boots — BRDC-CLAIM-009 defaulted it off, so a
+ * spec written for "walk a lap, watch it fill" has to ask for it explicitly, the same
+ * way a player would from the ☰ Menu. Call before `openMap`/`page.goto`, once per page:
+ * `addInitScript` re-runs on every navigation that page makes afterwards, reload included.
+ */
+export async function enableLoopClosure(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const envelope = { v: 1, d: { sound: true, vibration: true, loopClosure: true } };
+    window.localStorage.setItem('es3:settings', JSON.stringify(envelope));
+  });
+}

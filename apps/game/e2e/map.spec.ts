@@ -96,19 +96,20 @@ test('does not scroll sideways on a phone', async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(0);
 });
 
-test('the withdraw control is a real button, thumb-sized and focusable', async ({ page }) => {
+test('the menu reaches Retreat, thumb-sized and focusable, and it asks first', async ({ page }) => {
+  // Retreat lives behind the ☰ Menu — real button, real name, real size — not on the
+  // walking bar itself. The confirmation flow itself is covered in dialogs.spec.ts.
   await openMap(page);
-  const withdraw = page.getByRole('button', { name: 'Withdraw' });
+  const menu = page.getByRole('button', { name: 'Menu' });
 
-  const box = await withdraw.boundingBox();
+  const box = await menu.boundingBox();
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
 
-  await withdraw.focus();
-  await expect(withdraw).toBeFocused();
+  await menu.focus();
+  await expect(menu).toBeFocused();
+  await menu.click();
 
-  // Withdrawing is destructive — it ends the walk — so it asks first.
-  // The confirmation flow itself is covered in dialogs.spec.ts.
-  await withdraw.click();
+  await page.getByRole('button', { name: 'Retreat from the map' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

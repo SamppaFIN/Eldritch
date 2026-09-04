@@ -9,7 +9,7 @@
  * challenge is something done sitting down, and the walking HUD has a measured budget of
  * thirty per cent of the screen that a fifth control would break.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
 import type { ChallengeFault, Defence, GameRepository, WagerIdentity, WagerReport } from '@es3/core';
 import { regionOf } from '@es3/core';
@@ -44,9 +44,21 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
   const [took, setTook] = useState(0);
   const [defence, setDefence] = useState<Defence>('wall');
   const [outcome, setOutcome] = useState<{ report: WagerReport; me: string } | null>(null);
+  /*
+   * A choice made before `repository` exists yet — the Wager can open while
+   * `createRepository()` is still resolving. Holding it here means the load-back
+   * effect below writes it through once the repository arrives, instead of silently
+   * reading the still-unwritten stored value and reverting the tap.
+   */
+  const pending = useRef<Defence | null>(null);
 
   useEffect(() => {
     if (!repository || !open) return;
+    if (pending.current) {
+      void repository.setDefence(pending.current);
+      pending.current = null;
+      return;
+    }
     void repository.getDefence().then(setDefence);
   }, [repository, open]);
 
@@ -55,7 +67,8 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
       setDefence(next);
       // Written before it can be sealed into a challenge: a defence the other phone does
       // not know about would make the two of them compute different fights.
-      void repository?.setDefence(next);
+      if (repository) void repository.setDefence(next);
+      else pending.current = next;
       setPhase('idle');
     },
     [repository],

@@ -209,6 +209,7 @@ Majakan liikkumisnopeus pelissä, jossa liikkuminen on omat jalat (`BRDC-BUILD-0
 |---|---|:---:|---|
 | [BRDC-REGRESSION-000](BRDC-REGRESSION-000.md) | v2:n bugit regressiotesteiksi | M | SETUP-001 |
 | [BRDC-PERSIST-002](BRDC-PERSIST-002.md) | ✅ IndexedDB:lle skeemaversio | M | PERSIST-001, MOCK-001 |
+| [BRDC-E2E-001](BRDC-E2E-001.md) | Suite kuntoon kahden ajautuman jäljiltä | M | **in_progress 75 %** · Menu-uudelleenkytkentä + lenkki päälle · fokus- ja Wager-bugi löytyi ja korjattiin · HUD-budjetti + decay.spec.ts jäljellä |
 
 **Sääntö:** REGRESSION-000 ei ole erillinen työvaihe vaan **rekisteri**. Sen 12 testiä
 kirjoitetaan niissä tiketeissä, jotka rekisteri nimeää — **ennen** vastaavaa ominaisuutta,
@@ -385,6 +386,7 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-TEMPLE-002](BRDC-TEMPLE-002.md) | Temppeli = tutkimusrakennus, koulukunnat | L–XL | valitse koulukunta, opi sen riitit sieltä · tutkimus Keepistä temppeliin |
 | [BRDC-SPELL-002](BRDC-SPELL-002.md) | Scrying, ja loput koulukunnat | M | SPELL-001 lupasi tämän nimeltä · taika näyttää ja unohtaa, kävely muistaa |
 | [BRDC-TRAIL-004](BRDC-TRAIL-004.md) | Käyntikerrat kantana: polku → junarata | M | viisi porrasta, kerran per kalenteripäivä |
+| [BRDC-TRAIL-005](BRDC-TRAIL-005.md) | Miksi ley-line näytti katoavan | S | **done v0.5.27** · havaintokatkon harmaa viiva oli lähes näkymätön · data selviää reloadista, todennettu |
 | [BRDC-FX-001](BRDC-FX-001.md) | Kun jotain tapahtuu, ruutu näyttää sen | M | §12:n pyhä geometria hetkinä · katto per minuutti |
 | [BRDC-CLAIM-008](BRDC-CLAIM-008.md) | Vallattu heksa avautuu kuin lahjapaketti | M | **done v0.5.22** · kansi nousee keskeltä, sigili purkautuu · reduced-motion staattinen |
 | [BRDC-CLAIM-009](BRDC-CLAIM-009.md) | Askel-valtaus: astut heksaan, se on sinun | L | **done v0.5.24** · lenkki asetuksen taakse · löytömodaali + paljasta-nappi · klikkausbugi + nimikenttä |

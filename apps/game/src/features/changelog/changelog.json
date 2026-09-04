@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.27",
+    "date": "2026-09-04",
+    "notes": [
+      "Fixed: the ley-line could look like it had vanished after a phone-in-pocket stretch. The unwatched-gap marker is now a clearly visible dashed grey line instead of a near-invisible one — the ground you actually walked never left the map either way.",
+      "Fixed: choosing a border defence for the Wager right as it opened could silently revert to the default by the time you sealed it.",
+      "Fixed: closing the withdraw or delete-progress confirmation from the ☰ menu could drop keyboard focus instead of returning it to the menu."
+    ]
+  },
+  {
     "version": "0.5.26",
     "date": "2026-09-04",
     "notes": [

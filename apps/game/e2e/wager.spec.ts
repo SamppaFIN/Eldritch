@@ -59,8 +59,9 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
    * straight into the map — which is right for someone whose phone dropped the page mid
    * lap, and means the Wager is reached after a walk rather than during one.
    */
-  await sender.getByRole('button', { name: 'Withdraw' }).click();
-  await sender.getByRole('button', { name: 'Withdraw', exact: true }).nth(1).click();
+  await sender.getByRole('button', { name: 'Menu' }).click();
+  await sender.getByRole('button', { name: 'Retreat from the map' }).click();
+  await sender.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
   await expect(sender.getByRole('button', { name: 'The Wager' })).toBeVisible();
 
   await sender.getByRole('button', { name: 'The Wager' }).click();
@@ -79,7 +80,9 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
   await receiver.getByLabel('A challenge you were sent').fill(challenge);
   await receiver.getByRole('button', { name: 'Accept the Wager' }).click();
 
-  await expect(receiver.getByText(/Their ground is on your map/i)).toBeVisible();
+  // BRDC-WAGER-JSON-004: the message now names the sender ("Seeker's ground..."),
+  // not a generic "Their".
+  await expect(receiver.getByText(/ground is on your map/i)).toBeVisible();
 
   // And the Wager resolves on this phone, from the message alone. No result is sent
   // back, because a result is a claim and a claim is a thing to be lied about.
