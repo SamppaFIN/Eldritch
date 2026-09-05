@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.36",
+    "date": "2026-09-05",
+    "notes": [
+      "The Keep's Mana / Research / Buildings tabs are now right under the header and pinned there — v0.5.35 moved them but they rendered as a thin invisible strip. They're a proper full-width bar now, visible the moment the Keep opens."
+    ]
+  },
+  {
     "version": "0.5.35",
     "date": "2026-09-05",
     "notes": [

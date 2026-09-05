@@ -128,6 +128,22 @@ export function HearthPanel({
         </RitualButton>
       </div>
 
+      {/* Tabs sit right under the header — near the top and pinned there — so the way to
+          Research is the first thing seen, not something scrolled to (BRDC-KEEP-006). */}
+      <div className="hearth-panel__tabs" aria-label="Keep">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            aria-pressed={tab === t.id}
+            className={`hearth-panel__tab${tab === t.id ? ' hearth-panel__tab--on' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <NationIdentity owned={owned} />
 
       <dl className="hearth-panel__stats">
@@ -160,20 +176,6 @@ export function HearthPanel({
         now={now}
         onPouch={onPouch}
       />
-
-      <div className="hearth-panel__tabs" aria-label="Keep">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={tab === t.id}
-            className={`hearth-panel__tab${tab === t.id ? ' hearth-panel__tab--on' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
 
       {tab === 'mana' ? (
         <>

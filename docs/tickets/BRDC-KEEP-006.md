@@ -34,11 +34,14 @@ Kenttä 2026-09-05: pelaaja ei löydä tutkimusta *mistään*. Koodista jäljite
 
 ## 🟢 GREEN
 
-- [x] **Välilehtipalkki tarttuu ylös.** `hearth-panel__tabs`: `position: sticky`, kiinni
-      vieritysalueen yläreunaan (`top` kuittaa paneelin `padding: var(--space-4)`),
-      läpinäkymätön tausta (`var(--bg)`), `z-index: 1`. Kun pelaaja vierittää välilehden
-      sisältöön, "Mana · Research · Buildings" pysyy näkyvissä. `pnpm e2e` `research.spec.ts`
-      pysyy vihreänä.
+- [x] **Välilehtipalkki ylös ja näkyviin.** `HearthPanel.tsx`: `hearth-panel__tabs`
+      siirretty headerin alle (ennen `NationIdentity`/tilastot/`KeepResources`) — palkki
+      on ensimmäinen asia Keepin auettua, ei jotain jonne vieritetään.
+      `hearth-panel.css`: `align-self: stretch` (kumoaa `.es-panel { align-items: center }`
+      joka kutisti rivin sisältönsä levyiseksi → v0.5.35:ssä palkki oli ohut näkymätön
+      suikale), `position: sticky; top: 0; z-index: 2; background: var(--void-black)` —
+      pysyy kiinni ylhäällä kun pitkää välilehteä vieritetään. `research.spec.ts` +
+      `temple.spec.ts` + `dialogs.spec.ts` vihreät.
 - [x] **Temppelin umpikujaan polku.** `packages/core`: `nextResearchStep(researched, school)`
       — puhdas apuri joka palauttaa `{ rite: TechId; need: TechId } | null`: koulukunnan
       ainoa riitti ja sen seuraava tutkimaton esiehto (BFS `requires`-puussa), tai `null`
