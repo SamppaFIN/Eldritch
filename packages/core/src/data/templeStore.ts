@@ -10,6 +10,7 @@ import { consecrateCost, expandTemple } from '../rules/mana.js';
 import type { ExpandRefusal } from '../rules/mana.js';
 import { TEMPLE_THRESHOLD_MS } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
+import type { TempleSchool } from '../rules/tech.js';
 import { spend } from '../rules/terrain.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
@@ -91,4 +92,35 @@ export async function expandTempleAt(
   await store.set(K.expansions, { ...expansions, [h3]: result.level });
   await writeLogEntry(store, { at: now, kind: 'expand', count: result.level });
   return { ok: true, level: result.level };
+}
+
+export type SchoolRefusal = 'not-yours' | 'not-a-temple' | 'already-chosen';
+export type SchoolOutcome = { ok: true; school: TempleSchool } | { ok: false; refused: SchoolRefusal };
+
+export async function readTempleSchools(store: KeyValueStore): Promise<Record<H3Index, TempleSchool>> {
+  return (await store.get<Record<H3Index, TempleSchool>>(K.templeSchool)) ?? {};
+}
+
+/**
+ * Choose a temple's element, once (BRDC-TEMPLE-002). A temple consecrated before this
+ * ticket has no school yet — this is how it gets one; there is no way back once chosen.
+ */
+export async function assignSchool(
+  store: KeyValueStore,
+  h3: H3Index,
+  school: TempleSchool,
+  owned: readonly Cell[],
+  now: number,
+): Promise<SchoolOutcome> {
+  if (!owned.some((c) => c.h3 === h3)) return { ok: false, refused: 'not-yours' };
+
+  const dwell = (await store.get<DwellMap>(K.dwell)) ?? {};
+  if ((dwell[h3] ?? 0) < TEMPLE_THRESHOLD_MS) return { ok: false, refused: 'not-a-temple' };
+
+  const schools = await readTempleSchools(store);
+  if (schools[h3]) return { ok: false, refused: 'already-chosen' };
+
+  await store.set(K.templeSchool, { ...schools, [h3]: school });
+  await writeLogEntry(store, { at: now, kind: 'mana', ref: `school:${school}` });
+  return { ok: true, school };
 }

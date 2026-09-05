@@ -124,6 +124,18 @@
   color: var(--text-dim);
 }
 
+/* The temple's element choice, once and for good (BRDC-TEMPLE-002). */
+.hearth-panel__schools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.hearth-panel__school {
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+}
+
 .hearth-panel__tabs {
   display: flex;
   gap: var(--space-1);

@@ -39,10 +39,11 @@ const ctx = (over: Partial<CastContext> = {}): CastContext => ({
 });
 
 describe('SPELLS table', () => {
-  it('names the four schools, each with a real unlocking tech', () => {
-    const schools = new Set(Object.values(SPELLS).map((s) => s.school));
-    expect(schools).toEqual(new Set(['research', 'protection', 'block', 'dominion']));
-    for (const s of Object.values(SPELLS)) expect(TECHS[s.tech]).toBeDefined();
+  it('every spell has a real unlocking tech, in the same school as the spell (BRDC-TEMPLE-002)', () => {
+    for (const s of Object.values(SPELLS)) {
+      expect(TECHS[s.tech]).toBeDefined();
+      expect(TECHS[s.tech]?.school).toBe(s.school);
+    }
   });
 
   it('every wager spell targets an enemy cell; every home spell does not', () => {
@@ -120,7 +121,7 @@ describe('activeSpells and spellRemaining', () => {
   });
 });
 
-describe('domainSpellBonus (the research school, wired)', () => {
+describe('domainSpellBonus (insight, wired)', () => {
   it('adds a running insight to the per-hour pool, and nothing once it expires', () => {
     const spells: ActiveSpell[] = [{ id: 'insight', castAt: T0 }];
     expect(domainSpellBonus(spells, T0)).toEqual({ wisdom: SPELLS.insight.domainBonusPerH?.wisdom });
@@ -132,7 +133,7 @@ describe('domainSpellBonus (the research school, wired)', () => {
   });
 });
 
-describe('the protection school', () => {
+describe('bulwark, wired', () => {
   it('grants a whole Bulwark duration of decay-clock time, baked into the cell', () => {
     // The repo bakes BULWARK_SHELTER_MS into Cell.shelteredMs on cast; projectCell then
     // subtracts it. The end-to-end effect is spell.repo.test.ts / decay.test.ts.

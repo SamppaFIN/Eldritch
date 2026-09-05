@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.32",
+    "date": "2026-09-05",
+    "notes": [
+      "Temples now teach. Choose a temple's element — fire, water, earth, air, nature or spirit — once, and the rites of that element are researched from that temple instead of the Keep.",
+      "The Keep's Research list is the plain technologies now; anything that unlocks a rite has moved to its temple, and needs one of that element awake before it can be studied."
+    ]
+  },
+  {
     "version": "0.5.31",
     "date": "2026-09-05",
     "notes": [

@@ -20,6 +20,20 @@ export type Era = 'prehistory' | 'antiquity' | 'medieval';
 /** In order. `medieval` is the last — the tree is capped like the level curve. */
 export const ERAS: readonly Era[] = ['prehistory', 'antiquity', 'medieval'];
 
+/**
+ * A temple's elemental specialty (BRDC-TEMPLE-002). The same six values are
+ * `rules/spell.ts#SpellSchool` — one concept, so it lives wherever `Tech` needs it first.
+ */
+export type TempleSchool = 'fire' | 'water' | 'earth' | 'air' | 'nature' | 'spirit';
+export const TEMPLE_SCHOOLS: readonly TempleSchool[] = [
+  'fire',
+  'water',
+  'earth',
+  'air',
+  'nature',
+  'spirit',
+];
+
 export type TechId =
   | 'early-farming'
   | 'forestry'
@@ -38,6 +52,12 @@ export interface Tech {
   /** Every one of these must be researched first. */
   requires: readonly TechId[];
   era: Era;
+  /**
+   * Set only on the technologies that unlock a Rite (`rules/spell.ts`). Researching one
+   * needs an awake temple of this school, not just the Keep — everything else is
+   * schoolless and stays exactly as it was.
+   */
+  school?: TempleSchool;
 }
 
 /**
@@ -57,9 +77,11 @@ export const TECHS: Readonly<Record<TechId, Tech>> = {
   mining: { cost: 80, requires: ['toolmaking', 'masonry'], era: 'antiquity' },
   seafaring: { cost: 70, requires: ['forestry'], era: 'antiquity' },
 
-  fortification: { cost: 140, requires: ['masonry', 'mining'], era: 'medieval' },
-  'guild-craft': { cost: 160, requires: ['irrigation', 'seafaring'], era: 'medieval' },
-  astronomy: { cost: 150, requires: ['seafaring'], era: 'medieval' },
+  // These three unlock a Rite (rules/spell.ts) and move to their temple; the seven
+  // above unlock only buildings and stay in the Keep, schoolless.
+  fortification: { cost: 140, requires: ['masonry', 'mining'], era: 'medieval', school: 'earth' },
+  'guild-craft': { cost: 160, requires: ['irrigation', 'seafaring'], era: 'medieval', school: 'air' },
+  astronomy: { cost: 150, requires: ['seafaring'], era: 'medieval', school: 'spirit' },
 };
 
 const ALL_TECHS = Object.keys(TECHS) as TechId[];
@@ -83,7 +105,17 @@ export function researchable(researched: readonly TechId[]): TechId[] {
   return ALL_TECHS.filter((id) => canResearch(researched, id));
 }
 
-export type TechRefusal = 'already-known' | 'locked' | 'cannot-afford';
+/** The frontier, narrowed to one temple's school — what its own panel offers. */
+export function researchableFor(researched: readonly TechId[], school: TempleSchool): TechId[] {
+  return researchable(researched).filter((id) => TECHS[id].school === school);
+}
+
+/** The frontier with a school attached at all removed — what the Keep still offers. */
+export function researchableSchoolless(researched: readonly TechId[]): TechId[] {
+  return researchable(researched).filter((id) => !TECHS[id].school);
+}
+
+export type TechRefusal = 'already-known' | 'locked' | 'cannot-afford' | 'needs-a-temple';
 
 export type ResearchResult =
   | { ok: true; researched: TechId[]; pool: ResourcePool }

@@ -33,12 +33,13 @@ import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
 import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
+import { TempleSchoolPanel } from './TempleSchoolPanel.js';
 import { TradeControls } from './TradeControls.js';
 import { AnomalyPanel } from './AnomalyPanel.js';
 import { QuestCellPanel } from '../quest/QuestCellPanel.js';
 import type { QuestCellInfo } from '../quest/questCell.js';
 import type { AnomalyBinding } from './useAnomaly.js';
-import type { BuildBinding, PlaceBinding, SpellBinding, TradeBinding } from './useSelection.js';
+import type { BuildBinding, PlaceBinding, ResearchBinding, SpellBinding, TradeBinding } from './useSelection.js';
 import { historyLine } from './cellHistory.js';
 import { terrainGlyph } from './territoryFeatures.js';
 import './cell-panel.css';
@@ -70,6 +71,9 @@ export interface CellPanelProps {
   /** Cells the player has revealed, and the reveal action (BRDC-CLAIM-009). */
   revealed?: Readonly<Record<string, number>>;
   onReveal?: (h3: string) => void;
+  /** For a temple's own school-and-research section (BRDC-TEMPLE-002). */
+  research?: ResearchBinding;
+  wisdomPerHour?: number;
   onClose: () => void;
 }
 
@@ -125,13 +129,8 @@ function costLine(cost: Partial<ResourcePool>): string {
     .join(' · ');
 }
 
-/**
- * Hours left, counted from the last visit rather than from full strength.
- *
- * `hoursUntilReleased` answers "how long does this strength last", which is a span, not
- * a deadline. The time already spent decaying has to come off it or every cell would
- * claim a fresh two-day grace on every glance.
- */
+/** Hours left, counted from the last visit, not from full strength — the time already
+ *  spent decaying has to come off or every glance would claim a fresh two-day grace. */
 function hoursLeft(cell: Cell, now: number): number {
   return hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000;
 }
@@ -167,6 +166,8 @@ export function CellPanel({
   onQuestOpen,
   revealed,
   onReveal,
+  research,
+  wisdomPerHour = 0,
   onClose,
 }: CellPanelProps) {
   /*
@@ -245,8 +246,7 @@ export function CellPanel({
         </p>
       ) : null}
 
-      {/* What holding it is worth. The neighbour bonus — a held cell strengthens claims
-          on the six around it — is invisible everywhere else, so it is spelled out here. */}
+      {/* What holding it is worth — the neighbour bonus is invisible everywhere else. */}
       <dl className="cell-panel__worth">
         <div>
           <dt>Ground</dt>
@@ -275,8 +275,7 @@ export function CellPanel({
 
       {cell.ownerId !== null ? (
         <>
-          {/* The bar is decoration; the number beside it is the information. Colour and
-              length never carry this alone. */}
+          {/* The bar is decoration; the number is the information — colour never carries this alone. */}
           <div className="cell-panel__bar" aria-hidden>
             <div
               className="cell-panel__bar-fill"
@@ -290,11 +289,8 @@ export function CellPanel({
         </>
       ) : null}
 
-      {/*
-        A named place says what it produces, and — for a temple — offers the one thing
-        the resources are for. "Where mana comes from" is readable here, per source
-        (BRDC-MANA-001); the HUD carries the total.
-      */}
+      {/* A named place says what it produces — "where mana comes from" is readable here,
+          per source (BRDC-MANA-001); the HUD carries the total. */}
       {place.kind ? (
         <div className="cell-panel__place">
           <p className="cell-panel__place-name">
@@ -318,11 +314,8 @@ export function CellPanel({
         </div>
       ) : null}
 
-      {/*
-        "This place is becoming something" beats silence followed by a sudden crowning.
-        The dwell mechanic is otherwise entirely invisible until it fires, and a player
-        who never saw it coming does not understand what they did to cause it.
-      */}
+      {/* "Becoming something" beats silence then a sudden crowning — dwell is otherwise
+          invisible until it fires. */}
       {place.dwellMs > 0 ? (
         <>
           <div className="cell-panel__bar cell-panel__bar--dwell" aria-hidden>
@@ -347,8 +340,7 @@ export function CellPanel({
           <RitualButton className="cell-panel__ward" disabled={!canWard} onClick={() => onWard(cell.h3)}>
             Ward · {WARD_COST.wood} timber
           </RitualButton>
-          {/* Warding is the one place a player can hold ground without walking to it, so
-              the limit of that is stated where the button is, not buried in a codex. */}
+          {/* Warding holds ground without walking to it — its limit sits by the button. */}
           <p className="cell-panel__note">
             A ward adds strength. It does not reset the clock — only your feet do that.
           </p>
@@ -365,6 +357,15 @@ export function CellPanel({
               resources={resources}
               dwellMs={place.dwellMs}
               onConsecrate={place.onConsecrate}
+            />
+          ) : null}
+          {place.kind === 'temple' && research ? (
+            <TempleSchoolPanel
+              h3={cell.h3}
+              school={research.schools[cell.h3] ?? null}
+              research={research}
+              pool={resources}
+              wisdomPerHour={wisdomPerHour}
             />
           ) : null}
           {me && build ? (

@@ -16,10 +16,14 @@
  */
 import { spend } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
-import type { TechId } from './tech.js';
+import type { TechId, TempleSchool } from './tech.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 
-export type SpellSchool = 'research' | 'protection' | 'block' | 'dominion';
+/**
+ * A spell's school is the same six elements a temple specialises in (BRDC-TEMPLE-002)
+ * — one concept, defined once in `tech.ts` since `Tech` needs it too.
+ */
+export type SpellSchool = TempleSchool;
 export type SpellId = 'insight' | 'bulwark' | 'snare' | 'dominion';
 
 /** Where a spell's effect lands, and what `castSpell` has to check. */
@@ -52,7 +56,7 @@ const HOUR = 3_600_000;
  */
 export const SPELLS: Readonly<Record<SpellId, Spell>> = {
   insight: {
-    school: 'research',
+    school: 'spirit',
     via: 'home',
     scope: 'domain',
     cost: 40,
@@ -61,7 +65,7 @@ export const SPELLS: Readonly<Record<SpellId, Spell>> = {
     domainBonusPerH: { wisdom: 6 },
   },
   bulwark: {
-    school: 'protection',
+    school: 'earth',
     via: 'home',
     scope: 'own-cell',
     cost: 50,
@@ -69,7 +73,7 @@ export const SPELLS: Readonly<Record<SpellId, Spell>> = {
     tech: 'fortification',
   },
   snare: {
-    school: 'block',
+    school: 'earth',
     via: 'wager',
     scope: 'enemy-cell',
     cost: 60,
@@ -77,7 +81,7 @@ export const SPELLS: Readonly<Record<SpellId, Spell>> = {
     tech: 'fortification',
   },
   dominion: {
-    school: 'dominion',
+    school: 'air',
     via: 'wager',
     scope: 'enemy-cell',
     cost: 80,

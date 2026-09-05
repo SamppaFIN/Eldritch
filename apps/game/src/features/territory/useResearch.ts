@@ -7,8 +7,8 @@
  * its own binding, its own panel, one seam into the rest of selection (`afterSpend`).
  */
 import { useCallback, useEffect, useState } from 'react';
-import { eraOf, researchable } from '@es3/core';
-import type { Era, GameRepository, TechId, TechRefusal } from '@es3/core';
+import { eraOf, researchableSchoolless } from '@es3/core';
+import type { Era, GameRepository, H3Index, TechId, TechRefusal, TempleSchool } from '@es3/core';
 import type { ResearchBinding } from './useSelection.js';
 
 export function useResearch(
@@ -22,6 +22,11 @@ export function useResearch(
   const [techRefusal, setTechRefusal] = useState<TechRefusal | null>(null);
   const [lastEra, setLastEra] = useState<Era | null>(null);
   const [researching, setResearching] = useState<TechId | null>(null);
+  const [schools, setSchools] = useState<Readonly<Record<H3Index, TempleSchool>>>({});
+
+  const refreshSchools = useCallback(() => {
+    void repository?.getTempleSchools().then(setSchools);
+  }, [repository]);
 
   useEffect(() => {
     if (!repository) return;
@@ -33,6 +38,17 @@ export function useResearch(
       alive = false;
     };
   }, [repository, trailVersion]);
+  useEffect(refreshSchools, [refreshSchools]);
+
+  const onChooseSchool = useCallback(
+    (h3: H3Index, school: TempleSchool) => {
+      if (!repository) return;
+      void repository.assignTempleSchool(h3, school, now()).then((r) => {
+        if (r.ok) refreshSchools();
+      });
+    },
+    [repository, now, refreshSchools],
+  );
 
   const onResearch = useCallback(
     (id: TechId) => {
@@ -56,10 +72,14 @@ export function useResearch(
   return {
     researched,
     era: eraOf(researched),
-    options: researchable([...researched]),
+    // The Keep's own list: technologies with no school stay here (BRDC-TEMPLE-002) —
+    // the schooled ones move to whichever temple teaches them.
+    options: researchableSchoolless([...researched]),
     refusal: techRefusal,
     lastEra,
     researching,
+    schools,
+    onChooseSchool,
     onResearch,
   };
 }

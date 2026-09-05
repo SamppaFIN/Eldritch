@@ -47,4 +47,6 @@ export const K = {
   cipherShards: 'cipher-shards',
   /** Cells the player has revealed for their tier bonus, `Record<H3Index, number>` (BRDC-CLAIM-009). */
   revealed: 'revealed',
+  /** A temple's chosen element, `Record<H3Index, TempleSchool>` — missing h3 = not chosen yet (BRDC-TEMPLE-002). */
+  templeSchool: 'temple-school',
 } as const;

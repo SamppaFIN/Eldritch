@@ -60,16 +60,19 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
       return { text: 'Laid a Trade Route', topic };
     case 'expand':
       return { text: `Expanded a Temple${e.count ? ` to rank ${e.count}` : ''}`, topic };
-    case 'mana':
+    case 'mana': {
+      const school = e.ref?.startsWith('school:') ? e.ref.slice('school:'.length) : null;
       return {
-        text:
-          e.ref === 'consecrate'
+        text: school
+          ? `Chose ${school[0]?.toUpperCase()}${school.slice(1)} for a temple`
+          : e.ref === 'consecrate'
             ? 'Consecrated a temple'
             : e.ref === 'channel'
               ? `Channelled mana into ${e.count ?? 0} wisdom`
               : `Raised the Altar${e.count ? ` to level ${e.count}` : ''}`,
         topic,
       };
+    }
     case 'anomaly':
       return {
         text:

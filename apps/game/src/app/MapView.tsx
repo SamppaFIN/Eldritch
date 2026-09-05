@@ -319,6 +319,8 @@ export function MapView({ onLeave }: MapViewProps) {
         onQuestOpen={() => quest.openQuestHex(inspect.selected)}
         revealed={discovery.revealed}
         onReveal={discovery.onReveal}
+        research={inspect.research}
+        wisdomPerHour={forecast?.perHour.wisdom ?? 0}
         onClose={inspect.close}
       />
 

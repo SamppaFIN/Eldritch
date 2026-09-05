@@ -24,8 +24,8 @@ import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
-import { consecrateAt, expandTempleAt } from './templeStore.js';
-import type { ConsecrateOutcome, ExpandOutcome } from './templeStore.js';
+import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools } from './templeStore.js';
+import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from './templeStore.js';
 import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
 import { readRevealed, revealAt, type RevealOutcome } from './revealStore.js';
 import { readPaths } from './pathStore.js';
@@ -41,7 +41,7 @@ import { castSpellAt, readSpells } from './spellStore.js';
 import type { CastOutcome } from './spellStore.js';
 import { activeSpells } from '../rules/spell.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
-import type { TechId, TechResult } from '../rules/tech.js';
+import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { LogEntry } from '../rules/log.js';
 import { addXpTo, readProfile, setName } from './profileStore.js';
@@ -202,7 +202,7 @@ export class MockRepository implements GameRepository {
   }
 
   async researchTech(id: TechId, now: number): Promise<TechResult> {
-    return doResearch(this.store, id, await this.getOwnedCells(now), now);
+    return doResearch(this.store, id, await this.getOwnedCells(now), await this.getHome(), now);
   }
 
   /* --- The Wager, carried by hand — store half in `wagerRepo.js` -------- */
@@ -256,11 +256,13 @@ export class MockRepository implements GameRepository {
   getDwellFor = (h3: string): Promise<number> => readDwellFor(this.store, h3);
   raiseAltar = (now: number): Promise<AltarOutcome> => raiseAltarFor(this.store, this, now);
   channelMana = (now: number): Promise<ChannelOutcome> => channelManaFor(this.store, this, now);
-  async expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome> {
-    return expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
-  }
+  expandTemple = async (h3: H3Index, now: number): Promise<ExpandOutcome> =>
+    expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   consecrateTemple = async (h3: H3Index, now: number): Promise<ConsecrateOutcome> =>
     consecrateAt(this.store, h3, await this.getOwnedCells(now), await this.getHome(), now);
+  getTempleSchools = (): Promise<Record<H3Index, TempleSchool>> => readTempleSchools(this.store);
+  assignTempleSchool = async (h3: H3Index, school: TempleSchool, now: number): Promise<SchoolOutcome> =>
+    assignSchool(this.store, h3, school, await this.getOwnedCells(now), now);
 
   /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
   getAnomalies = (now: number): Promise<Anomaly[]> => getAnomaliesFor(this, now);

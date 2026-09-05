@@ -52,6 +52,12 @@ describe('describeLogEntry', () => {
     expect(describeLogEntry({ at: 0, kind: 'mana' }).text).toBe('Raised the Altar');
   });
 
+  it('names the element chosen for a temple (BRDC-TEMPLE-002)', () => {
+    expect(describeLogEntry({ at: 0, kind: 'mana', ref: 'school:earth' }).text).toBe(
+      'Chose Earth for a temple',
+    );
+  });
+
   it('names the opponent and the result of a Wager', () => {
     expect(describeLogEntry({ at: 0, kind: 'wager', ref: 'Seeker', won: false }).text).toBe(
       'Fought the Wager against Seeker — lost',

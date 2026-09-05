@@ -12,6 +12,7 @@ export { population, provinceCount } from './nation.js';
 export {
   ERAS,
   TECHS,
+  TEMPLE_SCHOOLS,
   canResearch,
   eraChanged,
   eraOf,
@@ -19,8 +20,18 @@ export {
   research,
   researchCost,
   researchable,
+  researchableFor,
+  researchableSchoolless,
 } from './tech.js';
-export type { Era, ResearchResult, Tech, TechId, TechRefusal, TechResult } from './tech.js';
+export type {
+  Era,
+  ResearchResult,
+  Tech,
+  TechId,
+  TechRefusal,
+  TechResult,
+  TempleSchool,
+} from './tech.js';
 export {
   BUILDINGS,
   buildCost,

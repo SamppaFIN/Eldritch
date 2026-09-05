@@ -8,7 +8,7 @@
  */
 import { MetatronsCube, RitualButton } from '@es3/ui';
 import { TECHS, researchCost, timeToAfford } from '@es3/core';
-import type { ResourcePool, TechRefusal } from '@es3/core';
+import type { ResourcePool, TechId, TechRefusal } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
 import type { ResearchBinding } from './useSelection.js';
 
@@ -23,11 +23,40 @@ export function waitFor(cost: number, pool: ResourcePool | null, wisdomPerHour: 
   return ms === 0 ? '' : ` · ~${Math.round(ms / HOUR)} h`;
 }
 
+export interface TechRowProps {
+  id: TechId;
+  wisdom: number;
+  pending: boolean;
+  pool: ResourcePool | null;
+  wisdomPerHour: number;
+  onResearch: (id: TechId) => void;
+}
+
+/** One researchable technology — name, wait hint, and its button. Shared by the Keep's
+ *  list and a temple's own (BRDC-TEMPLE-002), so the two never drift apart. */
+export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch }: TechRowProps) {
+  const cost = researchCost(id);
+  return (
+    <div className="hearth-panel__research-row">
+      <span>
+        {titleCase(id)}
+        <span className="hearth-panel__research-wait">{waitFor(cost, pool, wisdomPerHour)}</span>
+      </span>
+      <RitualButton variant="ghost" disabled={wisdom < cost || pending} onClick={() => onResearch(id)}>
+        {/* A tap can take a visible second — getOwnedCells's full scan (BRDC-SCALE-001) —
+            and silence that long reads as broken. */}
+        {pending ? 'Researching…' : `${cost} wisdom`}
+      </RitualButton>
+    </div>
+  );
+}
+
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<TechRefusal, string>> = {
   'already-known': 'That technology is already known.',
   locked: 'An earlier technology must come first.',
   'cannot-afford': 'Not enough wisdom. A Library or the Insight rite gathers it.',
+  'needs-a-temple': 'A temple of the right element must be awake first.',
 };
 
 export interface ResearchPanelProps {
@@ -55,31 +84,19 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
       ) : null}
 
       {research.options.length === 0 ? (
-        <p className="hearth-panel__line">Every technology is known.</p>
+        <p className="hearth-panel__line">Every schoolless technology is known.</p>
       ) : (
-        research.options.map((id) => {
-          const cost = researchCost(id);
-          const pending = research.researching === id;
-          return (
-            <div key={id} className="hearth-panel__research-row">
-              <span>
-                {titleCase(id)}
-                <span className="hearth-panel__research-wait">
-                  {waitFor(cost, pool, wisdomPerHour)}
-                </span>
-              </span>
-              <RitualButton
-                variant="ghost"
-                disabled={wisdom < cost || pending}
-                onClick={() => research.onResearch(id)}
-              >
-                {/* A tap can take a visible second — getOwnedCells's full scan
-                    (BRDC-SCALE-001) — and silence that long reads as broken. */}
-                {pending ? 'Researching…' : `${cost} wisdom`}
-              </RitualButton>
-            </div>
-          );
-        })
+        research.options.map((id) => (
+          <TechRow
+            key={id}
+            id={id}
+            wisdom={wisdom}
+            pending={research.researching === id}
+            pool={pool}
+            wisdomPerHour={wisdomPerHour}
+            onResearch={research.onResearch}
+          />
+        ))
       )}
 
       {research.refusal ? (

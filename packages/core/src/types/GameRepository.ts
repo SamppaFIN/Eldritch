@@ -27,10 +27,10 @@ import type {
 import type { ResourcePool } from '../rules/terrain.js';
 import type { WalkedEdge } from '../geo/paths.js';
 import type { WardResult } from '../rules/ward.js';
-import type { TechId, TechResult } from '../rules/tech.js';
+import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
-import type { ConsecrateOutcome, ExpandOutcome } from '../data/templeStore.js';
+import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from '../data/templeStore.js';
 import type { AltarOutcome, ChannelOutcome } from '../data/keepStore.js';
 import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
@@ -266,6 +266,10 @@ export interface GameRepository {
   expandTemple(h3: H3Index, now: number): Promise<ExpandOutcome>;
   /** Consecrate an owned cell as a temple with stone and gold (BRDC-TEMPLE-001). */
   consecrateTemple(h3: H3Index, now: number): Promise<ConsecrateOutcome>;
+  /** Every temple's chosen element, keyed by h3 — missing means not chosen yet (BRDC-TEMPLE-002). */
+  getTempleSchools(): Promise<Record<H3Index, TempleSchool>>;
+  /** Choose a temple's element, once. Refuses if it is not yours, not a temple, or already chosen. */
+  assignTempleSchool(h3: H3Index, school: TempleSchool, now: number): Promise<SchoolOutcome>;
   /** Raise the Altar — the Anchor cell — one expansion step (BRDC-KEEP-002). */
   raiseAltar(now: number): Promise<AltarOutcome>;
   /** Channel a fixed step of mana into wisdom at the Altar. Refuses if short or wisdom-full. */

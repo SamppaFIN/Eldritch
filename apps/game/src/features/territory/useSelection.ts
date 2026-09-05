@@ -23,6 +23,7 @@ import type {
   SpellId,
   TechId,
   TechRefusal,
+  TempleSchool,
   TradeRoute,
   WardRefusal,
 } from '@es3/core';
@@ -86,7 +87,8 @@ export interface SpellBinding {
 export interface ResearchBinding {
   researched: readonly TechId[];
   era: Era;
-  /** Techs researchable right now — every prerequisite met, not yet known. */
+  /** The Keep's own frontier: schoolless techs only (BRDC-TEMPLE-002) — every prerequisite
+   *  met, not yet known, and not one a temple teaches instead. */
   options: readonly TechId[];
   refusal: TechRefusal | null;
   /** Set for one render after a research crossed an era boundary. */
@@ -97,6 +99,9 @@ export interface ResearchBinding {
    * that long reads as "broken", which is exactly the field report this answers.
    */
   researching: TechId | null;
+  /** Every temple's chosen element, keyed by h3 (BRDC-TEMPLE-002). Missing = not chosen. */
+  schools: Readonly<Record<H3Index, TempleSchool>>;
+  onChooseSchool: (h3: H3Index, school: TempleSchool) => void;
   onResearch: (id: TechId) => void;
 }
 
