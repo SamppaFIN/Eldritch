@@ -8,7 +8,7 @@
 import { BUILDINGS } from '@es3/core';
 import type { BuildingId, ResourcePool } from '@es3/core';
 import { BUILDING_NAME, titleCase } from './names.js';
-import { BUILDING_BLURB, buildingEffect } from './catalogue.js';
+import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
 
 const cost = (c: Readonly<Partial<ResourcePool>>): string =>
   (Object.entries(c) as [string, number][]).map(([k, v]) => `${v} ${k}`).join(' · ');
@@ -28,7 +28,7 @@ export function KeepBuildingsPanel() {
               <span className="hearth-panel__catalogue-name">{BUILDING_NAME[id]}</span>
               <span className="hearth-panel__catalogue-meta es-numeric">{cost(b.cost)}</span>
               <span className="hearth-panel__catalogue-blurb">{BUILDING_BLURB[id]}</span>
-              <span className="hearth-panel__catalogue-gain">{buildingEffect(id)}</span>
+              <span className="hearth-panel__catalogue-gain">{renderEffect(buildingEffect(id))}</span>
               <span className="hearth-panel__catalogue-meta">
                 {where(b.terrain)}
                 {b.tech ? ` · needs ${titleCase(b.tech)}` : ''}

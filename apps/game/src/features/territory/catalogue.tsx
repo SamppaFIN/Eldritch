@@ -6,9 +6,12 @@
  * straight off `BUILDINGS` / `SPELLS` so the numbers can never drift from the rules.
  * Every research row, rite button and build row shows both (BRDC-TEMPLE-003).
  */
+import type { ReactNode } from 'react';
+import { RESOURCE_KINDS } from '@es3/core';
+import type { BuildingId, ResourceKind, SpellId, TechId, TempleSchool } from '@es3/core';
 import { BUILDINGS, SPELLS, TECHS } from '@es3/core';
-import type { BuildingId, SpellId, TechId, TempleSchool } from '@es3/core';
 import { BUILDING_NAME, SPELL_NAME, titleCase } from './names.js';
+import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
 
 export const TECH_BLURB: Readonly<Record<TechId, string>> = {
   'early-farming': 'Sowing and reaping one plot — the first surplus a settlement keeps.',
@@ -65,15 +68,17 @@ export const SCHOOL_RITE: Readonly<Record<TempleSchool, SpellId>> = {
   spirit: 'insight',
 };
 
+const word = (k: ResourceKind): string => RESOURCE_WORD[k];
 const andList = (xs: readonly string[]): string =>
   xs.length <= 1 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
 
-/** "+5 wood / h · +1 token / day" — read off the building's own row, never hand-kept. */
+/** "+5 timber / h · +1 tokens / day" — read off the building's own row, never hand-kept. */
 export function buildingEffect(id: BuildingId): string {
   const b = BUILDINGS[id];
   const parts: string[] = [];
-  for (const [k, v] of Object.entries(b.produces ?? {})) parts.push(`+${v} ${k} / h`);
-  for (const [k, v] of Object.entries(b.producesPerDay ?? {})) parts.push(`+${v} ${k} / day`);
+  for (const [k, v] of Object.entries(b.produces ?? {})) parts.push(`+${v} ${word(k as ResourceKind)} / h`);
+  for (const [k, v] of Object.entries(b.producesPerDay ?? {}))
+    parts.push(`+${v} ${word(k as ResourceKind)} / day`);
   if (b.storageCapBonus) parts.push(`+${b.storageCapBonus} storage cap`);
   if (b.buildingCapacity) parts.push(`+${b.buildingCapacity} build slots`);
   if (b.aura) {
@@ -92,7 +97,7 @@ export function spellEffect(id: SpellId): string {
   const hours = Math.round(s.durationMs / 3_600_000);
   if (id === 'bulwark') return `Shelters this cell from decay · ${hours} h`;
   const bonus = Object.entries(s.domainBonusPerH ?? {})[0];
-  if (bonus) return `+${bonus[1]} ${bonus[0]} / h to the domain · ${hours} h`;
+  if (bonus) return `+${bonus[1]} ${word(bonus[0] as ResourceKind)} / h to the domain · ${hours} h`;
   return 'Carried into a Wager';
 }
 
@@ -107,4 +112,29 @@ export function techUnlocks(id: TechId): string {
   if (named.length > 0) return `Unlocks ${andList(named)}`;
   const leadsTo = (Object.keys(TECHS) as TechId[]).filter((t) => TECHS[t].requires.includes(id));
   return leadsTo.length > 0 ? `Leads to ${andList(leadsTo.map(titleCase))}` : '';
+}
+
+const TINT: Readonly<Record<string, string>> = Object.fromEntries(
+  RESOURCE_KINDS.map((k) => [RESOURCE_WORD[k], RESOURCE_COLOUR[k]]),
+);
+const AMOUNT = new RegExp(`([+−]\\d+ (?:${Object.keys(TINT).join('|')}))`, 'g');
+
+/**
+ * An effect string with every "+N timber" / "−N iron" span painted the resource's own
+ * colour — the same hues the HUD pouch and the map's yield pips use, so a number in the
+ * build menu and the same resource on a hexagon read as one thing (BRDC-TEMPLE-003 field
+ * report). Everything between the amounts stays plain text.
+ */
+export function renderEffect(effect: string): ReactNode {
+  return effect.split(AMOUNT).map((piece, i) => {
+    const m = /^([+−]\d+) (.+)$/.exec(piece);
+    const tint = m ? TINT[m[2] ?? ''] : undefined;
+    return tint ? (
+      <span key={i} style={{ color: tint }}>
+        {piece}
+      </span>
+    ) : (
+      piece
+    );
+  });
 }

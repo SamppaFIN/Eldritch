@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.39",
+    "date": "2026-09-05",
+    "notes": [
+      "Research and rite rows no longer crush their button — \"150 wisdom\" / \"Insight\" sit on one line and the description wraps beside them.",
+      "Every \"+N resource\" now shows in that resource's own colour — the same hues as the pouch and the map's yield pips.",
+      "A rite you have not researched shows as locked, not a live button, and says which technology unlocks it."
+    ]
+  },
+  {
     "version": "0.5.38",
     "date": "2026-09-05",
     "notes": [

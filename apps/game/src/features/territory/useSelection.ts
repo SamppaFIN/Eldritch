@@ -81,6 +81,8 @@ export interface SpellBinding {
   active: readonly ActiveSpell[];
   refusal: CastRefusal | null;
   onCast: (id: SpellId, target: H3Index | null) => void;
+  /** What is researched — a rite whose tech is missing is shown locked, not castable. */
+  researched: readonly TechId[];
 }
 
 /** The research screen's bundle: the frontier, the era, and the ceremony (BRDC-TECH-001). */
@@ -365,7 +367,7 @@ export function useSelection({
       onExpand,
       onConsecrate,
     },
-    spell: { active: spells, refusal: castRefusal, onCast },
+    spell: { active: spells, refusal: castRefusal, onCast, researched: research.researched },
     research,
     trade: tradeHook.binding,
     anomaly,

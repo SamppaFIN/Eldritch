@@ -2,6 +2,7 @@
  * BRDC-TEMPLE-003 — every catalogued thing has a blurb, and the effect strings are
  * read off the rule tables, not hand-kept.
  */
+import { isValidElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { BUILDINGS, SPELLS, TECHS } from '@es3/core';
 import type { BuildingId, SpellId, TechId } from '@es3/core';
@@ -11,6 +12,7 @@ import {
   SPELL_BLURB,
   TECH_BLURB,
   buildingEffect,
+  renderEffect,
   spellEffect,
   techUnlocks,
 } from './catalogue.js';
@@ -32,12 +34,26 @@ describe('the blurbs cover their tables', () => {
 
 describe('buildingEffect', () => {
   it('reads production, capacity and auras off the row', () => {
-    expect(buildingEffect('sawmill')).toBe('+5 wood / h');
+    expect(buildingEffect('sawmill')).toBe('+5 timber / h');
     expect(buildingEffect('fishery')).toBe('+3 food / h · +1 tokens / day');
     expect(buildingEffect('storehouse')).toBe('+250 storage cap');
     expect(buildingEffect('granary')).toBe('+1 food / h · +3 build slots');
     expect(buildingEffect('library')).toBe('+1 wisdom / h within 1');
     expect(buildingEffect('fortress')).toBe('−30 to attacks within 1');
+  });
+});
+
+describe('renderEffect', () => {
+  it('wraps each resource amount in its own coloured span, leaves the rest text', () => {
+    const parts = renderEffect('+6 wisdom / h to the domain · 12 h') as unknown[];
+    const els = parts.filter((p) => isValidElement(p)) as { props: { children: string } }[];
+    expect(els).toHaveLength(1);
+    expect(els[0]?.props.children).toBe('+6 wisdom');
+  });
+
+  it('passes a string with no resource amount straight through', () => {
+    const parts = renderEffect('Carried into a Wager') as unknown[];
+    expect(parts.every((p) => typeof p === 'string')).toBe(true);
   });
 });
 

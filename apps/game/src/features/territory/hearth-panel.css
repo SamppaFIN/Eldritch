@@ -120,6 +120,14 @@
   font-size: var(--text-sm);
 }
 
+/* The action keeps its size; the text column takes what is left and wraps. Without
+   this the button is crushed to an ellipse and its label clips (field report). */
+.hearth-panel__research-row > .es-btn,
+.hearth-panel__research-row > .hearth-panel__research-wait {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .hearth-panel__research-text {
   display: grid;
   gap: 2px;

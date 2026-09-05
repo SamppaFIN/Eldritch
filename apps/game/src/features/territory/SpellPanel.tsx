@@ -9,8 +9,8 @@ import { SPELLS, spellRemaining } from '@es3/core';
 import type { CastRefusal, SpellId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import type { SpellBinding } from './useSelection.js';
-import { SPELL_NAME as NAME } from './names.js';
-import { SPELL_BLURB, spellEffect } from './catalogue.js';
+import { SPELL_NAME as NAME, titleCase } from './names.js';
+import { SPELL_BLURB, renderEffect, spellEffect } from './catalogue.js';
 
 export const HOME_SPELLS = (Object.keys(SPELLS) as SpellId[]).filter(
   (id) => SPELLS[id].via === 'home',
@@ -50,7 +50,8 @@ export function SpellPanel({ spell, cellH3, mine, mana, now }: SpellPanelProps) 
         const s = SPELLS[id];
         const target = s.scope === 'own-cell' ? cellH3 : null;
         const running = spell.active.some((a) => a.id === id && (a.target ?? null) === target);
-        const blocked = running || mana < s.cost || (s.scope === 'own-cell' && !mine);
+        const unlocked = spell.researched.includes(s.tech);
+        const blocked = !unlocked || running || mana < s.cost || (s.scope === 'own-cell' && !mine);
         return (
           <div key={id} className="cell-panel__rite">
             <RitualButton
@@ -58,10 +59,18 @@ export function SpellPanel({ spell, cellH3, mine, mana, now }: SpellPanelProps) 
               disabled={blocked}
               onClick={() => spell.onCast(id, target)}
             >
-              {NAME[id]} · {s.cost} mana
+              {NAME[id]}
             </RitualButton>
             <span className="cell-panel__rite-what">
-              {running ? 'running' : `${SPELL_BLURB[id]} — ${spellEffect(id)}`}
+              {!unlocked ? (
+                `Locked — study ${titleCase(s.tech)} at its temple`
+              ) : running ? (
+                'running'
+              ) : (
+                <>
+                  {s.cost} mana · {SPELL_BLURB[id]} — {renderEffect(spellEffect(id))}
+                </>
+              )}
             </span>
           </div>
         );

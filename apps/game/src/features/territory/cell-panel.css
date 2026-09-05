@@ -183,6 +183,7 @@
 .cell-panel__build-btn {
   min-block-size: var(--touch-min);
   padding-inline: var(--space-2);
+  flex-shrink: 0;
 }
 
 .cell-panel__build-has {
@@ -238,6 +239,7 @@
 .cell-panel__rite-btn {
   min-block-size: var(--touch-min);
   padding-inline: var(--space-2);
+  flex-shrink: 0;
 }
 
 .cell-panel__rite-what {

@@ -10,7 +10,7 @@ import { RitualButton } from '@es3/ui';
 import { TEMPLE_SCHOOLS, canResearch, riteChain } from '@es3/core';
 import type { ResourcePool, TempleSchool } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
-import { SCHOOL_RITE, spellEffect } from './catalogue.js';
+import { SCHOOL_RITE, renderEffect, spellEffect } from './catalogue.js';
 import { SPELL_NAME } from './names.js';
 import { TechRow } from './ResearchPanel.js';
 import type { ResearchBinding } from './useSelection.js';
@@ -70,7 +70,7 @@ export function TempleSchoolPanel({ h3, school, research, pool, wisdomPerHour }:
       </p>
       {chain.length === 0 ? (
         <p className="hearth-panel__line">
-          Its Rite, {SPELL_NAME[rite]}, is yours. {spellEffect(rite)}
+          Its Rite, {SPELL_NAME[rite]}, is yours. {renderEffect(spellEffect(rite))}
         </p>
       ) : (
         <>
