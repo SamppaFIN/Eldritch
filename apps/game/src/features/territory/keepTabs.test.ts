@@ -18,7 +18,8 @@ describe('the Keep tabs', () => {
     for (const t of TABS) expect(t.label.trim().length).toBeGreaterThan(0);
   });
 
-  it('research is labelled Rites — the word the rest of the game uses', () => {
-    expect(TABS.find((t) => t.id === 'wisdom')?.label).toBe('Rites');
+  it('research is labelled Research, not the ritual word nobody read as a tech tree', () => {
+    // Field report 2026-09-05: "Rites" hid the tech tree from a player looking for one.
+    expect(TABS.find((t) => t.id === 'wisdom')?.label).toBe('Research');
   });
 });

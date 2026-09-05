@@ -28,11 +28,19 @@ import './hearth-panel.css';
 
 export type KeepTab = 'mana' | 'wisdom' | 'buildings';
 
-/** The Keep's tabbed sections — mana, Rites and buildings, all run from here
- *  (BRDC-KEEP-002, -003). Opened from the map marker or the ⌂ Keep button. */
+/**
+ * The Keep's tabbed sections — mana, Research and buildings, all run from here
+ * (BRDC-KEEP-002, -003). Opened from the map marker or the ⌂ Keep button.
+ *
+ * The tech tree lived here labelled "Rites" until a field report (2026-09-05): a
+ * player looking for "a way to research new technologies" never thought to open a
+ * tab named after a ritual. The tree's own content was always secular history
+ * (Toolmaking, Masonry, Astronomy) — Research says what it is; Rite stays the word
+ * for a spell you cast, which is what it already meant in SpellPanel.
+ */
 export const TABS: readonly { id: KeepTab; label: string }[] = [
   { id: 'mana', label: 'Mana' },
-  { id: 'wisdom', label: 'Rites' },
+  { id: 'wisdom', label: 'Research' },
   { id: 'buildings', label: 'Buildings' },
 ];
 

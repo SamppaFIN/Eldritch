@@ -407,6 +407,7 @@ ja se korjaantuu `BRDC-ECON-004`:n Resources-osiossa.
 | [BRDC-NATION-001](BRDC-NATION-001.md) | Valtion nimi, lippu, tilastot | M | `es3:nation` · lääni = res 6 -alueet · asukasmäärä johdettu luku |
 | [BRDC-BANNER-001](BRDC-BANNER-001.md) | Esivalitut bannerit + lippu heksoilla | M | 6–8 stroke-SVG:tä · symbol-layer `buildingGlyphs`in malliin |
 | [BRDC-KEEP-004](BRDC-KEEP-004.md) | Keep on ohjaamo: nimetyt osiot | M–L | 6 osiota, taitettavat · rakennus→Guide-linkit · `HearthPanel` < 400 r |
+| [BRDC-KEEP-005](BRDC-KEEP-005.md) | "Ei ole tapaa tutkia teknologioita" | S | **done v0.5.30** · "Rites" → "Research" · nappi vastaa heti, ei 1–3 s hiljaisuutta |
 | [BRDC-ECON-004](BRDC-ECON-004.md) | Resurssit: määrä, /h, Collect-nappi | S–M | **suositus: kosmeettinen Collect** — ei riskiä ECON-001:lle |
 
 ### Tietoisesti siirretty

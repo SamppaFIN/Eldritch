@@ -47,7 +47,7 @@ v2's most concrete failure was 112 markdown files with no source of truth.
 ```json
 {
   "projekti": "Eldritch Sanctuary v3",
-  "versio": "0.5.29",
+  "versio": "0.5.30",
   "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
   "tila": "toteutus",
   "vaihe": "2.6 — Mobiilikokemus ja jaettu maailma",
@@ -288,11 +288,21 @@ has taken out the door is v2's exact failure. See `docs/tickets/BRDC-MOBILE-001.
 | castle (public marker) | The Keep |
 | national overview | The Atlas |
 | building | Work |
-| tech | Rite |
+| tech | Research (a researched tech that can be cast is a Rite — `SpellPanel`) |
 
-Added 2026-08-31. **The Keep is not the Hearth.** The Hearth is the cell you live in and
-it never leaves the device; the Keep is a decoy nearby, and it is the only location that
-is ever published (`BRDC-CASTLE-001`). Code that confuses the two leaks an address.
+Amended 2026-09-05 (field report): the Keep tab that opens the tech tree was labelled
+"Rites" and nobody read it as a way to research anything — the tree's own content is
+secular history (Toolmaking, Masonry, Astronomy), not ritual. "Rite" still means what it
+always did for a cast spell; "Research" is the tree, the tab, and the act of spending
+wisdom on it.
+
+Added 2026-08-31, **reversed 2026-09-01 (`BRDC-CASTLE-001`).** The Keep is no longer a
+decoy — it is the Hearth cell itself, published as-is. The original plan (Keep = a random
+point 300–900 m from the Hearth, so `world.json` never carried a home address) was tested
+in the browser and reversed: the game is played among friends, and a Keep the player
+cannot see, often off-screen, next to the ground they just claimed, is worse than
+publishing the cell. `assignCastle(store, home)` stores `cellAt(home)` — same cell,
+re-assigned whenever `setHome` is. `getHome()` and `getCastle()` return the same h3 today.
 
 The reference frame for the shared world is **Civilization's two views**: the Atlas shows
 borders and cities across the country; a player's own cells are the city view, and a

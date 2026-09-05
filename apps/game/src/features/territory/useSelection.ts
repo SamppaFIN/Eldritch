@@ -6,7 +6,7 @@
  * and it reads better here — nothing else in the map screen needs to know how it works.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BUILDINGS, cellsWithin, emptyCell, eraOf, researchable } from '@es3/core';
+import { BUILDINGS, cellsWithin, emptyCell } from '@es3/core';
 import type {
   ActiveSpell,
   BuildRefusal,
@@ -27,6 +27,7 @@ import type {
   WardRefusal,
 } from '@es3/core';
 import { useTradeRoutes } from './useTradeRoutes.js';
+import { useResearch } from './useResearch.js';
 import { useAnomaly } from './useAnomaly.js';
 import type { AnomalyBinding } from './useAnomaly.js';
 
@@ -90,6 +91,12 @@ export interface ResearchBinding {
   refusal: TechRefusal | null;
   /** Set for one render after a research crossed an era boundary. */
   lastEra: Era | null;
+  /**
+   * The tech in flight, or null. `getOwnedCells`'s full scan (BRDC-SCALE-001) makes even
+   * a small realm's research take a visible second or more — a tap with no feedback for
+   * that long reads as "broken", which is exactly the field report this answers.
+   */
+  researching: TechId | null;
   onResearch: (id: TechId) => void;
 }
 
@@ -142,10 +149,7 @@ export function useSelection({
   const [buildRefusal, setBuildRefusal] = useState<BuildFail | null>(null);
   const [expandRefusal, setExpandRefusal] = useState<ExpandFail | null>(null);
   const [castRefusal, setCastRefusal] = useState<CastRefusal | null>(null);
-  const [techRefusal, setTechRefusal] = useState<TechRefusal | null>(null);
-  const [lastEra, setLastEra] = useState<Era | null>(null);
   const [spells, setSpells] = useState<readonly ActiveSpell[]>([]);
-  const [researched, setResearched] = useState<readonly TechId[]>([]);
   const [dwellMs, setDwellMs] = useState(0);
 
   // The places prop is MapView's; this local copy is what the panel reads, so a temple
@@ -164,9 +168,6 @@ export function useSelection({
   useEffect(() => {
     if (!repository) return;
     let alive = true;
-    void repository.getResearched().then((r) => {
-      if (alive) setResearched(r);
-    });
     // Running spells, re-read as the trail grows so a countdown stays honest and an
     // expired spell drops from the panel on its own (BRDC-SPELL-001).
     void repository.getActiveSpells(now()).then((s) => {
@@ -323,22 +324,7 @@ export function useSelection({
     [repository, now, afterSpend],
   );
 
-  const onResearch = useCallback(
-    (id: TechId) => {
-      if (!repository) return;
-      setLastEra(null);
-      void (async () => {
-        const r = await repository.researchTech(id, now());
-        setTechRefusal(r.ok ? null : r.refused);
-        if (r.ok) {
-          setResearched(r.researched);
-          if (r.era) setLastEra(r.era);
-          await afterSpend();
-        }
-      })();
-    },
-    [repository, now, afterSpend],
-  );
+  const research = useResearch(repository, now, trailVersion, afterSpend);
 
   const here = selected ? (livePlaces.find((p) => p.h3 === selected) ?? null) : null;
 
@@ -368,20 +354,13 @@ export function useSelection({
       onConsecrate,
     },
     spell: { active: spells, refusal: castRefusal, onCast },
-    research: {
-      researched,
-      era: eraOf(researched),
-      options: researchable([...researched]),
-      refusal: techRefusal,
-      lastEra,
-      onResearch,
-    },
+    research,
     trade: tradeHook.binding,
     anomaly,
     refusal,
     sanctum,
     wager,
-    build: { researched, myBuildings, refusal: buildRefusal, onBuild, onDemolish },
+    build: { researched: research.researched, myBuildings, refusal: buildRefusal, onBuild, onDemolish },
     onCellTap,
     onPlaceTap,
     onCastleTap,

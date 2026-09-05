@@ -25,8 +25,8 @@ export function waitFor(cost: number, pool: ResourcePool | null, wisdomPerHour: 
 
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<TechRefusal, string>> = {
-  'already-known': 'That rite is already known.',
-  locked: 'An earlier rite must come first.',
+  'already-known': 'That technology is already known.',
+  locked: 'An earlier technology must come first.',
   'cannot-afford': 'Not enough wisdom. A Library or the Insight rite gathers it.',
 };
 
@@ -44,7 +44,7 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
   return (
     <div className="hearth-panel__research">
       <p className="hearth-panel__research-head">
-        Rites · {titleCase(research.era)} · {research.researched.length}/{TOTAL} known
+        Research · {titleCase(research.era)} · {research.researched.length}/{TOTAL} known
       </p>
 
       {research.lastEra ? (
@@ -55,10 +55,11 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
       ) : null}
 
       {research.options.length === 0 ? (
-        <p className="hearth-panel__line">Every rite is known.</p>
+        <p className="hearth-panel__line">Every technology is known.</p>
       ) : (
         research.options.map((id) => {
           const cost = researchCost(id);
+          const pending = research.researching === id;
           return (
             <div key={id} className="hearth-panel__research-row">
               <span>
@@ -69,10 +70,12 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
               </span>
               <RitualButton
                 variant="ghost"
-                disabled={wisdom < cost}
+                disabled={wisdom < cost || pending}
                 onClick={() => research.onResearch(id)}
               >
-                {cost} wisdom
+                {/* A tap can take a visible second — getOwnedCells's full scan
+                    (BRDC-SCALE-001) — and silence that long reads as broken. */}
+                {pending ? 'Researching…' : `${cost} wisdom`}
               </RitualButton>
             </div>
           );

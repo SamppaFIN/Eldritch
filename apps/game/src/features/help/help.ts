@@ -116,15 +116,15 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     title: 'Work',
     body: [
       'A building sits on one cell you hold and changes what it is worth. A sawmill pours out more timber, a market more gold, a fortress blunts an attacker\'s blow.',
-      'Each needs the right terrain and, further up, a Rite researched first. Demolishing one hands back half its cost — a misplaced building is not permanent.',
+      'Each needs the right terrain and, further up, a technology researched first. Demolishing one hands back half its cost — a misplaced building is not permanent.',
     ],
     see: ['rite', 'mana'],
   },
   rite: {
-    title: 'Rites',
+    title: 'Research',
     body: [
-      'Rites are this game\'s technology tree, bought with wisdom. Each unlocks buildings, other Rites, or a new age; completing an age is a moment the game marks.',
-      'Spells are cast Rites. The two home schools work on your own ground — Insight feeds wisdom to the whole domain, Bulwark holds a cell against the Void. The rest travel in a Wager.',
+      'Research is this game\'s technology tree, bought with wisdom, in the Keep. Each technology unlocks buildings, further technologies, or a new age; completing an age is a moment the game marks.',
+      'Some of what you learn can be cast as a Rite. The two home schools work on your own ground — Insight feeds wisdom to the whole domain, Bulwark holds a cell against the Void. The rest travel in a Wager.',
     ],
     see: ['work', 'mana'],
   },

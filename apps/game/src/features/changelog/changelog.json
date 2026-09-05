@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.30",
+    "date": "2026-09-05",
+    "notes": [
+      "Research found a name: the Keep's tech-tree tab was called 'Rites', which read as a ritual, not a way to research new technologies. It's 'Research' now.",
+      "Fixed: tapping a technology could take a second or more with no sign anything had happened. The button now shows 'Researching…' immediately."
+    ]
+  },
+  {
     "version": "0.5.29",
     "date": "2026-09-05",
     "notes": [

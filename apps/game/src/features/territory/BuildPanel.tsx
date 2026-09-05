@@ -4,7 +4,7 @@
  * A sub-panel of CellPanel, kept separate so neither grows past four hundred lines and so
  * "the build menu" is one testable concern. The default view lists only what can be built
  * right now; the rest is one tap away, each row naming its one blocker (BRDC-TECH-001
- * GREEN 8) — timber, a Rite, or the wrong ground.
+ * GREEN 8) — timber, a technology, or the wrong ground.
  */
 import { useState } from 'react';
 import { BUILDINGS, EMPTY_POOL, canBuild, refund } from '@es3/core';
