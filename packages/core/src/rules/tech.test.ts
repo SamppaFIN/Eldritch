@@ -14,6 +14,7 @@ import {
   eraChanged,
   eraOf,
   hasTech,
+  nextResearchStep,
   research,
   researchable,
   researchableFor,
@@ -149,5 +150,25 @@ describe('eraChanged', () => {
     const oneShort = prehistory.slice(0, -1);
     expect(eraChanged(oneShort, prehistory)).toBe('antiquity');
     expect(eraChanged(prehistory, [...prehistory, 'masonry'])).toBeNull();
+  });
+});
+
+describe('nextResearchStep (BRDC-KEEP-006)', () => {
+  it('points at a root the player can start on now, not a leaf', () => {
+    expect(nextResearchStep([], 'spirit')).toEqual({ rite: 'astronomy', need: 'forestry' });
+    expect(nextResearchStep(['forestry'], 'spirit')).toEqual({ rite: 'astronomy', need: 'seafaring' });
+    // fortification needs masonry+mining, both under toolmaking — the root comes back first.
+    expect(nextResearchStep([], 'earth')).toEqual({ rite: 'fortification', need: 'toolmaking' });
+  });
+
+  it('is null once the Rite is on the frontier or already known', () => {
+    expect(nextResearchStep(['forestry', 'seafaring'], 'spirit')).toBeNull();
+    expect(nextResearchStep(['forestry', 'seafaring', 'astronomy'], 'spirit')).toBeNull();
+  });
+
+  it('is null for a school that teaches no Rite', () => {
+    expect(nextResearchStep([], 'fire')).toBeNull();
+    expect(nextResearchStep([], 'water')).toBeNull();
+    expect(nextResearchStep([], 'nature')).toBeNull();
   });
 });

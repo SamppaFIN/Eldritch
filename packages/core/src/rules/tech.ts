@@ -115,6 +115,36 @@ export function researchableSchoolless(researched: readonly TechId[]): TechId[] 
   return researchable(researched).filter((id) => !TECHS[id].school);
 }
 
+/**
+ * For a school whose Rite is not yet within reach: the Rite, and the next prerequisite
+ * still missing — walked breadth-first so the answer is a root the player can start on
+ * now, not a leaf they cannot. `null` when the school teaches no Rite (fire, water,
+ * nature), or its Rite is already on the frontier or known. The temple panel says
+ * "research {need} first — in the Keep" instead of a blank "nothing yet".
+ */
+export function nextResearchStep(
+  researched: readonly TechId[],
+  school: TempleSchool,
+): { rite: TechId; need: TechId } | null {
+  const rite = ALL_TECHS.find((id) => TECHS[id].school === school);
+  if (!rite || researched.includes(rite) || canResearch(researched, rite)) return null;
+
+  const queue: TechId[] = [...TECHS[rite].requires];
+  const seen = new Set<TechId>(queue);
+  while (queue.length > 0) {
+    const id = queue.shift() as TechId;
+    if (researched.includes(id)) continue;
+    if (TECHS[id].requires.every((r) => researched.includes(r))) return { rite, need: id };
+    for (const r of TECHS[id].requires) {
+      if (!seen.has(r)) {
+        seen.add(r);
+        queue.push(r);
+      }
+    }
+  }
+  return null;
+}
+
 export type TechRefusal = 'already-known' | 'locked' | 'cannot-afford' | 'needs-a-temple';
 
 export type ResearchResult =

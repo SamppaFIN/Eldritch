@@ -69,6 +69,10 @@ export interface ResearchPanelProps {
 
 export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelProps) {
   const wisdom = pool?.wisdom ?? 0;
+  // Every row on the frontier is out of reach — say where wisdom comes from, or the
+  // panel is a wall of greyed buttons with no way forward (BRDC-KEEP-006).
+  const allUnaffordable =
+    research.options.length > 0 && research.options.every((id) => wisdom < researchCost(id));
 
   return (
     <div className="hearth-panel__research">
@@ -98,6 +102,12 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
           />
         ))
       )}
+
+      {allUnaffordable ? (
+        <p className="hearth-panel__line">
+          Wisdom comes from a Library, or from channelling mana at the Altar — the Mana tab.
+        </p>
+      ) : null}
 
       {research.refusal ? (
         <p className="hearth-panel__line hearth-panel__line--warn" role="status">

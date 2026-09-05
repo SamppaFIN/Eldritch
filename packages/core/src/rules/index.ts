@@ -17,6 +17,7 @@ export {
   eraChanged,
   eraOf,
   hasTech,
+  nextResearchStep,
   research,
   researchCost,
   researchable,

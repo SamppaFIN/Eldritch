@@ -7,7 +7,7 @@
  * which of ten mystery technologies in the Keep happens to unlock one.
  */
 import { RitualButton } from '@es3/ui';
-import { TEMPLE_SCHOOLS, researchableFor } from '@es3/core';
+import { TEMPLE_SCHOOLS, nextResearchStep, researchableFor } from '@es3/core';
 import type { ResourcePool, TempleSchool } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
 import { TechRow } from './ResearchPanel.js';
@@ -60,13 +60,18 @@ export function TempleSchoolPanel({ h3, school, research, pool, wisdomPerHour }:
   }
 
   const options = researchableFor(research.researched, school);
+  const step = options.length === 0 ? nextResearchStep(research.researched, school) : null;
   return (
     <div className="hearth-panel__research">
       <p className="hearth-panel__research-head">
         <span aria-hidden>{GLYPH[school]}</span> {titleCase(school)} temple
       </p>
       {options.length === 0 ? (
-        <p className="hearth-panel__line">Nothing yet — its rites are still unwritten.</p>
+        <p className="hearth-panel__line">
+          {step
+            ? `Its Rite is ${titleCase(step.rite)}. Research ${titleCase(step.need)} first — in the Keep.`
+            : 'Nothing yet — its rites are still unwritten.'}
+        </p>
       ) : (
         options.map((id) => (
           <TechRow

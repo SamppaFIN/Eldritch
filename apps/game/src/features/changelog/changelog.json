@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.35",
+    "date": "2026-09-05",
+    "notes": [
+      "The Keep's Mana / Research / Buildings tabs now stay pinned to the top as you scroll, so 'there is no Research tab' stops being true — it was just below the fold.",
+      "A temple whose element has a Rite you cannot reach yet names it and the next thing to research in the Keep, instead of a blank 'nothing yet'. And the Keep's Research list, when everything is unaffordable, says where wisdom comes from."
+    ]
+  },
+  {
     "version": "0.5.34",
     "date": "2026-09-05",
     "notes": [
