@@ -10,17 +10,11 @@ import type { CastRefusal, SpellId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import type { SpellBinding } from './useSelection.js';
 import { SPELL_NAME as NAME } from './names.js';
+import { SPELL_BLURB, spellEffect } from './catalogue.js';
 
 export const HOME_SPELLS = (Object.keys(SPELLS) as SpellId[]).filter(
   (id) => SPELLS[id].via === 'home',
 );
-
-const WHAT: Readonly<Record<SpellId, string>> = {
-  insight: 'wisdom to the whole domain',
-  bulwark: 'holds this cell against the Void',
-  snare: '',
-  dominion: '',
-};
 
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<CastRefusal, string>> = {
@@ -66,7 +60,9 @@ export function SpellPanel({ spell, cellH3, mine, mana, now }: SpellPanelProps) 
             >
               {NAME[id]} · {s.cost} mana
             </RitualButton>
-            <span className="cell-panel__rite-what">{running ? 'running' : WHAT[id]}</span>
+            <span className="cell-panel__rite-what">
+              {running ? 'running' : `${SPELL_BLURB[id]} — ${spellEffect(id)}`}
+            </span>
           </div>
         );
       })}

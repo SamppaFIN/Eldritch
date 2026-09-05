@@ -131,6 +131,12 @@ describe('domainSpellBonus (insight, wired)', () => {
   it('ignores a bulwark — it is not a domain spell', () => {
     expect(domainSpellBonus([{ id: 'bulwark', target: 'home', castAt: T0 }], T0)).toEqual({});
   });
+
+  it('wires the fire, water and nature rites the same way (BRDC-TEMPLE-003)', () => {
+    expect(domainSpellBonus([{ id: 'forgeheart', castAt: T0 }], T0)).toEqual({ iron: 4 });
+    expect(domainSpellBonus([{ id: 'wellspring', castAt: T0 }], T0)).toEqual({ food: 5 });
+    expect(domainSpellBonus([{ id: 'greenwake', castAt: T0 }], T0)).toEqual({ wood: 6 });
+  });
 });
 
 describe('bulwark, wired', () => {

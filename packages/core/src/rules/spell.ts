@@ -24,7 +24,14 @@ import type { Cell, H3Index, PlayerId } from '../types/domain.js';
  * — one concept, defined once in `tech.ts` since `Tech` needs it too.
  */
 export type SpellSchool = TempleSchool;
-export type SpellId = 'insight' | 'bulwark' | 'snare' | 'dominion';
+export type SpellId =
+  | 'insight'
+  | 'bulwark'
+  | 'forgeheart'
+  | 'wellspring'
+  | 'greenwake'
+  | 'snare'
+  | 'dominion';
 
 /** Where a spell's effect lands, and what `castSpell` has to check. */
 export type SpellScope = 'domain' | 'own-cell' | 'enemy-cell';
@@ -51,8 +58,11 @@ const HOUR = 3_600_000;
 /**
  * The table. Numbers live here, like `BUILDINGS` and `TECHS`.
  *
- * `insight` and `bulwark` are wired in this ticket. `snare` and `dominion` are defined so
- * the four schools are real, but `castSpell` sends them back with `carry-in-a-wager`.
+ * Every school has a home Rite except air: `insight`, `bulwark` and the three domain
+ * trickles below (BRDC-TEMPLE-003) are wired — a running `domain` spell folds into
+ * `pouch.ts#perHourBonus` through `domainSpellBonus`, no per-spell effect code.
+ * `snare` and `dominion` are the enemy-facing pair; `castSpell` sends them back with
+ * `carry-in-a-wager` until BRDC-SPELL-002.
  */
 export const SPELLS: Readonly<Record<SpellId, Spell>> = {
   insight: {
@@ -71,6 +81,33 @@ export const SPELLS: Readonly<Record<SpellId, Spell>> = {
     cost: 50,
     durationMs: 24 * HOUR,
     tech: 'fortification',
+  },
+  forgeheart: {
+    school: 'fire',
+    via: 'home',
+    scope: 'domain',
+    cost: 50,
+    durationMs: 18 * HOUR,
+    tech: 'smithing',
+    domainBonusPerH: { iron: 4 },
+  },
+  wellspring: {
+    school: 'water',
+    via: 'home',
+    scope: 'domain',
+    cost: 45,
+    durationMs: 16 * HOUR,
+    tech: 'tide-lore',
+    domainBonusPerH: { food: 5 },
+  },
+  greenwake: {
+    school: 'nature',
+    via: 'home',
+    scope: 'domain',
+    cost: 40,
+    durationMs: 16 * HOUR,
+    tech: 'wildcraft',
+    domainBonusPerH: { wood: 6 },
   },
   snare: {
     school: 'earth',

@@ -44,7 +44,10 @@ export type TechId =
   | 'seafaring'
   | 'fortification'
   | 'guild-craft'
-  | 'astronomy';
+  | 'astronomy'
+  | 'smithing'
+  | 'tide-lore'
+  | 'wildcraft';
 
 export interface Tech {
   /** Wisdom to research it. */
@@ -77,11 +80,14 @@ export const TECHS: Readonly<Record<TechId, Tech>> = {
   mining: { cost: 80, requires: ['toolmaking', 'masonry'], era: 'antiquity' },
   seafaring: { cost: 70, requires: ['forestry'], era: 'antiquity' },
 
-  // These three unlock a Rite (rules/spell.ts) and move to their temple; the seven
+  // These six unlock a Rite (rules/spell.ts) and move to their temple; the seven
   // above unlock only buildings and stay in the Keep, schoolless.
   fortification: { cost: 140, requires: ['masonry', 'mining'], era: 'medieval', school: 'earth' },
   'guild-craft': { cost: 160, requires: ['irrigation', 'seafaring'], era: 'medieval', school: 'air' },
   astronomy: { cost: 150, requires: ['seafaring'], era: 'medieval', school: 'spirit' },
+  smithing: { cost: 150, requires: ['mining'], era: 'medieval', school: 'fire' },
+  'tide-lore': { cost: 140, requires: ['seafaring'], era: 'medieval', school: 'water' },
+  wildcraft: { cost: 120, requires: ['forestry'], era: 'medieval', school: 'nature' },
 };
 
 const ALL_TECHS = Object.keys(TECHS) as TechId[];
@@ -116,33 +122,27 @@ export function researchableSchoolless(researched: readonly TechId[]): TechId[] 
 }
 
 /**
- * For a school whose Rite is not yet within reach: the Rite, and the next prerequisite
- * still missing — walked breadth-first so the answer is a root the player can start on
- * now, not a leaf they cannot. `null` when the school teaches no Rite (fire, water,
- * nature), or its Rite is already on the frontier or known. The temple panel says
- * "research {need} first — in the Keep" instead of a blank "nothing yet".
+ * The full path to a school's Rite: its unlocking technology and every prerequisite,
+ * roots first, with the ones already researched dropped. Empty once the Rite is known.
+ *
+ * Post-order over `requires`, so a step never appears before something it depends on.
+ * This is what a temple panel lists (BRDC-TEMPLE-003) — the whole chain researchable in
+ * place, each step `canResearch`-gated, instead of sending the player back to the Keep.
  */
-export function nextResearchStep(
-  researched: readonly TechId[],
-  school: TempleSchool,
-): { rite: TechId; need: TechId } | null {
+export function riteChain(researched: readonly TechId[], school: TempleSchool): TechId[] {
   const rite = ALL_TECHS.find((id) => TECHS[id].school === school);
-  if (!rite || researched.includes(rite) || canResearch(researched, rite)) return null;
+  if (!rite || researched.includes(rite)) return [];
 
-  const queue: TechId[] = [...TECHS[rite].requires];
-  const seen = new Set<TechId>(queue);
-  while (queue.length > 0) {
-    const id = queue.shift() as TechId;
-    if (researched.includes(id)) continue;
-    if (TECHS[id].requires.every((r) => researched.includes(r))) return { rite, need: id };
-    for (const r of TECHS[id].requires) {
-      if (!seen.has(r)) {
-        seen.add(r);
-        queue.push(r);
-      }
-    }
-  }
-  return null;
+  const order: TechId[] = [];
+  const seen = new Set<TechId>();
+  const visit = (id: TechId): void => {
+    if (seen.has(id) || researched.includes(id)) return;
+    seen.add(id);
+    for (const req of TECHS[id].requires) visit(req);
+    order.push(id);
+  };
+  visit(rite);
+  return order;
 }
 
 export type TechRefusal = 'already-known' | 'locked' | 'cannot-afford' | 'needs-a-temple';

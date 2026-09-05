@@ -7,9 +7,11 @@
  * which of ten mystery technologies in the Keep happens to unlock one.
  */
 import { RitualButton } from '@es3/ui';
-import { TEMPLE_SCHOOLS, nextResearchStep, researchableFor } from '@es3/core';
+import { TEMPLE_SCHOOLS, canResearch, riteChain } from '@es3/core';
 import type { ResourcePool, TempleSchool } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
+import { SCHOOL_RITE, spellEffect } from './catalogue.js';
+import { SPELL_NAME } from './names.js';
 import { TechRow } from './ResearchPanel.js';
 import type { ResearchBinding } from './useSelection.js';
 
@@ -59,31 +61,35 @@ export function TempleSchoolPanel({ h3, school, research, pool, wisdomPerHour }:
     );
   }
 
-  const options = researchableFor(research.researched, school);
-  const step = options.length === 0 ? nextResearchStep(research.researched, school) : null;
+  const rite = SCHOOL_RITE[school];
+  const chain = riteChain(research.researched, school);
   return (
     <div className="hearth-panel__research">
       <p className="hearth-panel__research-head">
         <span aria-hidden>{GLYPH[school]}</span> {titleCase(school)} temple
       </p>
-      {options.length === 0 ? (
+      {chain.length === 0 ? (
         <p className="hearth-panel__line">
-          {step
-            ? `Its Rite is ${titleCase(step.rite)}. Research ${titleCase(step.need)} first — in the Keep.`
-            : 'Nothing yet — its rites are still unwritten.'}
+          Its Rite, {SPELL_NAME[rite]}, is yours. {spellEffect(rite)}
         </p>
       ) : (
-        options.map((id) => (
-          <TechRow
-            key={id}
-            id={id}
-            wisdom={wisdom}
-            pending={research.researching === id}
-            pool={pool}
-            wisdomPerHour={wisdomPerHour}
-            onResearch={research.onResearch}
-          />
-        ))
+        <>
+          <p className="hearth-panel__line">
+            The path to {SPELL_NAME[rite]} — research it here, in order.
+          </p>
+          {chain.map((id) => (
+            <TechRow
+              key={id}
+              id={id}
+              wisdom={wisdom}
+              pending={research.researching === id}
+              pool={pool}
+              wisdomPerHour={wisdomPerHour}
+              onResearch={research.onResearch}
+              locked={!canResearch(research.researched, id)}
+            />
+          ))}
+        </>
       )}
     </div>
   );

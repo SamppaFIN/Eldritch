@@ -14,11 +14,11 @@ import {
   eraChanged,
   eraOf,
   hasTech,
-  nextResearchStep,
   research,
   researchable,
   researchableFor,
   researchableSchoolless,
+  riteChain,
 } from './tech.js';
 import type { Era, TechId } from './tech.js';
 
@@ -80,7 +80,8 @@ describe('researchableFor / researchableSchoolless (BRDC-TEMPLE-002)', () => {
     const researched: TechId[] = ['toolmaking', 'forestry', 'masonry', 'mining', 'seafaring'];
     expect(researchableFor(researched, 'earth')).toEqual(['fortification']);
     expect(researchableFor(researched, 'spirit')).toEqual(['astronomy']);
-    expect(researchableFor(researched, 'water')).toEqual([]); // nothing assigned yet — backlog
+    // water's rite-tech (tide-lore) needs seafaring, which is held — so it is on the frontier.
+    expect(researchableFor(researched, 'water')).toEqual(['tide-lore']);
   });
 
   it("the Keep's own list never includes a schooled tech", () => {
@@ -153,22 +154,36 @@ describe('eraChanged', () => {
   });
 });
 
-describe('nextResearchStep (BRDC-KEEP-006)', () => {
-  it('points at a root the player can start on now, not a leaf', () => {
-    expect(nextResearchStep([], 'spirit')).toEqual({ rite: 'astronomy', need: 'forestry' });
-    expect(nextResearchStep(['forestry'], 'spirit')).toEqual({ rite: 'astronomy', need: 'seafaring' });
-    // fortification needs masonry+mining, both under toolmaking — the root comes back first.
-    expect(nextResearchStep([], 'earth')).toEqual({ rite: 'fortification', need: 'toolmaking' });
+describe('riteChain (BRDC-TEMPLE-003)', () => {
+  it('lists the rite-tech and every prerequisite, roots first', () => {
+    expect(riteChain([], 'spirit')).toEqual(['forestry', 'seafaring', 'astronomy']);
+    expect(riteChain([], 'earth')).toEqual(['toolmaking', 'masonry', 'mining', 'fortification']);
+    expect(riteChain([], 'fire')).toEqual(['toolmaking', 'masonry', 'mining', 'smithing']);
   });
 
-  it('is null once the Rite is on the frontier or already known', () => {
-    expect(nextResearchStep(['forestry', 'seafaring'], 'spirit')).toBeNull();
-    expect(nextResearchStep(['forestry', 'seafaring', 'astronomy'], 'spirit')).toBeNull();
+  it('drops the steps already researched', () => {
+    expect(riteChain(['forestry'], 'spirit')).toEqual(['seafaring', 'astronomy']);
+    expect(riteChain(['forestry', 'seafaring'], 'water')).toEqual(['tide-lore']);
   });
 
-  it('is null for a school that teaches no Rite', () => {
-    expect(nextResearchStep([], 'fire')).toBeNull();
-    expect(nextResearchStep([], 'water')).toBeNull();
-    expect(nextResearchStep([], 'nature')).toBeNull();
+  it('is empty once the rite itself is known', () => {
+    expect(riteChain(['forestry', 'seafaring', 'astronomy'], 'spirit')).toEqual([]);
+  });
+
+  it('returns a non-empty chain ending in the school rite for every school', () => {
+    for (const school of TEMPLE_SCHOOLS) {
+      const chain = riteChain([], school);
+      expect(chain.length).toBeGreaterThan(0);
+      expect(TECHS[chain[chain.length - 1] as TechId].school).toBe(school);
+    }
+  });
+
+  it('orders every step after the steps it depends on', () => {
+    const chain = riteChain([], 'air');
+    const seen = new Set<TechId>();
+    for (const id of chain) {
+      for (const req of TECHS[id].requires) expect(seen.has(req)).toBe(true);
+      seen.add(id);
+    }
   });
 });

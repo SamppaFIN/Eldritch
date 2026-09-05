@@ -53,6 +53,6 @@ test('research opens from the footer, responds immediately, and lands', async ({
   await expect(button).toHaveText(/Researching/i);
 
   // And lands.
-  await expect(dialog.getByText(/1\/10 known/i)).toBeVisible({ timeout: 15_000 });
+  await expect(dialog.getByText(/1\/13 known/i)).toBeVisible({ timeout: 15_000 });
   await expect.poll(() => readResearched(page), { timeout: 15_000 }).toHaveLength(1);
 });

@@ -11,6 +11,7 @@ import { BUILDINGS, EMPTY_POOL, canBuild, refund } from '@es3/core';
 import type { BuildRefusal, BuildingId, Cell, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
+import { BUILDING_BLURB, buildingEffect } from './catalogue.js';
 
 export { titleCase };
 
@@ -95,6 +96,11 @@ export function BuildPanel({
         <span>
           {NAME[id]}
           <span className="cell-panel__build-cost"> {costLine(BUILDINGS[id].cost)}</span>
+          <span className="cell-panel__build-cost">
+            {' '}
+            · {BUILDING_BLURB[id]}
+            {buildingEffect(id) ? ` · ${buildingEffect(id)}` : ''}
+          </span>
         </span>
         {check.ok ? (
           <RitualButton className="cell-panel__build-btn" onClick={() => onBuild(cell.h3, id)}>

@@ -17,12 +17,12 @@ export {
   eraChanged,
   eraOf,
   hasTech,
-  nextResearchStep,
   research,
   researchCost,
   researchable,
   researchableFor,
   researchableSchoolless,
+  riteChain,
 } from './tech.js';
 export type {
   Era,

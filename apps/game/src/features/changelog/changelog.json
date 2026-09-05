@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.38",
+    "date": "2026-09-05",
+    "notes": [
+      "Every temple element now teaches a rite. Fire brings Forgeheart (iron across the domain), water Wellspring (food), nature Greenwake (timber) — the three that used to dead-end on \"its rites are still unwritten\".",
+      "A temple shows the whole path to its rite and every step is researched right there, in order — no more being sent back to the Keep for a prerequisite.",
+      "Every technology, rite and Work now carries a one-line description and the concrete thing it gives — \"+5 wood / h\", \"Shelters this cell from decay · 24 h\", \"Unlocks the Forgeheart rite\"."
+    ]
+  },
+  {
     "version": "0.5.37",
     "date": "2026-09-05",
     "notes": [

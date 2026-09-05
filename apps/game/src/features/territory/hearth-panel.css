@@ -114,10 +114,25 @@
 
 .hearth-panel__research-row {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
   gap: var(--space-2);
   font-size: var(--text-sm);
+}
+
+.hearth-panel__research-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hearth-panel__research-blurb {
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.hearth-panel__research-gain {
+  color: var(--text-dim);
 }
 
 .hearth-panel__research-wait {
@@ -212,6 +227,17 @@
 
 .hearth-panel__catalogue-meta:last-child {
   grid-column: 1 / -1;
+}
+
+.hearth-panel__catalogue-blurb {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.hearth-panel__catalogue-gain {
+  grid-column: 1 / -1;
+  color: var(--text-dim);
 }
 
 .hearth-panel__actions {

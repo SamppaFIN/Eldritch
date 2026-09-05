@@ -10,6 +10,7 @@ import { MetatronsCube, RitualButton } from '@es3/ui';
 import { TECHS, researchCost, timeToAfford } from '@es3/core';
 import type { ResourcePool, TechId, TechRefusal } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
+import { TECH_BLURB, techUnlocks } from './catalogue.js';
 import type { ResearchBinding } from './useSelection.js';
 
 const TOTAL = Object.keys(TECHS).length;
@@ -30,23 +31,33 @@ export interface TechRowProps {
   pool: ResourcePool | null;
   wisdomPerHour: number;
   onResearch: (id: TechId) => void;
+  /** A chain step whose prerequisites are not met yet — shown, but not yet a choice. */
+  locked?: boolean;
 }
 
-/** One researchable technology — name, wait hint, and its button. Shared by the Keep's
- *  list and a temple's own (BRDC-TEMPLE-002), so the two never drift apart. */
-export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch }: TechRowProps) {
+/** One technology — name, one-line blurb, what it unlocks, and its button. Shared by the
+ *  Keep's list and a temple's chain (BRDC-TEMPLE-002/-003), so the two never drift apart. */
+export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch, locked }: TechRowProps) {
   const cost = researchCost(id);
+  const gain = techUnlocks(id);
   return (
     <div className="hearth-panel__research-row">
-      <span>
-        {titleCase(id)}
-        <span className="hearth-panel__research-wait">{waitFor(cost, pool, wisdomPerHour)}</span>
-      </span>
-      <RitualButton variant="ghost" disabled={wisdom < cost || pending} onClick={() => onResearch(id)}>
-        {/* A tap can take a visible second — getOwnedCells's full scan (BRDC-SCALE-001) —
-            and silence that long reads as broken. */}
-        {pending ? 'Researching…' : `${cost} wisdom`}
-      </RitualButton>
+      <div className="hearth-panel__research-text">
+        <span>
+          {titleCase(id)}
+          <span className="hearth-panel__research-wait">{waitFor(cost, pool, wisdomPerHour)}</span>
+        </span>
+        <span className="hearth-panel__research-blurb">{TECH_BLURB[id]}</span>
+        {gain ? <span className="hearth-panel__research-gain">{gain}</span> : null}
+      </div>
+      {locked ? (
+        <span className="hearth-panel__research-wait">Locked</span>
+      ) : (
+        <RitualButton variant="ghost" disabled={wisdom < cost || pending} onClick={() => onResearch(id)}>
+          {/* A tap can take a visible second (BRDC-SCALE-001); silence that long reads as broken. */}
+          {pending ? 'Researching…' : `${cost} wisdom`}
+        </RitualButton>
+      )}
     </div>
   );
 }

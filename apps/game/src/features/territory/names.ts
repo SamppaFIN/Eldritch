@@ -28,6 +28,9 @@ export const BUILDING_NAME: Readonly<Record<BuildingId, string>> = {
 export const SPELL_NAME: Readonly<Record<SpellId, string>> = {
   insight: 'Insight',
   bulwark: 'Bulwark',
+  forgeheart: 'Forgeheart',
+  wellspring: 'Wellspring',
+  greenwake: 'Greenwake',
   snare: 'Snare',
   dominion: 'Dominion',
 };
