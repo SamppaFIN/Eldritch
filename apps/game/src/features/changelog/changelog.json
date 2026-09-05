@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.33",
+    "date": "2026-09-05",
+    "notes": [
+      "The Wager is a truce now, not a duel. Accepting one puts a friend's whole sanctuary on your map — all of it, wherever it sits — and where their ground meets yours, the cell is shared: still yours, but the hourly yield is split. You can accept the same challenge again any time to refresh it.",
+      "A shared cell's detail card shows a small ring — your share against theirs — split by each side's strength when it arrived, or by the days each has walked it when those are equal. Walk it on a new day and you take the whole cell back."
+    ]
+  },
+  {
     "version": "0.5.32",
     "date": "2026-09-05",
     "notes": [

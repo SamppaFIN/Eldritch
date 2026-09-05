@@ -226,6 +226,13 @@ describe('withFogOfWar', () => {
   it('an empty owned set reveals nothing', () => {
     expect(withFogOfWar([cell(RIVAL, 200)], [])).toEqual([]);
   });
+
+  it('draws every imported cell, however far, with no owned ground at all (BRDC-WAGER-JSON-006)', () => {
+    const far = cellAt({ lat: 60.17, lng: 24.94 });
+    const imported: Cell = { ...cell(RIVAL, 200, far), imported: true };
+    const shown = withFogOfWar([imported], []);
+    expect(shown.map((c) => c.h3)).toEqual([far]);
+  });
 });
 
 describe('contested', () => {

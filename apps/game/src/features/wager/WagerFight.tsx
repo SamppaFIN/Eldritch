@@ -11,11 +11,21 @@
  */
 import { useEffect, useState } from 'react';
 import { HexMandala } from '@es3/ui';
-import type { WagerReport } from '@es3/core';
+import type { WagerOutcome } from '@es3/core';
 import { fightFrames } from './fight.js';
 
+/**
+ * Parked with the battle since BRDC-WAGER-JSON-006 — nothing renders this now, but it
+ * stays whole for Phase 5. Its own report shape, since `WagerReport` no longer carries
+ * an outcome.
+ */
+export interface FightReport {
+  outcome: WagerOutcome;
+  challenge: { name: string; sum: string };
+}
+
 export interface WagerFightProps {
-  report: WagerReport;
+  report: FightReport;
   me: string;
 }
 

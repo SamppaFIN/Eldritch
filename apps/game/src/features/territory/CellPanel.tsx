@@ -31,6 +31,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
+import { SharedNote } from './SharedNote.js';
 import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TempleSchoolPanel } from './TempleSchoolPanel.js';
@@ -170,13 +171,8 @@ export function CellPanel({
   wisdomPerHour = 0,
   onClose,
 }: CellPanelProps) {
-  /*
-   * Focus follows the panel when it opens.
-   *
-   * Not a focus trap — this is a disclosure, not a modal, and the player is walking. But
-   * something that appears in response to a button has to be findable from the keyboard
-   * afterwards, and announced when it arrives.
-   */
+  // Focus follows the panel when it opens — not a trap (the player is walking), but a
+  // disclosure that appears from a button has to be findable from the keyboard after.
   const panelRef = useRef<HTMLElement>(null);
   const h3 = cell?.h3 ?? null;
   useEffect(() => {
@@ -238,6 +234,7 @@ export function CellPanel({
       </p>
 
       {cell.importedFrom ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
+      {cell.shared ? <SharedNote cell={cell} /> : null}
 
       {history ? (
         <p className="cell-panel__history">

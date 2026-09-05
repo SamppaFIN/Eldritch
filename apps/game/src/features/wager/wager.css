@@ -48,31 +48,7 @@
   color: var(--warning);
 }
 
-.wager__aside {
-  color: var(--text-dim);
-  font-size: var(--text-sm);
-  text-wrap: pretty;
-}
-
-.wager__outcome {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  border: 1px solid color-mix(in oklch, var(--accent-warm) 35%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in oklch, var(--bg) 55%, transparent);
-}
-
-.wager__verdict {
-  color: var(--accent-warm);
-  font-family: var(--font-display);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-bold);
-  text-wrap: balance;
-}
-
-/* --- The fight --------------------------------------------------------- */
+/* --- The fight (parked with the battle, BRDC-WAGER-JSON-006) ---------- */
 
 .fight {
   display: flex;
@@ -150,4 +126,33 @@
   .fight__bar-fill {
     transition: none;
   }
+}
+
+/* Shared-cell note, shown inside CellPanel (BRDC-WAGER-JSON-006). */
+.wager__shared {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+}
+
+.wager__shared-head {
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}
+
+.wager__shared-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.wager__shared-ring {
+  flex: 0 0 auto;
+}
+
+.wager__shared-split {
+  color: var(--text);
+  font-size: var(--text-body);
 }

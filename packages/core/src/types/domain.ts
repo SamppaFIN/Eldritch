@@ -135,13 +135,22 @@ export interface Cell {
    */
   terrain?: Terrain;
   /**
-   * Both this player and an imported challenge claim this ground (BRDC-WAGER-JSON-002).
-   * The local player keeps ownership; the hourly trickle is split by each side's
-   * strength at the moment of import — the only "who has been here more" a one-shot
-   * text challenge carries. Cleared by reinforcing the cell on a new day. Additive, no
-   * migration.
+   * Both this player and an imported challenge claim this ground (BRDC-WAGER-JSON-002,
+   * -006). The local player keeps ownership; the hourly trickle is split by each side's
+   * strength at the moment of import, and when those are equal by the days each side has
+   * held it (`myDays` / `theirDays`, BRDC-WAGER-JSON-006). `withName` is the rival's
+   * nation or name, carried so the detail panel can say who. Cleared by reinforcing the
+   * cell on a new day. All but `with` are additive — an older tag falls back to the
+   * strength split, then to an even split. No migration.
    */
-  shared?: { with: PlayerId; mineAtImport: number; theirsAtImport: number };
+  shared?: {
+    with: PlayerId;
+    withName?: string;
+    mineAtImport: number;
+    theirsAtImport: number;
+    myDays?: number;
+    theirDays?: number;
+  };
   /**
    * Where this cell's picture came from, when it was not this device (BRDC-WAGER-JSON-004).
    * A Wager message or `world.json` carries the owner's nation, flag and the moment they

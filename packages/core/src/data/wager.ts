@@ -5,19 +5,14 @@
  * store — split out when MockRepository reached its four hundred lines for the third
  * time. The rule is to split, and the seam is real: everything here is about moving a
  * rival's ground in and out of storage.
+ *
+ * Since BRDC-WAGER-JSON-006 accepting a Wager is territory only — no duel. The battle
+ * (`wagerBattle.ts`, `spoils.ts`) is left parked for Phase 5's real multiplayer;
+ * `ownCombatant` and the defence readers below stay with it. `sealChallenge` still ships
+ * `defence` on the wire so un-parking needs no version bump.
  */
-import {
-  buildChallenge,
-  challengeToCells,
-  challengeToCombatant,
-  encodeChallenge,
-  parseChallenge,
-} from './challenge.js';
+import { buildChallenge, challengeToCells, encodeChallenge, parseChallenge } from './challenge.js';
 import type { Challenge, ChallengeFault } from './challenge.js';
-import { applySpoils } from '../rules/spoils.js';
-import { resolveWager } from '../rules/wagerBattle.js';
-import { writeLogEntry } from './logStore.js';
-import type { WagerOutcome } from '../rules/wagerBattle.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
@@ -57,89 +52,63 @@ export function sealChallenge(
 
 export interface WagerReport {
   challenge: Challenge;
-  outcome: WagerOutcome;
-  /** Their cells weakened by the victory, and by how much in total. */
-  weakened: number;
-  taken: number;
+  /** Their cells written onto the map as rival ground. */
+  imported: number;
+  /** Their cells that overlap yours — kept yours, tagged `shared`. */
+  shared: number;
 }
 
 export type ImportResult = { ok: true; report: WagerReport } | { ok: false; fault: ChallengeFault };
 
 /**
- * Accept a Wager: take their ground onto the map, fight it, and settle the spoils.
- *
- * One transaction, because they are one act. Splitting them would leave a state where a
- * rival's territory exists but the duel has not happened — and a second call could then
- * fight the same message again after a walk had changed the seed.
+ * Accept a Wager: take their ground onto the map. No duel (BRDC-WAGER-JSON-006) — a
+ * friend's sanctuary appears as ground you can walk over, and where it overlaps yours
+ * the cell is shared. Safe to run again with the same or a fresher message; there is no
+ * spent state, and the shared split is recomputed from whatever the message now says.
  *
  * Their cells are written straight in, overwriting whatever was there: a cell cannot
- * belong to two people, and the challenge is the newer claim, since it arrived after
- * everything already on the map. What it must never do is take the local player's own
- * ground. A message from a friend is not a capture; corrupting your map is not a game
- * mechanic. Where their claim overlaps yours the cell stays yours, but it is tagged
- * `shared` (BRDC-WAGER-JSON-002): the hourly yield is then split by each side's strength
- * at import, and walking the cell again on a new day takes the whole yield back.
+ * belong to two people, and the challenge is the newer claim. What it must never do is
+ * take the local player's own ground. Where their claim overlaps yours the cell stays
+ * yours, tagged `shared` (BRDC-WAGER-JSON-002, -006): the hourly yield is then split by
+ * each side's strength at import — or, when those tie, by the days each has held it —
+ * and walking the cell again on a new day takes the whole yield back.
  */
 export async function openChallenge(
   store: KeyValueStore,
   text: string,
   me: PlayerProfile,
-  ownCells: readonly Cell[],
-  home: H3Index | null,
   now: number,
 ): Promise<ImportResult> {
   const parsed = parseChallenge(text, me.id);
   if (!parsed.ok) return parsed;
 
   const challenge = parsed.challenge;
-  const fought = (await store.get<string[]>(K.fought)) ?? [];
-  if (fought.includes(challenge.sum)) return { ok: false, fault: 'already-fought' };
+  const withName = challenge.nation ?? challenge.name;
 
-  const theirs = challengeToCells(challenge, now);
-  const overlap = new Set<H3Index>();
-  for (const cell of theirs) {
+  let imported = 0;
+  let shared = 0;
+  for (const cell of challengeToCells(challenge, now)) {
     const existing = await store.get<Cell>(K.cell(cell.h3));
     if (existing?.ownerId === me.id) {
-      overlap.add(cell.h3);
+      shared += 1;
       await store.set(K.cell(cell.h3), {
         ...existing,
         shared: {
           with: challenge.id,
+          withName,
           mineAtImport: existing.strength,
           theirsAtImport: cell.strength,
+          myDays: existing.ownedDays ?? 0,
+          theirDays: cell.ownedDays ?? 0,
         },
       });
       continue;
     }
+    imported += 1;
     await store.set(K.cell(cell.h3), cell);
   }
 
-  const outcome = resolveWager(
-    ownCombatant(me, ownCells, home, await readDefence(store)),
-    challengeToCombatant(challenge),
-  );
-
-  // Only their newly arrived ground can be softened — a cell you also hold stays yours,
-  // tagged `shared`, and the spoils never touch it.
-  const spoils = applySpoils(
-    theirs.filter((c) => !overlap.has(c.h3)),
-    outcome,
-    me.id,
-  );
-  for (const cell of spoils.cells) await store.set(K.cell(cell.h3), cell);
-
-  await store.set(K.fought, [...fought, challenge.sum].slice(-200));
-  await writeLogEntry(store, {
-    at: now,
-    kind: 'wager',
-    ref: challenge.name,
-    won: outcome.winner === me.id,
-  });
-
-  return {
-    ok: true,
-    report: { challenge, outcome, weakened: spoils.weakened, taken: spoils.taken },
-  };
+  return { ok: true, report: { challenge, imported, shared } };
 }
 
 /**

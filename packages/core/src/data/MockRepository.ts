@@ -295,17 +295,16 @@ export class MockRepository implements GameRepository {
   }
 
   /* --- Territory -------------------------------------------------------- */
-  /**
-   * Cells in view, aged to `now`.
-   *
-   * The projection is for rendering and is never written back — see projectCell. The
-   * one thing that IS persisted here is release: a cell that has reached zero is
-   * genuinely unowned again, and leaving it on disk would keep a ghost nobody can take.
-   */
+  /** Cells in view, aged to `now` (a render projection, never written back except a
+   *  release — a cell at zero strength is genuinely unowned). Imported ground (a Wager
+   *  or world.json) is added wherever it sits, not only in view (BRDC-WAGER-JSON-006). */
   async getCells(bbox: BBox, now: number): Promise<Cell[]> {
     const inView = await cellsInBBox(this.store, bbox);
-    const loyalty = await this.loyaltyOver(inView);
-    return (await sweepAndPersist(this.store, inView, now, loyalty, await this.getHome())).cells;
+    const seen = new Set(inView.map((c) => c.h3));
+    const away = (await allCells(this.store)).filter((c) => c.imported && !seen.has(c.h3));
+    const all = away.length > 0 ? [...inView, ...away] : inView;
+    const loyalty = await this.loyaltyOver(all);
+    return (await sweepAndPersist(this.store, all, now, loyalty, await this.getHome())).cells;
   }
 
   async getOwnedCells(now: number): Promise<Cell[]> {

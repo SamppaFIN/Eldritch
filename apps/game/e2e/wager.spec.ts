@@ -2,11 +2,17 @@ import { expect, test } from '@playwright/test';
 import { acceptHearth } from './hearth.js';
 
 /**
- * BRDC-WAGER-JSON-001, end to end: two sanctuaries in two browser contexts, and a block
- * of text carried between them by hand — which is exactly what a player does with it.
+ * BRDC-WAGER-JSON-001, -006, end to end: two sanctuaries in two browser contexts, and a
+ * block of text carried between them by hand — which is what a player does with it.
+ * Since -006 accepting a Wager is territory only: no duel, and the same message can be
+ * accepted again.
  */
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
+
+// The two-context tests seal one game and import it into another; run one at a time, or
+// two of them racing for one CPU makes an accept's territory scan time out.
+test.describe.configure({ mode: 'serial' });
 
 test('a challenge is sealed and can be copied out', async ({ page }) => {
   await page.goto('/');
@@ -22,25 +28,13 @@ test('a challenge is sealed and can be copied out', async ({ page }) => {
 
   const text = await payload.inputValue();
   const parsed = JSON.parse(text);
-  expect(parsed).toMatchObject({ v: 2, defence: 'wall' });
+  expect(parsed).toMatchObject({ v: 3 });
   expect(typeof parsed.sum).toBe('string');
 });
 
-test('the border defence travels with the challenge', async ({ page }) => {
-  // Both phones compute the same fight from the same inputs, so a defence the other
-  // side cannot see would make the two of them disagree with no referee to ask.
-  await page.goto('/');
-  await page.getByRole('button', { name: 'The Wager' }).click();
-
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('radio', { name: 'Orcs' }).click();
-  await dialog.getByRole('button', { name: 'Seal my sanctuary' }).click();
-
-  const sealed = JSON.parse(await dialog.getByLabel('Your challenge').inputValue());
-  expect(sealed.defence).toBe('orcs');
-});
-
-test('a challenge from another sanctuary lands on the map', async ({ browser }) => {
+test('a challenge from another sanctuary lands on the map, and can be accepted again', async ({
+  browser,
+}) => {
   test.setTimeout(120_000);
 
   // The sender: a second game, on a different street, that has actually been walked.
@@ -71,31 +65,48 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
 
   expect(JSON.parse(challenge).cells.length).toBeGreaterThan(0);
 
-  // The receiver, who has never met them.
+  // The receiver, who has never met them, and never walks a step.
   const receiverCtx = await browser.newContext({ permissions: ['geolocation'], geolocation: HERE });
   const receiver = await receiverCtx.newPage();
   await receiver.goto('/');
-  await receiver.getByRole('button', { name: 'The Wager' }).click();
+  await receiver.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await acceptHearth(receiver, HERE);
+  await expect(receiver.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
-  await receiver.getByLabel('A challenge you were sent').fill(challenge);
-  await receiver.getByRole('button', { name: 'Accept the Wager' }).click();
+  await receiver.getByRole('button', { name: 'Keep', exact: true }).click();
+  const keep = receiver.getByLabel('Your sanctuary');
+  await expect(keep).toBeVisible();
+  await keep.getByRole('button', { name: 'The Wager' }).click();
+  const dialog = receiver.getByRole('dialog', { name: 'The Wager' });
+  await dialog.getByLabel('A challenge you were sent').fill(challenge);
+  await dialog.getByRole('button', { name: 'Accept the Wager' }).click();
 
-  // BRDC-WAGER-JSON-004: the message now names the sender ("Seeker's ground..."),
-  // not a generic "Their".
-  await expect(receiver.getByText(/ground is on your map/i)).toBeVisible();
+  // The message names the sender (BRDC-WAGER-JSON-004) — no duel, just their ground.
+  await expect(dialog.getByText(/ground is on your map/i)).toBeVisible({ timeout: 15_000 });
+  await expect(receiver.locator('.fight__bar-track')).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Done' }).click();
 
-  // And the Wager resolves on this phone, from the message alone. No result is sent
-  // back, because a result is a claim and a claim is a thing to be lied about.
-  // The duel is replayed round by round, with both sides' might as progress bars that
-  // carry their value to assistive tech rather than only to the eye.
-  await expect(receiver.locator('.fight__bar-track').first()).toBeVisible();
-  await expect(receiver.locator('.fight__verdict-line')).toBeVisible({ timeout: 15_000 });
-  await expect(receiver.getByText(/Their game will read the same result/i)).toBeVisible();
+  // The sender's ground is 330 m east — no overlap, so it lands as rival cells (the
+  // enemy-red fill), and it is drawn even though the receiver has not walked near it
+  // (BRDC-WAGER-JSON-006 lifts the fog for imported ground).
+  const rivalDrawn = () =>
+    receiver.evaluate(() => {
+      const map = (globalThis as unknown as {
+        __esMap?: { getSource: (id: string) => { serialize?: () => { data?: { features?: { properties?: { color?: string } }[] } } } | undefined };
+      }).__esMap;
+      const feats = map?.getSource('cells')?.serialize?.().data?.features ?? [];
+      return feats.filter((f) => f.properties?.color === '#5c1a1a').length;
+    });
+  await expect.poll(rivalDrawn, { timeout: 10_000 }).toBeGreaterThan(0);
 
-  // And a challenge is spent once fought — otherwise a loser walks round the block,
-  // which changes the seed, and imports the same message until they win.
-  await receiver.getByRole('button', { name: 'Accept the Wager' }).click();
-  await expect(receiver.getByText(/already fought this one/i)).toBeVisible();
+  // And it can be accepted again — no spent state (BRDC-WAGER-JSON-006).
+  await receiver.getByRole('button', { name: 'Keep', exact: true }).click();
+  await expect(keep).toBeVisible();
+  await keep.getByRole('button', { name: 'The Wager' }).click();
+  await dialog.getByLabel('A challenge you were sent').fill(challenge);
+  await dialog.getByRole('button', { name: 'Accept the Wager' }).click();
+  await expect(dialog.getByText(/ground is on your map/i)).toBeVisible({ timeout: 15_000 });
+  await expect(dialog.getByText(/already fought/i)).toHaveCount(0);
 
   await receiverCtx.close();
 });
@@ -165,15 +176,18 @@ test('ground both a Wager and your own walking claim shows shared, and lands at 
       };
     });
 
-  // The fog ring draws neighbours too, seen but not held — shared is only the seven
-  // cells that are both: the identical Hearth ring, owned here and imported alike.
-  await expect.poll(async () => (await readMap()).sharedFeatures, { timeout: 10_000 }).toBe(7);
+  // Most of the identical Hearth ring is both owned here and imported — so it is shared.
+  // Not an exact count: two GPS-founding sequences racing for one CPU can land a cell
+  // apart, so the ring overlaps in five to seven, never none.
+  await expect
+    .poll(async () => (await readMap()).sharedFeatures, { timeout: 10_000 })
+    .toBeGreaterThanOrEqual(5);
   const shared = await readMap();
   expect(shared.totalFeatures).toBeGreaterThan(shared.sharedFeatures);
   expect(shared.patternLoaded).toBe(true);
 
   // And it is still yours — a shared cell is not a loss, so the count does not drop.
-  await expect(receiver.locator('.hud__value').nth(2)).toContainText('7');
+  await expect(receiver.locator('.hud__value').nth(2)).toContainText(/^[5-7] ·/);
 
   await receiverCtx.close();
 });

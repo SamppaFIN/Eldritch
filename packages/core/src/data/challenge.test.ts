@@ -222,4 +222,17 @@ describe('the extended metadata (BRDC-WAGER-JSON-004)', () => {
     const text = withMeta().text.replace('"forest"', '"market"');
     expect(parseChallenge(text, ME)).toEqual({ ok: false, fault: 'damaged' });
   });
+
+  it('carries the days a cell has been held (BRDC-WAGER-JSON-006)', () => {
+    const cells = ground(2);
+    cells[0] = { ...cells[0]!, ownedDays: 9 };
+    const parsed = parseChallenge(sent(cells), ME);
+    if (!parsed.ok) throw new Error('expected a challenge');
+    const byH3 = new Map(parsed.challenge.cells.map((c) => [c.h3, c]));
+    expect(byH3.get(cells[0]!.h3)?.d).toBe(9);
+    expect(byH3.get(cells[1]!.h3)?.d).toBeUndefined();
+    // And it reaches the imported cell, where openChallenge reads it for the shared split.
+    const imported = new Map(challengeToCells(parsed.challenge, T0).map((c) => [c.h3, c]));
+    expect(imported.get(cells[0]!.h3)?.ownedDays).toBe(9);
+  });
 });

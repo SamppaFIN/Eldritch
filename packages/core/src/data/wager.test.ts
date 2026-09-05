@@ -71,7 +71,7 @@ describe('the Wager, carried by hand', () => {
     expect((await receiver.getCells(BOX, T0)).some((c) => c.ownerId === me.id)).toBe(true);
   });
 
-  it('tags overlapping ground as shared rather than dropping it (BRDC-WAGER-JSON-002)', async () => {
+  it('tags overlapping ground as shared, with who and each side\'s stake (BRDC-WAGER-JSON-002, -006)', async () => {
     // Both players walked from the same point, so every claim overlaps.
     const mineRepo = await played(9);
     const rivalRepo = await played(3);
@@ -82,7 +82,18 @@ describe('the Wager, carried by hand', () => {
 
     const shared = (await mineRepo.getOwnedCells(T0)).filter((c) => c.shared);
     expect(shared.length).toBeGreaterThan(0);
-    expect(shared.every((c) => c.ownerId === myId && c.shared?.with === them.id)).toBe(true);
+    expect(
+      shared.every(
+        (c) =>
+          c.ownerId === myId &&
+          c.shared?.with === them.id &&
+          c.shared.withName === them.name &&
+          typeof c.shared.mineAtImport === 'number' &&
+          typeof c.shared.theirsAtImport === 'number' &&
+          typeof c.shared.myDays === 'number' &&
+          typeof c.shared.theirDays === 'number',
+      ),
+    ).toBe(true);
   });
 
   it('refuses a challenge the player exported themselves', async () => {
@@ -90,48 +101,22 @@ describe('the Wager, carried by hand', () => {
     expect(await sender.importChallenge(text, T0)).toEqual({ ok: false, fault: 'yourself' });
   });
 
-  it('fights the Wager as part of accepting it', async () => {
+  it('reports how much ground it wrote and how much it shared', async () => {
     const result = await receiver.importChallenge(await sender.exportChallenge(T0), T0);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-
-    const me = await receiver.getProfile();
-    expect([me.id, result.report.challenge.id]).toContain(result.report.outcome.winner);
-    expect(result.report.outcome.rounds.length).toBeGreaterThan(0);
+    // Sender is four hundred metres east — no overlap, so all of it lands as rival ground.
+    expect(result.report.imported).toBeGreaterThan(0);
+    expect(result.report.shared).toBe(0);
+    expect(result.report).not.toHaveProperty('outcome');
   });
 
-  it('refuses to fight the same challenge twice', async () => {
-    /*
-     * The fight is deterministic, so a second run of the same message gives the same
-     * answer — but walking a little first changes the muster, which changes the seed. A
-     * loser who could simply walk around the block and re-import would never lose.
-     */
+  it('imports again — the same message re-runs (BRDC-WAGER-JSON-006)', async () => {
+    // No duel and no spent state: a friend re-sending their world, or the player pasting
+    // it twice, just refreshes their ground and the shared split from the latest message.
     const text = await sender.exportChallenge(T0);
     expect((await receiver.importChallenge(text, T0)).ok).toBe(true);
-    expect(await receiver.importChallenge(text, T0)).toEqual({
-      ok: false,
-      fault: 'already-fought',
-    });
-  });
-
-  it('softens their border when the receiver wins, and never takes it', async () => {
-    const them = await sender.getProfile();
-    const before = (await sender.getOwnedCells(T0)).reduce((n, c) => n + c.strength, 0);
-
-    const result = await receiver.importChallenge(await sender.exportChallenge(T0), T0);
-    if (!result.ok) throw new Error('expected a challenge');
-
-    const theirs = (await receiver.getCells(BOX, T0)).filter((c) => c.ownerId === them.id);
-    const after = theirs.reduce((n, c) => n + c.strength, 0);
-
-    if (result.report.outcome.winner === (await receiver.getProfile()).id) {
-      expect(after).toBeLessThan(before);
-      expect(result.report.weakened).toBeGreaterThan(0);
-    } else {
-      expect(result.report.weakened).toBe(0);
-    }
-    // Either way, every one of their cells is still theirs. Feet take cells.
-    expect(theirs.every((c) => c.ownerId === them.id)).toBe(true);
+    expect((await receiver.importChallenge(text, T0)).ok).toBe(true);
   });
 
   it('refuses a message that arrived damaged, and changes nothing', async () => {

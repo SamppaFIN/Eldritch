@@ -185,11 +185,11 @@ export const ANCHOR = {
  * Separate from SAVE_VERSION on purpose: a save and a message between two phones change
  * for different reasons, and bumping one should not invalidate the other.
  *
- * v2 added the sender's defence. Both phones have to compute the same fight from the
- * same inputs, so a v1 message is genuinely unusable rather than merely older — and the
- * refusal already says so in words.
+ * v2 added the sender's defence. v3 (BRDC-WAGER-JSON-006) dropped the fight from import
+ * altogether and added `d` per cell — the days the sender has held it, which breaks a
+ * tie when a shared cell's yield is split. An older message is refused by name.
  */
-export const CHALLENGE_VERSION = 2;
+export const CHALLENGE_VERSION = 3;
 
 /**
  * The wire format for one region's slice of the shared world (BRDC-SHARE-001).
@@ -206,7 +206,7 @@ export const WORLD_VERSION = 1;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.32';
+export const APP_VERSION = '0.5.33';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 

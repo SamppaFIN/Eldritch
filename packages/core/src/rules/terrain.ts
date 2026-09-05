@@ -217,15 +217,18 @@ export function trickle(cells: readonly Cell[], ms: number, now: number): Resour
  * The fraction of a cell's trickle the local player keeps.
  *
  * `1` for ground held outright. A cell an imported challenge also claimed
- * (`cell.shared`, BRDC-WAGER-JSON-002) is split by each side's strength at the moment of
- * import — the closest thing to "who has been here more" that a one-shot text challenge
- * carries. Reinforcing the cell on a new day drops `shared` and takes the whole yield
- * back.
+ * (`cell.shared`, BRDC-WAGER-JSON-002, -006) is split by each side's strength at the
+ * moment of import; when those are equal, by the days each side has walked it
+ * (`myDays` / `theirDays`), and when neither separates them, evenly. Reinforcing the cell
+ * on a new day drops `shared` and takes the whole yield back.
  */
-function localShare(cell: Cell): number {
-  if (!cell.shared) return 1;
-  const total = cell.shared.mineAtImport + cell.shared.theirsAtImport;
-  return total > 0 ? cell.shared.mineAtImport / total : 0.5;
+export function localShare(cell: Cell): number {
+  const s = cell.shared;
+  if (!s) return 1;
+  const total = s.mineAtImport + s.theirsAtImport;
+  if (total > 0 && s.mineAtImport !== s.theirsAtImport) return s.mineAtImport / total;
+  const dTotal = (s.myDays ?? 0) + (s.theirDays ?? 0);
+  return dTotal > 0 ? (s.myDays ?? 0) / dTotal : 0.5;
 }
 
 export interface ResourceState {

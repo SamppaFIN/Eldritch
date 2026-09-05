@@ -143,8 +143,10 @@ export function terrainGlyph(kind: TerrainKind): { char: string; color: string }
 }
 
 /**
- * Fog of war: the only cells the map draws are the ones you hold and the ring of cells
- * around them. Everything else is left as bare basemap.
+ * Fog of war: the only cells the map draws are the ones you hold, the ring of cells
+ * around them, and every cell an import put on the map (BRDC-WAGER-JSON-006 — a Wager or
+ * `world.json`: you asked to see their whole reach, so it is not hidden). Everything else
+ * is left as bare basemap.
  *
  * A neighbour with no stored cell of its own still appears — as `emptyCell(h3)` — so it
  * can carry the pale reveal tint and its terrain glyph. The full set stays available to
@@ -158,6 +160,7 @@ export function withFogOfWar(all: readonly Cell[], owned: readonly Cell[]): Cell
     visible.add(cell.h3);
     for (const n of neighboursOf(cell.h3)) visible.add(n);
   }
+  for (const cell of all) if (cell.imported) visible.add(cell.h3);
   return [...visible].map((h3) => byH3.get(h3) ?? emptyCell(h3));
 }
 

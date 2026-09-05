@@ -44,14 +44,14 @@ export function exportChallengeFrom(m: Muster, now: number, identity?: WagerIden
   return sealChallenge(m.me, m.owned, m.castle, m.defence, now, identity);
 }
 
-/** Accept a Wager: take their ground on, fight it, settle the spoils. */
+/** Accept a Wager: take their ground onto the map. No duel (BRDC-WAGER-JSON-006). */
 export function importChallengeInto(
   store: KeyValueStore,
   m: Muster,
   text: string,
   now: number,
 ): Promise<ImportResult> {
-  return openChallenge(store, text, m.me, m.owned, m.castle, now);
+  return openChallenge(store, text, m.me, now);
 }
 
 /** The local player as the battle rules see them. */

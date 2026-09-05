@@ -16,18 +16,20 @@ import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { BuildingId, Cell, H3Index, PlayerId, TerrainKind } from '../types/domain.js';
 
 /**
- * One cell on the wire (BRDC-WAGER-JSON-004).
+ * One cell on the wire (BRDC-WAGER-JSON-004, -006).
  *
- * `h3` and `strength` are the fight; `t` and `b` are the picture — the terrain the sender
- * had resolved and the building on the border. Both optional: a message from before this
- * change, or a cell whose terrain was never read, simply omits them and imports as bare
- * ground. `world.ts` sends the same shape.
+ * `h3` and `strength` are the ground; `t` and `b` are the picture — the terrain the
+ * sender had resolved and the building on the border; `d` is how many distinct days the
+ * sender has held the cell, which breaks a tie when a shared cell's yield is split. All
+ * optional: a message from before a given change, or a cell whose terrain was never read,
+ * simply omits them and imports without. `world.ts` sends the same shape.
  */
 export interface WireCell {
   h3: H3Index;
   strength: number;
   t?: TerrainKind;
   b?: BuildingId;
+  d?: number;
 }
 
 /** A stored cell, trimmed to what travels. */
@@ -35,6 +37,7 @@ export function toWireCell(c: Cell): WireCell {
   const w: WireCell = { h3: c.h3, strength: Math.round(c.strength) };
   if (c.terrain) w.t = c.terrain.kind;
   if (c.building) w.b = c.building.id;
+  if (c.ownedDays) w.d = c.ownedDays;
   return w;
 }
 
@@ -77,15 +80,7 @@ export type ChallengeFault =
   | 'wrong-version'
   | 'damaged'
   | 'too-large'
-  | 'yourself'
-  /**
-   * Already fought.
-   *
-   * The fight is deterministic, so importing the same message twice gives the same
-   * answer — but walking a little first and importing it again would not. A challenge is
-   * spent the moment it is resolved, or the loser simply waits and tries again.
-   */
-  | 'already-fought';
+  | 'yourself';
 
 export type ChallengeResult =
   | { ok: true; challenge: Challenge }
@@ -200,6 +195,9 @@ export function challengeToCells(challenge: Challenge, now: number): Cell[] {
     // (BRDC-WAGER-JSON-004), though feet still take it like any ground.
     imported: true as const,
     importedFrom: from,
+    // Days they have held it — read only when this cell overlaps yours and the shared
+    // yield split needs a tie-breaker (BRDC-WAGER-JSON-006).
+    ...(c.d ? { ownedDays: c.d } : {}),
     // Their reading, carried over — not a firm local one, so it reads as estimated.
     ...(c.t ? { terrain: { kind: c.t, source: 'hash' as const } } : {}),
     ...(c.b ? { building: { id: c.b, builtAt: now } } : {}),

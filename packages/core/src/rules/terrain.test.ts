@@ -204,6 +204,19 @@ describe('trickle', () => {
     );
     expect(pool.wood).toBe((TRICKLE_PER_HOUR * 10) / 2);
   });
+
+  it('breaks a strength tie by the days each side has held it (BRDC-WAGER-JSON-006)', () => {
+    const wood = sample().find((h3) => resourceOf(h3) === 'wood') as string;
+    const [c] = cellsAt([wood]);
+    const base = trickle([c as Cell], 10 * HOUR, T0).wood;
+    const split = (s: NonNullable<Cell['shared']>) =>
+      trickle([{ ...(c as Cell), shared: s }], 10 * HOUR, T0).wood;
+
+    // Strengths equal → 6 of my days to 2 of theirs, three quarters.
+    expect(split({ with: 'r', mineAtImport: 100, theirsAtImport: 100, myDays: 6, theirDays: 2 })).toBe(base * 0.75);
+    // Strengths differ → days ignored, strength wins (also 3/4 here, from 150 vs 50).
+    expect(split({ with: 'r', mineAtImport: 150, theirsAtImport: 50, myDays: 1, theirDays: 9 })).toBe(base * 0.75);
+  });
 });
 
 describe('settleResources', () => {

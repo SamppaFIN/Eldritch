@@ -101,6 +101,7 @@ export {
   TRICKLE_PER_HOUR,
   addClaimYield,
   canAfford,
+  localShare,
   resourceForCell,
   resourceOf,
   settleResources,

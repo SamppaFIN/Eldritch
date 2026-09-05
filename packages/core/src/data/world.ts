@@ -83,11 +83,12 @@ export interface WorldSubmission {
   sum: string;
 }
 
-/** h3, strength, and terrain/building when the source carried them. */
+/** h3, strength, and terrain/building/days when the source carried them. */
 function trimWire(c: WireCell): WireCell {
   const w: WireCell = { h3: c.h3, strength: Math.round(c.strength) };
   if (c.t) w.t = c.t;
   if (c.b) w.b = c.b;
+  if (c.d) w.d = c.d;
   return w;
 }
 
