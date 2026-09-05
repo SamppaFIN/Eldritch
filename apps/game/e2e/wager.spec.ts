@@ -100,6 +100,84 @@ test('a challenge from another sanctuary lands on the map', async ({ browser }) 
   await receiverCtx.close();
 });
 
+test('ground both a Wager and your own walking claim shows shared, and lands at once', async ({
+  browser,
+}) => {
+  // BRDC-WAGER-JSON-005: both sanctuaries founded on the same spot claim the identical
+  // Hearth ring — h3 is a pure function of the fix, so this is a guaranteed overlap
+  // without either side having to walk a step.
+  test.setTimeout(120_000);
+
+  const senderCtx = await browser.newContext({ permissions: ['geolocation'], geolocation: HERE });
+  const sender = await senderCtx.newPage();
+  await sender.goto('/');
+  await sender.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await acceptHearth(sender, HERE);
+  await expect(sender.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+
+  await sender.getByRole('button', { name: 'Menu' }).click();
+  await sender.getByRole('button', { name: 'Retreat from the map' }).click();
+  await sender.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
+  await expect(sender.getByRole('button', { name: 'The Wager' })).toBeVisible();
+  await sender.getByRole('button', { name: 'The Wager' }).click();
+  await sender.getByRole('button', { name: 'Seal my sanctuary' }).click();
+  const challenge = await sender.getByLabel('Your challenge').inputValue();
+  await senderCtx.close();
+
+  // The receiver, at the exact same spot — accepts the Wager from the Keep rather than
+  // the title screen, so they never leave the map and the import's effect on it is what
+  // this test is actually watching.
+  const receiverCtx = await browser.newContext({ permissions: ['geolocation'], geolocation: HERE });
+  const receiver = await receiverCtx.newPage();
+  await receiver.goto('/');
+  await receiver.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await acceptHearth(receiver, HERE);
+  await expect(receiver.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+
+  await receiver.getByRole('button', { name: 'Keep', exact: true }).click();
+  const keep = receiver.getByLabel('Your sanctuary');
+  await expect(keep).toBeVisible();
+  await keep.getByRole('button', { name: 'The Wager' }).click();
+
+  const dialog = receiver.getByRole('dialog', { name: 'The Wager' });
+  await dialog.getByLabel('A challenge you were sent').fill(challenge);
+  await dialog.getByRole('button', { name: 'Accept the Wager' }).click();
+  await expect(dialog.getByText(/ground is on your map/i)).toBeVisible({ timeout: 15_000 });
+  await dialog.getByRole('button', { name: 'Done' }).click();
+
+  // Lands at once: no walk, no reload — the map's own re-read after the accept is what
+  // this polls for, tolerant only of ordinary render latency, not of a second trigger.
+  const readMap = () =>
+    receiver.evaluate(() => {
+      const map = (
+        globalThis as unknown as {
+          __esMap?: {
+            getSource: (id: string) => { serialize?: () => { data?: { features?: { properties?: { shared?: boolean } }[] } } } | undefined;
+            hasImage: (id: string) => boolean;
+          };
+        }
+      ).__esMap;
+      const data = map?.getSource('cells')?.serialize?.().data;
+      return {
+        sharedFeatures: data?.features?.filter((f) => f.properties?.shared).length ?? 0,
+        totalFeatures: data?.features?.length ?? 0,
+        patternLoaded: map?.hasImage('cells-shared-pattern') ?? false,
+      };
+    });
+
+  // The fog ring draws neighbours too, seen but not held — shared is only the seven
+  // cells that are both: the identical Hearth ring, owned here and imported alike.
+  await expect.poll(async () => (await readMap()).sharedFeatures, { timeout: 10_000 }).toBe(7);
+  const shared = await readMap();
+  expect(shared.totalFeatures).toBeGreaterThan(shared.sharedFeatures);
+  expect(shared.patternLoaded).toBe(true);
+
+  // And it is still yours — a shared cell is not a loss, so the count does not drop.
+  await expect(receiver.locator('.hud__value').nth(2)).toContainText('7');
+
+  await receiverCtx.close();
+});
+
 test('a damaged message says what to do about it', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'The Wager' }).click();

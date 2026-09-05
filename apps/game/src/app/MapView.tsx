@@ -72,13 +72,9 @@ export function MapView({ onLeave }: MapViewProps) {
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [settings, onSettingsChange] = useSettings();
 
-  /*
-   * Held open by the player, never by default.
-   *
-   * It keeps the screen lit and a near-silent loop playing, which is the only way a web
-   * page keeps receiving fixes once it stops being looked at. It costs battery, so the
-   * game asks rather than assumes.
-   */
+  // Held open by the player, never by default — it keeps the screen lit and a
+  // near-silent loop playing, the only way a web page keeps receiving fixes once it
+  // stops being looked at. Costs battery, so the game asks rather than assumes.
   const keepAlive = useKeepAlive();
 
   const clock = useGameClock();
@@ -219,12 +215,9 @@ export function MapView({ onLeave }: MapViewProps) {
   const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
   const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
 
-  /*
-   * A player who owns nothing has never seen the game do anything, so the map opens
-   * wide enough to show someone else's territory. Once they hold ground, walking zoom.
-   *
-   * Read once: the camera must not lurch outward the moment a claim decays away.
-   */
+  // A player who owns nothing has never seen the game do anything, so the map opens
+  // wide enough to show someone else's territory; once they hold ground, walking zoom.
+  // Read once — the camera must not lurch outward the moment a claim decays away.
   const [openingZoom] = useState(() =>
     load<number>('opening-zoom', 0) > 0 ? ZOOM_WALKING : ZOOM_FIRST_LOOK,
   );
@@ -302,7 +295,12 @@ export function MapView({ onLeave }: MapViewProps) {
         />
       ) : null}
 
-      <WagerDialog open={inspect.wager} repository={repository} onClose={inspect.closeWager} />
+      <WagerDialog
+        open={inspect.wager}
+        repository={repository}
+        onClose={inspect.closeWager}
+        onImported={territory.refresh}
+      />
 
       <CellPanel
         cell={inspect.cell}

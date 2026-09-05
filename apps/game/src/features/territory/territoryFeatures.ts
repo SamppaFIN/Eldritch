@@ -81,6 +81,8 @@ export interface CellProperties {
   blight: number;
   /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
   flag: string;
+  /** Both you and an imported Wager claim this cell (BRDC-WAGER-JSON-005) — `cell.shared`. */
+  shared: boolean;
 }
 
 /** The map flag glyph and its colour (BRDC-BANNER-001). Geometric Shapes block, so it
@@ -202,6 +204,7 @@ export function cellProperties(
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.
     flag: mine && !cell.building ? FLAG_GLYPH : '',
+    shared: cell.shared !== undefined,
   };
 }
 

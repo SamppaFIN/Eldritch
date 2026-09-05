@@ -21,6 +21,11 @@ export interface WagerDialogProps {
   open: boolean;
   repository: GameRepository | null;
   onClose: () => void;
+  /**
+   * Their ground just landed in storage — re-read the map. Optional: opened from the
+   * title screen (BRDC-WAGER-JSON-001) there is no map yet to refresh.
+   */
+  onImported?: () => void;
 }
 
 /** Errors say what to do, not what failed. */
@@ -36,7 +41,7 @@ const FAULT: Readonly<Record<ChallengeFault, string>> = {
 
 type Phase = 'idle' | 'sealed' | 'copied' | 'accepted' | 'refused';
 
-export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
+export function WagerDialog({ open, repository, onClose, onImported }: WagerDialogProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [text, setText] = useState('');
   const [incoming, setIncoming] = useState('');
@@ -119,8 +124,11 @@ export function WagerDialog({ open, repository, onClose }: WagerDialogProps) {
       setFault(null);
       setPhase('accepted');
       setOutcome({ report: result.report, me: me.id });
+      // Their ground is in storage now; nothing else was going to notice until the
+      // player's next step happened to refresh the map.
+      onImported?.();
     })();
-  }, [repository, incoming]);
+  }, [repository, incoming, onImported]);
 
   const provinces = outcome
     ? new Set(outcome.report.challenge.cells.map((c) => regionOf(c.h3))).size

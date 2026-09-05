@@ -53,6 +53,18 @@ describe('ownership colour', () => {
   });
 });
 
+describe('shared ground (BRDC-WAGER-JSON-005)', () => {
+  it('flags a cell both you and an imported Wager claim', () => {
+    const dual: Cell = { ...cell(ME, 200), shared: { with: RIVAL, mineAtImport: 200, theirsAtImport: 150 } };
+    expect(cellProperties(dual, ME).shared).toBe(true);
+  });
+
+  it('is false for ground held only one way, yours or not', () => {
+    expect(cellProperties(cell(ME, 200), ME).shared).toBe(false);
+    expect(cellProperties(cell(RIVAL, 200), ME).shared).toBe(false);
+  });
+});
+
 describe('anomaly glyph', () => {
   // A cell the reveal hash marks rare — an anomaly site.
   const disk = [H3, ...neighboursOf(H3)];

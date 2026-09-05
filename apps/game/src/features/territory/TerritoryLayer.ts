@@ -12,11 +12,12 @@ import type { FeatureCollection, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { MAX_STRENGTH } from '@es3/core';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
-import { CONTESTED_STROKE, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
+import { CONTESTED_STROKE, ENEMY_FILL, OWN_FILL, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 
 export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
+export const CELL_SHARED_LAYER = 'cells-shared';
 export const CELL_BLIGHT_LAYER = 'cells-blight';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
@@ -24,6 +25,35 @@ export const CELL_ICON_LAYER = 'cells-icon';
 export const CELL_BUILDING_LAYER = 'cells-building';
 export const CELL_FLAG_LAYER = 'cells-flag';
 export const CELL_ANOMALY_LAYER = 'cells-anomaly';
+
+/** The `map.addImage` id for the shared-ground checkerboard. */
+const SHARED_PATTERN = 'cells-shared-pattern';
+
+/**
+ * A four-square checkerboard of your own colour and the fixed rival red, for a cell an
+ * imported Wager and your own walking both claim (BRDC-WAGER-JSON-005).
+ *
+ * `fill-pattern` is the only way MapLibre tiles a fill, and it always wants a raster —
+ * there is no vector escape hatch here the way §12 prefers for ceremony. One check
+ * spells out "part yours, part theirs" with colours the map already teaches, so this
+ * needs no third colour and no legend.
+ */
+function sharedPatternImage(): { width: number; height: number; data: Uint8ClampedArray } {
+  const size = 16;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return { width: size, height: size, data: new Uint8ClampedArray(size * size * 4) };
+  const half = size / 2;
+  ctx.fillStyle = OWN_FILL;
+  ctx.fillRect(0, 0, half, half);
+  ctx.fillRect(half, half, half, half);
+  ctx.fillStyle = ENEMY_FILL;
+  ctx.fillRect(half, 0, half, half);
+  ctx.fillRect(0, half, half, half);
+  return ctx.getImageData(0, 0, size, size);
+}
 
 /**
  * Below this, individual res-11 cells are smaller than a finger and stop being
@@ -38,6 +68,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   if (map.getSource(CELL_SOURCE)) return;
 
   map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
+  if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
 
   // Below the trail, which is added later and therefore sits on top: the ley-line is
   // what the player is drawing right now and must never be buried by their own ground.
@@ -68,6 +99,16 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
         0.5,
       ],
     },
+  });
+
+  // Over the base fill, only where a Wager import and your own walking both claim the
+  // ground: the checkerboard reads as "part yours, part theirs" without a third colour.
+  map.addLayer({
+    id: CELL_SHARED_LAYER,
+    type: 'fill',
+    source: CELL_SOURCE,
+    filter: ['get', 'shared'],
+    paint: { 'fill-pattern': SHARED_PATTERN, 'fill-opacity': 0.75 },
   });
 
   /*
@@ -253,9 +294,11 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
     CELL_CONTESTED_LAYER,
     CELL_LINE_LAYER,
     CELL_BLIGHT_LAYER,
+    CELL_SHARED_LAYER,
     CELL_FILL_LAYER,
   ]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);
+  if (map.hasImage(SHARED_PATTERN)) map.removeImage(SHARED_PATTERN);
 }

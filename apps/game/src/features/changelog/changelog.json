@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.31",
+    "date": "2026-09-05",
+    "notes": [
+      "A Wager now updates your map the instant you accept it — no more walking a step first to see their ground appear.",
+      "Ground that both you and a Wager both claim now shows as a checkerboard of your colour and theirs, instead of looking like ground you hold outright."
+    ]
+  },
+  {
     "version": "0.5.30",
     "date": "2026-09-05",
     "notes": [

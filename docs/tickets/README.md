@@ -372,6 +372,7 @@ ongelma on reitti, ei puuttuva ominaisuus. Ja **`CLAIM_YIELD` on vihreä ytimess
 | [BRDC-MAP-003](BRDC-MAP-003.md) | Sumu peittää myös maaston | S | `?` paljastamattomalle — sumu vuotaa maastotyypin |
 | [BRDC-WIKI-002](BRDC-WIKI-002.md) | Kirja täyttyy kohdatessa, You näyttää vain nähdyn | M | rekisteri kohdatuista aiheista; tasot vain saavutettuun asti |
 | [BRDC-WAGER-JSON-004](BRDC-WAGER-JSON-004.md) | Vastaanotettu kartta päivittää omistajuudet | S | **done v0.5.23** · maasto+rakennus+lippu jsoniin · detail kertoo lähteen, ei rappeudu |
+| [BRDC-WAGER-JSON-005](BRDC-WAGER-JSON-005.md) | Jaettu maa näkyy jaettuna, tuonti näkyy heti | M | **done v0.5.31** · `shared`-kenttä oli jo datassa, ei koskaan piirretty · ruudukko-`fill-pattern` · tuonti virkistää kartan |
 | [BRDC-VIGIL-002](BRDC-VIGIL-002.md) | Keepalive kuolee lukitussa puhelimessa | M+L | **mittaus, ei arvaus.** Jos vastaus on APK, se nousee kaiken edelle |
 
 ### 🧩 Moduulit — korjausten jälkeen
