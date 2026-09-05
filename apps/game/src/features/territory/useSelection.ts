@@ -93,6 +93,8 @@ export interface ResearchBinding {
   refusal: TechRefusal | null;
   /** Set for one render after a research crossed an era boundary. */
   lastEra: Era | null;
+  /** Set for one render after a schooled tech landed — a Rite learned (BRDC-FX-001). */
+  lastRite: TechId | null;
   /**
    * The tech in flight, or null. `getOwnedCells`'s full scan (BRDC-SCALE-001) makes even
    * a small realm's research take a visible second or more — a tap with no feedback for

@@ -1,0 +1,103 @@
+/* A moment (BRDC-FX-001). Centred on the map, just above the claim burst, below modals. */
+
+.moment-fx {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-hud) + 1);
+  display: grid;
+  place-items: center;
+  /* The map keeps working underneath; only the panel takes taps. */
+  pointer-events: none;
+}
+
+.moment-fx__glyph {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  color: var(--sacred-gold);
+  filter: drop-shadow(0 0 22px color-mix(in oklch, var(--sacred-gold) 50%, transparent));
+  animation: es-moment-glyph 1.8s var(--ease-out) both;
+}
+
+.moment-fx__panel {
+  grid-area: 1 / 1;
+  inline-size: min(26rem, 86vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: center;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: es-moment-panel 1.8s var(--ease-out) both;
+}
+
+.moment-fx__eyebrow {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.moment-fx__title {
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: min(var(--text-h2), 8vw);
+  font-weight: var(--weight-bold);
+  line-height: 1.15;
+  text-shadow: 0 0 24px color-mix(in oklch, var(--sacred-gold) 40%, transparent);
+  text-wrap: balance;
+}
+
+@keyframes es-moment-glyph {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  to {
+    opacity: 0;
+    scale: 1.3;
+  }
+}
+
+@keyframes es-moment-panel {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+  15% {
+    opacity: 1;
+    scale: 1;
+  }
+  80% {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.02;
+  }
+}
+
+/*
+ * Collapsing these keyframes to 0.01ms is wrong — they end at opacity 0, so it would
+ * flash out instead of being shown. The panel simply appears; the timer that removes it
+ * (MOMENT_MS) still runs, so the moment shows and clears without motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .moment-fx__glyph {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .moment-fx__panel {
+    animation: none;
+  }
+}

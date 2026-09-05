@@ -25,6 +25,7 @@ import { useKeepAlive } from '../features/trail/useKeepAlive.js';
 import { useSimulateKey } from '../features/trail/useSimulateKey.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
+import { MomentFx, useMomentTriggers, useMoments } from '../features/fx/index.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { useSelection } from '../features/territory/useSelection.js';
@@ -132,10 +133,8 @@ export function MapView({ onLeave }: MapViewProps) {
 
   const trail = useTrail({ repository, point, collecting: true });
 
-  /*
-   * Places are re-read whenever one reveals itself, and once at start so a returning
-   * player's Anchor is on the map before they have walked a step.
-   */
+  // Places are re-read when one reveals itself, and once at start so a returning player's
+  // Anchor is on the map before they have walked a step.
   useEffect(() => {
     if (!repository || !trail.ready) return;
     void repository.getPlaces().then(setPlaces);
@@ -177,13 +176,8 @@ export function MapView({ onLeave }: MapViewProps) {
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
   const onCellTerrain = useCellTerrain(repository, territory.refresh);
 
-  /*
-   * Everything about what the player is inspecting, in one place.
-   *
-   * Lifted out when MapView crossed four hundred lines. A real seam rather than a
-   * convenient cut: selection, the panels it opens and the one action they offer are one
-   * concern, and none of the rest of this file needs to know how it works.
-   */
+  // Everything about what the player is inspecting — selection, the panels it opens, the
+  // one action they offer. Lifted out when MapView crossed four hundred lines.
   const inspect = useSelection({
     repository,
     cells: territory.cells,
@@ -204,16 +198,20 @@ export function MapView({ onLeave }: MapViewProps) {
   // (BRDC-DWELL-002). The one the player most often wants.
   const standingOn = useStandingCell(point, pace);
 
-  // After ground changes hands (a loop, or a step): re-read the HUD, play the map flare,
-  // raise the "New ground" screen (BRDC-CLAIM-009).
+  const moments = useMoments();
+
+  // After ground changes hands: re-read the HUD, play the flare, raise "New ground"
+  // (CLAIM-009), draw a moment for a milestone it crossed (FX-001).
   const { awakening, discovery } = useClaimSync({
     repository, lastClaim: territory.lastClaim, standingOn, now: clock.now,
     settings, refreshTerritory: territory.refresh, setProfile, setResources,
+    onMoment: moments.show,
   });
 
   // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
   const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
   const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
+  useMomentTriggers({ show: moments.show, xp: profile?.xp, riteLearned: inspect.research.lastRite, questEnded: quest.adventures.justEnded });
 
   // A player who owns nothing has never seen the game do anything, so the map opens
   // wide enough to show someone else's territory; once they hold ground, walking zoom.
@@ -261,6 +259,7 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <ClaimBurst claim={territory.lastClaim} />
+      <MomentFx moments={moments} />
       <DiscoveryModal
         discovered={discovery.discovered}
         owned={territory.owned}

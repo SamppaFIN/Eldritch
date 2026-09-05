@@ -7,7 +7,7 @@
  * its own binding, its own panel, one seam into the rest of selection (`afterSpend`).
  */
 import { useCallback, useEffect, useState } from 'react';
-import { eraOf, researchableSchoolless } from '@es3/core';
+import { TECHS, eraOf, researchableSchoolless } from '@es3/core';
 import type { Era, GameRepository, H3Index, TechId, TechRefusal, TempleSchool } from '@es3/core';
 import type { ResearchBinding } from './useSelection.js';
 
@@ -21,6 +21,8 @@ export function useResearch(
   const [researched, setResearched] = useState<readonly TechId[]>([]);
   const [techRefusal, setTechRefusal] = useState<TechRefusal | null>(null);
   const [lastEra, setLastEra] = useState<Era | null>(null);
+  // One render after a schooled tech lands — the moment layer draws it (BRDC-FX-001).
+  const [lastRite, setLastRite] = useState<TechId | null>(null);
   const [researching, setResearching] = useState<TechId | null>(null);
   const [schools, setSchools] = useState<Readonly<Record<H3Index, TempleSchool>>>({});
 
@@ -54,6 +56,7 @@ export function useResearch(
     (id: TechId) => {
       if (!repository || researching) return;
       setLastEra(null);
+      setLastRite(null);
       setResearching(id);
       void (async () => {
         const r = await repository.researchTech(id, now());
@@ -61,6 +64,7 @@ export function useResearch(
         if (r.ok) {
           setResearched(r.researched);
           if (r.era) setLastEra(r.era);
+          if (TECHS[id]?.school) setLastRite(id);
           await afterSpend();
         }
         setResearching(null);
@@ -77,6 +81,7 @@ export function useResearch(
     options: researchableSchoolless([...researched]),
     refusal: techRefusal,
     lastEra,
+    lastRite,
     researching,
     schools,
     onChooseSchool,

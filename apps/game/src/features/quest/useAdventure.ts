@@ -13,6 +13,8 @@ export interface AdventureBinding {
   list: readonly AdventureView[];
   active: AdventureView | null;
   refusal: string | null;
+  /** The title of an adventure that just reached its end, for one render (BRDC-FX-001). */
+  justEnded: string | null;
   onStart: (id: string) => void;
   onChoose: (choiceIndex: number) => void;
   onAbandon: (id: string) => void;
@@ -26,6 +28,7 @@ export function useAdventure(
 ): AdventureBinding {
   const [list, setList] = useState<readonly AdventureView[]>([]);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [justEnded, setJustEnded] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     if (repository) setList(await repository.getAdventures(now));
@@ -35,26 +38,30 @@ export function useAdventure(
     void refetch();
   }, [refetch, version]);
 
+  const active = list.find((a) => a.state === 'active') ?? null;
+
   const run = useCallback(
-    (act: () => Promise<{ ok: boolean; refused?: string } | void>) => {
+    (act: () => Promise<{ ok: boolean; refused?: string; ended?: boolean } | void>, endedTitle?: string) => {
       void (async () => {
         const r = await act();
         setRefusal(r && !r.ok ? (r.refused ?? 'refused') : null);
+        setJustEnded(r && r.ok && r.ended && endedTitle ? endedTitle : null);
         await refetch();
       })();
     },
     [refetch],
   );
 
-  const active = list.find((a) => a.state === 'active') ?? null;
-
   return {
     list,
     active,
     refusal,
+    justEnded,
     onStart: (id) => repository && run(() => repository.startAdventure(id, now)),
     onChoose: (i) =>
-      repository && active && run(() => repository.chooseInAdventure(active.id, i, now)),
+      repository &&
+      active &&
+      run(() => repository.chooseInAdventure(active.id, i, now), active.title),
     onAbandon: (id) => repository && run(() => repository.abandonAdventure(id)),
   };
 }

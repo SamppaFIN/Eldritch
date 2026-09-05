@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-007, BRDC-ACHIEVE-001, BRDC-ART-002 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` (2026-09-05) |
+| **Valmius** | 100 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
 ## 🔴 RED
@@ -22,19 +22,33 @@ mihinkään muuhun kuin sigileihin.
 
 ## 🟢 GREEN
 
-- [ ] **Yksi efektikerros, ei viittä.** Yksi komponentti joka osaa soittaa nimetyn efektin
-      (`levelUp`, `achievement`, `riteComplete`, `wonderFound`, `questEnd`), ja yksi jono
-      joka estää kahta soimasta päällekkäin.
-- [ ] **Inline-SVG, stroke, ei fillia**, animoituna `stroke-dasharray`lla — `claude.md` §12.
-      Ei rasteria, ei kuvatiedostoja, ei kirjastoa.
-- [ ] **Kesto on lyhyt ja ohitettavissa.** Alle kaksi sekuntia, napautus ohittaa. Pelaaja
-      kävelee; mikään ei saa jäädä ruudulle odottamaan.
-- [ ] `prefers-reduced-motion: reduce` → efekti näytetään staattisena, ei ohiteta kokonaan.
-      Tieto ei saa kadota liikkeen mukana.
-- [ ] **Kuria:** efekti on hetki, ei koriste. Jos jokin näkyy ruudulla jatkuvasti, se ei
-      kuulu tänne. Katto per minuutti, jotta pitkä lenkki ei muutu ilotulitukseksi.
-- [ ] Testit ovat rajallisia (tämä on visuaalinen): jono ei päällekkäistä · katto pitää ·
-      reduced-motion valitsee staattisen haaran.
+- [x] **Yksi efektikerros, ei viittä.** `apps/game/src/features/fx/`: `useMoments` (jono +
+      `show`/`dismiss`, `current` = jonon pää → kaksi ei soi päällekkäin), `MomentFx`
+      (piirtää `current`in), `useMomentTriggers` (kattohook 4:lle triggerille).
+      `MomentKind = levelUp | achievement | riteComplete | wonderFound | questEnd`.
+- [x] **Inline-SVG, stroke, ei fillia.** `@es3/ui` `SacredGeometry` per kind: `levelUp` →
+      `FlowerOfLife`, `achievement`/`questEnd`/`wonderFound` → `MetatronsCube`,
+      `riteComplete` → `HexMandala`. `animate` → `stroke-dasharray` + `@keyframes es-draw`.
+      Ei rasteria, ei kirjastoa.
+- [x] **Kesto lyhyt ja ohitettavissa.** `MOMENT_MS = 1_800`. `<button>` (tap / Enter /
+      Space) sulkee heti, `dismiss()` vie jonon pään.
+- [x] **`prefers-reduced-motion`.** `shouldAnimate(reduced)` → `animate={0}` (geometria
+      ilmestyy heti), `moment-fx.css` poistaa panel-animaation — mutta moment näytetään ja
+      auto-dismiss pätee. `ClaimBurst`in kuvio.
+- [x] **Kuria.** `MOMENTS_PER_MIN = 4`, `withinCap(startedAt, now)` pudottaa ylimenevän
+      hiljaa. Efekti on `position: fixed` overlay joka katoaa 1,8 s:ssa — ei koskaan
+      jatkuvasti ruudulla.
+- [x] **Triggerit.** `levelUp`: `useLevelUp` vertaa `levelState(xp).level`iä edelliseen
+      (ensinäyttö hiljainen). `achievement`: `useClaimSync` kutsuu nyt
+      `repository.syncAchievements(now)` (oli olemassa, ei kutsuttu) ja soittaa jokaisesta
+      uudesta. `riteComplete`: `useResearch` palauttaa `lastRite` kun koulukunnallinen
+      tech laskeutuu. `questEnd`: `useAdventure` palauttaa `justEnded` kun
+      `chooseInAdventure` → `ended`. `wonderFound`: nimi varattu, ei triggeriä (WONDER-001).
+- [x] **Testit** (`useMoments.test.ts`, 5): `withinCap` (katto, minuutin ikkuna),
+      `geometryFor` (jokainen kind → oma kuvio), `shouldAnimate` (reduced → false).
+      Ei renderöintitestiä — repo ei renderöi Reactia testeissä (kuten `ResearchPanel.test.ts`).
+- [x] `pnpm test` (955) · `pnpm typecheck` · `pnpm lint:lines` · `pnpm build` vihreät.
+      `step-claim.spec.ts` + `research.spec.ts` regressiotön.
 
 ## Ei tässä
 

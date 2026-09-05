@@ -7,9 +7,10 @@
  * line ceiling.
  */
 import { useCallback, useEffect, useMemo } from 'react';
-import { saveNow } from '@es3/core';
+import { ACHIEVEMENTS, saveNow } from '@es3/core';
 import type { GameRepository, H3Index, PlayerProfile, ResourcePool } from '@es3/core';
 import { awakeningReveal } from './territoryFeatures.js';
+import type { MomentsApi } from '../fx/useMoments.js';
 import { useDiscovery } from './useDiscovery.js';
 import type { DiscoveryState } from './useDiscovery.js';
 import type { ClaimEvent } from './useTerritory.js';
@@ -30,18 +31,27 @@ export function useClaimSync(opts: {
   refreshTerritory: () => Promise<void>;
   setProfile: (p: PlayerProfile) => void;
   setResources: (r: ResourcePool) => void;
+  /** Draw an effect for a milestone crossed by this claim (BRDC-FX-001). */
+  onMoment?: MomentsApi['show'];
 }): ClaimSync {
   const { repository, lastClaim, standingOn, now, settings, refreshTerritory } = opts;
-  const { setProfile, setResources } = opts;
+  const { setProfile, setResources, onMoment } = opts;
 
   const syncHud = useCallback(() => {
     if (!repository) return;
     void repository.getProfile().then(setProfile);
     void repository.getResources(now()).then(setResources);
     void refreshTerritory();
+    // Achievements are stamped lazily; this is the one place the app asks live whether a
+    // claim just earned one, so the moment layer can draw it (BRDC-FX-001).
+    void repository.syncAchievements(now()).then((earned) => {
+      for (const id of earned) {
+        onMoment?.('achievement', 'Recognition', ACHIEVEMENTS.find((a) => a.id === id)?.name ?? id);
+      }
+    });
     // Remembered, so the next session opens at walking zoom, not the wide first-look.
     saveNow('opening-zoom', ZOOM_WALKING);
-  }, [repository, now, refreshTerritory, setProfile, setResources]);
+  }, [repository, now, refreshTerritory, setProfile, setResources, onMoment]);
 
   // A closed loop still reports through `lastClaim`; a step-claim calls `syncHud` itself.
   useEffect(() => {
