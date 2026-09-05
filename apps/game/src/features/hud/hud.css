@@ -245,9 +245,9 @@
   flex: 0 1 auto;
   display: flex;
   align-items: center;
-  /* Four controls now (Vigil · Here · Keep · You). On a 360 px phone they have to fit
-     one row without pushing Vigil off the edge, so the gap is tight, the type is small,
-     and the row may wrap as a last resort rather than clip. */
+  /* Five controls now (Vigil · Here · Keep · Research · You). On a 360 px phone they
+     have to fit without pushing Vigil off the edge, so the gap is tight, the type is
+     small, and the row may wrap to a second line as a last resort rather than clip. */
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-1);

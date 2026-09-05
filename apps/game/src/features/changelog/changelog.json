@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.37",
+    "date": "2026-09-05",
+    "notes": [
+      "Research has left the Keep. It is a button of its own in the walking bar — ✷ Research, next to Keep and You — and it opens as its own dialog, the way The Wager does. The Keep is Mana and Buildings now.",
+      "Rites are still learned at their temple; this is the plain technology tree, in the one place three field reports went looking for it."
+    ]
+  },
+  {
     "version": "0.5.36",
     "date": "2026-09-05",
     "notes": [

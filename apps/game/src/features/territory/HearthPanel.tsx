@@ -14,7 +14,6 @@ import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
 import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
 import { dominionOf } from './dominion.js';
-import { ResearchPanel } from './ResearchPanel.js';
 import { ManaPanel } from './ManaPanel.js';
 import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
 import { NationIdentity } from '../nation/NationIdentity.js';
@@ -22,25 +21,19 @@ import { KeepResources } from '../keep/KeepResources.js';
 import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
-import type { ResearchBinding } from './useSelection.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
 
-export type KeepTab = 'mana' | 'wisdom' | 'buildings';
+export type KeepTab = 'mana' | 'buildings';
 
 /**
- * The Keep's tabbed sections — mana, Research and buildings, all run from here
- * (BRDC-KEEP-002, -003). Opened from the map marker or the ⌂ Keep button.
- *
- * The tech tree lived here labelled "Rites" until a field report (2026-09-05): a
- * player looking for "a way to research new technologies" never thought to open a
- * tab named after a ritual. The tree's own content was always secular history
- * (Toolmaking, Masonry, Astronomy) — Research says what it is; Rite stays the word
- * for a spell you cast, which is what it already meant in SpellPanel.
+ * The Keep's tabbed sections — mana and buildings (BRDC-KEEP-002, -003). Opened from the
+ * map marker or the ⌂ Keep button. Research was a third tab until a field report
+ * (BRDC-KEEP-007): three attempts to make it findable here failed, so it left for its
+ * own HUD footer button and dialog, the way The Wager has one.
  */
 export const TABS: readonly { id: KeepTab; label: string }[] = [
   { id: 'mana', label: 'Mana' },
-  { id: 'wisdom', label: 'Research' },
   { id: 'buildings', label: 'Buildings' },
 ];
 
@@ -53,8 +46,6 @@ export interface HearthPanelProps {
   level: number;
   levelName: string;
   now: number;
-  /** The research screen's bundle (BRDC-TECH-001), from `useSelection`. */
-  research: ResearchBinding;
   /** The adventure book, opened from here (BRDC-QUEST-001). Lifted to MapView so the map
    *  can reveal landmarks by stage. */
   adventures: AdventureBinding;
@@ -81,7 +72,6 @@ export function HearthPanel({
   level,
   levelName,
   now,
-  research,
   adventures,
   repository,
   onPouch,
@@ -188,13 +178,6 @@ export function HearthPanel({
             onPouch={onPouch}
           />
         </>
-      ) : null}
-      {tab === 'wisdom' ? (
-        <ResearchPanel
-          research={research}
-          pool={resources}
-          wisdomPerHour={forecast?.perHour.wisdom ?? 0}
-        />
       ) : null}
       {tab === 'buildings' ? <KeepBuildingsPanel /> : null}
 

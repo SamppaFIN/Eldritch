@@ -54,8 +54,9 @@ export interface HudProps {
   waypoint?: string | null;
   onWaypointSeen?: () => void;
   onOpenCharacter?: () => void;
-  /** Opens the Keep — buildings, mana, research — from anywhere, not just its marker (BRDC-KEEP-003). */
+  /** Opens the Keep — buildings and mana — from anywhere, not just its marker (BRDC-KEEP-003). */
   onOpenKeep?: (() => void) | undefined;
+  onOpenResearch?: () => void;
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
@@ -183,6 +184,7 @@ export function Hud({
   onWaypointSeen,
   onOpenCharacter,
   onOpenKeep,
+  onOpenResearch,
   onHelp,
   onOpenLog,
 }: HudProps) {
@@ -191,12 +193,8 @@ export function Hud({
 
   useClaimFeedback(lastClaim, settings);
 
-  /*
-   * Publish the footer's real height so the top-docked panels (cell, Hearth) can cap
-   * themselves just above it and stay fully scrollable. The HUD grows and shrinks —
-   * claim lines, fade warnings, the rite readout — so a fixed guess would leave the
-   * bottom of a tall detail card stranded behind the glass.
-   */
+  // The footer publishes its live height so top-docked panels cap just above it — a
+  // fixed guess strands tall cards behind the shrinking/growing HUD (BRDC-MOBILE-001).
   const hudRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = hudRef.current;
@@ -283,14 +281,9 @@ export function Hud({
               ) : null}
             </span>
           </div>
-          {/*
-            The pouch sits in the grid rather than in a row of its own.
-            
-            Its own row cost the map four per cent of a phone screen, and this panel has
-            a hard budget: thirty per cent, tested. What it replaces is "Strongest",
-            which was the least actionable number here — you cannot do anything with it,
-            and you can spend timber.
-          */}
+          {/* The pouch sits in the grid, not its own row: that row cost 4% of the screen
+              against a tested 30% budget. It replaces "Strongest" — the least actionable
+              number here, where timber can at least be spent. */}
           <div className="hud__stat">
             <span className="hud__label">Pouch</span>
             <span className="hud__value es-numeric">
@@ -371,8 +364,7 @@ export function Hud({
             </span>
           </p>
 
-          {/* The walking bar keeps only what a walking thumb needs. Destructive actions
-              are in the menu (BRDC-HUD-003); Here is also the keyboard path onto the map. */}
+          {/* Walking bar: only what a walking thumb needs (BRDC-HUD-003). */}
           <div className="hud__actions">
             <Vigil keepAlive={keepAlive} />
             {standing && onInspectHere ? (
@@ -383,6 +375,11 @@ export function Hud({
             {onOpenKeep ? (
               <RitualButton variant="ghost" className="hud__here" onClick={onOpenKeep}>
                 <span aria-hidden>⌂</span> Keep
+              </RitualButton>
+            ) : null}
+            {onOpenResearch ? (
+              <RitualButton variant="ghost" className="hud__here" onClick={onOpenResearch}>
+                <span aria-hidden>✷</span> Research
               </RitualButton>
             ) : null}
             {onOpenCharacter ? (

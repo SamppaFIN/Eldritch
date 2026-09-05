@@ -131,6 +131,8 @@ export interface Selection {
   refusal: WardRefusal | null;
   sanctum: boolean;
   wager: boolean;
+  /** The Research dialog, opened from the HUD footer (BRDC-KEEP-007). */
+  researchOpen: boolean;
   build: BuildBinding;
   onCellTap: (h3: H3Index) => void;
   onPlaceTap: (h3: H3Index) => void;
@@ -139,6 +141,8 @@ export interface Selection {
   onWard: (h3: H3Index) => void;
   openWager: () => void;
   closeWager: () => void;
+  openResearch: () => void;
+  closeResearch: () => void;
   close: () => void;
 }
 
@@ -186,6 +190,7 @@ export function useSelection({
   }, [repository, now, trailVersion]);
   const [sanctum, setSanctum] = useState(false);
   const [wager, setWager] = useState(false);
+  const [researchOpen, setResearchOpen] = useState(false);
 
   /** Build, demolish, expand, cast and research all pay: re-read the pouch and the map. */
   const afterSpend = useCallback(async () => {
@@ -367,6 +372,7 @@ export function useSelection({
     refusal,
     sanctum,
     wager,
+    researchOpen,
     build: { researched: research.researched, myBuildings, refusal: buildRefusal, onBuild, onDemolish },
     onCellTap,
     onPlaceTap,
@@ -377,6 +383,8 @@ export function useSelection({
       setWager(true);
     }, []),
     closeWager: useCallback(() => setWager(false), []),
+    openResearch: useCallback(() => setResearchOpen(true), []),
+    closeResearch: useCallback(() => setResearchOpen(false), []),
     close: useCallback(() => {
       setSelected(null);
       setSanctum(false);

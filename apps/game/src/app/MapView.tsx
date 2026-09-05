@@ -28,6 +28,7 @@ import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { MomentFx, useMomentTriggers, useMoments } from '../features/fx/index.js';
 import { CellPanel } from '../features/territory/CellPanel.js';
 import { HearthPanel } from '../features/territory/HearthPanel.js';
+import { ResearchDialog } from '../features/territory/ResearchDialog.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
 import { withFogOfWar } from '../features/territory/territoryFeatures.js';
@@ -73,9 +74,8 @@ export function MapView({ onLeave }: MapViewProps) {
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [settings, onSettingsChange] = useSettings();
 
-  // Held open by the player, never by default — it keeps the screen lit and a
-  // near-silent loop playing, the only way a web page keeps receiving fixes once it
-  // stops being looked at. Costs battery, so the game asks rather than assumes.
+  // Held open by the player, never by default: a lit screen and a near-silent loop are
+  // the only way a backgrounded web page keeps getting fixes. Costs battery, so it asks.
   const keepAlive = useKeepAlive();
 
   const clock = useGameClock();
@@ -283,7 +283,6 @@ export function MapView({ onLeave }: MapViewProps) {
           level={levelState(profile?.xp ?? 0).level}
           levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()}
-          research={inspect.research}
           adventures={quest.adventures}
           repository={repository}
           onPouch={setResources}
@@ -300,6 +299,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onClose={inspect.closeWager}
         onImported={territory.refresh}
       />
+      <ResearchDialog open={inspect.researchOpen} research={inspect.research} pool={resources} wisdomPerHour={forecast?.perHour.wisdom ?? 0} onClose={inspect.closeResearch} />
 
       <CellPanel
         cell={inspect.cell}
@@ -363,6 +363,7 @@ export function MapView({ onLeave }: MapViewProps) {
         waypoint={quest.waypoint}
         onWaypointSeen={quest.onWaypointSeen}
         onOpenCharacter={aside.openCharacter}
+        onOpenResearch={inspect.openResearch}
         onOpenKeep={castle ? inspect.onCastleTap : undefined}
         onHelp={aside.openHelp}
         onOpenLog={aside.openLog}

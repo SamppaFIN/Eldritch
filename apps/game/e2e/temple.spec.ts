@@ -3,14 +3,14 @@ import { openMap } from './hearth.js';
 import type { Locator, Page } from '@playwright/test';
 
 /**
- * BRDC-TEMPLE-002 — the Keep's research list is schoolless-only.
+ * BRDC-TEMPLE-002 / -KEEP-007 — the Research dialog lists schoolless technologies only.
  *
  * The ticket splits research in two: technologies that unlock a Rite carry an element
- * and are researched from a temple of that element; the rest stay in the Keep. This
- * proves the Keep half through the real UI — with forestry and seafaring marked
- * researched (a `K.researched` seed, a key the game writes only on a completed
- * research), astronomy's prerequisites are met, yet it never appears in the Keep's list
- * because it has a school, while a still-open schoolless technology does.
+ * and are researched from a temple of that element; the rest are in the Research dialog
+ * (its own HUD footer button since KEEP-007). This proves that half through the real UI
+ * — with forestry and seafaring marked researched (a `K.researched` seed, a key the game
+ * writes only on a completed research), astronomy's prerequisites are met, yet it never
+ * appears in the list because it has a school, while a still-open schoolless one does.
  *
  * The temple half — choosing the element, the schooled rite showing in the temple's own
  * panel — needs the player standing in a dwelt-in, owned hex across a reload, which the
@@ -45,19 +45,19 @@ async function seedResearched(page: Page): Promise<void> {
   });
 }
 
-test('the Keep offers schoolless technologies only', async ({ page }) => {
+test('the Research dialog offers schoolless technologies only', async ({ page }) => {
   test.setTimeout(120_000);
   await openMap(page, HERE);
   await seedResearched(page);
   await page.reload();
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
-  await press(page.getByRole('button', { name: 'Keep', exact: true }));
-  const keep = page.getByLabel('Your sanctuary');
-  await press(keep.getByRole('button', { name: 'Research' }));
+  await press(page.getByRole('button', { name: 'Research' }));
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
 
   const row = (name: string) =>
-    keep.locator('.hearth-panel__research-row').filter({ hasText: name });
+    dialog.locator('.hearth-panel__research-row').filter({ hasText: name });
 
   // A schoolless technology whose prerequisite (toolmaking) is open sits on the frontier.
   await expect(row('Toolmaking')).toHaveCount(1);
