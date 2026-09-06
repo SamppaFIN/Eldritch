@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | kaikki Vaiheen 2.5 tiketit |
-| **Status** | `todo` — koodivalmistelu tehty 2026-09-01, ulkotesti ajamatta |
-| **Valmius** | 10 % |
+| **Status** | `todo` — ensimmäinen ulkotesti tehty 2026-09-06 (kvalitatiivinen); mittaukset yhä ajamatta |
+| **Valmius** | 20 % — pelattavuus ulkona todennettu, akku/kontrasti/katkos mittaamatta |
 | **Lähde** | Infinite 2026-08-31: *"tällä hetkellä tärkeintä on saada mobiilikokemus täydelliseksi"* |
 
 ## 🔴 RED
@@ -83,6 +83,28 @@ Korjattu (vaihtoehto 1, siistimpänä):
   katkesi "anc/hor":ksi kapeassa sarakkeessa). Poistettu lähdeteksti taskusta (määrä
   + pisara riittää HUDiin, lähde-erittely on paikkojen solupaneeleissa);
   `.hud__pouch` nyt `nowrap` + 0.9em, pysyy yhdellä rivillä.
+
+## Testihavainto 2 (Infinite, 2026-09-06) — ensimmäinen ulkotesti, kvalitatiivinen
+
+Peli on nyt pelattu ulkona oikealla puhelimella. Ei mittauslukuja — nämä ovat
+tuntumahavaintoja. Mittaukset (akku %/h näyttö pois, kontrastisuhteet auringossa,
+näyttö-pois-katkos lukuina) jäävät yhä tekemättä ja pysyvät GREENissä auki.
+
+- **Pelattavuus:** peli ei jumitu. Silmukka toimii kädessä — Hearth, kävely, valtaus,
+  rakentaminen, Guide ja Wager ovat kaikki käytettävissä liikkeessä.
+- **Akku:** kuluu reippaasti. Määrää ei mitattu, mutta kulutus on tuntuvaa ja tiedostettu.
+  Optimointi tulee omana työnään.
+- **Suorituskyky:** ei havaittua jumitusta toistaiseksi. Suorituskykytyö on silti
+  odotettavissa — `getOwnedCells`in täysi skannaus (`BRDC-SCALE-001`) ei vielä näy
+  pienillä solumäärillä, mutta näkyy kun ne kasvavat.
+
+### Rajaus tarkentui
+
+APK, foreground service ja taustaseuranta ovat Vaihe 5. Lisäksi tulevat myöhemmin
+kuvioihin, eivät tähän tikettiin eivätkä selaimella ratkaistaviksi:
+
+- **Sportstracker-tyylinen kello** — rannelaite seurannan päälle
+- **AR-lasit** — omien läänien katselu paikan päällä
 
 ## Koodivalmistelu 2026-09-01 (ennen ensimmäistä ulkotestiä)
 

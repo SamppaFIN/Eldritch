@@ -5,9 +5,9 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-REVEAL-001, BRDC-WIKI-001 |
-| **Status** | `todo` |
+| **Status** | `todo` — **priorisoitu** (Infinite 2026-09-06) |
 | **Valmius** | 0 % |
-| **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §3 |
+| **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §3; priorisoitu 2026-09-06 |
 
 ## 🔴 RED
 
@@ -17,6 +17,11 @@ kaupunkivaltiot ja kaksitoista ihmettä, **vaikeneminen on sama kuin ei julkaisi
 
 Ja tämä on ulkopeli: opetus luetaan kävellessä, kirkkaassa valossa, yhdellä peukalolla.
 Kaikkea ei voi kertoa alussa, koska alussa ollaan menossa ulos.
+
+> **Priorisoitu 2026-09-06 (Infinite):** *"Onboarding tehdään kans prioriteetilla."*
+> Nousee Vaihe 3:n alkupäähän — sisältökerrosta (kaupungit, ihmeet, kauppa) ei rakenneta
+> opetuksen varaan jota ei ole. Ajoittuu `BRDC-DETAIL-001`:n rinnalle: molemmat ovat
+> "tieto perille käyttäjälle" -työtä.
 
 ## 🟢 GREEN
 
