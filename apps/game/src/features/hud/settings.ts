@@ -20,6 +20,12 @@ export interface Settings {
    * to ART-002's single role glyph per cell. The map's first filter — more will follow.
    */
   buildingIcons: boolean;
+  /**
+   * Show a rival cell's full detail — strength, decay, where it was seen from
+   * (BRDC-WAGER-JSON-007). Off leaves a rival cell as "held by another" and the red
+   * ring. On by default: among friends, the point is to see each other's reach.
+   */
+  revealRivals: boolean;
 }
 
 const KEY = 'settings';
@@ -31,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   vibration: true,
   loopClosure: false,
   buildingIcons: true,
+  revealRivals: true,
 };
 
 export function loadSettings(): Settings {
@@ -40,6 +47,7 @@ export function loadSettings(): Settings {
     vibration: stored.vibration ?? DEFAULT_SETTINGS.vibration,
     loopClosure: stored.loopClosure ?? DEFAULT_SETTINGS.loopClosure,
     buildingIcons: stored.buildingIcons ?? DEFAULT_SETTINGS.buildingIcons,
+    revealRivals: stored.revealRivals ?? DEFAULT_SETTINGS.revealRivals,
   };
 }
 

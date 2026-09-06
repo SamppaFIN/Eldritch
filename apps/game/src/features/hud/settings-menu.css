@@ -22,7 +22,15 @@
   flex-direction: column;
   gap: var(--space-1);
   min-inline-size: 14rem;
+  /* Override .es-panel's page-panel padding and cent­ring — this is a dropdown. */
   padding: var(--space-2);
+  align-items: stretch;
+  /* The switches and the two exits together outrun a short screen. Cap it well inside
+     the viewport and scroll, the way the cell and guide panels do. */
+  max-block-size: 70vh;
+  max-block-size: 70dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .settings-menu__switch,

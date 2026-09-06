@@ -1,12 +1,7 @@
 /**
- * One cell, up close.
- *
- * Tapping a hexagon has done nothing until now, which is a strange thing on a map made
- * entirely of hexagons. This is what it does: says what the ground is, who holds it, how
- * long it has left — and offers the first thing resources are for.
- *
- * Deliberately not a modal. The player is walking; a dialog that traps focus and demands
- * dismissal is the wrong shape for something you glance at and put away.
+ * One cell, up close: what the ground is, who holds it, how long it has left, and the
+ * first thing resources are for. Not a modal — the player is walking, and a focus trap
+ * is the wrong shape for something you glance at and put away.
  */
 import {
   ANCHOR_THRESHOLD_MS,
@@ -31,7 +26,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
-import { SharedNote } from './SharedNote.js';
+import { OwnershipNote } from './OwnershipNote.js';
 import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TempleSchoolPanel } from './TempleSchoolPanel.js';
@@ -75,6 +70,9 @@ export interface CellPanelProps {
   /** For a temple's own school-and-research section (BRDC-TEMPLE-002). */
   research?: ResearchBinding;
   wisdomPerHour?: number;
+  /** Show a rival cell's full detail — strength, decay, where it was seen from
+   *  (BRDC-WAGER-JSON-007). Off leaves it as "held by another" and the red ring. */
+  revealRivals?: boolean;
   onClose: () => void;
 }
 
@@ -169,6 +167,7 @@ export function CellPanel({
   onReveal,
   research,
   wisdomPerHour = 0,
+  revealRivals = true,
   onClose,
 }: CellPanelProps) {
   // Focus follows the panel when it opens — not a trap (the player is walking), but a
@@ -185,6 +184,8 @@ export function CellPanel({
   const glyph = terrainGlyph(terrain.kind);
   const resource = resourceForCell(cell);
   const mine = cell.ownerId !== null && cell.ownerId === me;
+  // A rival's cell shows its full detail only with the setting on (BRDC-WAGER-JSON-007).
+  const showDetail = mine || revealRivals;
   const history = historyLine(cell, me, now);
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
@@ -235,8 +236,8 @@ export function CellPanel({
         {cell.visits ? ` · ${cell.visits} ${cell.visits === 1 ? 'visit' : 'visits'}` : ''}
       </p>
 
-      {cell.importedFrom ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
-      {cell.shared ? <SharedNote cell={cell} /> : null}
+      {cell.importedFrom && showDetail ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
+      {cell.ownerId !== null ? <OwnershipNote cell={cell} me={me} /> : null}
 
       {history ? (
         <p className="cell-panel__history">
@@ -272,7 +273,7 @@ export function CellPanel({
         Holding it adds {NEIGHBOUR_BONUS} to every claim you make on the six cells around it.
       </p>
 
-      {cell.ownerId !== null ? (
+      {cell.ownerId !== null && showDetail ? (
         <>
           {/* The bar is decoration; the number is the information — colour never carries this alone. */}
           <div className="cell-panel__bar" aria-hidden>

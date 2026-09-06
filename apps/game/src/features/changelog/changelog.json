@@ -3,10 +3,13 @@
     "version": "0.5.40",
     "date": "2026-09-06",
     "notes": [
-      "Resources stop jumping on every update. The starter pouch was being handed out again on every version — three times on the 5th alone — which topped every resource back to its floor and buried what your land actually produces. It is a one-time gift now.",
-      "Fixed a deeper one the new audit test found: a pouch that had never been written had no clock, so every read restarted it and the trickle never accrued.",
-      "\"Empty the pouch\" in the menu, with a confirmation. Ground, buildings and research are untouched; the trickle starts again from that moment.",
-      "The pouch now has a test proving it grows exactly what the forecast promises, hour by hour and day by day."
+      "Resources stop jumping on every update. The starter pouch was being handed out again on every version — three times on the 5th alone — which topped every resource back to its floor and buried what your land actually produces. It is a one-time gift now, and a deeper bug it hid is fixed too: a pouch that had never been written had no clock, so the trickle never accrued.",
+      "\"Empty the pouch\" in the menu, with a confirmation. Ground, buildings and research are untouched.",
+      "A hex now shows how many separate times you have stood on it — walking away and back counts, standing still does not.",
+      "A cell can hold up to three Works now, not one. Build a sawmill beside a storehouse beside a monument.",
+      "Every Work draws its own small isometric icon on the map — all of them on a cell, a rival's too. Toggle it off under the menu (\"Building icons on the map\"); more map filters will follow.",
+      "Every owned cell shows an ownership ring now, not only a contested one: a full ring for ground you hold outright, split for ground a Wager also claims.",
+      "\"Show a rival cell's full detail\" toggle — on, you see a rival cell's strength and decay; off, it stays \"held by another\" and the red ring."
     ]
   },
   {

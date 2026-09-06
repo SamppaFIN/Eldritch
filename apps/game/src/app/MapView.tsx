@@ -132,8 +132,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   const trail = useTrail({ repository, point, collecting: true });
 
-  // Places are re-read when one reveals itself, and once at start so a returning player's
-  // Anchor is on the map before they have walked a step.
+  // Places re-read on a reveal, and once at start so a returning player's Anchor is there.
   useEffect(() => {
     if (!repository || !trail.ready) return;
     void repository.getPlaces().then(setPlaces);
@@ -319,6 +318,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onReveal={discovery.onReveal}
         research={inspect.research}
         wisdomPerHour={forecast?.perHour.wisdom ?? 0}
+        revealRivals={settings.revealRivals}
         onClose={inspect.close}
       />
 

@@ -102,6 +102,7 @@ export function SettingsMenu({
     ['vibration', 'Vibration'],
     ['loopClosure', 'Claim by closing a loop'],
     ['buildingIcons', 'Building icons on the map'],
+    ['revealRivals', "Show a rival cell's full detail"],
   ];
   const run = (action: () => void) => {
     /*
