@@ -54,6 +54,7 @@ import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
+import { useNation } from '../features/nation/useNation.js';
 import { createRepository } from '../data/createRepository.js';
 import { useWorld } from '../features/territory/useWorld.js';
 import './mapview.css';
@@ -73,9 +74,9 @@ export function MapView({ onLeave }: MapViewProps) {
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [castle, setCastle] = useState<H3Index | null>(null);
   const [settings, onSettingsChange] = useSettings();
+  const [nation] = useNation();
 
-  // Held open by the player, never by default: a lit screen and a near-silent loop are
-  // the only way a backgrounded web page keeps getting fixes. Costs battery, so it asks.
+  // A lit screen + near-silent loop is the only way a backgrounded page keeps getting fixes.
   const keepAlive = useKeepAlive();
 
   const clock = useGameClock();
@@ -109,9 +110,8 @@ export function MapView({ onLeave }: MapViewProps) {
     simulate,
   });
 
-  // Write the accepted Hearth through, once: App records it in localStorage (it has no
-  // repository); here it becomes a claimed cell and an Anchor Stone. Guarded on `getHome`
-  // so a save that already has one is never overwritten.
+  // Write the accepted Hearth through once — a claimed cell and an Anchor Stone. Guarded
+  // on `getHome` so a save that already has one is never overwritten.
   useEffect(() => {
     if (!repository) return;
     const mark = load<{ position: { lat: number; lng: number } } | null>('hearth', null);
@@ -192,8 +192,7 @@ export function MapView({ onLeave }: MapViewProps) {
     return speedMs(pts[pts.length - 2] as TrailPoint, pts[pts.length - 1] as TrailPoint);
   }, [trail.points]);
 
-  // The cell underfoot — held against GPS jitter while still, so dwell does not scatter
-  // (BRDC-DWELL-002). The one the player most often wants.
+  // The cell underfoot — held against GPS jitter while still (BRDC-DWELL-002).
   const standingOn = useStandingCell(point, pace);
 
   const moments = useMoments();
@@ -247,6 +246,7 @@ export function MapView({ onLeave }: MapViewProps) {
         awakening={awakening}
         initialZoom={openingZoom}
         buildingIcons={settings.buildingIcons}
+        bannerId={nation.bannerId}
         onBasemapChange={setBasemap}
         onCellTap={inspect.onCellTap}
         onPlaceTap={inspect.onPlaceTap}

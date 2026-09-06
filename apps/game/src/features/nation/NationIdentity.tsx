@@ -8,25 +8,27 @@
  * The name field keeps a local draft and commits on blur, so a keystroke never re-renders
  * the panel around it (BRDC-CHAR-001's field-jank note).
  */
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { buildingsOf, population, provinceCount } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { Banner } from './Banner.js';
 import { BannerPicker } from './BannerPicker.js';
 import { NationNameField } from './NationNameField.js';
-import { displayName, readNation, writeNation } from './nation.js';
+import { displayName } from './nation.js';
 import type { BannerId } from './nation.js';
+import { useNation } from './useNation.js';
 import './nation.css';
 
 export function NationIdentity({ owned }: { owned: readonly Cell[] }) {
-  const [nation, setNation] = useState(readNation);
+  // Shared, so the map sees a banner change here at once (BRDC-NATION field report).
+  const [nation, setNation] = useNation();
   const [picking, setPicking] = useState(false);
 
-  const commitName = useCallback((name: string) => {
-    setNation((prev) => (name.trim() === prev.name ? prev : writeNation({ ...prev, name })));
-  }, []);
+  const commitName = (name: string) => {
+    if (name.trim() !== nation.name) setNation({ ...nation, name });
+  };
   const pickBanner = (bannerId: BannerId) => {
-    setNation(writeNation({ ...nation, bannerId }));
+    setNation({ ...nation, bannerId });
     setPicking(false);
   };
 

@@ -74,14 +74,25 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
   const [draft, setDraft] = useState('');
   const ref = useRef<HTMLElement>(null);
 
+  // Seed the draft from the stored name — on open, and if the name genuinely changes.
+  // Kept off `onClose`, which MapView passes as a fresh arrow every render: with it in the
+  // deps this ran on every parent re-render, wiping a half-typed name before blur could
+  // commit it (the reported "can't rename" bug).
+  useEffect(() => {
+    if (open) setDraft(profile?.name ?? '');
+  }, [open, profile?.name]);
+
+  // Focus once when the panel opens — never mid-render, or it steals focus off the input.
+  useEffect(() => {
+    if (open) ref.current?.focus();
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
-    ref.current?.focus();
-    setDraft(profile?.name ?? '');
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, profile?.name, onClose]);
+  }, [open, onClose]);
 
   if (!open) return null;
 

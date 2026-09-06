@@ -52,6 +52,7 @@ import { useAwakening } from './useAwakening.js';
 import { useHearthTour } from './useHearthTour.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
+import type { BannerId } from '../nation/nation.js';
 import { useTerrainResolver } from './useTerrainResolver.js';
 import type { TerrainUpdate } from './useTerrainResolver.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -110,6 +111,7 @@ export interface MapCanvasProps {
   follow?: boolean;
   /** Draw every Work as its own isometric icon (BRDC-ART-003). Off = the single glyph. */
   buildingIcons?: boolean;
+  bannerId?: BannerId | null; // the Keep banner, drawn on held hexes (BRDC-BANNER-001)
   onBasemapChange?: (state: BasemapState) => void;
 }
 
@@ -131,6 +133,7 @@ export function MapCanvas({
   initialZoom,
   follow = true,
   buildingIcons = true,
+  bannerId = null,
   onBasemapChange,
   onCellTap,
   onPlaceTap,
@@ -212,15 +215,13 @@ export function MapCanvas({
 
   useEffect(() => {
     if (!map || !ready || !cells) return;
-    setTerritoryData(map, cells, playerId, now, castle);
-  }, [map, ready, cells, playerId, now, castle]);
+    setTerritoryData(map, cells, playerId, now, castle, bannerId);
+  }, [map, ready, cells, playerId, now, castle, bannerId]);
 
   /*
-   * Tapping a hexagon. A rendered cell carries its H3 as the feature id; when the tap
-   * lands on none — the fog ring is small, or the player has no ground yet — the hex is
-   * derived from the tap's coordinates instead, so the map is never a dead surface
-   * (BRDC-CLAIM-009 reverses the 2026-09-02 "past the fog does nothing"). The panel says
-   * "Unclaimed" for far ground. A quest sigil still selects its own cell first.
+   * Tapping a hexagon. A rendered cell carries its H3 as the feature id; a tap on none
+   * (a small fog ring, no ground yet) derives the hex from the coordinates instead, so
+   * the map is never dead (BRDC-CLAIM-009). A quest sigil still selects its own cell.
    */
   useEffect(() => {
     if (!map || !ready || !onCellTap) return;

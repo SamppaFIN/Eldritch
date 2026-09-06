@@ -14,6 +14,9 @@ import { MAX_STRENGTH } from '@es3/core';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
 import { CONTESTED_STROKE, ENEMY_FILL, OWN_FILL, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
+import { BANNER_IDS } from '../nation/nation.js';
+import type { BannerId } from '../nation/nation.js';
+import { bannerSpriteId, rasteriseBanners } from '../nation/bannerSprites.js';
 
 export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
@@ -28,6 +31,27 @@ export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
 const SHARED_PATTERN = 'cells-shared-pattern';
+
+/**
+ * Draw the six banner icons into this map's atlas if they are not there yet
+ * (BRDC-BANNER-001 field report). `map.hasImage` is the idempotency check, not a flag —
+ * a rebuilt map starts with an empty atlas.
+ */
+async function addBannerSprites(map: MapLibreMap): Promise<void> {
+  if (BANNER_IDS.every((id) => map.hasImage(bannerSpriteId(id)))) return;
+  const images = await rasteriseBanners();
+  if (!images) return;
+  for (const [id, data] of images) {
+    if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
+  }
+}
+
+/** Swap the flag layer's icon when the player picks a different banner in the Keep. */
+export function setFlagBanner(map: MapLibreMap, bannerId: BannerId): void {
+  if (map.getLayer(CELL_FLAG_LAYER)) {
+    map.setLayoutProperty(CELL_FLAG_LAYER, 'icon-image', bannerSpriteId(bannerId));
+  }
+}
 
 /**
  * A four-square checkerboard of your own colour and the fixed rival red, for a cell an
@@ -69,6 +93,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
 
   map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
+  void addBannerSprites(map);
 
   // Below the trail, which is added later and therefore sits on top: the ley-line is
   // what the player is drawing right now and must never be buried by their own ground.
@@ -219,9 +244,11 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
-   * Your flag on ground you hold that carries no building (BRDC-BANNER-001). One mark —
-   * the full banner is Keep-only — and it takes the building's spot because the two are
-   * never on the same cell. Says "this is mine" without reading the colour (`claude.md` §14).
+   * Your banner on ground you hold that carries no building (BRDC-BANNER-001). The one
+   * you picked in the Keep, drawn as an icon (field report 2026-09-06 — it used to be a
+   * fixed glyph that never changed). Takes the building's spot; the two are never on the
+   * same cell. `flag` is now just the presence marker the filter reads; the icon comes
+   * from `setFlagBanner`.
    */
   map.addLayer({
     id: CELL_FLAG_LAYER,
@@ -230,19 +257,13 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'flag'], ''],
     layout: {
-      'text-field': ['get', 'flag'],
-      'text-font': ['Noto Sans Regular'],
-      'text-size': ['interpolate', ['linear'], ['zoom'], 13, 8, 17, 12, 19, 15],
-      'text-offset': [0, 1.1],
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'icon-image': bannerSpriteId('vesica'),
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.28, 17, 0.5, 19, 0.7],
+      'icon-offset': [0, 16],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
     },
-    paint: {
-      'text-color': '#ffd700',
-      'text-opacity': 0.7,
-      'text-halo-color': '#0a0612',
-      'text-halo-width': 2,
-    },
+    paint: { 'icon-opacity': 0.85 },
   });
 
   /*
@@ -278,11 +299,13 @@ export function setTerritoryData(
   me: PlayerId | null,
   now = 0,
   home: H3Index | null = null,
+  bannerId: BannerId | null = null,
 ): void {
   const source = map.getSource(CELL_SOURCE);
   (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
     cellsToGeoJson(cells, me, now, home),
   );
+  if (bannerId) setFlagBanner(map, bannerId);
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
@@ -301,4 +324,7 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
   }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);
   if (map.hasImage(SHARED_PATTERN)) map.removeImage(SHARED_PATTERN);
+  for (const id of BANNER_IDS) {
+    if (map.hasImage(bannerSpriteId(id))) map.removeImage(bannerSpriteId(id));
+  }
 }

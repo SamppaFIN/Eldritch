@@ -12,7 +12,9 @@
       "\"Show a rival cell's full detail\" toggle — on, you see a rival cell's strength and decay; off, it stays \"held by another\" and the red ring.",
       "The Guide is a wiki now. Every building, technology and Rite has its own page — what it costs, what it needs, what it does — built from the same tables the game uses, with a live line: how many cells you hold a building on, whether a Rite is yours yet. There is a Reference list of all of them and a search box across the whole book.",
       "The Keep's Mana / Buildings tabs are two big filled pills now — the underline style kept rendering as an invisible dark strip on the dark panel, a third field report of it.",
-      "In the build menu, a building's name is now a link to its Guide page. That page lists the cells you have it on, and each one shows it on the map."
+      "In the build menu, a building's name is now a link to its Guide page. That page lists the cells you have it on, and each one shows it on the map.",
+      "Fixed: the name in the You panel would not change — a half-typed name was being wiped on every background re-render before you could commit it.",
+      "Fixed: the banner you pick in the Keep now shows on every hex you hold, as an icon. It was a fixed mark that never changed."
     ]
   },
   {
