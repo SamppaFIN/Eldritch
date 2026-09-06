@@ -56,6 +56,15 @@ Vigil · Here · Keep · You.
   Research-signpost (`nextResearchStep` temppelipaneelissa, wisdom-lähderivi) jää, mutta
   wisdom-lähderivi elää nyt `ResearchDialog`issa `ResearchPanel`in mukana.
 
+## Korjaus 2026-09-06 (v0.5.40) — kolmas kenttähavainto
+
+*"tuo valikko on vielä täysin näkymättömissä"* + kuvakaappaus. Sticky + `--void-black`
+-taustainen alleviivaus-tab renderöityi yhä lähes näkymättömänä tummalla paneelilla.
+Vaihdettu **kahdeksi isoksi pilleriksi** (`flex: 1`, `--cosmic-purple`-täyttö,
+`--text`-teksti, kulta valittuna). Pois `position: sticky`, `--void-black`, `overflow-x`.
+Samalla korjattu `wager.spec.ts:31` jonka `CHALLENGE_VERSION` 3→4 -nosto (`BRDC-BUILD-007`)
+jätti kesken.
+
 ## Ei tässä
 
 - Temppelin riittitutkimus (`TempleSchoolPanel` `CellPanel`issa) — ei muutu, koulukunnalliset

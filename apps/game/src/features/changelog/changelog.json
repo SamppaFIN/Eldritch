@@ -10,7 +10,8 @@
       "Every Work draws its own small isometric icon on the map — all of them on a cell, a rival's too. Toggle it off under the menu (\"Building icons on the map\"); more map filters will follow.",
       "Every owned cell shows an ownership ring now, not only a contested one: a full ring for ground you hold outright, split for ground a Wager also claims.",
       "\"Show a rival cell's full detail\" toggle — on, you see a rival cell's strength and decay; off, it stays \"held by another\" and the red ring.",
-      "The Guide is a wiki now. Every building, technology and Rite has its own page — what it costs, what it needs, what it does — built from the same tables the game uses, with a live line: how many cells you hold a building on, whether a Rite is yours yet. There is a Reference list of all of them and a search box across the whole book."
+      "The Guide is a wiki now. Every building, technology and Rite has its own page — what it costs, what it needs, what it does — built from the same tables the game uses, with a live line: how many cells you hold a building on, whether a Rite is yours yet. There is a Reference list of all of them and a search box across the whole book.",
+      "The Keep's Mana / Buildings tabs are two big filled pills now — the underline style kept rendering as an invisible dark strip on the dark panel, a third field report of it."
     ]
   },
   {

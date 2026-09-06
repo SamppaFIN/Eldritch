@@ -159,45 +159,40 @@
   padding-inline: var(--space-2);
 }
 
+/* Two big pills, each half the panel. The old underline-only style rendered as an
+   invisible dark strip on this dark panel — three field reports (BRDC-KEEP-006/-007,
+   2026-09-06). `.es-panel` centres every child, so `align-self: stretch` for full width. */
 .hearth-panel__tabs {
   display: flex;
-  gap: var(--space-1);
-  overflow-x: auto;
-  border-block-end: 1px solid var(--glass-border);
-  /* `.es-panel` (tokens.css) centres every child; without this the tab row shrinks to
-     its own width and sits in the middle. It must be the full width of the panel. */
+  gap: var(--space-2);
   align-self: stretch;
-  /* The panel itself scrolls (research can be tall). These sit near the top now, and
-     stay pinned there while a long tab scrolls under them — two field reports of "there
-     is no Research tab" was it below the fold (BRDC-KEEP-006). */
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding-block: var(--space-2);
-  background: var(--void-black);
+  margin-block-start: var(--space-1);
 }
 
 .hearth-panel__tab {
-  flex: 0 0 auto;
+  flex: 1;
   min-block-size: var(--touch-min);
-  padding-inline: var(--space-2);
-  border: 0;
-  border-block-end: 2px solid transparent;
-  background: none;
-  color: var(--text-dim);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--cosmic-purple) 28%, transparent);
+  color: var(--text);
   font-family: var(--font-display);
-  font-size: var(--text-sm);
-  letter-spacing: 0.04em;
+  font-size: var(--text-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .hearth-panel__tab--on {
+  background: color-mix(in oklch, var(--sacred-gold) 20%, transparent);
+  border-color: var(--sacred-gold);
   color: var(--sacred-gold);
-  border-block-end-color: var(--sacred-gold);
 }
 
 .hearth-panel__tab:focus-visible {
   outline: 2px solid var(--mystic-cyan);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 .hearth-panel__tabbody {

@@ -28,7 +28,7 @@ test('a challenge is sealed and can be copied out', async ({ page }) => {
 
   const text = await payload.inputValue();
   const parsed = JSON.parse(text);
-  expect(parsed).toMatchObject({ v: 3 });
+  expect(parsed).toMatchObject({ v: 4 }); // CHALLENGE_VERSION, bumped for the Works list (BRDC-BUILD-007)
   expect(typeof parsed.sum).toBe('string');
 });
 

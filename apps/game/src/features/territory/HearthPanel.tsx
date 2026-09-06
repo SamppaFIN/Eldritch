@@ -118,9 +118,9 @@ export function HearthPanel({
         </RitualButton>
       </div>
 
-      {/* Tabs sit right under the header — near the top and pinned there — so the way to
-          Research is the first thing seen, not something scrolled to (BRDC-KEEP-006). */}
-      <div className="hearth-panel__tabs" aria-label="Keep">
+      {/* Two pills right under the header — Mana and Buildings. Big and filled, after
+          three field reports of an invisible tab strip (BRDC-KEEP-006/-007). */}
+      <div className="hearth-panel__tabs" aria-label="Keep sections">
         {TABS.map((t) => (
           <button
             key={t.id}
