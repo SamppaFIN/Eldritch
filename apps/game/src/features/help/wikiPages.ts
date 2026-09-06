@@ -44,6 +44,8 @@ export interface WikiPage {
   see: WikiRef[];
   /** One live line — "Held on 3 cells", "Locked", "Running · 4 h left". */
   status?: string;
+  /** For a Work page: the h3s it stands on, each a "show on map" link (BRDC-WIKI-004). */
+  sites?: readonly string[];
 }
 
 export interface WikiContext {
@@ -83,7 +85,10 @@ const costLine = (cost: Readonly<Record<string, number>>): string =>
 
 function workPage(id: BuildingId, ctx: WikiContext): WikiPage {
   const b = BUILDINGS[id];
-  const held = ctx.ownedCells.filter((c) => worksOn(c).some((w) => w.id === id)).length;
+  const sites = ctx.ownedCells
+    .filter((c) => worksOn(c).some((w) => w.id === id))
+    .map((c) => c.h3);
+  const held = sites.length;
   const terrain = b.terrain === 'any' ? 'any ground' : b.terrain.map(titleCase).join(' / ');
   const body = [
     BUILDING_BLURB[id],
@@ -103,6 +108,7 @@ function workPage(id: BuildingId, ctx: WikiContext): WikiPage {
     body,
     see,
     status: held > 0 ? `Held on ${held} cell${held === 1 ? '' : 's'}` : 'None built yet',
+    sites,
   };
 }
 

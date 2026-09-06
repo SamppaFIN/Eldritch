@@ -5,18 +5,12 @@
  */
 import {
   ANCHOR_THRESHOLD_MS,
-  CLAIM_YIELD,
   MAX_STRENGTH,
   MAX_TEMPLE_EXPANSION,
-  NEIGHBOUR_BONUS,
   TEMPLE_THRESHOLD_MS,
-  TRICKLE_PER_HOUR,
   WARD_COST,
   canAfford,
-  cellAreaM2,
   expansionCost,
-  hoursUntilReleased,
-  resourceForCell,
   revealProgress,
   terrainForCell,
 } from '@es3/core';
@@ -24,6 +18,7 @@ import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { BuildPanel } from './BuildPanel.js';
+import { CellWorth } from './CellWorth.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
 import { OwnershipNote } from './OwnershipNote.js';
@@ -38,6 +33,7 @@ import type { AnomalyBinding } from './useAnomaly.js';
 import type { BuildBinding, PlaceBinding, ResearchBinding, SpellBinding, TradeBinding } from './useSelection.js';
 import { historyLine } from './cellHistory.js';
 import { terrainGlyph } from './territoryFeatures.js';
+import type { WikiRef } from '../help/wikiPages.js';
 import './cell-panel.css';
 
 type ExpandFail = NonNullable<PlaceBinding['refusal']>;
@@ -70,6 +66,8 @@ export interface CellPanelProps {
   /** For a temple's own school-and-research section (BRDC-TEMPLE-002). */
   research?: ResearchBinding;
   wisdomPerHour?: number;
+  /** Open a Guide page — a build row's name links to the building's (BRDC-WIKI-004). */
+  onWiki?: ((ref: WikiRef) => void) | undefined;
   /** Show a rival cell's full detail — strength, decay, where it was seen from
    *  (BRDC-WAGER-JSON-007). Off leaves it as "held by another" and the red ring. */
   revealRivals?: boolean;
@@ -128,18 +126,6 @@ function costLine(cost: Partial<ResourcePool>): string {
     .join(' · ');
 }
 
-/** Hours left, counted from the last visit, not from full strength — the time already
- *  spent decaying has to come off or every glance would claim a fresh two-day grace. */
-function hoursLeft(cell: Cell, now: number): number {
-  return hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000;
-}
-
-function remaining(hours: number): string {
-  if (hours <= 1) return 'The Void takes it within the hour';
-  if (hours < 48) return `The Void takes it in ${Math.round(hours)} h`;
-  return `The Void takes it in ${Math.round(hours / 24)} days`;
-}
-
 /** Minutes, said the way someone standing in the rain would say them. */
 function spent(ms: number): string {
   const minutes = Math.round(ms / 60_000);
@@ -168,6 +154,7 @@ export function CellPanel({
   research,
   wisdomPerHour = 0,
   revealRivals = true,
+  onWiki,
   onClose,
 }: CellPanelProps) {
   // Focus follows the panel when it opens — not a trap (the player is walking), but a
@@ -182,7 +169,6 @@ export function CellPanel({
 
   const terrain = terrainForCell(cell);
   const glyph = terrainGlyph(terrain.kind);
-  const resource = resourceForCell(cell);
   const mine = cell.ownerId !== null && cell.ownerId === me;
   // A rival's cell shows its full detail only with the setting on (BRDC-WAGER-JSON-007).
   const showDetail = mine || revealRivals;
@@ -246,48 +232,7 @@ export function CellPanel({
         </p>
       ) : null}
 
-      {/* What holding it is worth — the neighbour bonus is invisible everywhere else. */}
-      <dl className="cell-panel__worth">
-        <div>
-          <dt>Ground</dt>
-          <dd className="es-numeric">{Math.round(cellAreaM2(cell.h3))} m²</dd>
-        </div>
-        <div>
-          <dt>Yields</dt>
-          <dd className="es-numeric">
-            {resource
-              ? `${CLAIM_YIELD} ${RESOURCE_NAME[resource]} · ${TRICKLE_PER_HOUR}/h`
-              : 'nothing'}
-          </dd>
-        </div>
-        <div>
-          <dt>Neighbours</dt>
-          <dd className="es-numeric">+{NEIGHBOUR_BONUS} each</dd>
-        </div>
-      </dl>
-
-      <p className="cell-panel__worth-note">
-        {resource
-          ? `Taking it pays ${CLAIM_YIELD} ${RESOURCE_NAME[resource]} once, then ${TRICKLE_PER_HOUR} an hour for as long as you hold it.`
-          : 'Plain ground pays nothing on its own.'}{' '}
-        Holding it adds {NEIGHBOUR_BONUS} to every claim you make on the six cells around it.
-      </p>
-
-      {cell.ownerId !== null && showDetail ? (
-        <>
-          {/* The bar is decoration; the number is the information — colour never carries this alone. */}
-          <div className="cell-panel__bar" aria-hidden>
-            <div
-              className="cell-panel__bar-fill"
-              style={{ inlineSize: `${(cell.strength / MAX_STRENGTH) * 100}%` }}
-            />
-          </div>
-          <p className="cell-panel__strength es-numeric">
-            {Math.round(cell.strength)} / {MAX_STRENGTH}
-          </p>
-          <p className="cell-panel__decay">{remaining(hoursLeft(cell, now))}</p>
-        </>
-      ) : null}
+      <CellWorth cell={cell} now={now} showDetail={showDetail} />
 
       {/* A named place says what it produces — "where mana comes from" is readable here,
           per source (BRDC-MANA-001); the HUD carries the total. */}
@@ -377,6 +322,7 @@ export function CellPanel({
               myBuildings={build.myBuildings}
               onBuild={build.onBuild}
               onDemolish={build.onDemolish}
+              onWiki={onWiki ? (id) => onWiki(`work:${id}`) : undefined}
               refusal={build.refusal}
             />
           ) : null}

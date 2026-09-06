@@ -65,6 +65,8 @@ export interface BuildPanelProps {
   myBuildings: readonly BuildingId[];
   onBuild: (h3: string, id: BuildingId) => void;
   onDemolish: (h3: string, id: BuildingId) => void;
+  /** Open a building's Guide page (BRDC-WIKI-004). Absent → the name is plain text. */
+  onWiki?: ((id: BuildingId) => void) | undefined;
   refusal: BuildRefusal | 'nothing-here' | null;
 }
 
@@ -85,6 +87,7 @@ export function BuildPanel({
   myBuildings,
   onBuild,
   onDemolish,
+  onWiki,
   refusal,
 }: BuildPanelProps) {
   const [showLocked, setShowLocked] = useState(false);
@@ -94,12 +97,21 @@ export function BuildPanel({
   const byName = (a: BuildingId, b: BuildingId) => NAME[a].localeCompare(NAME[b]);
   const here = worksOn(cell);
 
+  const name = (id: BuildingId) =>
+    onWiki ? (
+      <button type="button" className="cell-panel__build-name" onClick={() => onWiki(id)}>
+        {NAME[id]}
+      </button>
+    ) : (
+      NAME[id]
+    );
+
   const row = (id: BuildingId) => {
     const check = checks.get(id) ?? canBuild(ctx, id, cell);
     return (
       <li key={id} className="cell-panel__build-row">
         <span>
-          {NAME[id]}
+          {name(id)}
           <span className="cell-panel__build-cost"> {costLine(BUILDINGS[id].cost)}</span>
           <span className="cell-panel__build-cost">
             {' · '}
@@ -138,7 +150,7 @@ export function BuildPanel({
     return (
       <li key={w.id} className="cell-panel__build-row">
         <span>
-          {NAME[w.id]}
+          {name(w.id)}
           <span className="cell-panel__build-cost"> · {renderEffect(buildingEffect(w.id))}</span>
         </span>
         <RitualButton

@@ -29,10 +29,12 @@ export interface HelpPanelProps {
   seen: ReadonlySet<HelpTopic>;
   /** Live data for a derived page's status line (BRDC-WIKI-003). */
   ctx?: WikiContext;
+  /** Select a cell on the map from a Work page's site list (BRDC-WIKI-004). */
+  onShowCell?: (h3: string) => void;
   onClose: () => void;
 }
 
-export function HelpPanel({ topic, onNavigate, seen, ctx, onClose }: HelpPanelProps) {
+export function HelpPanel({ topic, onNavigate, seen, ctx, onShowCell, onClose }: HelpPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export function HelpPanel({ topic, onNavigate, seen, ctx, onClose }: HelpPanelPr
     topic === 'index' ? null : (hand ?? wikiEntry(topic as WikiRef, ctx));
   const see: readonly WikiRef[] = entry?.see ?? [];
   const status = entry && 'status' in entry ? entry.status : undefined;
+  const sites = entry && 'sites' in entry ? (entry.sites ?? []) : [];
 
   return (
     <GlassPanel
@@ -91,6 +94,24 @@ export function HelpPanel({ topic, onNavigate, seen, ctx, onClose }: HelpPanelPr
               {para}
             </p>
           ))}
+          {onShowCell && sites.length > 0 ? (
+            <div className="help-panel__see">
+              <h3 className="help-panel__see-heading">Where you have it</h3>
+              <ul className="help-panel__see-list">
+                {sites.map((h3, i) => (
+                  <li key={h3}>
+                    <button
+                      type="button"
+                      className="help-panel__link"
+                      onClick={() => onShowCell(h3)}
+                    >
+                      Cell {i + 1} — show on map
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {see.length > 0 ? (
             <div className="help-panel__see">
               <h3 className="help-panel__see-heading">See also</h3>

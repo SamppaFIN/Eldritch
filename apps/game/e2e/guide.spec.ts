@@ -37,3 +37,21 @@ test('the guide reaches a derived page and searches', async ({ page }) => {
   await expect(results.getByRole('button', { name: 'Fortress', exact: true })).toBeVisible();
   await expect(results.getByRole('button', { name: 'Sawmill', exact: true })).toHaveCount(0);
 });
+
+test('a build-menu row opens the building page (BRDC-WIKI-004)', async ({ page }) => {
+  test.setTimeout(90_000);
+  await openMap(page, HERE);
+
+  // Tap the Hearth cell (centre of the screen) to open its card and its build menu.
+  const canvas = page.locator('canvas').first();
+  const box = await canvas.boundingBox();
+  await canvas.click({ position: { x: (box?.width ?? 320) / 2, y: (box?.height ?? 600) / 2 } });
+
+  const card = page.getByRole('region', { name: 'Selected cell' });
+  await expect(card).toBeVisible({ timeout: 8_000 });
+
+  await card.getByRole('button', { name: 'Monument', exact: true }).click();
+  const page2 = page.getByRole('region', { name: 'Monument' });
+  await expect(page2).toBeVisible();
+  await expect(page2.getByText(/None built yet|Held on/)).toBeVisible();
+});

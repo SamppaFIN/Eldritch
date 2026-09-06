@@ -171,6 +171,22 @@
   font-size: var(--text-sm);
 }
 
+/* The building's name is a link into its Guide page (BRDC-WIKI-004). */
+.cell-panel__build-name {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mystic-cyan);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.cell-panel__build-name:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
 .cell-panel__build-cost {
   color: var(--text-dim);
 }
@@ -211,47 +227,6 @@
 .cell-panel__build-more:focus-visible {
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
-}
-
-/* The rites sub-panel (BRDC-SPELL-001). */
-.cell-panel__rites {
-  margin-block-start: var(--space-2);
-  border-block-start: 1px solid var(--glass-border);
-  padding-block-start: var(--space-2);
-  display: grid;
-  gap: var(--space-1);
-}
-
-.cell-panel__rites-head {
-  color: var(--text-dim);
-  font-size: var(--text-sm);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.cell-panel__rite {
-  display: flex;
-  align-items: start;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-}
-
-.cell-panel__rite-btn {
-  min-block-size: var(--touch-min);
-  padding-inline: var(--space-2);
-  flex-shrink: 0;
-}
-
-.cell-panel__rite-what {
-  color: var(--text-dim);
-}
-
-.cell-panel__rites-active {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--text-sm);
-  color: var(--mystic-cyan);
 }
 
 /* Trade-route controls (BRDC-BUILD-004). */

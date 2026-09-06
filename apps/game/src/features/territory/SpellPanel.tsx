@@ -11,6 +11,7 @@ import { RitualButton } from '@es3/ui';
 import type { SpellBinding } from './useSelection.js';
 import { SPELL_NAME as NAME, titleCase } from './names.js';
 import { SPELL_BLURB, renderEffect, spellEffect } from './catalogue.js';
+import './spell-panel.css';
 
 export const HOME_SPELLS = (Object.keys(SPELLS) as SpellId[]).filter(
   (id) => SPELLS[id].via === 'home',

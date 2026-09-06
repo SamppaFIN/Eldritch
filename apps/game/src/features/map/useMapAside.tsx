@@ -6,7 +6,7 @@
  * fourteen: the open state, the log fetch, the encounter registry (BRDC-WIKI-002), and
  * the renders live here.
  */
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ActiveSpell, Cell, GameRepository, LogEntry, TechId } from '@es3/core';
 import { HelpPanel } from '../help/HelpPanel.js';
 import type { HelpView } from '../help/HelpPanel.js';
@@ -34,7 +34,12 @@ export function useMapAside(
   now: () => number,
   /** Bumped after a lap, so the log, the character screen and the registry re-read. */
   version: number,
+  /** Select a cell on the map — a Work page's "show on map" (BRDC-WIKI-004). Held in a
+   *  ref so `useSelection` can be declared after this hook without a TDZ. */
+  onShowCell: (h3: string) => void,
 ): MapAside {
+  const showCell = useRef(onShowCell);
+  showCell.current = onShowCell;
   const [help, setHelp] = useState<HelpView | null>(null);
   const [logOpen, setLogOpen] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
@@ -74,6 +79,10 @@ export function useMapAside(
         topic={help}
         seen={seen}
         ctx={{ ownedCells: owned, researched, spells, now: now() }}
+        onShowCell={(h3) => {
+          setHelp(null);
+          showCell.current(h3);
+        }}
         onNavigate={setHelp}
         onClose={() => setHelp(null)}
       />

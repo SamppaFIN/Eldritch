@@ -64,10 +64,16 @@ describe("a Work page's live line", () => {
     buildings: [{ id, builtAt: T0 }],
   });
 
-  it('counts the cells it stands on', () => {
-    const ctx = { ownedCells: [held('sawmill'), held('sawmill')], researched: [], spells: [], now: T0 };
+  it('counts the cells it stands on, and lists them as sites', () => {
+    const cells = [
+      { ...held('sawmill'), h3: 'aaa' },
+      { ...held('sawmill'), h3: 'bbb' },
+    ];
+    const ctx = { ownedCells: cells, researched: [], spells: [], now: T0 };
     expect(wikiEntry('work:sawmill', ctx)?.status).toBe('Held on 2 cells');
+    expect(wikiEntry('work:sawmill', ctx)?.sites).toEqual(['aaa', 'bbb']);
     expect(wikiEntry('work:market', ctx)?.status).toBe('None built yet');
+    expect(wikiEntry('work:market', ctx)?.sites).toEqual([]);
   });
 });
 

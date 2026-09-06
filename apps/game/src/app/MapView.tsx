@@ -166,7 +166,8 @@ export function MapView({ onLeave }: MapViewProps) {
   ]);
 
   // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
-  const aside = useMapAside(repository, clock.now, trail.points.length + (territory.lastClaim?.at ?? 0));
+  const laps = trail.points.length + (territory.lastClaim?.at ?? 0);
+  const aside = useMapAside(repository, clock.now, laps, (h3) => inspect.onCellTap(h3));
   const [welcomed, setWelcomed] = useState(false);
 
   // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
@@ -174,8 +175,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
   const onCellTerrain = useCellTerrain(repository, territory.refresh);
 
-  // Everything about what the player is inspecting — selection, the panels it opens, the
-  // one action they offer. Lifted out when MapView crossed four hundred lines.
+  // Selection, the panels it opens, the one action they offer. Lifted out of MapView.
   const inspect = useSelection({
     repository,
     cells: territory.cells,
@@ -211,8 +211,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
   useMomentTriggers({ show: moments.show, xp: profile?.xp, riteLearned: inspect.research.lastRite, questEnded: quest.adventures.justEnded });
 
-  // Owning nothing opens the map wide enough to show someone else's ground; holding
-  // ground opens at walking zoom. Read once, so the camera never lurches on a decay.
+  // Owning nothing opens the map wide; holding ground opens at walking zoom. Read once.
   const [openingZoom] = useState(() =>
     load<number>('opening-zoom', 0) > 0 ? ZOOM_WALKING : ZOOM_FIRST_LOOK,
   );
@@ -319,6 +318,7 @@ export function MapView({ onLeave }: MapViewProps) {
         research={inspect.research}
         wisdomPerHour={forecast?.perHour.wisdom ?? 0}
         revealRivals={settings.revealRivals}
+        onWiki={aside.openHelp}
         onClose={inspect.close}
       />
 
