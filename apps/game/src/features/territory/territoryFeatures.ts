@@ -15,7 +15,7 @@ import {
   terrainOf,
   TERRAIN_TABLE,
 } from '@es3/core';
-import { cellBoundary } from '@es3/core';
+import { cellBoundary, worksOn } from '@es3/core';
 import type { Cell, CaptureOutcome, H3Index, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
 import { buildingGlyph } from './buildingGlyphs.js';
 
@@ -187,8 +187,12 @@ export function cellProperties(
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const rival = cell.ownerId !== null && !mine;
   const glyph = terrainGlyph(terrainOf(cell.h3).kind);
-  // Shown on any owner's cell — a rival's building on a bordering hex is intel.
-  const bg = cell.building ? buildingGlyph(cell.building.id) : null;
+  // Shown on any owner's cell — a rival's building on a bordering hex is intel. A cell
+  // can hold several Works now (BUILD-007); the text layer marks the newest, which is
+  // what makes a just-built one appear. BRDC-ART-003 draws them all as icons.
+  const works = worksOn(cell);
+  const newest = works[works.length - 1];
+  const bg = newest ? buildingGlyph(newest.id) : null;
   return {
     strength: cell.strength,
     mine,
@@ -206,7 +210,7 @@ export function cellProperties(
     buildingColor: bg?.color ?? '',
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.
-    flag: mine && !cell.building ? FLAG_GLYPH : '',
+    flag: mine && works.length === 0 ? FLAG_GLYPH : '',
     shared: cell.shared !== undefined,
   };
 }

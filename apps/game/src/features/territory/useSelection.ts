@@ -6,7 +6,7 @@
  * and it reads better here — nothing else in the map screen needs to know how it works.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BUILDINGS, cellsWithin, emptyCell } from '@es3/core';
+import { BUILDINGS, buildingsOf, cellsWithin, emptyCell, hasWork, worksOn } from '@es3/core';
 import type {
   ActiveSpell,
   BuildRefusal,
@@ -54,7 +54,7 @@ export interface BuildBinding {
   myBuildings: readonly BuildingId[];
   refusal: BuildFail | null;
   onBuild: (h3: H3Index, id: BuildingId) => void;
-  onDemolish: (h3: H3Index) => void;
+  onDemolish: (h3: H3Index, id: BuildingId) => void;
 }
 
 /**
@@ -173,10 +173,7 @@ export function useSelection({
   // Buildings the player holds, from the cells in view — enough for the capacity check in
   // practice, since a player's buildings sit on their territory and that is what is on
   // screen. An off-screen building could under-count the cap; acceptable for now.
-  const myBuildings = useMemo(
-    () => cells.flatMap((c): BuildingId[] => (c.building ? [c.building.id] : [])),
-    [cells],
-  );
+  const myBuildings = useMemo(() => buildingsOf(cells), [cells]);
 
   useEffect(() => {
     if (!repository) return;
@@ -300,9 +297,9 @@ export function useSelection({
     [repository, now, afterSpend],
   );
 
-  const onDemolish = useCallback((h3: H3Index) => {
+  const onDemolish = useCallback((h3: H3Index, id: BuildingId) => {
     if (!repository) return;
-    void repository.demolish(h3, now()).then((r) => {
+    void repository.demolish(h3, now(), id).then((r) => {
       setBuildRefusal(r.ok ? null : r.refused);
       if (r.ok) void afterSpend();
     });
@@ -346,9 +343,10 @@ export function useSelection({
   // a Monument or a revealed place (BRDC-BUILD-004). Empty for plain ground.
   const auraCells = useMemo<readonly H3Index[]>(() => {
     if (!cell) return [];
-    const aura = cell.building ? BUILDINGS[cell.building.id].aura : undefined;
-    if (aura) return cellsWithin(cell.h3, aura.radius);
-    if (cell.building?.id === 'monument' || here) return cellsWithin(cell.h3, 1);
+    // Several Works may stand here (BUILD-007); the ring drawn is the widest of them.
+    const reach = worksOn(cell).reduce((r, w) => Math.max(r, BUILDINGS[w.id].aura?.radius ?? 0), 0);
+    if (reach > 0) return cellsWithin(cell.h3, reach);
+    if (hasWork(cell, 'monument') || here) return cellsWithin(cell.h3, 1);
     return [];
   }, [cell, here]);
 

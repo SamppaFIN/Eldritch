@@ -123,7 +123,7 @@ describe('the pouch grows exactly what the forecast promised', () => {
       strength: 300,
       lastVisitedAt: T0,
       visitDays: [],
-      building: { id: 'fishery', builtAt: T0 },
+      buildings: [{ id: 'fishery', builtAt: T0 }],
     },
   ];
 

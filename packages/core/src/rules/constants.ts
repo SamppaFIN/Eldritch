@@ -187,9 +187,11 @@ export const ANCHOR = {
  *
  * v2 added the sender's defence. v3 (BRDC-WAGER-JSON-006) dropped the fight from import
  * altogether and added `d` per cell — the days the sender has held it, which breaks a
- * tie when a shared cell's yield is split. An older message is refused by name.
+ * tie when a shared cell's yield is split. v4 (BRDC-BUILD-007) turned `b` from one
+ * building id into the list of them, which an older reader cannot make sense of. An
+ * older message is refused by name.
  */
-export const CHALLENGE_VERSION = 3;
+export const CHALLENGE_VERSION = 4;
 
 /**
  * The wire format for one region's slice of the shared world (BRDC-SHARE-001).
@@ -198,8 +200,10 @@ export const CHALLENGE_VERSION = 3;
  * from player submissions and read by every client, and it changes shape for reasons that
  * have nothing to do with a save or a hand-carried challenge. An unknown version is
  * rejected by name, never merged.
+ *
+ * v2 (BRDC-BUILD-007): `b` is the list of Works on a cell, not a single id.
  */
-export const WORLD_VERSION = 1;
+export const WORLD_VERSION = 2;
 
 /**
  * The build's own version, shown in the menu and headed each `changelog.json` block
@@ -239,6 +243,12 @@ export const MAX_LOG_ENTRIES = 200;
  */
 export const BASE_BUILDING_CAP = 6;
 export const GRANARY_CAPACITY = 3;
+/**
+ * Works one cell may hold (BRDC-BUILD-007). A hex is a small cluster, not a city: three
+ * is enough for a sawmill beside a storehouse beside a monument, and few enough that
+ * choosing what goes where still matters. The player-wide cap (Granaries) is separate.
+ */
+export const CELL_BUILDING_CAP = 3;
 /** A Storehouse adds this to the pouch's per-resource ceiling (BRDC-ECON-001's other half). */
 export const STOREHOUSE_CAP_BONUS = 250;
 /** Demolishing hands back this fraction of the cost, floored per resource. */

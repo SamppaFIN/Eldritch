@@ -91,13 +91,13 @@ describe('upgrade chains (BRDC-BUILD-002)', () => {
 
   it('a chained building is only ever the in-place upgrade of its predecessor', () => {
     expect(canBuild(loaded, 'lumbermill', forest())).toEqual({ ok: false, refused: 'locked' });
-    expect(canBuild(loaded, 'lumbermill', forest({ building: { id: 'sawmill', builtAt: T0 } }))).toEqual({
+    expect(canBuild(loaded, 'lumbermill', forest({ buildings: [{ id: 'sawmill', builtAt: T0 }] }))).toEqual({
       ok: true,
     });
   });
 
   it('the predecessor itself still refuses a cell it already stands on', () => {
-    expect(canBuild(loaded, 'sawmill', forest({ building: { id: 'sawmill', builtAt: T0 } }))).toEqual({
+    expect(canBuild(loaded, 'sawmill', forest({ buildings: [{ id: 'sawmill', builtAt: T0 }] }))).toEqual({
       ok: false,
       refused: 'occupied',
     });
@@ -105,7 +105,7 @@ describe('upgrade chains (BRDC-BUILD-002)', () => {
 
   it('an upgrade does not run into the building cap', () => {
     const full = { ...loaded, buildings: Array(BASE_BUILDING_CAP).fill('sawmill') as BuildingId[] };
-    expect(canBuild(full, 'lumbermill', forest({ building: { id: 'sawmill', builtAt: T0 } }))).toEqual({
+    expect(canBuild(full, 'lumbermill', forest({ buildings: [{ id: 'sawmill', builtAt: T0 }] }))).toEqual({
       ok: true,
     });
   });
@@ -119,9 +119,24 @@ describe('canBuild refuses in order of how fundamental the objection is', () => 
     });
   });
 
-  it('occupied before terrain', () => {
-    const built = cell({ building: { id: 'monument', builtAt: T0 }, terrain: { kind: 'mountain', source: 'hash' } });
-    expect(canBuild(loaded, 'granary', built)).toEqual({ ok: false, refused: 'occupied' });
+  it('occupied — the same Work twice on one cell — before terrain', () => {
+    const built = cell({ buildings: [{ id: 'monument', builtAt: T0 }], terrain: { kind: 'mountain', source: 'hash' } });
+    expect(canBuild(loaded, 'monument', built)).toEqual({ ok: false, refused: 'occupied' });
+  });
+
+  it('lets a *different* Work join one already standing (BRDC-BUILD-007)', () => {
+    const built = cell({ buildings: [{ id: 'monument', builtAt: T0 }] });
+    expect(canBuild(loaded, 'granary', built)).toEqual({ ok: true });
+  });
+
+  it('cell-full once the hex holds its cap', () => {
+    const full = cell({
+      buildings: (['monument', 'storehouse', 'market'] as BuildingId[]).map((id) => ({
+        id,
+        builtAt: T0,
+      })),
+    });
+    expect(canBuild(loaded, 'granary', full)).toEqual({ ok: false, refused: 'cell-full' });
   });
 
   it('wrong-terrain before tech', () => {
@@ -177,16 +192,29 @@ describe('caps and refunds', () => {
 
 describe('buildingBonus and buildingsOf', () => {
   it('sums per-hour production from awake buildings only', () => {
-    const market = cell({ building: { id: 'market', builtAt: T0 } });
-    const dormant = cell({ h3: 'x', building: { id: 'market', builtAt: T0 }, lastVisitedAt: T0 - 10 * 86_400_000 });
+    const market = cell({ buildings: [{ id: 'market', builtAt: T0 }] });
+    const dormant = cell({ h3: 'x', buildings: [{ id: 'market', builtAt: T0 }], lastVisitedAt: T0 - 10 * 86_400_000 });
     expect(buildingBonus([market], T0)).toEqual({ gold: 2 });
     expect(buildingBonus([market, market], T0)).toEqual({ gold: 4 });
     expect(buildingBonus([dormant], T0)).toEqual({});
   });
 
-  it('buildingsOf lists the buildings on a set of cells', () => {
-    const a = cell({ building: { id: 'granary', builtAt: T0 } });
+  it('buildingsOf lists every Work on a set of cells (BRDC-BUILD-007)', () => {
+    const a = cell({ buildings: [{ id: 'granary', builtAt: T0 }, { id: 'monument', builtAt: T0 }] });
     const b = cell({ h3: 'b' });
-    expect(buildingsOf([a, b])).toEqual(['granary']);
+    expect(buildingsOf([a, b])).toEqual(['granary', 'monument']);
+  });
+
+  it('every Work on one cell pays, and dormancy is judged per cell (BRDC-BUILD-007)', () => {
+    const cluster = cell({
+      buildings: [
+        { id: 'market', builtAt: T0 }, // gold 2
+        { id: 'monument', builtAt: T0 }, // culture 1
+      ],
+    });
+    expect(buildingBonus([cluster], T0)).toEqual({ gold: 2, culture: 1 });
+
+    const dormant = { ...cluster, lastVisitedAt: T0 - 10 * 86_400_000 };
+    expect(buildingBonus([dormant], T0)).toEqual({});
   });
 });

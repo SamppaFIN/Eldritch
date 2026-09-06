@@ -101,6 +101,7 @@ export function SettingsMenu({
     ['sound', 'Sound'],
     ['vibration', 'Vibration'],
     ['loopClosure', 'Claim by closing a loop'],
+    ['buildingIcons', 'Building icons on the map'],
   ];
   const run = (action: () => void) => {
     /*

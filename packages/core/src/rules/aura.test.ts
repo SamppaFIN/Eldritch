@@ -16,7 +16,7 @@ function cell(h3: string, over: Partial<Cell> = {}): Cell {
   return { h3, ownerId: 'me', strength: 300, lastVisitedAt: T0, visitDays: [], ...over };
 }
 const withBuilding = (h3: string, id: BuildingId, over: Partial<Cell> = {}): Cell =>
-  cell(h3, { building: { id, builtAt: T0 }, ...over });
+  cell(h3, { buildings: [{ id, builtAt: T0 }], ...over });
 
 describe('resourceAura', () => {
   it('projects a Library across its radius, over held cells', () => {

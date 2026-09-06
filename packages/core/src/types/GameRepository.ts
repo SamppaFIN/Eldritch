@@ -164,7 +164,7 @@ export interface GameRepository {
    */
   build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome>;
   /** Demolish a cell's building and return half its cost. */
-  demolish(h3: H3Index, now: number): Promise<DemolishOutcome>;
+  demolish(h3: H3Index, now: number, id?: BuildingId): Promise<DemolishOutcome>;
 
   /* --- Trade Routes (BRDC-BUILD-004) ---------------------------------- */
   /** The two-cell links the player holds; each pays gold while both ends are awake. */

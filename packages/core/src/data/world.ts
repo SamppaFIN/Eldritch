@@ -288,7 +288,7 @@ export function worldToCells(shard: WorldShard, mineId: PlayerId, now: number): 
         imported: true,
         importedFrom: from,
         ...(c.t ? { terrain: { kind: c.t, source: 'hash' as const } } : {}),
-        ...(c.b ? { building: { id: c.b, builtAt: now } } : {}),
+        ...(c.b?.length ? { buildings: c.b.map((id) => ({ id, builtAt: now })) } : {}),
       });
     }
   }

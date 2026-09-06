@@ -184,7 +184,7 @@ describe('extended cell metadata through a shard (BRDC-WAGER-JSON-004)', () => {
     castle: cellAt(ORIGIN),
     cells: [
       toWireCell({ ...cell(h3s[0]!, 'pale'), terrain: { kind: 'forest', source: 'tiles' } }),
-      toWireCell({ ...cell(h3s[1]!, 'pale'), building: { id: 'sawmill', builtAt: T0 } }),
+      toWireCell({ ...cell(h3s[1]!, 'pale'), buildings: [{ id: 'sawmill', builtAt: T0 }] }),
       toWireCell(cell(h3s[2]!, 'pale')),
     ],
   };
@@ -198,7 +198,7 @@ describe('extended cell metadata through a shard (BRDC-WAGER-JSON-004)', () => {
       worldToCells(parsed.shard, 'me', T0 + 3 * 86_400_000).map((c) => [c.h3, c]),
     );
     expect(byH3.get(h3s[0]!)?.terrain).toEqual({ kind: 'forest', source: 'hash' });
-    expect(byH3.get(h3s[1]!)?.building?.id).toBe('sawmill');
+    expect(byH3.get(h3s[1]!)?.buildings?.[0]?.id).toBe('sawmill');
     expect(byH3.get(h3s[2]!)?.terrain).toBeUndefined();
     expect(byH3.get(h3s[0]!)?.importedFrom).toEqual({
       name: 'The Pale March',

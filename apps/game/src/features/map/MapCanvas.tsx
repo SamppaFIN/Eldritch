@@ -32,6 +32,7 @@ import {
   removeTerritoryLayers,
   setTerritoryData,
 } from '../territory/TerritoryLayer.js';
+import { useBuildingIcons } from './useBuildingIcons.js';
 import {
   PLACE_CORE_LAYER,
   PLACE_HALO_LAYER,
@@ -107,6 +108,8 @@ export interface MapCanvasProps {
   initialZoom?: number;
   /** Keep the camera on the player. False once they pan away by hand. */
   follow?: boolean;
+  /** Draw every Work as its own isometric icon (BRDC-ART-003). Off = the single glyph. */
+  buildingIcons?: boolean;
   onBasemapChange?: (state: BasemapState) => void;
 }
 
@@ -127,6 +130,7 @@ export function MapCanvas({
   awakening = null,
   initialZoom,
   follow = true,
+  buildingIcons = true,
   onBasemapChange,
   onCellTap,
   onPlaceTap,
@@ -174,24 +178,19 @@ export function MapCanvas({
     };
   }, [map, ready, initialCentre]);
 
-  // Territory first, then the trail: the ley-line the player is drawing right now
-  // must never be buried under the ground they already hold.
+  // Order is z-order: territory at the bottom, then the worn paths, then the live
+  // ley-line the player is drawing now, then auras, places, the Keep, quest sigils,
+  // and the two-second awakening flash on top.
   useEffect(() => {
     if (!map || !ready) return;
     ensureTerritoryLayers(map);
-    // Under the live ley-line: a worn path is history, the trail is now (BRDC-TRAIL-003).
     ensurePathLayers(map);
-    // Above territory, under the trail: it answers "what does this cell reach".
     ensureAuraLayers(map);
     ensureTradeLayer(map);
     ensureTrailLayers(map);
-    // Last, so a place is never buried under the ground it sits in.
     ensurePlaceLayers(map);
-    // The Keep alongside places: it is a marker of the same weight, not territory.
     ensureCastleLayer(map);
-    // Adventure landmarks — a handful of gold sigils, drawn with the place markers.
     ensureQuestLayers(map);
-    // Above everything: this is a moment, and it is over in two seconds.
     ensureAwakeningLayers(map);
     return () => {
       // Guard: React may run cleanup after the map has already been torn down.
@@ -208,6 +207,8 @@ export function MapCanvas({
       }
     };
   }, [map, ready]);
+
+  useBuildingIcons(map, ready, cells, playerId, buildingIcons);
 
   useEffect(() => {
     if (!map || !ready || !cells) return;
@@ -376,13 +377,11 @@ export function MapCanvas({
     if (!ring) return;
 
     const resize = () => {
-      // Web Mercator ground resolution at 256 px tiles. The `+ 8` that belongs in the
-      // tile-pixel form of this identity does not belong here, and putting it in makes
-      // the ring 256x too large — a 12 m fix drew a 5000 px circle.
+      // Web Mercator ground resolution at 256 px tiles — no `+ 8` here, that belongs in
+      // the tile-pixel form and drew a 5000 px ring for a 12 m fix. Clamped so a 50 m
+      // fix at low zoom informs rather than swallowing the screen.
       const metresPerPixel =
         (156543.03392 * Math.cos((position.lat * Math.PI) / 180)) / Math.pow(2, map.getZoom());
-      // Clamped: a 50 m fix at low zoom would otherwise swallow the screen, and the
-      // ring is meant to inform, not alarm.
       const px = Math.min(320, Math.max(24, (accuracyM * 2) / metresPerPixel));
       ring.style.width = `${px}px`;
       ring.style.height = `${px}px`;

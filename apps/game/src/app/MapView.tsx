@@ -124,8 +124,7 @@ export function MapView({ onLeave }: MapViewProps) {
     })();
   }, [repository, clock]);
 
-  // The world exists as soon as the game knows where you are, not once a batch of
-  // trail points has been written.
+  // The world exists as soon as the game knows where you are, not once trail is written.
   useEffect(() => {
     if (!repository || !point) return;
     void repository.seedAround(point, clock.now());
@@ -249,6 +248,7 @@ export function MapView({ onLeave }: MapViewProps) {
         now={clock.now()}
         awakening={awakening}
         initialZoom={openingZoom}
+        buildingIcons={settings.buildingIcons}
         onBasemapChange={setBasemap}
         onCellTap={inspect.onCellTap}
         onPlaceTap={inspect.onPlaceTap}

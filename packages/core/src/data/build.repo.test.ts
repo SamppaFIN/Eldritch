@@ -35,12 +35,19 @@ describe('build / demolish', () => {
     expect(out.ok).toBe(true);
 
     const here = (await repo.getCells(BOX, T0)).find((c) => c.h3 === home);
-    expect(here?.building?.id).toBe('monument');
+    expect(here?.buildings?.[0]?.id).toBe('monument');
   });
 
-  it('refuses a second building on the same cell', async () => {
+  it('takes a second, different Work on the same cell (BRDC-BUILD-007)', async () => {
     await repo.build(home, 'monument', T0);
-    expect(await repo.build(home, 'market', T0)).toEqual({ ok: false, refused: 'occupied' });
+    expect((await repo.build(home, 'market', T0)).ok).toBe(true);
+    const here = (await repo.getCells(BOX, T0)).find((c) => c.h3 === home);
+    expect(here?.buildings?.map((w) => w.id)).toEqual(['monument', 'market']);
+  });
+
+  it('refuses the same Work twice on one cell', async () => {
+    await repo.build(home, 'monument', T0);
+    expect(await repo.build(home, 'monument', T0)).toEqual({ ok: false, refused: 'occupied' });
   });
 
   it('refuses ground the player does not own', async () => {
@@ -78,7 +85,7 @@ describe('build / demolish', () => {
 
     const out = await repo.demolish(home, T0);
     expect(out.ok).toBe(true);
-    expect((await repo.getCells(BOX, T0)).find((c) => c.h3 === home)?.building).toBeUndefined();
+    expect((await repo.getCells(BOX, T0)).find((c) => c.h3 === home)?.buildings).toBeUndefined();
     expect((await repo.getResources(T0)).stone).toBe(afterBuild + 30);
   });
 
@@ -112,8 +119,32 @@ describe('build / demolish', () => {
 
     const up = await r.build(h, 'lumbermill', T0);
     expect(up.ok).toBe(true);
-    expect((await r.getCells(BOX, T0)).find((c) => c.h3 === h)?.building?.id).toBe('lumbermill');
+    // The upgrade takes the Sawmill's slot, it does not sit beside it (BRDC-BUILD-007).
+    expect((await r.getCells(BOX, T0)).find((c) => c.h3 === h)?.buildings?.map((w) => w.id)).toEqual([
+      'lumbermill',
+    ]);
     expect((await r.getResources(T0)).wood).toBe(afterSawmill - 80);
+  });
+
+  it('demolishes the named Work, leaving the others (BRDC-BUILD-007)', async () => {
+    const { repo: r } = await repoWith({ wood: 999, stone: 999, gold: 999, culture: 999 }, [
+      'early-farming',
+    ]);
+    const h = await r.setHome(ORIGIN, T0);
+    await r.setCellTerrain(h, { kind: 'plain', source: 'tiles' });
+    await r.build(h, 'granary', T0);
+    await r.build(h, 'monument', T0);
+    await r.build(h, 'market', T0);
+
+    expect((await r.demolish(h, T0, 'monument')).ok).toBe(true);
+    const here = (await r.getCells(BOX, T0)).find((c) => c.h3 === h);
+    expect(here?.buildings?.map((w) => w.id)).toEqual(['granary', 'market']);
+
+    // No id given → the most recent one goes.
+    await r.demolish(h, T0);
+    expect(
+      (await r.getCells(BOX, T0)).find((c) => c.h3 === h)?.buildings?.map((w) => w.id),
+    ).toEqual(['granary']);
   });
 
   it('a Fishery yields a token once a day (BRDC-BUILD-002)', async () => {

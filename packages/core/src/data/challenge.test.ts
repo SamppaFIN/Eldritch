@@ -156,14 +156,14 @@ describe('the extended metadata (BRDC-WAGER-JSON-004)', () => {
   const withMeta = () => {
     const cells = ground(3);
     cells[0] = { ...cells[0]!, terrain: { kind: 'forest', source: 'tiles' } };
-    cells[1] = { ...cells[1]!, building: { id: 'sawmill', builtAt: T0 } };
+    cells[1] = { ...cells[1]!, buildings: [{ id: 'sawmill', builtAt: T0 }] };
     return { text: sent(cells), forestH3: cells[0]!.h3, millH3: cells[1]!.h3, bareH3: cells[2]!.h3 };
   };
 
   it('round-trips terrain, building, nation and flag', () => {
     const cells = ground(3);
     cells[0] = { ...cells[0]!, terrain: { kind: 'mountain', source: 'seed' } };
-    cells[1] = { ...cells[1]!, building: { id: 'library', builtAt: T0 } };
+    cells[1] = { ...cells[1]!, buildings: [{ id: 'library', builtAt: T0 }] };
     const text = encodeChallenge(
       buildChallenge(source(cells, { nation: 'The Pale March', banner: 'eye' })),
     );
@@ -174,7 +174,7 @@ describe('the extended metadata (BRDC-WAGER-JSON-004)', () => {
     expect(parsed.challenge.banner).toBe('eye');
     const byH3 = new Map(parsed.challenge.cells.map((c) => [c.h3, c]));
     expect(byH3.get(cells[0]!.h3)?.t).toBe('mountain');
-    expect(byH3.get(cells[1]!.h3)?.b).toBe('library');
+    expect(byH3.get(cells[1]!.h3)?.b).toEqual(['library']);
     expect(byH3.get(cells[2]!.h3)?.t).toBeUndefined();
   });
 
@@ -198,7 +198,7 @@ describe('the extended metadata (BRDC-WAGER-JSON-004)', () => {
     if (!parsed.ok) throw new Error('expected a challenge');
     const byH3 = new Map(challengeToCells(parsed.challenge, T0 + 86_400_000).map((c) => [c.h3, c]));
     expect(byH3.get(forestH3)?.terrain).toEqual({ kind: 'forest', source: 'hash' });
-    expect(byH3.get(millH3)?.building?.id).toBe('sawmill');
+    expect(byH3.get(millH3)?.buildings?.[0]?.id).toBe('sawmill');
     expect(byH3.get(bareH3)?.terrain).toBeUndefined();
   });
 

@@ -19,7 +19,7 @@ import {
   LOYALTY_MAX,
   LOYALTY_PER_SOURCE,
 } from './constants.js';
-import { BUILDINGS } from './build.js';
+import { BUILDINGS, hasWork, worksOn } from './build.js';
 import type { AuraKind, Cell, H3Index, PlayerId } from '../types/domain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 
@@ -47,16 +47,19 @@ export function resourceAura(
   const perCell = new Map<H3Index, Partial<Record<AuraKind, number>>>();
 
   for (const source of sources) {
-    if (!source.building) continue;
     if (now - source.lastVisitedAt > DORMANT_AFTER_MS) continue;
-    const aura = BUILDINGS[source.building.id].aura;
-    if (!aura || aura.kind === 'defence') continue; // defence is read in the siege path
+    // Every Work on the cell projects its own aura (BRDC-BUILD-007) — a Library beside a
+    // Temple Grove on one hex reaches with both.
+    for (const work of worksOn(source)) {
+      const aura = BUILDINGS[work.id].aura;
+      if (!aura || aura.kind === 'defence') continue; // defence is read in the siege path
 
-    for (const h3 of cellsWithin(source.h3, aura.radius)) {
-      if (!held.has(h3)) continue;
-      const bucket = perCell.get(h3) ?? {};
-      bucket[aura.kind] = Math.min(AURA_CAP_PER_CELL, (bucket[aura.kind] ?? 0) + aura.amount);
-      perCell.set(h3, bucket);
+      for (const h3 of cellsWithin(source.h3, aura.radius)) {
+        if (!held.has(h3)) continue;
+        const bucket = perCell.get(h3) ?? {};
+        bucket[aura.kind] = Math.min(AURA_CAP_PER_CELL, (bucket[aura.kind] ?? 0) + aura.amount);
+        perCell.set(h3, bucket);
+      }
     }
   }
 
@@ -82,7 +85,7 @@ export function loyaltySourceCells(
 ): Set<H3Index> {
   const sources = new Set<H3Index>(placeCells);
   for (const c of ownedCells) {
-    if (c.building?.id === 'monument') sources.add(c.h3);
+    if (hasWork(c, 'monument')) sources.add(c.h3);
   }
   return sources;
 }
@@ -117,7 +120,7 @@ export function defenceAura(
   let total = 0;
   for (const src of cellsWithin(h3, fort.radius)) {
     const cell = known.get(src);
-    if (cell?.ownerId === ownerId && cell.building?.id === 'fortress') total += fort.amount;
+    if (cell?.ownerId === ownerId && hasWork(cell, 'fortress')) total += fort.amount;
   }
   return Math.min(DEFENCE_AURA_CAP, total);
 }

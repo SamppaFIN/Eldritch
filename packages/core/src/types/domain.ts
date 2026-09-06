@@ -81,6 +81,12 @@ export type BuildingId =
   // BRDC-BUILD-004: the defensive aura
   | 'fortress';
 
+/** One Work standing on a cell, and when it went up. */
+export interface CellBuilding {
+  id: BuildingId;
+  builtAt: number;
+}
+
 /**
  * What a building's area effect gives to the cells it covers. The resource kinds feed
  * `perHourBonus` (BRDC-BUILD-003); `defence` reduces incoming attack damage and is read
@@ -166,8 +172,14 @@ export interface Cell {
    * Set alongside `imported`. Additive, no migration.
    */
   importedFrom?: { name: string; banner?: string; seenAt: number };
-  /** The one building on this cell, if any (BRDC-BUILD-001). One cell, one building. */
-  building?: { id: BuildingId; builtAt: number };
+  /**
+   * The Works standing on this cell (BRDC-BUILD-001, -007).
+   *
+   * At most `CELL_BUILDING_CAP`, and never two of the same id — a hex holds a small
+   * cluster, not a city. This was a single `building` until schema 3; the migration
+   * rewrites the old field into a one-element list, so nothing is lost.
+   */
+  buildings?: CellBuilding[];
   /**
    * Decay-clock time bought by Bulwark spells (BRDC-SPELL-001), cumulative. Subtracted
    * from the cell's age in `projectCell` — the hours stay off the clock after the spell's

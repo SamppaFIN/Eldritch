@@ -15,6 +15,7 @@
  */
 import {
   BASE_BUILDING_CAP,
+  CELL_BUILDING_CAP,
   DECAY_GRACE_HOURS,
   DEMOLISH_REFUND,
   GRANARY_CAPACITY,
@@ -24,7 +25,7 @@ import { BASE_STORAGE_CAP, canAfford, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
 import { hasTech } from './tech.js';
 import type { TechId } from './tech.js';
-import type { AuraKind, BuildingId, Cell, PlayerId } from '../types/domain.js';
+import type { AuraKind, BuildingId, Cell, CellBuilding, PlayerId } from '../types/domain.js';
 
 export type { BuildingId } from '../types/domain.js';
 
@@ -203,7 +204,17 @@ export function buildingCapacity(buildings: readonly BuildingId[]): number {
 
 /** The buildings on a set of cells, in cell order. */
 export function buildingsOf(cells: readonly Cell[]): BuildingId[] {
-  return cells.flatMap((c) => (c.building ? [c.building.id] : []));
+  return cells.flatMap((c) => (c.buildings ?? []).map((w) => w.id));
+}
+
+/** What stands on one cell. `[]` for bare ground — the shape callers can always map over. */
+export function worksOn(cell: Cell): readonly CellBuilding[] {
+  return cell.buildings ?? [];
+}
+
+/** True when one of `ids` stands on this cell. The `cell.building?.id === x` of BUILD-007. */
+export function hasWork(cell: Cell, id: BuildingId): boolean {
+  return worksOn(cell).some((w) => w.id === id);
 }
 
 /**
@@ -235,12 +246,14 @@ function sumOver(
 ): Partial<ResourcePool> {
   const bonus: Partial<ResourcePool> = {};
   for (const cell of cells) {
-    if (!cell.building) continue;
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
-    const rates = pick(BUILDINGS[cell.building.id]);
-    if (!rates) continue;
-    for (const [k, v] of Object.entries(rates) as [ResourceKind, number][]) {
-      bonus[k] = (bonus[k] ?? 0) + v;
+    // Every Work on the cell pays, not just the first — dormancy is judged per cell.
+    for (const work of worksOn(cell)) {
+      const rates = pick(BUILDINGS[work.id]);
+      if (!rates) continue;
+      for (const [k, v] of Object.entries(rates) as [ResourceKind, number][]) {
+        bonus[k] = (bonus[k] ?? 0) + v;
+      }
     }
   }
   return bonus;
@@ -252,6 +265,7 @@ export type BuildRefusal =
   | 'wrong-terrain'
   | 'locked'
   | 'needs-a-temple'
+  | 'cell-full'
   | 'at-capacity'
   | 'cannot-afford';
 
@@ -276,18 +290,16 @@ export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
  */
 export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCheck {
   const b = BUILDINGS[id];
+  const here = worksOn(cell);
 
   if (cell.ownerId !== ctx.playerId) return { ok: false, refused: 'not-yours' };
+  // One of each per cell: three sawmills on one hex is a spreadsheet, not a decision.
+  if (here.some((w) => w.id === id)) return { ok: false, refused: 'occupied' };
 
-  // A chained building (BUILD-002) is only ever the in-place upgrade of its predecessor:
-  // build `lumbermill` on a cell that holds a `sawmill`. Everything else refuses a taken
-  // cell outright.
-  const upgrading = cell.building !== undefined && b.requires.includes(cell.building.id);
-  if (b.requires.length > 0) {
-    if (!upgrading) return { ok: false, refused: 'locked' };
-  } else if (cell.building) {
-    return { ok: false, refused: 'occupied' };
-  }
+  // A chained building (BUILD-002) is only ever the in-place upgrade of its predecessor,
+  // and only on the cell that predecessor stands on: `lumbermill` onto a `sawmill`.
+  const upgrading = b.requires.some((r) => here.some((w) => w.id === r));
+  if (b.requires.length > 0 && !upgrading) return { ok: false, refused: 'locked' };
 
   if (b.terrain !== 'any' && !b.terrain.includes(terrainForCell(cell).kind)) {
     return { ok: false, refused: 'wrong-terrain' };
@@ -297,9 +309,12 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   if (b.needsPlace === 'temple' && !ctx.templeAdjacent) {
     return { ok: false, refused: 'needs-a-temple' };
   }
-  // An upgrade swaps a slot it already holds, so it never runs into the cap.
-  if (!upgrading && ctx.buildings.length >= buildingCapacity(ctx.buildings)) {
-    return { ok: false, refused: 'at-capacity' };
+  // An upgrade takes the slot it replaces, so it runs into neither cap.
+  if (!upgrading) {
+    if (here.length >= CELL_BUILDING_CAP) return { ok: false, refused: 'cell-full' };
+    if (ctx.buildings.length >= buildingCapacity(ctx.buildings)) {
+      return { ok: false, refused: 'at-capacity' };
+    }
   }
   if (!canAfford(ctx.pool, b.cost)) return { ok: false, refused: 'cannot-afford' };
 

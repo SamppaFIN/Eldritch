@@ -9,7 +9,7 @@
  * the panel around it (BRDC-CHAR-001's field-jank note).
  */
 import { useCallback, useState } from 'react';
-import { population, provinceCount } from '@es3/core';
+import { buildingsOf, population, provinceCount } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { Banner } from './Banner.js';
 import { BannerPicker } from './BannerPicker.js';
@@ -30,7 +30,7 @@ export function NationIdentity({ owned }: { owned: readonly Cell[] }) {
     setPicking(false);
   };
 
-  const buildings = owned.reduce((n, c) => n + (c.building ? 1 : 0), 0);
+  const buildings = buildingsOf(owned).length;
 
   return (
     <section className="nation" aria-label="Your nation">

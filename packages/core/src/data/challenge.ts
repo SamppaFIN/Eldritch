@@ -28,7 +28,8 @@ export interface WireCell {
   h3: H3Index;
   strength: number;
   t?: TerrainKind;
-  b?: BuildingId;
+  /** Every Work on the cell (BRDC-BUILD-007). A single id until CHALLENGE_VERSION 4. */
+  b?: BuildingId[];
   d?: number;
 }
 
@@ -36,7 +37,7 @@ export interface WireCell {
 export function toWireCell(c: Cell): WireCell {
   const w: WireCell = { h3: c.h3, strength: Math.round(c.strength) };
   if (c.terrain) w.t = c.terrain.kind;
-  if (c.building) w.b = c.building.id;
+  if (c.buildings?.length) w.b = c.buildings.map((x) => x.id);
   if (c.ownedDays) w.d = c.ownedDays;
   return w;
 }
@@ -200,7 +201,7 @@ export function challengeToCells(challenge: Challenge, now: number): Cell[] {
     ...(c.d ? { ownedDays: c.d } : {}),
     // Their reading, carried over — not a firm local one, so it reads as estimated.
     ...(c.t ? { terrain: { kind: c.t, source: 'hash' as const } } : {}),
-    ...(c.b ? { building: { id: c.b, builtAt: now } } : {}),
+    ...(c.b?.length ? { buildings: c.b.map((id) => ({ id, builtAt: now })) } : {}),
   }));
 }
 

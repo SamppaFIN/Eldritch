@@ -6,7 +6,7 @@
  * does not grow two more verbs inline. `wardWith` in pouch.js is the shape: settle the
  * pouch, ask the rule, and write only on success.
  */
-import { buildCost, buildingsOf, canBuild, refund } from '../rules/build.js';
+import { BUILDINGS, buildCost, buildingsOf, canBuild, refund, worksOn } from '../rules/build.js';
 import type { BuildRefusal, BuildingId } from '../rules/build.js';
 import { spend } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
@@ -54,7 +54,11 @@ export async function buildOn(
   if (!paid) return { ok: false, refused: 'cannot-afford' };
   await writePouch(store, paid, now);
 
-  const built: Cell = { ...live, building: { id, builtAt: now } };
+  // An upgrade takes its predecessor's slot rather than sitting beside it (BUILD-007);
+  // everything else joins what is already there, up to the per-cell cap `canBuild` checked.
+  const replaced = new Set<BuildingId>(BUILDINGS[id].requires);
+  const kept = worksOn(live).filter((w) => !replaced.has(w.id));
+  const built: Cell = { ...live, buildings: [...kept, { id, builtAt: now }] };
   await store.set(K.cell(h3), built);
   await writeLogEntry(store, { at: now, kind: 'build', ref: id });
   return { ok: true, cell: built };
@@ -72,19 +76,26 @@ export async function demolishOn(
   h3: string,
   owned: readonly Cell[],
   now: number,
+  /** Which Work to take down. Omitted, the most recently built one goes (BUILD-007). */
+  id?: BuildingId,
 ): Promise<DemolishOutcome> {
   const stored = await store.get<Cell>(K.cell(h3));
-  if (!stored?.building) return { ok: false, refused: 'nothing-here' };
+  const here = stored ? worksOn(stored) : [];
+  const removed = id ?? here[here.length - 1]?.id;
+  if (!stored || !removed || !here.some((w) => w.id === removed)) {
+    return { ok: false, refused: 'nothing-here' };
+  }
 
   const state = await settlePouch(store, owned, now);
-  const back = refund(stored.building.id);
+  const back = refund(removed);
   const pool = { ...state.pool };
   for (const [k, v] of Object.entries(back) as [ResourceKind, number][]) pool[k] += v;
   await writePouch(store, pool, now);
 
-  const removed = stored.building.id;
+  const left = here.filter((w) => w.id !== removed);
   const bare: Cell = { ...stored };
-  delete bare.building;
+  if (left.length > 0) bare.buildings = left;
+  else delete bare.buildings;
   await store.set(K.cell(h3), bare);
   await writeLogEntry(store, { at: now, kind: 'demolish', ref: removed });
   return { ok: true, cell: bare };

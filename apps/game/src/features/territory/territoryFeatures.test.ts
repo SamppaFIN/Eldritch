@@ -133,7 +133,7 @@ describe('terrain glyph', () => {
 describe('building glyph (BRDC-ART-002)', () => {
   const built = (owner: string | null) => ({
     ...cell(owner, 200),
-    building: { id: 'sawmill' as const, builtAt: 0 },
+    buildings: [{ id: 'sawmill' as const, builtAt: 0 }],
   });
 
   it('a built cell carries its role glyph and colour', () => {
@@ -189,7 +189,7 @@ describe('the map flag (BRDC-BANNER-001)', () => {
   });
 
   it('yields to a building on the same cell', () => {
-    const built = { ...cell(ME, 200), building: { id: 'sawmill' as const, builtAt: 0 } };
+    const built = { ...cell(ME, 200), buildings: [{ id: 'sawmill' as const, builtAt: 0 }] };
     expect(cellProperties(built, ME).flag).toBe('');
   });
 

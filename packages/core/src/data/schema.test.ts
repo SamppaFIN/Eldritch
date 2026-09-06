@@ -99,9 +99,13 @@ describe('versioned()', () => {
 
 describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
   const mutable = MIGRATIONS as Record<number, (s: KeyValueStore) => Promise<void>>;
+  // Restored, not emptied: there are real migrations registered now (BRDC-BUILD-007's
+  // 2 → 3), and deleting them here would silently disarm them for every later test.
+  const original = { ...mutable };
 
   afterEach(() => {
     for (const k of Object.keys(mutable)) delete mutable[Number(k)];
+    Object.assign(mutable, original);
   });
 
   it('walks an old version forward when every step has a migration', async () => {
@@ -122,14 +126,48 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
   });
 
   it('still resets when a step in the path has no migration', async () => {
+    // 1 → 2 was BRDC-SCALE-001's cell-key rename, deliberately left without a transform,
+    // so a store that old is still wiped however many later steps exist.
     const inner = new MemoryStore();
-    await inner.set(KEY, SCHEMA_VERSION - 1);
+    await inner.set(KEY, 1);
     await inner.set('profile', { id: 'p1', xp: 40 });
 
     const store = versioned(inner);
     expect(await store.schema()).toBe('reset');
     expect(await store.get('profile')).toBeUndefined();
     expect(await inner.get(KEY)).toBe(SCHEMA_VERSION);
+  });
+
+  it('2 → 3 rewrites a cell’s lone building into a one-element list (BRDC-BUILD-007)', async () => {
+    const inner = new MemoryStore();
+    await inner.set(KEY, 2);
+    await inner.set('cell:r6:8b112492eb03fff', {
+      h3: '8b112492eb03fff',
+      ownerId: 'me',
+      strength: 300,
+      lastVisitedAt: T0,
+      visitDays: [],
+      building: { id: 'monument', builtAt: T0 },
+    });
+    await inner.set('cell:r6:8b112492eb07fff', {
+      h3: '8b112492eb07fff',
+      ownerId: 'me',
+      strength: 120,
+      lastVisitedAt: T0,
+      visitDays: [],
+    });
+
+    const store = versioned(inner);
+    expect(await store.schema()).toBe('migrated');
+
+    const migrated = await store.get<{ building?: unknown; buildings?: { id: string }[] }>(
+      'cell:r6:8b112492eb03fff',
+    );
+    expect(migrated?.building).toBeUndefined();
+    expect(migrated?.buildings).toEqual([{ id: 'monument', builtAt: T0 }]);
+
+    const bare = await store.get<{ buildings?: unknown }>('cell:r6:8b112492eb07fff');
+    expect(bare?.buildings).toBeUndefined();
   });
 });
 

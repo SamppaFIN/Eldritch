@@ -209,7 +209,7 @@ describe('walking over someone else', () => {
       known.set(h3, { h3, ownerId: RIVAL, strength: 70, lastVisitedAt: T0, visitDays: [] });
     }
     for (const h3 of forts) {
-      known.set(h3, { ...(known.get(h3) as Cell), building: { id: 'fortress', builtAt: T0 } });
+      known.set(h3, { ...(known.get(h3) as Cell), buildings: [{ id: 'fortress', builtAt: T0 }] });
     }
 
     const plan = planClaim(detected.loop, { id: 'me', level: 1 }, known, T0 + 600_000);

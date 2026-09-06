@@ -15,12 +15,23 @@ export interface Settings {
    * taken by walking into it, one hex at a time. The loop comes back as it is taught.
    */
   loopClosure: boolean;
+  /**
+   * Draw every Work as its own isometric icon on the map (BRDC-ART-003). Off falls back
+   * to ART-002's single role glyph per cell. The map's first filter — more will follow.
+   */
+  buildingIcons: boolean;
 }
 
 const KEY = 'settings';
 
-/** Sound and vibration on (the claim chime is a reward, not a nag); the loop off for now. */
-export const DEFAULT_SETTINGS: Settings = { sound: true, vibration: true, loopClosure: false };
+/** Sound and vibration on (the claim chime is a reward, not a nag); the loop off for now;
+ *  building icons on, since the field asked to see the buildings. */
+export const DEFAULT_SETTINGS: Settings = {
+  sound: true,
+  vibration: true,
+  loopClosure: false,
+  buildingIcons: true,
+};
 
 export function loadSettings(): Settings {
   const stored = load<Partial<Settings>>(KEY, DEFAULT_SETTINGS);
@@ -28,6 +39,7 @@ export function loadSettings(): Settings {
     sound: stored.sound ?? DEFAULT_SETTINGS.sound,
     vibration: stored.vibration ?? DEFAULT_SETTINGS.vibration,
     loopClosure: stored.loopClosure ?? DEFAULT_SETTINGS.loopClosure,
+    buildingIcons: stored.buildingIcons ?? DEFAULT_SETTINGS.buildingIcons,
   };
 }
 

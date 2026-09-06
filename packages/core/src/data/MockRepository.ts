@@ -184,8 +184,8 @@ export class MockRepository implements GameRepository {
     return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple);
   }
 
-  async demolish(h3: H3Index, now: number): Promise<DemolishOutcome> {
-    return demolishOn(this.store, h3, await this.getOwnedCells(now), now);
+  async demolish(h3: H3Index, now: number, id?: BuildingId): Promise<DemolishOutcome> {
+    return demolishOn(this.store, h3, await this.getOwnedCells(now), now, id);
   }
   getTradeRoutes = (): Promise<TradeRoute[]> => readRoutes(this.store);
 

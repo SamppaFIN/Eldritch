@@ -34,20 +34,38 @@ export const SCHEMA_KEY = 'schema:version';
  * 1 → 2: BRDC-SCALE-001 changed the cell key from `cell:${h3}` to
  * `cell:${regionOf(h3)}:${h3}`. No migration is registered for it, so a v1 store is
  * still reset rather than migrated.
+ *
+ * 2 → 3: BRDC-BUILD-007 replaced `Cell.building` with `Cell.buildings`, a list. This one
+ * *is* migrated — a field tester's ground is not worth throwing away for a rename.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
+
+/** A cell as schema 2 stored it: at most one building, under a singular key. */
+interface CellV2 {
+  building?: { id: string; builtAt: number };
+  buildings?: { id: string; builtAt: number }[];
+}
 
 /**
  * `from` version → the function that rewrites the store from `from` to `from + 1`.
  *
- * Empty for now: nothing in the store has changed shape since the migration path was
- * added. The first real shape change registers its transform here — reading old keys,
- * writing new ones — and stops being a wipe. Each entry advances exactly one version so
- * a multi-version gap composes from the steps it is made of.
+ * Each entry advances exactly one version so a multi-version gap composes from the steps
+ * it is made of. A step reads old keys and writes new ones; anything it cannot read is
+ * left for the wipe, because inventing state is worse than admitting it is gone.
  */
 export const MIGRATIONS: Readonly<
   Partial<Record<number, (inner: KeyValueStore) => Promise<void>>>
-> = {};
+> = {
+  /** One building becomes a list of one. Cells with neither field are already fine. */
+  2: async (inner) => {
+    for (const key of await inner.keys('cell:')) {
+      const cell = await inner.get<CellV2>(key);
+      if (!cell?.building) continue;
+      const { building, ...rest } = cell;
+      await inner.set(key, { ...rest, buildings: [building] });
+    }
+  },
+};
 
 export type SchemaOutcome = 'ok' | 'migrated' | 'reset';
 

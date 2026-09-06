@@ -7,7 +7,7 @@
  * GREEN 8) — timber, a technology, or the wrong ground.
  */
 import { useState } from 'react';
-import { BUILDINGS, EMPTY_POOL, canBuild, refund } from '@es3/core';
+import { BUILDINGS, CELL_BUILDING_CAP, EMPTY_POOL, canBuild, hasWork, refund, worksOn } from '@es3/core';
 import type { BuildRefusal, BuildingId, Cell, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
@@ -31,6 +31,10 @@ export function reason(refused: BuildRefusal, id: BuildingId): string {
     }
     case 'needs-a-temple':
       return 'Build it beside a temple';
+    case 'occupied':
+      return 'Already stands here';
+    case 'cell-full':
+      return 'This hex is full';
     case 'at-capacity':
       return 'No room — build a Granary';
     case 'cannot-afford':
@@ -60,7 +64,7 @@ export interface BuildPanelProps {
   resources: ResourcePool | null;
   myBuildings: readonly BuildingId[];
   onBuild: (h3: string, id: BuildingId) => void;
-  onDemolish: (h3: string) => void;
+  onDemolish: (h3: string, id: BuildingId) => void;
   refusal: BuildRefusal | 'nothing-here' | null;
 }
 
@@ -88,6 +92,7 @@ export function BuildPanel({
   const all = Object.keys(BUILDINGS) as BuildingId[];
   const checks = new Map(all.map((id) => [id, canBuild(ctx, id, cell)] as const));
   const byName = (a: BuildingId, b: BuildingId) => NAME[a].localeCompare(NAME[b]);
+  const here = worksOn(cell);
 
   const row = (id: BuildingId) => {
     const check = checks.get(id) ?? canBuild(ctx, id, cell);
@@ -104,7 +109,7 @@ export function BuildPanel({
         </span>
         {check.ok ? (
           <RitualButton className="cell-panel__build-btn" onClick={() => onBuild(cell.h3, id)}>
-            {cell.building ? 'Upgrade' : 'Build'}
+            {BUILDINGS[id].requires.some((r) => hasWork(cell, r)) ? 'Upgrade' : 'Build'}
           </RitualButton>
         ) : (
           <span className="cell-panel__build-why">{reason(check.refused, id)}</span>
@@ -125,28 +130,40 @@ export function BuildPanel({
       </button>
     ) : null;
 
-  if (cell.building) {
-    const held = cell.building.id;
-    const upgrades = all.filter((id) => BUILDINGS[id].requires.includes(held));
-    const back = costLine(refund(held));
+  // What already stands here, each with its own demolish (BUILD-007). Upgrades are not
+  // listed twice: `canBuild` lets `lumbermill` through onto a `sawmill`, so it appears in
+  // the build list below, labelled Upgrade.
+  const standing = (w: { id: BuildingId }) => {
+    const back = costLine(refund(w.id));
     return (
-      <div className="cell-panel__build">
-        <p className="cell-panel__build-has">{NAME[held]} stands here.</p>
-        {upgrades.length > 0 ? (
-          <ul className="cell-panel__build-list">{[...upgrades].sort(byName).map(row)}</ul>
-        ) : null}
-        <RitualButton className="cell-panel__build-btn" onClick={() => onDemolish(cell.h3)}>
+      <li key={w.id} className="cell-panel__build-row">
+        <span>
+          {NAME[w.id]}
+          <span className="cell-panel__build-cost"> · {renderEffect(buildingEffect(w.id))}</span>
+        </span>
+        <RitualButton
+          className="cell-panel__build-btn"
+          onClick={() => onDemolish(cell.h3, w.id)}
+        >
           Demolish{back ? ` · +${back}` : ''}
         </RitualButton>
-        {refusalLine(refusal)}
-      </div>
+      </li>
     );
-  }
+  };
 
   // Default: only what can go here now. The wall of "Wrong ground" rows is behind the `+`.
   const { ready, locked } = splitBuildable(checks);
   return (
     <div className="cell-panel__build">
+      {here.length > 0 ? (
+        <>
+          <p className="cell-panel__build-has">
+            Standing here · {here.length}/{CELL_BUILDING_CAP}
+          </p>
+          <ul className="cell-panel__build-list">{here.map(standing)}</ul>
+        </>
+      ) : null}
+
       <p className="cell-panel__build-head">Build</p>
       {ready.length > 0 ? (
         <ul className="cell-panel__build-list">{[...ready].sort(byName).map(row)}</ul>

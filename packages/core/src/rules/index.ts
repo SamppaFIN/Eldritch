@@ -41,8 +41,10 @@ export {
   buildingDayBonus,
   buildingsOf,
   canBuild,
+  hasWork,
   refund,
   storageCap,
+  worksOn,
 } from './build.js';
 export type { Building, BuildingId, BuildCheck, BuildContext, BuildRefusal } from './build.js';
 export { defenceAura, loyaltyFactor, loyaltySourceCells, resourceAura } from './aura.js';
