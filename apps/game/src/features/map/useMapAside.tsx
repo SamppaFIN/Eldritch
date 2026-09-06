@@ -7,10 +7,12 @@
  * the renders live here.
  */
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import type { GameRepository, LogEntry } from '@es3/core';
+import type { ActiveSpell, Cell, GameRepository, LogEntry, TechId } from '@es3/core';
 import { HelpPanel } from '../help/HelpPanel.js';
 import type { HelpView } from '../help/HelpPanel.js';
 import type { HelpTopic } from '../help/help.js';
+import { isDerived } from '../help/wikiPages.js';
+import type { WikiRef } from '../help/wikiPages.js';
 import { GuideNews } from '../help/GuideNews.js';
 import { useEncountered } from '../help/useEncountered.js';
 import { LogPanel } from '../log/LogPanel.js';
@@ -18,8 +20,9 @@ import { CharacterPanel } from '../character/CharacterPanel.js';
 
 export interface MapAside {
   node: ReactNode;
-  /** Straight to one entry, from where the concept appears. Records it as met. */
-  openHelp: (topic: HelpTopic) => void;
+  /** Straight to one page, from where the concept appears. A hand topic is recorded met;
+   *  a derived Work/tech/Rite ref just opens (BRDC-WIKI-003). */
+  openHelp: (ref: WikiRef) => void;
   /** The guide's front page, from the menu. */
   openGuide: () => void;
   openLog: () => void;
@@ -38,23 +41,42 @@ export function useMapAside(
   const [characterOpen, setCharacterOpen] = useState(false);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
 
+  // Live data for a derived page's status line — "held on 3 cells", "yours to cast"
+  // (BRDC-WIKI-003). Only fetched while the guide is open.
+  const [owned, setOwned] = useState<readonly Cell[]>([]);
+  const [researched, setResearched] = useState<readonly TechId[]>([]);
+  const [spells, setSpells] = useState<readonly ActiveSpell[]>([]);
+
   useEffect(() => {
     if (!repository || !logOpen) return;
     void repository.getLog().then(setLogEntries);
   }, [repository, logOpen, version]);
 
-  /** Open one entry and fold it into the registry — a link is an encounter too. */
+  useEffect(() => {
+    if (!repository || help === null || help === 'index') return;
+    void repository.getOwnedCells(now()).then(setOwned);
+    void repository.getResearched().then(setResearched);
+    void repository.getActiveSpells(now()).then(setSpells);
+  }, [repository, help, now, version]);
+
+  /** Open one page. A hand topic is folded into the registry; a derived ref just opens. */
   const openTopic = useCallback(
-    (topic: HelpTopic) => {
-      note(topic);
-      setHelp(topic);
+    (ref: WikiRef) => {
+      if (!isDerived(ref)) note(ref as HelpTopic);
+      setHelp(ref);
     },
     [note],
   );
 
   const node = (
     <>
-      <HelpPanel topic={help} seen={seen} onNavigate={setHelp} onClose={() => setHelp(null)} />
+      <HelpPanel
+        topic={help}
+        seen={seen}
+        ctx={{ ownedCells: owned, researched, spells, now: now() }}
+        onNavigate={setHelp}
+        onClose={() => setHelp(null)}
+      />
       <GuideNews topic={news} onOpen={openTopic} onDismiss={dismissNews} />
       <LogPanel
         open={logOpen}

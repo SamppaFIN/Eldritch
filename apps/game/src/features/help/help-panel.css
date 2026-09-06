@@ -129,3 +129,37 @@
 .help-panel__see-list {
   gap: var(--space-1);
 }
+
+/* A derived page's live line — held-on count, research state, a running Rite (WIKI-003). */
+.help-panel__status {
+  margin: 0;
+  align-self: start;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--mystic-cyan);
+  font-family: var(--font-numeric, monospace);
+  font-size: var(--text-sm);
+}
+
+.help-panel__search {
+  inline-size: 100%;
+  min-block-size: var(--touch-min);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.help-panel__ref-block {
+  margin-block-start: var(--space-1);
+}
+
+.help-panel__ref-heading {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+}

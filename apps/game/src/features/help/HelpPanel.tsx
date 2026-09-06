@@ -1,10 +1,10 @@
 /**
- * The in-game guide, opened over the map (BRDC-WIKI-001).
+ * The in-game guide, opened over the map (BRDC-WIKI-001, -003).
  *
- * Two modes in one panel: an `index` — the grouped front page, reached from the menu —
- * and a single entry, reached from the index or straight from where a concept appears
- * (the Vigil readout, a History line, the Character screen). An entry carries a back
- * link to the index and a "See also" list, so any deep link still opens the whole book.
+ * Two modes in one panel: an `index` — the grouped front page plus the searchable
+ * Reference, in `HelpIndex` — and a single entry, hand-written (`HELP`) or derived for a
+ * Work / technology / Rite (`wikiEntry`). An entry carries a back link and a "See also"
+ * list, so any deep link still opens the whole book.
  *
  * Not a modal — the player may be walking, and a focus trap is the wrong shape for
  * something you glance at. ESC and the close button dismiss it; it caps its height above
@@ -12,22 +12,27 @@
  */
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
-import { GROUPS, HELP } from './help.js';
-import type { HelpTopic } from './help.js';
+import { HELP } from './help.js';
+import type { HelpEntry, HelpTopic } from './help.js';
+import { HelpIndex } from './HelpIndex.js';
+import { refTitle, wikiEntry } from './wikiPages.js';
+import type { WikiContext, WikiPage, WikiRef } from './wikiPages.js';
 import './help-panel.css';
 
-/** What the panel is showing: the front page, or one entry. `null` is closed. */
-export type HelpView = HelpTopic | 'index';
+/** What the panel is showing: the front page, or one page. `null` is closed. */
+export type HelpView = WikiRef | 'index';
 
 export interface HelpPanelProps {
   topic: HelpView | null;
   onNavigate: (to: HelpView) => void;
-  /** Topics the player has met — the index shows only these (BRDC-WIKI-002). */
+  /** Topics the player has met — the grouped index shows only these (BRDC-WIKI-002). */
   seen: ReadonlySet<HelpTopic>;
+  /** Live data for a derived page's status line (BRDC-WIKI-003). */
+  ctx?: WikiContext;
   onClose: () => void;
 }
 
-export function HelpPanel({ topic, onNavigate, seen, onClose }: HelpPanelProps) {
+export function HelpPanel({ topic, onNavigate, seen, ctx, onClose }: HelpPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,7 +46,12 @@ export function HelpPanel({ topic, onNavigate, seen, onClose }: HelpPanelProps) 
   }, [topic, onClose]);
 
   if (!topic) return null;
-  const entry = topic === 'index' ? null : HELP[topic];
+  const hand: HelpEntry | undefined =
+    topic === 'index' ? undefined : (HELP as Record<string, HelpEntry | undefined>)[topic];
+  const entry: HelpEntry | WikiPage | null =
+    topic === 'index' ? null : (hand ?? wikiEntry(topic as WikiRef, ctx));
+  const see: readonly WikiRef[] = entry?.see ?? [];
+  const status = entry && 'status' in entry ? entry.status : undefined;
 
   return (
     <GlassPanel
@@ -71,23 +81,28 @@ export function HelpPanel({ topic, onNavigate, seen, onClose }: HelpPanelProps) 
 
       {entry ? (
         <>
+          {status ? (
+            <p className="help-panel__status" role="status">
+              {status}
+            </p>
+          ) : null}
           {entry.body.map((para, i) => (
             <p key={i} className="help-panel__para">
               {para}
             </p>
           ))}
-          {entry.see && entry.see.length > 0 ? (
+          {see.length > 0 ? (
             <div className="help-panel__see">
               <h3 className="help-panel__see-heading">See also</h3>
               <ul className="help-panel__see-list">
-                {entry.see.map((t) => (
+                {see.map((t) => (
                   <li key={t}>
                     <button
                       type="button"
                       className="help-panel__link"
                       onClick={() => onNavigate(t)}
                     >
-                      {HELP[t].title}
+                      {refTitle(t)}
                     </button>
                   </li>
                 ))}
@@ -96,30 +111,7 @@ export function HelpPanel({ topic, onNavigate, seen, onClose }: HelpPanelProps) 
           ) : null}
         </>
       ) : (
-        <nav className="help-panel__groups" aria-label="All topics">
-          {GROUPS.map((group) => {
-            const topics = group.topics.filter((t) => seen.has(t));
-            if (topics.length === 0) return null;
-            return (
-              <section key={group.heading} className="help-panel__group">
-                <h3 className="help-panel__group-heading">{group.heading}</h3>
-                <ul className="help-panel__index-list">
-                  {topics.map((t) => (
-                    <li key={t}>
-                      <button
-                        type="button"
-                        className="help-panel__link help-panel__index-item"
-                        onClick={() => onNavigate(t)}
-                      >
-                        {HELP[t].title}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
-        </nav>
+        <HelpIndex seen={seen} onNavigate={onNavigate} />
       )}
     </GlassPanel>
   );
