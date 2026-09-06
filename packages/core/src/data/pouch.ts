@@ -123,7 +123,17 @@ export async function settlePouch(
     // The world's winter scales everything produced, decay's cousin from the same clock.
     darkTimeAt(now).factor,
   );
-  if (settled !== stored) await store.set(KEY, settled);
+  /*
+   * Always written, never only-when-changed (BRDC-ECON-005).
+   *
+   * `read` stands in `since: now` when nothing is stored yet, and a zero-length settle
+   * returns that state by reference — so the old `settled !== stored` guard skipped the
+   * write, and the *next* read stood in `since` again at its own `now`. A pouch that was
+   * never written therefore had no clock at all: every read restarted it and the trickle
+   * never accrued. Boot happens to seed it via the starter gift, which is why this stayed
+   * hidden; the audit test found it the first time it ran.
+   */
+  await store.set(KEY, settled);
   return settled;
 }
 
@@ -246,6 +256,17 @@ export async function grantBonus(
     pool[k] = Math.min(cap, pool[k] + v);
   }
   await writePouch(store, pool, now);
+}
+
+/**
+ * Empty the pouch deliberately (BRDC-ECON-005).
+ *
+ * Not a settle: the hours owed up to now go with everything else, and both clocks move to
+ * `now` so the next read does not immediately pay back what the reset just threw away.
+ */
+export async function resetPouch(store: KeyValueStore, now: number): Promise<ResourcePool> {
+  await store.set<ResourceState>(KEY, { pool: EMPTY_POOL, since: now, sinceDay: now });
+  return EMPTY_POOL;
 }
 
 /**

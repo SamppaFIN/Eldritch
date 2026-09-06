@@ -213,9 +213,8 @@ export function MapView({ onLeave }: MapViewProps) {
   const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
   useMomentTriggers({ show: moments.show, xp: profile?.xp, riteLearned: inspect.research.lastRite, questEnded: quest.adventures.justEnded });
 
-  // A player who owns nothing has never seen the game do anything, so the map opens
-  // wide enough to show someone else's territory; once they hold ground, walking zoom.
-  // Read once — the camera must not lurch outward the moment a claim decays away.
+  // Owning nothing opens the map wide enough to show someone else's ground; holding
+  // ground opens at walking zoom. Read once, so the camera never lurches on a decay.
   const [openingZoom] = useState(() =>
     load<number>('opening-zoom', 0) > 0 ? ZOOM_WALKING : ZOOM_FIRST_LOOK,
   );
@@ -383,6 +382,7 @@ export function MapView({ onLeave }: MapViewProps) {
         repository={repository}
         position={point}
         onDebugGrant={() => void repository?.debugGrant(clock.now()).then(() => repository?.getResources(clock.now()).then(setResources))}
+        onResetPouch={() => void repository?.resetResources(clock.now()).then(setResources)}
         visible={inspect.cell === null && !inspect.sanctum}
       />
 

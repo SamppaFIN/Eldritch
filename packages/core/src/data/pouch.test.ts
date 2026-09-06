@@ -2,11 +2,13 @@
  * BRDC-ECON-002 — a stored pouch that is missing fields or has gone NaN self-heals on read.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EMPTY_POOL } from '../rules/terrain.js';
-import { grantVersionGift, normalizePool } from './pouch.js';
+import { EMPTY_POOL, RESOURCE_KINDS } from '../rules/terrain.js';
+import type { ResourceKind } from '../rules/terrain.js';
+import { forecastRates, grantVersionGift, normalizePool, resetPouch, settlePouch } from './pouch.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
+import type { Cell } from '../types/domain.js';
 
 describe('normalizePool', () => {
   it('fills the fields a pre-nine-resource pouch is missing', () => {
@@ -98,5 +100,69 @@ describe('grantVersionGift — a starter pouch on a version change (BRDC-ECON-00
     expect(pool.stone).toBe(400); // untouched, already past 100
     expect(pool.mana).toBe(50); // untouched, already past 30
     expect(pool.iron).toBe(100); // was 0, lifted to the floor
+  });
+});
+
+/**
+ * BRDC-ECON-005 — the audit that was missing.
+ *
+ * `forecastRates` documents itself as a settle run forward, and therefore unable to
+ * disagree with one. Nothing checked the claim, so a player had no way to tell a slow
+ * trickle from a broken one. March, deliberately: the dark-time factor is a step function
+ * around the December solstice and a boundary inside the window would be a false failure.
+ */
+describe('the pouch grows exactly what the forecast promised', () => {
+  const T0 = Date.parse('2026-03-02T12:00:00Z');
+  const HOUR = 3_600_000;
+  const DAY = 86_400_000;
+  /** A fishery: production per hour *and* a token per day, so both paths are audited. */
+  const owned: Cell[] = [
+    {
+      h3: '8b112492eb03fff',
+      ownerId: 'me',
+      strength: 300,
+      lastVisitedAt: T0,
+      visitDays: [],
+      building: { id: 'fishery', builtAt: T0 },
+    },
+  ];
+
+  it('an hour of settling adds the forecast per-hour, resource by resource', async () => {
+    const store = new MemoryStore();
+    const forecast = await forecastRates(store, owned, T0);
+    const start = await settlePouch(store, owned, T0);
+    const after = await settlePouch(store, owned, T0 + HOUR);
+    for (const k of RESOURCE_KINDS as readonly ResourceKind[]) {
+      expect(after.pool[k] - start.pool[k], k).toBe(forecast.perHour[k] ?? 0);
+    }
+  });
+
+  it('a day of settling adds the forecast per-day, resource by resource', async () => {
+    const store = new MemoryStore();
+    const forecast = await forecastRates(store, owned, T0);
+    const start = await settlePouch(store, owned, T0);
+    const after = await settlePouch(store, owned, T0 + DAY);
+    for (const k of RESOURCE_KINDS as readonly ResourceKind[]) {
+      expect(after.pool[k] - start.pool[k], k).toBe(forecast.perDay[k] ?? 0);
+    }
+  });
+});
+
+describe('resetPouch (BRDC-ECON-005)', () => {
+  const T0 = Date.parse('2026-03-02T12:00:00Z');
+
+  it('empties every resource and restarts both clocks', async () => {
+    const store = new MemoryStore();
+    await store.set('resources', {
+      pool: { ...EMPTY_POOL, wood: 400, mana: 90 },
+      since: T0 - 86_400_000,
+      sinceDay: T0 - 86_400_000,
+    });
+
+    expect(await resetPouch(store, T0)).toEqual(EMPTY_POOL);
+    // A day of trickle was owed and is gone with the rest — the clocks moved to now, so
+    // the very next read does not pay back what the reset just threw away.
+    const after = await settlePouch(store, [], T0);
+    for (const k of RESOURCE_KINDS as readonly ResourceKind[]) expect(after.pool[k], k).toBe(0);
   });
 });

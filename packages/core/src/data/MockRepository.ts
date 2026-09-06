@@ -16,7 +16,7 @@ import type { AltarOutcome, ChannelOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { forecastRates, grantAll, settlePouch, type Forecast } from './pouch.js';
+import { forecastRates, grantAll, resetPouch, settlePouch, type Forecast } from './pouch.js';
 import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk } from './walkFlow.js';
 import type { WalkDeps } from './walkFlow.js';
@@ -161,6 +161,7 @@ export class MockRepository implements GameRepository {
   async getResources(now: number): Promise<ResourcePool> {
     return (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
   }
+  resetResources = (now: number) => resetPouch(this.store, now);
   async getForecast(now: number): Promise<Forecast> {
     return forecastRates(this.store, await this.getOwnedCells(now), now);
   }

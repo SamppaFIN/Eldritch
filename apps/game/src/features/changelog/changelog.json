@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.40",
+    "date": "2026-09-06",
+    "notes": [
+      "Resources stop jumping on every update. The starter pouch was being handed out again on every version — three times on the 5th alone — which topped every resource back to its floor and buried what your land actually produces. It is a one-time gift now.",
+      "Fixed a deeper one the new audit test found: a pouch that had never been written had no clock, so every read restarted it and the trickle never accrued.",
+      "\"Empty the pouch\" in the menu, with a confirmation. Ground, buildings and research are untouched; the trickle starts again from that moment.",
+      "The pouch now has a test proving it grows exactly what the forecast promises, hour by hour and day by day."
+    ]
+  },
+  {
     "version": "0.5.39",
     "date": "2026-09-05",
     "notes": [

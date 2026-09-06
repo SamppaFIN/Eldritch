@@ -64,6 +64,36 @@ export interface ResetDialogProps {
   onCancel: () => void;
 }
 
+/**
+ * Emptying the pouch (BRDC-ECON-005).
+ *
+ * Destructive, so it asks — but small: ground, buildings and research all survive, and
+ * the trickle starts again from now. Opened from the menu, which owns its own state the
+ * way it does for the changelog and the bug report.
+ */
+export function PouchResetDialog({ open, onConfirm, onCancel }: ResetDialogProps) {
+  return (
+    <Modal
+      open={open}
+      title="Empty the pouch?"
+      onClose={onCancel}
+      footer={
+        <>
+          <RitualButton variant="ghost" onClick={onConfirm}>
+            Empty it
+          </RitualButton>
+          <RitualButton onClick={onCancel}>Keep what I have</RitualButton>
+        </>
+      }
+    >
+      <p>
+        Every resource drops to zero. The ground you hold, what stands on it and what you
+        have researched are untouched, and the trickle starts again from this moment.
+      </p>
+    </Modal>
+  );
+}
+
 export interface SanctumDialogsProps {
   confirming: 'withdraw' | 'reset' | null;
   setConfirming: (v: 'withdraw' | 'reset' | null) => void;

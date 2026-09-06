@@ -16,6 +16,7 @@ import type { GameRepository } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { ChangelogPanel } from '../changelog/ChangelogPanel.js';
 import { BugReport } from '../report/BugReport.js';
+import { PouchResetDialog } from './Sanctum.js';
 import type { Settings } from './settings.js';
 import './settings-menu.css';
 
@@ -33,6 +34,8 @@ export interface SettingsMenuProps {
   position: { lat: number; lng: number } | null;
   /** Dev only: top the pouch up (BRDC-ECON-002). Absent in a production build. */
   onDebugGrant?: () => void;
+  /** Empty the pouch, after a confirmation (BRDC-ECON-005). */
+  onResetPouch?: () => void;
   /** Hidden while a cell or the Hearth has the top of the screen. */
   visible?: boolean;
 }
@@ -47,11 +50,13 @@ export function SettingsMenu({
   repository,
   position,
   onDebugGrant,
+  onResetPouch,
   visible = true,
 }: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
   const [changelog, setChangelog] = useState(false);
   const [report, setReport] = useState(false);
+  const [emptying, setEmptying] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,6 +83,14 @@ export function SettingsMenu({
         onClose={() => setReport(false)}
         repository={repository}
         position={position}
+      />
+      <PouchResetDialog
+        open={emptying}
+        onConfirm={() => {
+          setEmptying(false);
+          onResetPouch?.();
+        }}
+        onCancel={() => setEmptying(false)}
       />
     </>
   );
@@ -173,6 +186,15 @@ export function SettingsMenu({
           >
             Retreat from the map
           </button>
+          {onResetPouch ? (
+            <button
+              type="button"
+              className="settings-menu__action"
+              onClick={() => run(() => setEmptying(true))}
+            >
+              Empty the pouch
+            </button>
+          ) : null}
           <button
             type="button"
             className="settings-menu__action settings-menu__action--danger"

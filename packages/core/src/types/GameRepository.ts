@@ -137,6 +137,11 @@ export interface GameRepository {
    */
   getResources(now: number): Promise<ResourcePool>;
   /**
+   * Empty the pouch on purpose, and start the trickle clocks again from `now`
+   * (BRDC-ECON-005). Destructive, so the caller confirms first; nothing else is touched.
+   */
+  resetResources(now: number): Promise<ResourcePool>;
+  /**
    * What the pouch will fill at over the next hour and day, per resource (BRDC-STATS-001).
    *
    * A settle run forward, not a re-derived rate, so it cannot disagree with what the
