@@ -231,6 +231,8 @@ export function CellPanel({
 
       <p className="cell-panel__owner">
         {mine ? 'Yours' : cell.ownerId === null ? 'Unclaimed' : 'Held by another'}
+        {/* Separate arrivals, not fixes — standing still is one (BRDC-HEX-002). */}
+        {cell.visits ? ` · ${cell.visits} ${cell.visits === 1 ? 'visit' : 'visits'}` : ''}
       </p>
 
       {cell.importedFrom ? <ImportedNote from={cell.importedFrom} now={now} /> : null}

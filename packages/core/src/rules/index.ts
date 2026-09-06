@@ -77,7 +77,7 @@ export type {
 export { timeToAfford } from './afford.js';
 export { blightLevel, projectCell, decayAmount, hoursUntilReleased, sweepDecay } from './decay.js';
 export type { DecaySweep } from './decay.js';
-export { growInto, growthNeighbourhood } from './growth.js';
+export { growInto, growthNeighbourhood, recordVisit } from './growth.js';
 export type { GrowthResult } from './growth.js';
 export {
   ANCHOR_THRESHOLD_MS,

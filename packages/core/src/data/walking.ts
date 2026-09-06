@@ -13,7 +13,7 @@ import { DWELL_JITTER_GAP_MS, OBSERVATION_GAP_MS } from '../rules/constants.js';
 import type { Attacker } from '../rules/capture.js';
 import { accrueDwell, dwellAnchorAt, revealPlaces, stickyDwell } from '../rules/dwell.js';
 import type { DwellAnchor, DwellMap, DwellReading, Place } from '../rules/dwell.js';
-import { growInto, growthNeighbourhood } from '../rules/growth.js';
+import { growInto, growthNeighbourhood, recordVisit } from '../rules/growth.js';
 import type { CaptureOutcome, Cell, H3Index, TrailPoint } from '../types/domain.js';
 
 export interface WalkStep {
@@ -75,6 +75,9 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
   let dwell = context.dwell;
   let previous = context.previous;
   let hasTerritory = context.hasTerritory;
+  // Where the last batch left off, so standing still across a flush is not a new arrival
+  // (BRDC-HEX-002). The settled cell, not the raw one — jitter must not count as leaving.
+  let lastSettled = context.previous?.h3 ?? null;
   // The sticky dwell anchor (BRDC-DWELL-002) — where the player's time is really going,
   // held against a fix that flips to a neighbouring hex.
   let anchor: DwellAnchor | null = context.previous ? dwellAnchorAt(context.previous.h3) : null;
@@ -113,6 +116,14 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
     if (grown.cell) {
       known.set(raw, grown.cell);
       if (grown.cell.ownerId === attacker.id) hasTerritory = true;
+    }
+
+    // An arrival, once, after growth has written its cell — `resolveCapture` builds a
+    // fresh object on a claim and would drop the count if this ran first (BRDC-HEX-002).
+    if (settled.cell !== lastSettled) {
+      lastSettled = settled.cell;
+      const arrived = known.get(settled.cell);
+      if (arrived) known.set(settled.cell, recordVisit(arrived));
     }
 
     steps.push({ h3: raw, cell: grown.cell, outcome: grown.outcome, skipped: grown.skipped, resumed });

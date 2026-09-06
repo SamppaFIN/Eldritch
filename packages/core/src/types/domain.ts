@@ -110,6 +110,14 @@ export interface Cell {
   lastVisitedAt: number;
   /** UTC calendar days (YYYY-MM-DD) the owner has passed through. */
   visitDays: string[];
+  /**
+   * Separate arrivals on this cell — you left and came back (BRDC-HEX-002). The ley-line
+   * counts it: `planWalk` bumps this when the settled cell changes, so standing still
+   * through a hundred fixes is one visit and jitter between two hexes is not a visit at
+   * all. Distinct from `visitDays`, which counts calendar days and drives the day bonus.
+   * Additive, no migration — absent means "not counted yet", not zero visits.
+   */
+  visits?: number;
   /** Who first claimed this cell from nobody. Written once, never overwritten. */
   finder?: PlayerId;
   /** When `finder` claimed it. */

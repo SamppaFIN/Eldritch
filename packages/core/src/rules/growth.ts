@@ -77,3 +77,14 @@ export function growInto(
 export function growthNeighbourhood(h3: H3Index): H3Index[] {
   return [h3, ...neighboursOf(h3)];
 }
+
+/**
+ * One more arrival on this cell (BRDC-HEX-002).
+ *
+ * An *arrival*, not a fix: the caller decides when a cell has actually been entered, and
+ * calls this once. Standing still is one visit however long you stand, because the count
+ * is meant to answer "how many separate times have I been here".
+ */
+export function recordVisit(cell: Cell): Cell {
+  return { ...cell, visits: (cell.visits ?? 0) + 1 };
+}
