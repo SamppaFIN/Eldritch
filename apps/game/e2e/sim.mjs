@@ -91,15 +91,21 @@ const run = async () => {
     const dialog = page.getByRole('dialog', { name: 'The Wager' });
     await dialog.getByLabel('A challenge you were sent').fill(CHALLENGE);
     await dialog.getByRole('button', { name: 'Accept the Wager' }).click();
-    const landed = dialog.getByText(/ground is on your map/i);
-    await landed.waitFor({ timeout: 15_000 });
-    const msg = (await landed.innerText()).replace(/\s+/g, ' ').trim();
-    step('accepted the Sampoamaja Wager', true, msg);
-    await dialog.getByRole('button', { name: 'Done' }).click();
-
-    await page.waitForTimeout(1_500);
-    const rivals = await rivalCells(page);
-    step("rival ground is drawn on the map", rivals > 0, `${rivals} enemy-red cells`);
+    // The real outcome is the rival ground appearing — poll for it (a cold dev server
+    // takes a few seconds to first-compile the import path). The message is best-effort.
+    let rivals = 0;
+    for (let t = 0; t < 25 && rivals === 0; t += 1) {
+      await page.waitForTimeout(1_000);
+      rivals = await rivalCells(page);
+    }
+    const msg = await dialog
+      .getByText(/ground is on your map/i)
+      .innerText()
+      .then((s) => s.replace(/\s+/g, ' ').trim())
+      .catch(() => '(no message shown)');
+    step('accepted the Sampoamaja Wager', rivals > 0, msg);
+    await dialog.getByRole('button', { name: 'Done' }).click().catch(() => {});
+    step('rival ground is drawn on the map', rivals > 0, `${rivals} enemy-red cells in view`);
 
     // --- Build on the Hearth, before walking off it -------------------
     await page.getByRole('button', { name: 'Here' }).click();
@@ -107,7 +113,23 @@ const run = async () => {
     await card.waitFor({ state: 'visible', timeout: 8_000 });
     const ownerLine = (await card.locator('.cell-panel__owner').innerText().catch(() => '')).trim();
 
+    const pouchStone = () =>
+      page
+        .evaluate(async () => {
+          const db = await new Promise((res) => {
+            const r = indexedDB.open('es3', 1);
+            r.onsuccess = () => res(r.result);
+          });
+          const rs = await new Promise((res) => {
+            const rq = db.transaction('kv', 'readonly').objectStore('kv').get('resources');
+            rq.onsuccess = () => res(rq.result);
+          });
+          return rs?.pool?.stone ?? -1;
+        })
+        .catch(() => -1);
+
     let built = false;
+    const stoneBefore = await pouchStone();
     const monRow = card.locator('.cell-panel__build-row', { hasText: 'Monument' });
     const buildBtn = monRow.getByRole('button', { name: 'Build', exact: true });
     if (await buildBtn.isVisible().catch(() => false)) {
@@ -119,6 +141,13 @@ const run = async () => {
       built = await card.locator('.cell-panel__build-has').isVisible().catch(() => false);
     }
     step('built a Monument on the Hearth', built, `owner line: "${ownerLine}"`);
+    await page.waitForTimeout(2_000);
+    const stoneAfter = await pouchStone();
+    step(
+      'the build charged the pouch (BRDC-ECON-006)',
+      stoneAfter === stoneBefore - 60,
+      `stone ${stoneBefore} -> ${stoneAfter}`,
+    );
     await card.getByRole('button', { name: 'Close' }).click().catch(() => {});
     await page.waitForTimeout(1_500); // let afterSpend's territory refresh settle
 

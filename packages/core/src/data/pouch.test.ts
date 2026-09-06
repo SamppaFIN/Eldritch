@@ -148,6 +148,46 @@ describe('the pouch grows exactly what the forecast promised', () => {
   });
 });
 
+describe('a no-op settle does not write (BRDC-ECON-006)', () => {
+  const T0 = Date.parse('2026-03-02T12:00:00Z');
+
+  /** Counts writes to the pouch key, to prove a settle that changes nothing stays silent. */
+  class SpyStore extends MemoryStore {
+    pouchWrites = 0;
+    override async set<T>(key: string, value: T): Promise<void> {
+      if (key === 'resources') this.pouchWrites += 1;
+      return super.set(key, value);
+    }
+  }
+
+  it('leaves a stored pouch untouched, so a concurrent spend is not clobbered', async () => {
+    const store = new SpyStore();
+    await store.set('resources', {
+      pool: { ...EMPTY_POOL, stone: 100 },
+      since: T0,
+      sinceDay: T0,
+    });
+    store.pouchWrites = 0;
+
+    // Same instant, no owned ground: settleResources returns its input by reference.
+    await settlePouch(store, [], T0);
+    expect(store.pouchWrites).toBe(0);
+
+    // The regression: an unconditional write here would put stone back to 100 over a
+    // spend that had just debited it between this call's read and its write.
+    const stored = await store.get<{ pool: { stone: number } }>('resources');
+    expect(stored?.pool.stone).toBe(100);
+  });
+
+  it('still starts the clock on a pouch that was never written', async () => {
+    const store = new SpyStore();
+    // No `resources` key. `read` must persist its stand-in so the trickle can accrue.
+    const first = await settlePouch(store, [], T0);
+    expect(first.since).toBe(T0);
+    expect(await store.get('resources')).toBeDefined();
+  });
+});
+
 describe('resetPouch (BRDC-ECON-005)', () => {
   const T0 = Date.parse('2026-03-02T12:00:00Z');
 

@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.41",
+    "date": "2026-09-06",
+    "notes": [
+      "Fixed: building a Work did not cost anything. A resource read that happened to land at the same moment as the spend wrote the pre-spend pool back over it — the always-write introduced in 0.5.40 made that race real. Found by playing a full session against the dev build."
+    ]
+  },
+  {
     "version": "0.5.40",
     "date": "2026-09-06",
     "notes": [

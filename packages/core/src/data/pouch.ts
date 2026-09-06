@@ -87,7 +87,15 @@ async function perHourBonus(
  */
 async function read(store: KeyValueStore, now: number): Promise<ResourceState> {
   const stored = await store.get<ResourceState>(KEY);
-  if (!stored) return { pool: EMPTY_POOL, since: now, sinceDay: now };
+  if (!stored) {
+    // Persist the stand-in once, here, so the clock actually starts (BRDC-ECON-005). It
+    // used to be `settlePouch`'s job via an unconditional write, but that let a
+    // concurrent spend be clobbered by a racing no-op settle (BRDC-ECON-006). Starting
+    // the clock is a one-time write; a no-op settle must stay a no-op.
+    const fresh: ResourceState = { pool: EMPTY_POOL, since: now, sinceDay: now };
+    await store.set<ResourceState>(KEY, fresh);
+    return fresh;
+  }
   // A pouch written before the resource set reached nine is missing fields; left alone,
   // the first sum on it is NaN and the pouch reads as empty (BRDC-ECON-002).
   return { ...stored, pool: normalizePool(stored.pool) };
@@ -123,17 +131,11 @@ export async function settlePouch(
     // The world's winter scales everything produced, decay's cousin from the same clock.
     darkTimeAt(now).factor,
   );
-  /*
-   * Always written, never only-when-changed (BRDC-ECON-005).
-   *
-   * `read` stands in `since: now` when nothing is stored yet, and a zero-length settle
-   * returns that state by reference — so the old `settled !== stored` guard skipped the
-   * write, and the *next* read stood in `since` again at its own `now`. A pouch that was
-   * never written therefore had no clock at all: every read restarted it and the trickle
-   * never accrued. Boot happens to seed it via the starter gift, which is why this stayed
-   * hidden; the audit test found it the first time it ran.
-   */
-  await store.set(KEY, settled);
+  // Written only when the settle actually moved the pool or the clock (BRDC-ECON-006).
+  // `read` now persists its own stand-in, so a no-op settle here is safe to skip — and
+  // must be skipped, or a `getResources` racing a `spend` writes the pre-spend pool back
+  // over the debit (a Monument that cost nothing, found on the dev server).
+  if (settled !== stored) await store.set(KEY, settled);
   return settled;
 }
 
