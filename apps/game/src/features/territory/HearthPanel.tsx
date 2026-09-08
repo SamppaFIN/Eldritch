@@ -92,7 +92,15 @@ export function HearthPanel({
     : null;
   const d = dominionOf(owned, now);
   const dark = darkTimeAt(now);
-  const rate = RESOURCE_KINDS.reduce((sum, k) => sum + d.perHour[k], 0);
+  // Per-resource hourly rate for the Resources rows: the forecast is the accurate one
+  // (it carries building production and the dark-time factor), the raw terrain trickle
+  // from `dominionOf` fills in any resource the forecast has not resolved yet.
+  const perHour: Partial<ResourcePool> = { ...d.perHour };
+  for (const k of RESOURCE_KINDS) {
+    const f = forecast?.perHour[k] ?? 0;
+    if (f > 0) perHour[k] = f;
+  }
+  const rate = RESOURCE_KINDS.reduce((sum, k) => sum + (perHour[k] ?? 0), 0);
   const producingCount = RESOURCE_KINDS.reduce((sum, k) => sum + d.producing[k], 0);
   // BRDC-ECON-001: a full resource stops earning rather than overflowing silently, and
   // the player is told in words, not left to notice the pouch has quietly stopped moving.
@@ -118,22 +126,6 @@ export function HearthPanel({
         </RitualButton>
       </div>
 
-      {/* Two pills right under the header — Mana and Buildings. Big and filled, after
-          three field reports of an invisible tab strip (BRDC-KEEP-006/-007). */}
-      <div className="hearth-panel__tabs" aria-label="Keep sections">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={tab === t.id}
-            className={`hearth-panel__tab${tab === t.id ? ' hearth-panel__tab--on' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
       <NationIdentity owned={owned} />
 
       <dl className="hearth-panel__stats">
@@ -157,7 +149,7 @@ export function HearthPanel({
 
       <KeepResources
         resources={resources}
-        forecast={forecast}
+        perHour={perHour}
         producing={producingCount}
         rate={rate}
         resting={d.resting}
@@ -166,6 +158,22 @@ export function HearthPanel({
         now={now}
         onPouch={onPouch}
       />
+
+      {/* The Mana / Buildings switch sits right above the part it switches — everything
+          above (nation, figures, resources) is common to both (BRDC-KEEP-006/-007). */}
+      <div className="hearth-panel__tabs" aria-label="Keep sections">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            aria-pressed={tab === t.id}
+            className={`hearth-panel__tab${tab === t.id ? ' hearth-panel__tab--on' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {tab === 'mana' ? (
         <>

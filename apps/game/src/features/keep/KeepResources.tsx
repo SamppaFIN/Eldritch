@@ -8,7 +8,7 @@
  */
 import { useState } from 'react';
 import { RESOURCE_KINDS, load, saveNow } from '@es3/core';
-import type { Forecast, GameRepository, ResourceKind, ResourcePool } from '@es3/core';
+import type { GameRepository, ResourceKind, ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { RESOURCE_COLOUR, RESOURCE_WORD } from '../territory/territoryFeatures.js';
 import { relativeTime } from '../log/describe.js';
@@ -31,7 +31,8 @@ export function sinceLabel(lastMs: number, now: number): string {
 
 export interface KeepResourcesProps {
   resources: ResourcePool | null;
-  forecast: Forecast | null;
+  /** Per-resource hourly rate, forecast where known and terrain trickle otherwise. */
+  perHour: Partial<ResourcePool>;
   producing: number;
   rate: number;
   resting: number;
@@ -43,7 +44,7 @@ export interface KeepResourcesProps {
 
 export function KeepResources({
   resources,
-  forecast,
+  perHour,
   producing,
   rate,
   resting,
@@ -53,7 +54,6 @@ export function KeepResources({
   onPouch,
 }: KeepResourcesProps) {
   const [lastCollect, setLastCollect] = useState(() => load<number>('last-collect', 0));
-  const perHour = forecast?.perHour ?? {};
   const rows = shownResources(resources, perHour);
   const canCollect = now - lastCollect >= COLLECT_COOLDOWN_MS;
 
