@@ -5,7 +5,15 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { gridDisk, latLngToCell } from 'h3-js';
 import { CLAIM_YIELD, EMPTY_POOL, RESOURCE_KINDS, resourceOf } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
-import { awardClaims, collectPouch, forecastRates, normalizePool, resetPouch, settlePouch } from './pouch.js';
+import {
+  awardClaims,
+  collectPouch,
+  forecastRates,
+  normalizePool,
+  resetPouch,
+  settlePouch,
+  writePouch,
+} from './pouch.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
@@ -150,6 +158,30 @@ describe('a no-op settle does not write (BRDC-ECON-006)', () => {
     const first = await settlePouch(store, [], T0);
     expect(first.since).toBe(T0);
     expect(await store.get('resources')).toBeDefined();
+  });
+
+  it('a spend and a settle fired together do not clobber — pouch writes serialise', async () => {
+    /**
+     * Production is off and an hour has passed, so `settlePouch` moves the clock without
+     * touching the pool. Fired concurrently with a build's `writePouch`, the nudge used to
+     * write a stale pool back over the debit (BRDC-ECON-006's other half). Every pouch
+     * write now goes through one lock, re-reading inside it, so either order is safe.
+     */
+    const store = new MemoryStore();
+    const HOUR = 3_600_000;
+    await store.set('resources', {
+      pool: { ...EMPTY_POOL, stone: 60 },
+      since: T0 - HOUR,
+      sinceDay: T0 - HOUR,
+    });
+
+    const spend = writePouch(store, { ...EMPTY_POOL }, T0); // the build, debiting to zero
+    const settle = settlePouch(store, [], T0); // a poll, nudging the clock
+    await Promise.all([spend, settle]);
+
+    const stored = await store.get<{ pool: { stone: number }; since: number }>('resources');
+    expect(stored?.pool.stone).toBe(0); // the spend survived
+    expect(stored?.since).toBe(T0); // ...and the clock still advanced
   });
 });
 

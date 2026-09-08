@@ -103,6 +103,7 @@ export function SettingsMenu({
     ['loopClosure', 'Claim by closing a loop'],
     ['buildingIcons', 'Building icons on the map'],
     ['revealRivals', "Show a rival cell's full detail"],
+    ['shareWorld', 'Share the world — see nearby realms, and let them see yours'],
   ];
   const run = (action: () => void) => {
     /*

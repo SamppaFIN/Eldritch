@@ -56,7 +56,7 @@ import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
 import { useNation } from '../features/nation/useNation.js';
 import { createRepository } from '../data/createRepository.js';
-import { useWorld } from '../features/territory/useWorld.js';
+import { useSharedWorld } from '../features/territory/useSharedWorld.js';
 import './mapview.css';
 
 export interface MapViewProps {
@@ -81,8 +81,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   const clock = useGameClock();
 
-  // Only the opening camera position comes from here; live permission state is
-  // reported by usePositionSource, which is the thing actually watching.
+  // Only the opening camera position; live permission state is usePositionSource's job.
   const { centre, settled } = useInitialPosition();
 
   useEffect(() => {
@@ -111,7 +110,8 @@ export function MapView({ onLeave }: MapViewProps) {
   });
 
   // Write the accepted Hearth through once — a claimed cell and an Anchor Stone. Guarded
-  // on `getHome` so a save that already has one is never overwritten.
+  // on `getHome` so a save that already has one is never overwritten; `setHome` itself is
+  // idempotent under a double call (the effect re-fires on every fresh `clock`).
   useEffect(() => {
     if (!repository) return;
     const mark = load<{ position: { lat: number; lng: number } } | null>('hearth', null);
@@ -150,15 +150,15 @@ export function MapView({ onLeave }: MapViewProps) {
     loopClosure: settings.loopClosure,
   });
 
-  const worldStirredMs = useWorld({
+  const world = useSharedWorld({
     repository,
     bbox,
     now: clock.now,
     onMerged: territory.refresh,
+    enabled: settings.shareWorld,
   });
 
-  // Triggers must be stable primitives (BRDC-ECON-003 field bug): a fresh `clock` object
-  // each render re-ran this effect and cancelled every in-flight getResources().
+  // Stable primitives, not a fresh `clock` object each render (BRDC-ECON-003 field bug).
   const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length];
   const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
   const [collected, setCollected] = useState<Collected | null>(null);
@@ -282,6 +282,7 @@ export function MapView({ onLeave }: MapViewProps) {
           onPouch={setResources}
           forecast={forecast}
           onWager={inspect.openWager}
+          onPublish={settings.shareWorld ? world.publish : undefined}
           onWeakest={inspect.onCellTap}
           onClose={inspect.close}
         />
@@ -328,7 +329,7 @@ export function MapView({ onLeave }: MapViewProps) {
       <MapNotices
         durable={durable}
         schemaReset={schemaReset}
-        worldStirredMs={worldStirredMs}
+        worldStirredMs={world.stirredMs}
         shifted={clock.shifted}
         offsetDays={clock.offsetDays}
       />

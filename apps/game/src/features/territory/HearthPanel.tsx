@@ -56,6 +56,8 @@ export interface HearthPanelProps {
   /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
   forecast: Forecast | null;
   onWager: () => void;
+  /** Publish your realm to the shared world — set only when the share toggle is on (BRDC-SHARE-002). */
+  onPublish?: (() => void) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
   onClose: () => void;
@@ -77,6 +79,7 @@ export function HearthPanel({
   onPouch,
   forecast,
   onWager,
+  onPublish,
   onWeakest,
   onClose,
 }: HearthPanelProps) {
@@ -197,6 +200,7 @@ export function HearthPanel({
         firstLossInHours={d.firstLossInHours}
         dark={dark}
         onWager={onWager}
+        onPublish={onPublish}
         onWeakest={onWeakest}
       />
     </GlassPanel>

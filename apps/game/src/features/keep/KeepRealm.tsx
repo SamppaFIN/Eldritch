@@ -23,6 +23,8 @@ export interface KeepRealmProps {
   firstLossInHours: number | null;
   dark: { active: boolean; inDays: number };
   onWager: () => void;
+  /** Publish your realm to the shared world — present only when the share toggle is on. */
+  onPublish?: (() => void) | undefined;
   onWeakest: (h3: string) => void;
 }
 
@@ -32,6 +34,7 @@ export function KeepRealm({
   firstLossInHours,
   dark,
   onWager,
+  onPublish,
   onWeakest,
 }: KeepRealmProps) {
   return (
@@ -61,7 +64,14 @@ export function KeepRealm({
       <p className="hearth-panel__line">
         Other players will only ever see your Keep, never your Hearth.
       </p>
-      <p className="hearth-panel__line">Troops to raise come later.</p>
+      {onPublish ? (
+        <p className="hearth-panel__line">
+          Raise your banner and your realm goes out to the world map. Others see it within
+          the hour.
+        </p>
+      ) : (
+        <p className="hearth-panel__line">Troops to raise come later.</p>
+      )}
 
       <div className="hearth-panel__actions">
         {weakestH3 ? (
@@ -72,6 +82,11 @@ export function KeepRealm({
         <RitualButton variant="ghost" onClick={onWager}>
           The Wager
         </RitualButton>
+        {onPublish ? (
+          <RitualButton variant="ghost" onClick={onPublish}>
+            Raise your banner
+          </RitualButton>
+        ) : null}
       </div>
     </section>
   );

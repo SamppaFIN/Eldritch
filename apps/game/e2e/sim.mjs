@@ -42,20 +42,14 @@ const rivalCells = (page) =>
       return feats.filter((f) => f.properties?.color === '#5c1a1a').length;
     })
     .catch(() => 0);
+/** Stone as the HUD shows it — React state, not a race with the app's IndexedDB writes.
+ *  The row is absent at zero, which reads back as 0. */
 const pouchStone = (page) =>
   page
-    .evaluate(async () => {
-      const db = await new Promise((res) => {
-        const r = indexedDB.open('es3', 1);
-        r.onsuccess = () => res(r.result);
-      });
-      const rs = await new Promise((res) => {
-        const rq = db.transaction('kv', 'readonly').objectStore('kv').get('resources');
-        rq.onsuccess = () => res(rq.result);
-      });
-      return rs?.pool?.stone ?? -1;
-    })
-    .catch(() => -1);
+    .locator('.hud__res[title="stone"]')
+    .innerText({ timeout: 2_000 })
+    .then((t) => Number.parseInt(t.replace(/\D/g, ''), 10) || 0)
+    .catch(() => 0);
 
 async function acceptHearth(page) {
   await page.getByRole('heading', { name: 'Your Hearth' }).waitFor({ timeout: 15_000 });
@@ -82,16 +76,21 @@ const run = async () => {
   try {
     await page.goto(URL, { waitUntil: 'load', timeout: 30_000 });
     step('dev server reachable', true, URL);
+    // The context is fresh (browser.newContext), so storage starts empty — no wipe needed.
 
     await page.getByRole('button', { name: 'Begin the Awakening' }).click();
     await acceptHearth(page);
     await page.locator('.es-player__core').waitFor({ state: 'visible', timeout: 20_000 });
     step('founded a Hearth', true);
 
-    await page.waitForTimeout(2_000);
     // BRDC-ECON-007: no version gift any more — founding hands over exactly one Monument
-    // (60 stone, 10 culture) and nothing else.
-    const stash = await pouchStone(page);
+    // (60 stone, 10 culture) and nothing else. Poll: the pouch settles into the HUD a
+    // beat after the map appears.
+    let stash = 0;
+    for (let t = 0; t < 10 && stash !== 60; t += 1) {
+      await page.waitForTimeout(1_000);
+      stash = await pouchStone(page);
+    }
     step('the founding stash is one Monument, not a handout', stash === 60, `stone ${stash}`);
 
     // --- Import the Wager -------------------------------------------------
@@ -126,19 +125,44 @@ const run = async () => {
 
     let built = false;
     const stoneBefore = await pouchStone(page);
+    // Reveal the locked rows too — a beat after founding the Monument can still read as
+    // not-yet-buildable while the pouch propagates to the panel's props.
+    await card.getByRole('button', { name: /more$/ }).click().catch(() => {});
     const monRow = card.locator('.cell-panel__build-row', { hasText: 'Monument' });
     const buildBtn = monRow.getByRole('button', { name: 'Build', exact: true });
+    for (let t = 0; t < 12 && !(await buildBtn.isVisible().catch(() => false)); t += 1) {
+      await page.waitForTimeout(1_000);
+    }
     if (await buildBtn.isVisible().catch(() => false)) {
       await buildBtn.click();
       await card
-        .getByText(/Standing here/i)
-        .waitFor({ timeout: 8_000 })
+        .locator('.cell-panel__build-has')
+        .waitFor({ state: 'visible', timeout: 8_000 })
         .catch(() => {});
       built = await card.locator('.cell-panel__build-has').isVisible().catch(() => false);
     }
-    step('built a Monument on the Hearth', built, `owner line: "${ownerLine}"`);
-    await page.waitForTimeout(2_000);
-    const stoneAfter = await pouchStone(page);
+    step('built a Monument on the Hearth', built, `"${ownerLine}"`);
+    // Check the ledger itself (IndexedDB), polled — the HUD trails a spend by a beat, and
+    // the browser's async transactions can interleave a settle over a fresh write.
+    const stoneInIdb = () =>
+      page
+        .evaluate(async () => {
+          const db = await new Promise((r) => {
+            const q = indexedDB.open('es3', 1);
+            q.onsuccess = () => r(q.result);
+          });
+          const rs = await new Promise((r) => {
+            const q = db.transaction('kv', 'readonly').objectStore('kv').get('resources');
+            q.onsuccess = () => r(q.result);
+          });
+          return rs?.pool?.stone ?? -1;
+        })
+        .catch(() => -1);
+    let stoneAfter = stoneBefore;
+    for (let t = 0; t < 12 && stoneAfter !== stoneBefore - 60; t += 1) {
+      await page.waitForTimeout(1_000);
+      stoneAfter = await stoneInIdb();
+    }
     step(
       'the build charged the pouch (BRDC-ECON-006)',
       stoneAfter === stoneBefore - 60,
@@ -170,7 +194,7 @@ const run = async () => {
     // --- Collect (BRDC-ECON-007) ------------------------------------
     // No real hours pass in a sim, so this is a wiring check: the button is there, a
     // press goes through without a page error, and the pouch survives it.
-    const collectBtn = page.locator('.collect-button');
+    const collectBtn = page.locator('.hud__collect');
     const hadButton = await collectBtn.isVisible().catch(() => false);
     let stoneAfterCollect = -1;
     if (hadButton) {
@@ -217,6 +241,33 @@ const run = async () => {
     await page.getByLabel('Name', { exact: true }).waitFor({ state: 'visible' });
     const finalName = await page.getByLabel('Name', { exact: true }).inputValue();
     step('renamed the player, and it stuck', finalName === 'Aavistus', `field reads "${finalName}"`);
+    await page.keyboard.press('Escape');
+
+    // --- Raise your banner (BRDC-SHARE-002) -----------------------
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page
+      .getByRole('switch', { name: 'Share the world — see nearby realms, and let them see yours' })
+      .click();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Keep', exact: true }).click();
+    await page.getByLabel('Your sanctuary').waitFor({ state: 'visible', timeout: 8_000 });
+    const raise = page.getByRole('button', { name: 'Raise your banner' });
+    let issueUrl = '(not opened)';
+    if (await raise.isVisible().catch(() => false)) {
+      // Grab the URL from the navigation request itself — GitHub redirects an
+      // unauthenticated /issues/new to /login before `popup.url()` settles.
+      await context.route('https://github.com/**', (r) => {
+        if (issueUrl === '(not opened)') issueUrl = r.request().url();
+        return r.abort();
+      });
+      await Promise.all([context.waitForEvent('page').catch(() => {}), raise.click()]);
+      await page.waitForTimeout(1_000);
+    }
+    step(
+      'Raise your banner opens a world: issue',
+      /github\.com\/SamppaFIN\/Eldritch\/issues\/new/.test(issueUrl) && /title=world/.test(issueUrl),
+      issueUrl.slice(0, 90),
+    );
 
     await page.screenshot({ path: join(dir, '../../..', 'sim-final.png'), fullPage: false });
   } catch (err) {

@@ -9,13 +9,18 @@ import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { cellAt, regionOf } from '../geo/cells.js';
 import { destination } from '../geo/project.js';
 import {
+  buildPlayerFile,
   buildShards,
   buildSubmission,
+  encodePlayerFile,
   encodeSubmission,
   encodeWorld,
+  mergePlayerFiles,
+  parsePlayerFile,
   parseSubmission,
   parseWorld,
   worldAgeMs,
+  worldSourceFrom,
   worldToCells,
 } from './world.js';
 import { toWireCell } from './challenge.js';
@@ -170,6 +175,68 @@ describe('submission — the signed message into the world', () => {
     if (!parsed.ok) throw new Error('unreachable');
     const shards = buildShards([parsed.source], T0);
     expect(shards.size).toBeGreaterThan(0);
+  });
+});
+
+describe('persisted player files (BRDC-SHARE-002)', () => {
+  const DAY = 86_400_000;
+  const a = source('a', ORIGIN, 4);
+  const b = source('b', ORIGIN, 3);
+
+  it('round-trips through parsePlayerFile with its timestamp', () => {
+    const parsed = parsePlayerFile(encodePlayerFile(buildPlayerFile(a, T0)));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.file.submittedAt).toBe(T0);
+      expect(parsed.file.source.id).toBe('a');
+      expect(parsed.file.source.cells.length).toBe(4);
+    }
+  });
+
+  it('refuses a file with no timestamp or no source', () => {
+    expect(parsePlayerFile('not json')).toEqual({ ok: false, fault: 'not-json' });
+    expect(parsePlayerFile(JSON.stringify({ source: a }))).toEqual({
+      ok: false,
+      fault: 'not-a-shard',
+    });
+    expect(parsePlayerFile(JSON.stringify({ submittedAt: T0 }))).toEqual({
+      ok: false,
+      fault: 'not-a-shard',
+    });
+  });
+
+  it('mergePlayerFiles keeps the fresh and drops the stale', () => {
+    const files = [buildPlayerFile(a, T0 - 40 * DAY), buildPlayerFile(b, T0 - 2 * DAY)];
+    const kept = mergePlayerFiles(files, T0, 30 * DAY);
+    expect(kept.map((s) => s.id)).toEqual(['b']);
+  });
+
+  it('a merged set of files still feeds buildShards', () => {
+    const files = [buildPlayerFile(a, T0), buildPlayerFile(b, T0)];
+    const shards = buildShards(mergePlayerFiles(files, T0, 30 * DAY), T0);
+    expect(shards.size).toBeGreaterThan(0);
+    const anyShard = [...shards.values()][0]!;
+    expect(new Set(anyShard.players.map((p) => p.id))).toEqual(new Set(['a', 'b']));
+  });
+});
+
+describe('worldSourceFrom (BRDC-SHARE-002)', () => {
+  it('carries id, name, castle, cells and the identity when set', () => {
+    const owned: Cell[] = [cell(cellAt(ORIGIN), 'me'), cell(cellAt(destination(ORIGIN, 0, 40)), 'me')];
+    const src = worldSourceFrom({ id: 'me', name: 'Seeker' }, owned, cellAt(ORIGIN), {
+      nation: 'The Pale March',
+      banner: 'eye',
+    });
+    expect(src).toMatchObject({ id: 'me', name: 'Seeker', nation: 'The Pale March', banner: 'eye' });
+    expect(src.cells).toHaveLength(2);
+    expect(src.castle).toBe(cellAt(ORIGIN));
+  });
+
+  it('omits nation and banner when the identity is empty', () => {
+    const src = worldSourceFrom({ id: 'me', name: 'Seeker' }, [], null);
+    expect('nation' in src).toBe(false);
+    expect('banner' in src).toBe(false);
+    expect(src.castle).toBeNull();
   });
 });
 

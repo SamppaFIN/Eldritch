@@ -26,6 +26,12 @@ export interface Settings {
    * ring. On by default: among friends, the point is to see each other's reach.
    */
   revealRivals: boolean;
+  /**
+   * Take part in the shared world (BRDC-SHARE-002): fetch other realms near you, and show
+   * the button that publishes yours. Off by default — nothing leaves the device, and
+   * nothing is fetched, until the player opts in.
+   */
+  shareWorld: boolean;
 }
 
 const KEY = 'settings';
@@ -38,6 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   loopClosure: false,
   buildingIcons: true,
   revealRivals: true,
+  shareWorld: false,
 };
 
 export function loadSettings(): Settings {
@@ -48,6 +55,7 @@ export function loadSettings(): Settings {
     loopClosure: stored.loopClosure ?? DEFAULT_SETTINGS.loopClosure,
     buildingIcons: stored.buildingIcons ?? DEFAULT_SETTINGS.buildingIcons,
     revealRivals: stored.revealRivals ?? DEFAULT_SETTINGS.revealRivals,
+    shareWorld: stored.shareWorld ?? DEFAULT_SETTINGS.shareWorld,
   };
 }
 

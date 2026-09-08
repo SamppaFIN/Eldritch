@@ -18,7 +18,7 @@
  */
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { regionOf } from '../geo/cells.js';
-import { checksum } from './challenge.js';
+import { checksum, toWireCell } from './challenge.js';
 import type { WireCell } from './challenge.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 
@@ -153,6 +153,83 @@ export function parseSubmission(text: string): SubmissionParse {
       castle: s.castle ?? null,
       cells: s.cells,
     },
+  };
+}
+
+/**
+ * One player's ground on disk, between rebuilds (BRDC-SHARE-002).
+ *
+ * The cron job keeps the latest of these per player under `world/players/<id>.json` and
+ * merges all the un-stale ones on every rebuild, so a player who does not re-publish for
+ * a while still holds their ground on other maps — until `WORLD_PLAYER_TTL_MS` passes.
+ * Trusted repo content (the *submission* was checksum-checked on the way in), so the read
+ * is a light structural one, not a signature.
+ */
+export interface PlayerFile {
+  source: WorldSource;
+  submittedAt: number;
+}
+
+export type PlayerFileParse = { ok: true; file: PlayerFile } | { ok: false; fault: WorldFault };
+
+export function buildPlayerFile(source: WorldSource, submittedAt: number): PlayerFile {
+  return { source, submittedAt };
+}
+
+export function encodePlayerFile(file: PlayerFile): string {
+  return JSON.stringify(file);
+}
+
+export function parsePlayerFile(text: string): PlayerFileParse {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text.trim());
+  } catch {
+    return { ok: false, fault: 'not-json' };
+  }
+  if (typeof raw !== 'object' || raw === null) return { ok: false, fault: 'not-a-shard' };
+  const f = raw as Partial<PlayerFile>;
+  if (
+    typeof f.submittedAt !== 'number' ||
+    !Number.isFinite(f.submittedAt) ||
+    typeof f.source !== 'object' ||
+    f.source === null ||
+    typeof f.source.id !== 'string' ||
+    !Array.isArray(f.source.cells)
+  ) {
+    return { ok: false, fault: 'not-a-shard' };
+  }
+  return { ok: true, file: { source: f.source as WorldSource, submittedAt: f.submittedAt } };
+}
+
+/** The un-stale players' ground, ready for `buildShards`. */
+export function mergePlayerFiles(
+  files: readonly PlayerFile[],
+  now: number,
+  ttlMs: number,
+): WorldSource[] {
+  return files.filter((f) => now - f.submittedAt <= ttlMs).map((f) => f.source);
+}
+
+export interface WorldIdentity {
+  nation?: string;
+  banner?: string;
+}
+
+/** Assemble the local player's own ground for publishing. Mirrors `exportChallengeFrom`. */
+export function worldSourceFrom(
+  me: { id: PlayerId; name: string },
+  owned: readonly Cell[],
+  castle: H3Index | null,
+  identity: WorldIdentity = {},
+): WorldSource {
+  return {
+    id: me.id,
+    name: me.name,
+    ...(identity.nation ? { nation: identity.nation } : {}),
+    ...(identity.banner ? { banner: identity.banner } : {}),
+    castle,
+    cells: owned.map(toWireCell),
   };
 }
 

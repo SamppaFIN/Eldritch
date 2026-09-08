@@ -210,9 +210,15 @@ export const WORLD_VERSION = 2;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.42';
+export const APP_VERSION = '0.5.43';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
+/**
+ * How long a player's last submission survives in the shared world without a refresh
+ * (BRDC-SHARE-002). A realm nobody has published in a month fades from other maps — the
+ * merge job keeps every player's latest file, and drops the stale ones on rebuild.
+ */
+export const WORLD_PLAYER_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * Ownership changes kept per cell (BRDC-HEX-001).

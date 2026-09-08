@@ -102,6 +102,29 @@ async function read(store: KeyValueStore, now: number): Promise<ResourceState> {
 }
 
 /**
+ * Every write to the pouch key goes through here, one at a time, re-reading inside the
+ * lock (BRDC-ECON-006). Two overlapping read-modify-writes — a spend and a settle most
+ * often — would otherwise clobber each other: one reads the pre-spend pool, the other
+ * debits it, the first writes its stale copy back. `next` gets the *fresh* state and
+ * returns what to write, or returns its argument unchanged to write nothing.
+ */
+let writeChain: Promise<unknown> = Promise.resolve();
+function commit(
+  store: KeyValueStore,
+  now: number,
+  next: (current: ResourceState) => ResourceState,
+): Promise<ResourceState> {
+  const run = writeChain.then(async () => {
+    const current = await read(store, now);
+    const updated = next(current);
+    if (updated !== current) await store.set<ResourceState>(KEY, updated);
+    return updated;
+  });
+  writeChain = run.catch(() => {});
+  return run;
+}
+
+/**
  * Bring the pouch up to date and persist it.
  *
  * Written back rather than re-derived: resources are earned and kept, so a projection
@@ -115,28 +138,18 @@ export async function settlePouch(
   owned: readonly Cell[],
   now: number,
 ): Promise<ResourceState> {
-  const stored = await read(store, now);
   // Buildings and places feed in here, not inside settleResources: a Storehouse raises
   // the ceiling, and building production plus temple mana add a per-hour bonus, each
-  // dormancy-filtered (BRDC-BUILD-001, BRDC-MANA-001). Keeping it here is what lets
-  // `rules/terrain.ts` stay blind to both.
-  const held = buildingsOf(owned);
-  const settled = settleResources(
-    stored,
-    owned,
-    now,
-    storageCap(held),
-    await perHourBonus(store, owned, now),
-    buildingDayBonus(owned, now),
-    // The world's winter scales everything produced, decay's cousin from the same clock.
-    darkTimeAt(now).factor,
-  );
-  // Written only when the settle actually moved the pool or the clock (BRDC-ECON-006).
-  // `read` now persists its own stand-in, so a no-op settle here is safe to skip — and
-  // must be skipped, or a `getResources` racing a `spend` writes the pre-spend pool back
-  // over the debit (a Monument that cost nothing, found on the dev server).
-  if (settled !== stored) await store.set(KEY, settled);
-  return settled;
+  // dormancy-filtered (BRDC-BUILD-001, BRDC-MANA-001). Computed before the write lock —
+  // it reads other store keys and does not touch the pouch.
+  const cap = storageCap(buildingsOf(owned));
+  const bph = await perHourBonus(store, owned, now);
+  const bpd = buildingDayBonus(owned, now);
+  const factor = darkTimeAt(now).factor;
+  // Settle against the *fresh* pool: a spend that landed since is kept, not clobbered
+  // (BRDC-ECON-006). `settleResources` returns its argument unchanged for a no-op, which
+  // `commit` then does not write.
+  return commit(store, now, (cur) => settleResources(cur, owned, now, cap, bph, bpd, factor));
 }
 
 /**
@@ -193,11 +206,12 @@ export async function awardClaims(
   const taken = outcomes.filter((o) => o.kind === 'claimed' || o.kind === 'taken');
   if (taken.length === 0) return;
 
-  const state = await settlePouch(store, owned, now);
-
-  let pool = state.pool;
-  for (const outcome of taken) pool = addClaimYield(pool, outcome.h3);
-  await store.set<ResourceState>(KEY, { ...state, pool });
+  await settlePouch(store, owned, now);
+  await commit(store, now, (cur) => {
+    let pool = cur.pool;
+    for (const outcome of taken) pool = addClaimYield(pool, outcome.h3);
+    return { ...cur, pool };
+  });
 }
 
 /**
@@ -235,11 +249,9 @@ export async function collectPouch(
     }
   }
 
-  await store.set<ResourceState>(KEY, {
-    ...state,
-    collectedAt: now,
-    poolAtCollect: { ...state.pool },
-  });
+  // Move the mark, keeping whatever pool is current — a spend between the settle above and
+  // here is not undone (BRDC-ECON-006).
+  await commit(store, now, (cur) => ({ ...cur, collectedAt: now, poolAtCollect: { ...cur.pool } }));
   return { delta, total, hours: Math.max(0, (now - since) / 3_600_000), at: now };
 }
 
@@ -301,8 +313,7 @@ export async function writePouch(
   pool: ResourcePool,
   now: number,
 ): Promise<void> {
-  const state = await read(store, now);
-  await store.set<ResourceState>(KEY, { ...state, pool });
+  await commit(store, now, (cur) => ({ ...cur, pool }));
 }
 
 /**

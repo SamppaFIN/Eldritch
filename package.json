@@ -1,6 +1,6 @@
 {
   "name": "eldritch-sanctuary-v3",
-  "version": "0.5.42",
+  "version": "0.5.43",
   "private": true,
   "type": "module",
   "description": "GPS territory-capture game. Walk a closed loop, claim the land inside it.",
@@ -11,6 +11,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "play": "node scripts/play.mjs",
     "dev": "pnpm --filter @es3/game dev",
     "build": "pnpm --filter @es3/game build",
     "preview": "pnpm --filter @es3/game preview",

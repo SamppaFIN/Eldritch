@@ -1,13 +1,15 @@
 /**
- * Merging a shared-world shard into the store.
+ * The shared world, both directions, where it touches the store.
  *
- * The format lives in world.ts, which is pure. This is the half that touches the store —
- * split out when MockRepository reached its four hundred lines, the same seam as
- * pouch.ts, wager.ts and cellStore.ts. Everything here is about moving other players'
- * ground in, and nothing else.
+ * The format lives in world.ts, which is pure. This is the half that reads the repository —
+ * split out when MockRepository reached its four hundred lines, the same seam as pouch.ts,
+ * wager.ts and cellStore.ts. Moving other players' ground in (`mergeWorld`), and sealing
+ * the local player's own for publishing (`exportWorldSource`).
  */
-import { parseWorld, worldToCells } from './world.js';
-import type { WorldImportResult } from './world.js';
+import { parseWorld, worldSourceFrom, worldToCells } from './world.js';
+import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
+import { muster } from './wagerRepo.js';
+import type { MusterDeps } from './wagerRepo.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, PlayerId } from '../types/domain.js';
@@ -43,4 +45,19 @@ export async function mergeWorld(
     cells: written,
     generatedAt: parsed.shard.generatedAt,
   };
+}
+
+/**
+ * The local player's own ground, sealed for publishing (BRDC-SHARE-002).
+ *
+ * Same `muster` the Wager gathers — who you are, the ground still standing, the Keep —
+ * turned into a `WorldSource` the client carries to the cron job as a GitHub issue.
+ */
+export async function exportWorldSource(
+  deps: MusterDeps,
+  identity: WorldIdentity,
+  now: number,
+): Promise<WorldSource> {
+  const m = await muster(deps, now);
+  return worldSourceFrom(m.me, m.owned, m.castle, identity);
 }

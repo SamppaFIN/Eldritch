@@ -15,8 +15,9 @@ import { readPlaces, readDwellFor, raiseAltarFor, channelManaFor } from './keepS
 import type { AltarOutcome, ChannelOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
+import { EMPTY_POOL } from '../rules/terrain.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { collectPouch, forecastRates, grantAll, grantBonus, resetPouch, settlePouch } from './pouch.js';
+import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch } from './pouch.js';
 import type { Collected, Forecast } from './pouch.js';
 import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk } from './walkFlow.js';
@@ -71,8 +72,8 @@ import { seedCells } from './seed.js';
 import { K } from './keys.js';
 import { readDefence, writeDefence, type ImportResult, type WagerIdentity } from './wager.js';
 import { combatantFrom, exportChallengeFrom, importChallengeInto, muster } from './wagerRepo.js';
-import { mergeWorld } from './worldStore.js';
-import type { WorldImportResult } from './world.js';
+import { exportWorldSource as sealWorld, mergeWorld } from './worldStore.js';
+import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { assignCastle } from './castle.js';
@@ -104,9 +105,7 @@ export class MockRepository implements GameRepository {
   }
 
   /** Was the store wiped on open for a schema mismatch? Read by `createRepository`. */
-  async schemaOutcome(): Promise<SchemaOutcome> {
-    return this.store.schema();
-  }
+  schemaOutcome = (): Promise<SchemaOutcome> => this.store.schema();
 
   /* --- Profile and achievements — seams in profileStore.js / achievementRepo.js --- */
   getProfile(): Promise<PlayerProfile> {
@@ -127,15 +126,9 @@ export class MockRepository implements GameRepository {
 
   /* --- Runs — CRUD in `runStore.js`, one run at a time ---------------- */
 
-  async startRun(now: number): Promise<RunId> {
-    return beginRun(this.store, this.newId(), now);
-  }
-  async getActiveRun(): Promise<Run | null> {
-    return activeRunOf(this.store);
-  }
-  async getTrailPoints(runId: RunId): Promise<TrailPoint[]> {
-    return trailPointsOf(this.store, runId);
-  }
+  startRun = (now: number): Promise<RunId> => beginRun(this.store, this.newId(), now);
+  getActiveRun = (): Promise<Run | null> => activeRunOf(this.store);
+  getTrailPoints = (runId: RunId): Promise<TrailPoint[]> => trailPointsOf(this.store, runId);
 
   getWalkedPaths = async (): Promise<WalkedEdge[]> => walkedEdges(await readPaths(this.store));
 
@@ -192,9 +185,7 @@ export class MockRepository implements GameRepository {
     return removeRouteAt(this.store, a, b, await this.getOwnedCells(now), now);
   }
 
-  async getResearched(): Promise<TechId[]> {
-    return readResearched(this.store);
-  }
+  getResearched = (): Promise<TechId[]> => readResearched(this.store);
 
   async researchTech(id: TechId, now: number): Promise<TechResult> {
     return doResearch(this.store, id, await this.getOwnedCells(now), await this.getHome(), now);
@@ -206,38 +197,37 @@ export class MockRepository implements GameRepository {
     return exportChallengeFrom(await muster(this, now), now, identity);
   }
 
-  async importChallenge(text: string, now: number): Promise<ImportResult> {
-    return importChallengeInto(this.store, await muster(this, now), text, now);
-  }
+  importChallenge = async (text: string, now: number): Promise<ImportResult> =>
+    importChallengeInto(this.store, await muster(this, now), text, now);
 
-  async importWorld(text: string, now: number): Promise<WorldImportResult> {
-    return mergeWorld(this.store, text, (await this.getProfile()).id, now);
-  }
+  importWorld = async (text: string, now: number): Promise<WorldImportResult> =>
+    mergeWorld(this.store, text, (await this.getProfile()).id, now);
 
-  async getDefence(): Promise<Defence> {
-    return readDefence(this.store);
-  }
+  exportWorldSource = (now: number, identity: WorldIdentity): Promise<WorldSource> =>
+    sealWorld(this, identity, now);
 
-  async setDefence(defence: Defence): Promise<void> {
-    await writeDefence(this.store, defence);
-  }
+  getDefence = (): Promise<Defence> => readDefence(this.store);
 
-  async getCombatant(now: number): Promise<Combatant> {
-    return combatantFrom(await muster(this, now));
-  }
+  setDefence = (defence: Defence): Promise<void> => writeDefence(this.store, defence);
+
+  getCombatant = async (now: number): Promise<Combatant> =>
+    combatantFrom(await muster(this, now));
 
   /* --- The Hearth ------------------------------------------------------- */
 
+  /** Concurrent callers share one run — the founding effect fires twice (fresh `clock`,
+   *  Strict Mode). `claimHearth` and `assignCastle` are idempotent, and the stash is
+   *  *set*, not added — two concurrent calls both write `STARTER_STASH` and the pouch is
+   *  still one building's worth, not two (BRDC-ECON-007). */
   async setHome(position: LatLng, now: number): Promise<H3Index> {
     const profile = await this.getProfile();
     const h3 = await claimHearth(this.store, profile, position, now);
     await assignCastle(this.store, position);
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
-    // The founding stash: once per game, and only into an empty pouch (BRDC-ECON-007) —
-    // one building's worth, no more, and never on top of resources already earned.
+    // The founding stash: once per game, and only into an empty pouch — one building's worth.
     if (!(await this.store.get<boolean>(K.starterGiven))) {
       const bare = !Object.values(await this.getResources(now)).some((v) => v > 0);
-      if (bare) await grantBonus(this.store, await this.getOwnedCells(now), STARTER_STASH, now);
+      if (bare) await writePouch(this.store, { ...EMPTY_POOL, ...STARTER_STASH }, now);
       await this.store.set(K.starterGiven, true);
     }
     return h3;

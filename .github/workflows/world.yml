@@ -1,11 +1,13 @@
 name: Rebuild world.json
 
-# BRDC-SHARE-001. Multiplayer without a server: players submit their territory as a
-# `world-submission` issue, this job merges the open ones into apps/game/public/world/
-# and pushes, which trips deploy.yml and publishes the new shards to Pages.
+# BRDC-SHARE-001 / -002. Multiplayer without a server: players submit their territory as a
+# `world:`-titled issue, this job keeps one file per player under apps/game/public/world/
+# players/, merges the un-stale ones into world/<res6>.json, pushes, and kicks deploy.yml
+# (a GITHUB_TOKEN push does not trip `on: push`, so it is triggered by hand here).
 #
-# Runs only on the default branch (cron always does). Until this file is on main it is
-# written but never exercised — the merge logic it calls is covered by world.test.ts.
+# Runs only on the default branch. Match is on the title prefix, not the label: a friend
+# without triage rights cannot apply a label from the issue-new URL, but anyone can set a
+# title.
 
 on:
   schedule:
@@ -15,6 +17,7 @@ on:
 permissions:
   contents: write
   issues: write
+  actions: write
 
 concurrency:
   group: world
@@ -31,28 +34,40 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # build-world.mjs imports packages/core/dist, the way gen-fixtures.mjs does;
-      # `pnpm typecheck` is `tsc -b`, which emits it.
+      # build-world.mjs imports packages/core/dist; `pnpm typecheck` is `tsc -b`, which emits it.
       - run: pnpm typecheck
 
-      - name: Collect open submissions, oldest first
+      - name: Collect submissions, oldest first
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue list --label world-submission --state open --limit 500 \
-            --json number,body --jq 'sort_by(.number)' > raw.json
-          jq '[.[].body]' raw.json > submissions.json
-          jq -r '.[].number' raw.json > processed.txt
+          gh issue list --state open --limit 500 --json number,body,title,createdAt \
+            | jq '[.[] | select(.title | startswith("world:")) | {number, body, createdAt}]
+                  | sort_by(.number)' > issues.json
+          jq -r '.[].number' issues.json > processed.txt
+          echo "matched $(jq length issues.json) issue(s)"
 
-      - run: node scripts/build-world.mjs < submissions.json
+      - run: node scripts/build-world.mjs < issues.json
 
       - name: Commit the rebuilt world
+        id: commit
         run: |
           git config user.name 'eldritch-world-bot'
           git config user.email 'world-bot@users.noreply.github.com'
           git add apps/game/public/world
-          git diff --cached --quiet || git commit -m 'world.json: scheduled rebuild'
-          git push
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m 'world.json: scheduled rebuild'
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy the new world to Pages
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
 
       - name: Close merged submissions
         env:

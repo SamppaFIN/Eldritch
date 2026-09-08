@@ -162,4 +162,20 @@ describe('build / demolish', () => {
     expect((await r.getResources(T0 + 12 * 3_600_000)).tokens).toBe(0);
     expect((await r.getResources(T0 + 25 * 3_600_000)).tokens).toBe(1);
   });
+
+  it('the founding stash pays for exactly one Monument (BRDC-ECON-007)', async () => {
+    const store = new MemoryStore();
+    await store.set(SCHEMA_KEY, SCHEMA_VERSION);
+    const r = new MockRepository({ store, newId: () => 'me', seed: 3 });
+    const h = await r.setHome(ORIGIN, T0); // grants { stone: 60, culture: 10 }
+
+    const out = await r.build(h, 'monument', T0);
+    expect(out.ok).toBe(true);
+    const pool = await r.getResources(T0);
+    expect(pool.stone).toBe(0);
+    expect(pool.culture).toBe(0);
+
+    // ...and nothing is left for a second one.
+    expect(await r.build(h, 'monument', T0)).toMatchObject({ ok: false });
+  });
 });

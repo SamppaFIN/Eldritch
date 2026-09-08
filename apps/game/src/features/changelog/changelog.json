@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.43",
+    "date": "2026-09-08",
+    "notes": [
+      "Share your world. There is a switch in the menu — \"Share the world\" — off until you turn it on. With it on, other players' realms near you appear on your map, and the Keep grows a \"Raise your banner\" button: press it and your territory goes out as a GitHub issue that a scheduled job folds into one shared file everyone reads. Your last submission is kept, so you stay on the map without re-publishing every half hour; a realm nobody publishes for a month fades.",
+      "Fixed: the founding stash could be handed out twice — a timing quirk in how the accepted Hearth is written through — leaving you with 120 stone instead of 60.",
+      "Fixed: accepting a Wager from someone who had built things made it impossible to build anything yourself. Their buildings were counting against your own capacity.",
+      "Fixed: a build could take the Work but not charge the pouch. A resource read landing at the wrong moment wrote a stale pouch back over the payment — the other half of the 0.5.41 fix."
+    ]
+  },
+  {
     "version": "0.5.42",
     "date": "2026-09-07",
     "notes": [

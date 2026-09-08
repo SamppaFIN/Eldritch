@@ -170,10 +170,11 @@ export function useSelection({
   const [livePlaces, setLivePlaces] = useState<readonly RevealedPlace[]>(places);
   useEffect(() => setLivePlaces(places), [places]);
 
-  // Buildings the player holds, from the cells in view — enough for the capacity check in
-  // practice, since a player's buildings sit on their territory and that is what is on
-  // screen. An off-screen building could under-count the cap; acceptable for now.
-  const myBuildings = useMemo(() => buildingsOf(cells), [cells]);
+  // The player's own buildings in view, for the capacity check. Imported cells — a Wager
+  // rival's, or the shared world's — carry their owner's Works, not the player's, so they
+  // must not count against the cap (BRDC-BUILD-007 field bug: a Wager from a builder made
+  // it impossible to build anything). An off-screen building can still under-count; fine.
+  const myBuildings = useMemo(() => buildingsOf(cells.filter((c) => !c.imported)), [cells]);
 
   useEffect(() => {
     if (!repository) return;
