@@ -20,6 +20,7 @@ import { NationIdentity } from '../nation/NationIdentity.js';
 import { KeepResources } from '../keep/KeepResources.js';
 import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
+import type { PublishResult } from '../../data/worldSource.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
@@ -57,7 +58,7 @@ export interface HearthPanelProps {
   forecast: Forecast | null;
   onWager: () => void;
   /** Publish your realm to the shared world — set only when the share toggle is on (BRDC-SHARE-002). */
-  onPublish?: (() => void) | undefined;
+  onPublish?: (() => Promise<PublishResult>) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
   onClose: () => void;

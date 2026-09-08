@@ -1,9 +1,9 @@
 /**
  * The shared world, one region at a time.
  *
- * `world/<res6>.json` is how Phases 0–2 fake a server: a cron job (`scripts/build-world.mjs`)
- * merges players' submitted territory into one file per res-6 region, publishes them to
- * Pages, and every client reads the shards for whatever it is looking at. It is read
+ * `world/<res6>` is how Phases 0–2 fake a server: a Cloudflare Worker over KV
+ * (`apps/worker`, BRDC-SHARE-003) merges players' submitted territory into one shard per
+ * res-6 region, and every client reads the shards for whatever it is looking at. It is read
  * state, never truth — it says what other people *claim* to hold. Disputes are settled by
  * the Wager, not by the file (the same compromise `PIVOT-2026-08-27.md` §5 made for
  * combat).

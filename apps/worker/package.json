@@ -1,0 +1,15 @@
+{
+  "name": "@es3/world-worker",
+  "version": "0.5.44",
+  "private": true,
+  "type": "module",
+  "description": "The shared world's write and read end: a Cloudflare Worker over KV (BRDC-SHARE-003).",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "@es3/core": "workspace:*"
+  }
+}

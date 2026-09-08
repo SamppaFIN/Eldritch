@@ -11,6 +11,7 @@ playwright-report/
 .DS_Store
 android/
 .vite/
+.wrangler/
 
 # Legacy v2 repository — a separate git repo, and its .env is compromised.
 # claude.md golden rule 5: the old code is not read from here.

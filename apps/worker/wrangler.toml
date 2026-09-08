@@ -1,0 +1,11 @@
+# The shared world (BRDC-SHARE-003). Deploy: `npx wrangler deploy` from this directory,
+# after `npx wrangler login`. The KV id below comes from:
+#   npx wrangler kv namespace create WORLD
+name = "eldritch-world"
+main = "src/index.ts"
+compatibility_date = "2026-09-08"
+account_id = "200bc23999bdf4dc63f0e7f9aa576d61"
+
+[[kv_namespaces]]
+binding = "WORLD"
+id = "6078172593c94d5fb647c953af4ea0fe"

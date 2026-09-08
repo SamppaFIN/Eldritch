@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.44",
+    "date": "2026-09-08",
+    "notes": [
+      "\"Raise your banner\" no longer sends you to GitHub. Pressing it now posts your territory straight from the game — one request, no tab, no account — and the Keep tells you it went: \"Sent. Others see your realm within the hour.\" Press it again too soon and it says so.",
+      "The shared world is served by its own small service now instead of a scheduled job rebuilding a file in the repo. Nearby realms still appear on your map only with \"Share the world\" switched on, and your last submission is still kept for a month so you stay on the map without re-publishing."
+    ]
+  },
+  {
     "version": "0.5.43",
     "date": "2026-09-08",
     "notes": [

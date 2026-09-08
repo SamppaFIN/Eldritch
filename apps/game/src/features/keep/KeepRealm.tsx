@@ -6,8 +6,16 @@
  * BRDC-CASTLE-001 asks for, and the two things you do from here — face the Wager, or
  * jump to the cell about to be lost.
  */
+import { useState } from 'react';
 import { RitualButton } from '@es3/ui';
+import type { PublishResult } from '../../data/worldSource.js';
 import './keep.css';
+
+const SENT: Record<PublishResult, string> = {
+  ok: 'Sent. Others see your realm within the hour.',
+  'rate-limited': 'Just sent one — try again in a minute.',
+  failed: "Couldn't reach the world. Try again in a bit.",
+};
 
 /** Hours to a phrase. Duplicated from HearthPanel — five lines, not worth a shared import. */
 function hours(h: number | null): string {
@@ -24,7 +32,7 @@ export interface KeepRealmProps {
   dark: { active: boolean; inDays: number };
   onWager: () => void;
   /** Publish your realm to the shared world — present only when the share toggle is on. */
-  onPublish?: (() => void) | undefined;
+  onPublish?: (() => Promise<PublishResult>) | undefined;
   onWeakest: (h3: string) => void;
 }
 
@@ -37,6 +45,14 @@ export function KeepRealm({
   onPublish,
   onWeakest,
 }: KeepRealmProps) {
+  const [sent, setSent] = useState<PublishResult | 'sending' | null>(null);
+
+  const raise = async () => {
+    if (!onPublish || sent === 'sending') return;
+    setSent('sending');
+    setSent(await onPublish());
+  };
+
   return (
     <section className="keep-section" aria-label="Realm">
       <h3 className="keep-section__head">Realm</h3>
@@ -66,8 +82,9 @@ export function KeepRealm({
       </p>
       {onPublish ? (
         <p className="hearth-panel__line">
-          Raise your banner and your realm goes out to the world map. Others see it within
-          the hour.
+          {sent && sent !== 'sending'
+            ? SENT[sent]
+            : 'Raise your banner and your realm goes out to the world map. Others see it within the hour.'}
         </p>
       ) : (
         <p className="hearth-panel__line">Troops to raise come later.</p>
@@ -83,8 +100,8 @@ export function KeepRealm({
           The Wager
         </RitualButton>
         {onPublish ? (
-          <RitualButton variant="ghost" onClick={onPublish}>
-            Raise your banner
+          <RitualButton variant="ghost" onClick={raise} disabled={sent === 'sending'}>
+            {sent === 'sending' ? 'Raising…' : 'Raise your banner'}
           </RitualButton>
         ) : null}
       </div>

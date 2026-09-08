@@ -243,7 +243,20 @@ const run = async () => {
     step('renamed the player, and it stuck', finalName === 'Aavistus', `field reads "${finalName}"`);
     await page.keyboard.press('Escape');
 
-    // --- Raise your banner (BRDC-SHARE-002) -----------------------
+    // --- Raise your banner (BRDC-SHARE-002, -003) ----------------
+    // The write path is one POST to the Worker. Stub it so the sim never needs the net,
+    // and read back what the client sent.
+    let submitted = null;
+    await context.route('**/submit', async (r) => {
+      try {
+        submitted = JSON.parse(r.request().postData() ?? '{}');
+      } catch {
+        submitted = {};
+      }
+      return r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"cells":1,"regions":1}' });
+    });
+    await context.route('**/world/**', (r) => r.fulfill({ status: 204, body: '' }));
+
     await page.getByRole('button', { name: 'Menu' }).click();
     await page
       .getByRole('switch', { name: 'Share the world — see nearby realms, and let them see yours' })
@@ -252,21 +265,19 @@ const run = async () => {
     await page.getByRole('button', { name: 'Keep', exact: true }).click();
     await page.getByLabel('Your sanctuary').waitFor({ state: 'visible', timeout: 8_000 });
     const raise = page.getByRole('button', { name: 'Raise your banner' });
-    let issueUrl = '(not opened)';
+    let sentLine = false;
     if (await raise.isVisible().catch(() => false)) {
-      // Grab the URL from the navigation request itself — GitHub redirects an
-      // unauthenticated /issues/new to /login before `popup.url()` settles.
-      await context.route('https://github.com/**', (r) => {
-        if (issueUrl === '(not opened)') issueUrl = r.request().url();
-        return r.abort();
-      });
-      await Promise.all([context.waitForEvent('page').catch(() => {}), raise.click()]);
-      await page.waitForTimeout(1_000);
+      await raise.click();
+      sentLine = await page
+        .getByText('Others see your realm within the hour.')
+        .waitFor({ state: 'visible', timeout: 8_000 })
+        .then(() => true)
+        .catch(() => false);
     }
     step(
-      'Raise your banner opens a world: issue',
-      /github\.com\/SamppaFIN\/Eldritch\/issues\/new/.test(issueUrl) && /title=world/.test(issueUrl),
-      issueUrl.slice(0, 90),
+      'Raise your banner POSTs a sealed submission and reports it sent',
+      sentLine && submitted != null && typeof submitted.sum === 'string' && Array.isArray(submitted.cells),
+      sentLine ? `sum=${String(submitted?.sum).slice(0, 12)} cells=${submitted?.cells?.length}` : 'no confirmation line',
     );
 
     await page.screenshot({ path: join(dir, '../../..', 'sim-final.png'), fullPage: false });

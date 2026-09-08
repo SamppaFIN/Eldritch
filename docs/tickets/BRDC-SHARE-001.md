@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-WAGER-JSON-001 |
-| **Status** | `in_progress` — formaatti, luku ja skripti tehty; cron-Action ajamatta |
-| **Valmius** | 80 % |
+| **Status** | `done` — formaatti + luku `BRDC-SHARE-001`, kytkentä + nappi `BRDC-SHARE-002`, kirjoituspolku `BRDC-SHARE-003` (Worker korvasi cronin) |
+| **Valmius** | 100 % |
 | **Lähde** | Infinite 2026-08-31: *"tietojen jakaminen tapahtuu esim cron jobilla, joka päivittää tekstitiedoston, mikä tietää kaiken datan"* |
 
 ## 🔴 RED
@@ -27,13 +27,12 @@ persistointiin. Väliin tarvitaan jotain, joka ei ole palvelin.
 - [x] Peli **lukee sen** viewportin alueille (`useWorld` → `fetchWorldShards` →
       `regionsCoveringBBox`) ja näyttää muut kartalla tuotuina soluina. *(Selaimessa
       todentamatta — automaattikattavuus: `worldSource.test.ts`, `world.repo.test.ts`)*
-- [~] Kirjoituspolku **olemassa ja dokumentoitu**: `worldSubmissionUrl` avaa esitäytetyn
-      issuen (`world-submission`-label). Näkyvä "julkaise alueeni" -nappi jää pieneksi
-      jatkoksi — funktio ja polku ovat valmiit
-- [~] **GitHub Action** `.github/workflows/world.yml` kirjoitettu: cron 30 min +
-      `workflow_dispatch`, kokoaa avoimet issuet, `node scripts/build-world.mjs`, commit +
-      push, sulkee issuet. **Ei ajettu** — cron käy vain `main`illa, ja tämä on haaralla.
-      Sen kutsuma merge-logiikka on `world.ts`:ssä ja testattu
+- [x] Kirjoituspolku **valmis**: `BRDC-SHARE-002` toi "Raise your banner" -napin Keepiin,
+      `BRDC-SHARE-003` vaihtoi sen taakse Cloudflare Workerin (`fetch(POST)`, ei GitHubia).
+- [x] **Cron korvattu Workerilla** (`apps/worker`, `BRDC-SHARE-003`): `.github/workflows/world.yml`
+      ja `scripts/build-world.mjs` poistettu. Merge-logiikka (`mergePlayerFiles` +
+      `buildShards` `world.ts`:ssä) on sama ja testattu; Worker ajaa sen `POST /submit`in
+      yhteydessä KV:tä vasten.
 - [x] Jokainen lähetys **tarkistetaan checksumilla** — `WorldSubmission` on allekirjoitettu
       kirjekuori, `parseSubmission` torjuu `damaged`in samalla FNV-1a:lla kuin `challenge.ts`
 - [x] Tuntematon versio **hylätään nimeltä** — `parseWorld`/`parseSubmission` →
@@ -64,18 +63,14 @@ nimetyt faultit, `*ToCells` joka päivää tuonnit `now`:iin.
 - **`GameRepository.importWorld`** + `MockRepository` — yhdistää lohkon, ohittaa solun
   jonka paikallinen pelaaja omistaa (riita ratkaistaan Wagerilla), palauttaa määrät ja
   `generatedAt`. Idempotentti.
-- **`scripts/build-world.mjs`** — ohut fs-kääre: `parseSubmission` per issue-body,
-  `buildShards`, kirjoittaa `apps/game/public/world/<region>.json`. Kaikki validointi on
-  `world.ts`:ssä ja testattu.
-- **`.github/workflows/world.yml`** — cron, `[~]` ei ajettu (käy vain `main`illa).
+- **`scripts/build-world.mjs`** — oli ohut fs-kääre `parseSubmission` + `buildShards`in
+  ympärillä; poistettu `BRDC-SHARE-003`:ssa, kun Worker otti saman logiikan.
+- **`.github/workflows/world.yml`** — poistettu `BRDC-SHARE-003`:ssa (Worker korvasi cronin).
 - **Client:** `apps/game/src/data/worldSource.ts` (`fetchWorldShards` 404-sietoinen,
-  `worldSubmissionUrl`), `features/territory/useWorld.ts` (hakee + yhdistää viewportin
-  alueille), `MapView`-rivi ikää varten. `MapView` ylitti 400 riviä → `useWorld`
-  eriytettiin (sama jako-sääntö).
+  `publishSubmission` → Worker, `worldSubmissionUrl` fallbackina),
+  `features/territory/useWorld.ts` + `useSharedWorld.ts`, `MapView`-rivi ikää varten.
 
-**Jäljellä:** cron-Actionin oikea ajo (`main`illa), näkyvä julkaisunappi, ja `seed.ts`:n
-tekonaapureiden suhde oikeaan dataan (oma tikettinsä). `MockRepository.ts` on 391/400 —
-seuraava metodi vaatii jaon.
+**Jäljellä:** `seed.ts`:n tekonaapureiden suhde oikeaan dataan (oma tikettinsä).
 
 ## Toteutus
 
