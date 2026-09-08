@@ -25,6 +25,9 @@
   /* Override .es-panel's page-panel padding and cent­ring — this is a dropdown. */
   padding: var(--space-2);
   align-items: stretch;
+  /* A menu is read, not glanced at — give it a near-opaque ground so the map and HUD
+     behind it do not bleed through the labels (.es-glass alone is 0.7 alpha). */
+  background: color-mix(in oklch, var(--void-black) 88%, var(--cosmic-purple));
   /* The switches and the two exits together outrun a short screen. Cap it well inside
      the viewport and scroll, the way the cell and guide panels do. */
   max-block-size: 70vh;
@@ -38,6 +41,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  /* The panel scrolls when it runs long; rows keep their natural height. Without this,
+     flexbox shrinks every row to min-block-size and multi-line labels spill over their
+     neighbours. */
+  flex-shrink: 0;
   min-block-size: var(--touch-min);
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--glass-border);
@@ -74,12 +81,14 @@
 
 .settings-menu__rule {
   inline-size: 100%;
+  flex-shrink: 0;
   border: none;
   border-block-start: 1px solid var(--glass-border);
   margin: var(--space-1) 0;
 }
 
 .settings-menu__note {
+  flex-shrink: 0;
   margin: 0 0 var(--space-1);
   padding-inline: var(--space-1);
   color: var(--text-dim);
