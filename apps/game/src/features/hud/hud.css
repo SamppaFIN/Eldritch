@@ -326,3 +326,30 @@
   font-size: var(--text-sm);
   white-space: nowrap;
 }
+
+/* Collect (BRDC-ECON-007): flows in the pouch line with the pips so it costs no HUD
+   height (the 30% budget, BRDC-E2E-001). Compact — a deliberate stop-and-tap, not a
+   walking primary — but kept above the 24px minimum a tap target needs. */
+.hud__value--pouch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.hud__collect {
+  min-block-size: 1.6rem;
+  padding-inline: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm, 0.25rem);
+  background: color-mix(in oklch, var(--cosmic-purple) 32%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(var(--text-sm) * 0.92);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.hud__collect:hover {
+  background: color-mix(in oklch, var(--cosmic-purple) 46%, transparent);
+}

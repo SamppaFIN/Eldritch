@@ -48,4 +48,6 @@ export const K = {
   revealed: 'revealed',
   /** A temple's chosen element, `Record<H3Index, TempleSchool>` — missing h3 = not chosen yet (BRDC-TEMPLE-002). */
   templeSchool: 'temple-school',
+  /** Set once the Hearth's founding stash has been granted, so it is never handed out twice (BRDC-ECON-007). */
+  starterGiven: 'starter-given',
 } as const;

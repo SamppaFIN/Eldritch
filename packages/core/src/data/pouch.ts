@@ -201,27 +201,46 @@ export async function awardClaims(
 }
 
 /**
- * A one-off starter pouch on a version change (BRDC-ECON-003).
+ * What has come into the pouch since the player last pressed Collect (BRDC-ECON-007).
  *
- * Test-phase generosity: after a deploy the player should be able to try buildings, mana
- * and research straight away instead of walking an hour to fund the first one. Tops each
- * resource up to a floor — 100 for the materials, 30 for mana and wisdom — without
- * reducing a fuller pouch or passing the cap. The once-per-version gate is the caller's
- * (`createRepository`), so this stays a plain grant.
+ * Not a payout — the hourly trickle already banks itself in `settlePouch`. This settles
+ * first so the reading is current, then reports `pool - poolAtCollect` (never negative:
+ * spending between collects is not a loss to show) and how long the wait was, and moves
+ * the collect mark to now. The pool itself is left exactly as the settle left it.
  */
-export async function grantVersionGift(
+export interface Collected {
+  delta: Partial<ResourcePool>;
+  total: number;
+  hours: number;
+  /** `now`, so the client can key the animation to the press. */
+  at: number;
+}
+
+export async function collectPouch(
   store: KeyValueStore,
   owned: readonly Cell[],
   now: number,
-): Promise<void> {
+): Promise<Collected> {
   const state = await settlePouch(store, owned, now);
-  const cap = storageCap(buildingsOf(owned));
-  const pool = { ...state.pool };
+  const mark = state.poolAtCollect ?? state.pool;
+  const since = state.collectedAt ?? now;
+
+  const delta: Partial<ResourcePool> = {};
+  let total = 0;
   for (const k of RESOURCE_KINDS) {
-    const floor = k === 'mana' || k === 'wisdom' ? 30 : 100;
-    pool[k] = Math.min(cap, Math.max(pool[k], floor));
+    const d = state.pool[k] - (mark[k] ?? 0);
+    if (d > 0) {
+      delta[k] = d;
+      total += d;
+    }
   }
-  await writePouch(store, pool, now);
+
+  await store.set<ResourceState>(KEY, {
+    ...state,
+    collectedAt: now,
+    poolAtCollect: { ...state.pool },
+  });
+  return { delta, total, hours: Math.max(0, (now - since) / 3_600_000), at: now };
 }
 
 /**

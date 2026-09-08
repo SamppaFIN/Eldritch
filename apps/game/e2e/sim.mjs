@@ -42,12 +42,20 @@ const rivalCells = (page) =>
       return feats.filter((f) => f.properties?.color === '#5c1a1a').length;
     })
     .catch(() => 0);
-const pouch = (page) =>
+const pouchStone = (page) =>
   page
-    .locator('.hud__pouch')
-    .innerText()
-    .then((t) => t.replace(/\s+/g, ' ').trim())
-    .catch(() => '(none)');
+    .evaluate(async () => {
+      const db = await new Promise((res) => {
+        const r = indexedDB.open('es3', 1);
+        r.onsuccess = () => res(r.result);
+      });
+      const rs = await new Promise((res) => {
+        const rq = db.transaction('kv', 'readonly').objectStore('kv').get('resources');
+        rq.onsuccess = () => res(rq.result);
+      });
+      return rs?.pool?.stone ?? -1;
+    })
+    .catch(() => -1);
 
 async function acceptHearth(page) {
   await page.getByRole('heading', { name: 'Your Hearth' }).waitFor({ timeout: 15_000 });
@@ -81,7 +89,10 @@ const run = async () => {
     step('founded a Hearth', true);
 
     await page.waitForTimeout(2_000);
-    step('the world has resources', true, `pouch: ${await pouch(page)}`);
+    // BRDC-ECON-007: no version gift any more — founding hands over exactly one Monument
+    // (60 stone, 10 culture) and nothing else.
+    const stash = await pouchStone(page);
+    step('the founding stash is one Monument, not a handout', stash === 60, `stone ${stash}`);
 
     // --- Import the Wager -------------------------------------------------
     await page.getByRole('button', { name: 'Keep', exact: true }).click();
@@ -113,23 +124,8 @@ const run = async () => {
     await card.waitFor({ state: 'visible', timeout: 8_000 });
     const ownerLine = (await card.locator('.cell-panel__owner').innerText().catch(() => '')).trim();
 
-    const pouchStone = () =>
-      page
-        .evaluate(async () => {
-          const db = await new Promise((res) => {
-            const r = indexedDB.open('es3', 1);
-            r.onsuccess = () => res(r.result);
-          });
-          const rs = await new Promise((res) => {
-            const rq = db.transaction('kv', 'readonly').objectStore('kv').get('resources');
-            rq.onsuccess = () => res(rq.result);
-          });
-          return rs?.pool?.stone ?? -1;
-        })
-        .catch(() => -1);
-
     let built = false;
-    const stoneBefore = await pouchStone();
+    const stoneBefore = await pouchStone(page);
     const monRow = card.locator('.cell-panel__build-row', { hasText: 'Monument' });
     const buildBtn = monRow.getByRole('button', { name: 'Build', exact: true });
     if (await buildBtn.isVisible().catch(() => false)) {
@@ -142,7 +138,7 @@ const run = async () => {
     }
     step('built a Monument on the Hearth', built, `owner line: "${ownerLine}"`);
     await page.waitForTimeout(2_000);
-    const stoneAfter = await pouchStone();
+    const stoneAfter = await pouchStone(page);
     step(
       'the build charged the pouch (BRDC-ECON-006)',
       stoneAfter === stoneBefore - 60,
@@ -170,6 +166,23 @@ const run = async () => {
     const after = await wardedCount(page);
     step('walking claimed new ground', after > before, `warded ${before} -> ${after}`);
     await page.context().setGeolocation(HERE);
+
+    // --- Collect (BRDC-ECON-007) ------------------------------------
+    // No real hours pass in a sim, so this is a wiring check: the button is there, a
+    // press goes through without a page error, and the pouch survives it.
+    const collectBtn = page.locator('.collect-button');
+    const hadButton = await collectBtn.isVisible().catch(() => false);
+    let stoneAfterCollect = -1;
+    if (hadButton) {
+      await collectBtn.click().catch(() => {});
+      await page.waitForTimeout(1_000);
+      stoneAfterCollect = await pouchStone(page);
+    }
+    step(
+      'the Collect button is there and a press is harmless',
+      hadButton && stoneAfterCollect >= 0,
+      `stone after collect ${stoneAfterCollect}`,
+    );
 
     // --- The Guide reflects it ---------------------------------------
     await page.getByRole('button', { name: 'Menu' }).click();

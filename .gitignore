@@ -19,4 +19,5 @@ files.zip
 
 # Local verification artefacts
 shot-*.png
+sim-final.png
 probe.tmp.mjs

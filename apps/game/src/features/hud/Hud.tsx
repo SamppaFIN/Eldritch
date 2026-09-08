@@ -42,13 +42,12 @@ export interface HudProps {
   resources?: ResourcePool | null;
   /** Running spells, for the rite readout (BRDC-SPELL-001). */
   spells?: readonly ActiveSpell[];
-  /** Game clock, so a spell's remaining time can be shown. */
-  now?: number;
+  now?: number; // game clock, for a spell's remaining time
   /** True once the game knows which cell the player is standing in. */
   standing?: boolean;
   onInspectHere?: () => void;
+  onCollect?: () => void; // take the hour's trickle — a readout, not a payout (BRDC-ECON-007)
   unobservedMs?: number;
-  /** Sound and vibration switches — the claim chime and buzz read these. */
   settings: Settings;
   /** A quest landmark that just appeared on the map (BRDC-QUEST-002), or null. */
   waypoint?: string | null;
@@ -178,6 +177,7 @@ export function Hud({
   now = 0,
   standing = false,
   onInspectHere,
+  onCollect,
   unobservedMs = 0,
   settings,
   waypoint = null,
@@ -282,11 +282,11 @@ export function Hud({
             </span>
           </div>
           {/* The pouch sits in the grid, not its own row: that row cost 4% of the screen
-              against a tested 30% budget. It replaces "Strongest" — the least actionable
-              number here, where timber can at least be spent. */}
+              against a tested 30% budget. Collect (BRDC-ECON-007) flows in the same line
+              as the pips — a compact tap, not a walking action — so it adds no height. */}
           <div className="hud__stat">
             <span className="hud__label">Pouch</span>
-            <span className="hud__value es-numeric">
+            <span className="hud__value es-numeric hud__value--pouch">
               {resources && RESOURCE_KINDS.some((k) => resources[k] > 0) ? (
                 <span className="hud__pouch">
                   {RESOURCE_KINDS.filter((k) => resources[k] > 0).map((k) => (
@@ -303,6 +303,9 @@ export function Hud({
               ) : (
                 EMPTY
               )}
+              {onCollect ? (
+                <button type="button" className="hud__collect" onClick={onCollect}>collect</button>
+              ) : null}
             </span>
           </div>
         </div>

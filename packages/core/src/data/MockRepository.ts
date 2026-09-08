@@ -13,10 +13,11 @@
 import { latLngToCell } from 'h3-js';
 import { readPlaces, readDwellFor, raiseAltarFor, channelManaFor } from './keepStore.js';
 import type { AltarOutcome, ChannelOutcome } from './keepStore.js';
-import { H3_RES_OWNERSHIP } from '../rules/constants.js';
+import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { forecastRates, grantAll, resetPouch, settlePouch, type Forecast } from './pouch.js';
+import { collectPouch, forecastRates, grantAll, grantBonus, resetPouch, settlePouch } from './pouch.js';
+import type { Collected, Forecast } from './pouch.js';
 import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk } from './walkFlow.js';
 import type { WalkDeps } from './walkFlow.js';
@@ -136,40 +137,33 @@ export class MockRepository implements GameRepository {
     return trailPointsOf(this.store, runId);
   }
 
-  async getWalkedPaths(): Promise<WalkedEdge[]> {
-    return walkedEdges(await readPaths(this.store));
-  }
+  getWalkedPaths = async (): Promise<WalkedEdge[]> => walkedEdges(await readPaths(this.store));
 
   /** The action log, newest first (BRDC-LOG-001). */
-  async getLog(limit = 100): Promise<LogEntry[]> {
-    return (await readLog(this.store)).slice(-limit).reverse();
-  }
+  getLog = async (limit = 100): Promise<LogEntry[]> =>
+    (await readLog(this.store)).slice(-limit).reverse();
 
-  async submitTrail(runId: RunId, points: TrailPoint[]) {
-    return submitWalk(this.walkDeps(), runId, points);
-  }
+  submitTrail = (runId: RunId, points: TrailPoint[]) => submitWalk(this.walkDeps(), runId, points);
 
-  async endRun(runId: RunId): Promise<void> {
-    return closeRun(this.store, runId);
-  }
+  endRun = (runId: RunId): Promise<void> => closeRun(this.store, runId);
 
-  async seedAround(position: LatLng, now: number): Promise<void> {
-    await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
-  }
+  seedAround = (position: LatLng, now: number): Promise<void> =>
+    this.ensureSeeded({ ...position, t: now, accuracy: 0 });
 
   /* --- Resources -------------------------------------------------------- */
-  async getResources(now: number): Promise<ResourcePool> {
-    return (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
-  }
+  getResources = async (now: number): Promise<ResourcePool> =>
+    (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
   resetResources = (now: number) => resetPouch(this.store, now);
-  async getForecast(now: number): Promise<Forecast> {
-    return forecastRates(this.store, await this.getOwnedCells(now), now);
-  }
+  getForecast = async (now: number): Promise<Forecast> =>
+    forecastRates(this.store, await this.getOwnedCells(now), now);
+  /** What has come into the pouch since the last Collect press (BRDC-ECON-007). */
+  collect = async (now: number): Promise<Collected> =>
+    collectPouch(this.store, await this.getOwnedCells(now), now);
   getRevealed = () => readRevealed(this.store);
   /** Dev only (BRDC-ECON-002): top every resource up so a lost pouch is not a dead run. */
-  async debugGrant(now: number): Promise<void> {
+  debugGrant = async (now: number): Promise<void> => {
     await grantAll(this.store, await this.getOwnedCells(now), now, 200);
-  }
+  };
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
     const me = await this.getProfile();
     return wardAt(this.store, h3, me.id, await this.getOwnedCells(now), now);
@@ -239,12 +233,17 @@ export class MockRepository implements GameRepository {
     const h3 = await claimHearth(this.store, profile, position, now);
     await assignCastle(this.store, position);
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
+    // The founding stash: once per game, and only into an empty pouch (BRDC-ECON-007) —
+    // one building's worth, no more, and never on top of resources already earned.
+    if (!(await this.store.get<boolean>(K.starterGiven))) {
+      const bare = !Object.values(await this.getResources(now)).some((v) => v > 0);
+      if (bare) await grantBonus(this.store, await this.getOwnedCells(now), STARTER_STASH, now);
+      await this.store.set(K.starterGiven, true);
+    }
     return h3;
   }
 
-  async getHome(): Promise<H3Index | null> {
-    return (await this.store.get<H3Index>(K.home)) ?? null;
-  }
+  getHome = async (): Promise<H3Index | null> => (await this.store.get<H3Index>(K.home)) ?? null;
 
   /* --- The Keep ----------------------------------------------------------- */
 

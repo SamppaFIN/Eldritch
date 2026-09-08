@@ -50,6 +50,7 @@ export function FirstLook({ show, rivalCells, rivalBearing }: FirstLookProps) {
     <aside className="first-look" role="note">
       <VesicaDivider size={140} className="first-look__rule" />
       <p className="first-look__line">Walk a closed loop. The ground inside it becomes yours.</p>
+      <p className="first-look__sub">The first stones are yours — raise something.</p>
       {rivalCells > 0 && rivalBearing !== null ? (
         <p className="first-look__sub">
           Someone already holds ground to the {compassPoint(rivalBearing)}.

@@ -87,34 +87,49 @@ test('the claim survives whatever the batch timing does', async ({ page }) => {
   await openMap(page);
   await walkBlock(page);
 
-  const stored = await page.evaluate(async () => {
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('es3', 1);
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+  const readDisk = () =>
+    page.evaluate(async () => {
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open('es3', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const all = await new Promise<unknown[]>((resolve) => {
+        const request = db.transaction('kv', 'readonly').objectStore('kv').getAll();
+        request.onsuccess = () => resolve(request.result);
+      });
+      const profile = all.find(
+        (v): v is { id: string; xp: number } =>
+          typeof v === 'object' && v !== null && 'colorHue' in v,
+      );
+      const mine = all.filter(
+        (v): v is { ownerId: string } =>
+          typeof v === 'object' && v !== null && 'ownerId' in v &&
+          (v as { ownerId: string }).ownerId === profile?.id,
+      );
+      return { xp: profile?.xp ?? 0, owned: mine.length };
     });
-    const all = await new Promise<unknown[]>((resolve) => {
-      const request = db.transaction('kv', 'readonly').objectStore('kv').getAll();
-      request.onsuccess = () => resolve(request.result);
-    });
-    const profile = all.find(
-      (v): v is { id: string; xp: number } =>
-        typeof v === 'object' && v !== null && 'colorHue' in v,
-    );
-    const mine = all.filter(
-      (v): v is { ownerId: string } =>
-        typeof v === 'object' && v !== null && 'ownerId' in v &&
-        (v as { ownerId: string }).ownerId === profile?.id,
-    );
-    return { xp: profile?.xp ?? 0, owned: mine.length };
-  });
 
+  const stored = await readDisk();
   expect(stored.owned).toBeGreaterThan(0);
   expect(stored.xp).toBeGreaterThan(0);
 
-  // What is on disk must be what is on screen. The whole bug was these two disagreeing.
-  const warded = await page.locator('.hud__value').nth(2).innerText();
-  expect(Number.parseInt(warded, 10)).toBe(stored.owned);
+  // What is on disk must be what is on screen. The whole bug was these two disagreeing —
+  // permanently. A trailing claim batch can still be landing after `walkBlock` returns, so
+  // re-read *both* sides together and wait for them to agree, not for the HUD to catch up
+  // to a disk count that has itself moved on.
+  await expect
+    .poll(
+      async () => {
+        const [disk, warded] = await Promise.all([
+          readDisk(),
+          page.locator('.hud__value').nth(2).innerText().then((t) => Number.parseInt(t, 10)),
+        ]);
+        return disk.owned === warded;
+      },
+      { timeout: 20_000 },
+    )
+    .toBe(true);
 });
 
 test('a walk that encloses nothing claims no interior', async ({ page }) => {

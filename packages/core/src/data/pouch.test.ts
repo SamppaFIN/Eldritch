@@ -2,13 +2,14 @@
  * BRDC-ECON-002 — a stored pouch that is missing fields or has gone NaN self-heals on read.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EMPTY_POOL, RESOURCE_KINDS } from '../rules/terrain.js';
-import type { ResourceKind } from '../rules/terrain.js';
-import { forecastRates, grantVersionGift, normalizePool, resetPouch, settlePouch } from './pouch.js';
+import { gridDisk, latLngToCell } from 'h3-js';
+import { CLAIM_YIELD, EMPTY_POOL, RESOURCE_KINDS, resourceOf } from '../rules/terrain.js';
+import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
+import { awardClaims, collectPouch, forecastRates, normalizePool, resetPouch, settlePouch } from './pouch.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
-import type { Cell } from '../types/domain.js';
+import type { Cell, CaptureOutcome } from '../types/domain.js';
 
 describe('normalizePool', () => {
   it('fills the fields a pre-nine-resource pouch is missing', () => {
@@ -64,42 +65,6 @@ describe('the repository heals an old pouch instead of reading it as empty', () 
     const pool = await repo.getResources(T0);
     expect(pool.wood).toBe(200);
     expect(pool.mana).toBe(200);
-  });
-});
-
-describe('grantVersionGift — a starter pouch on a version change (BRDC-ECON-003)', () => {
-  const T0 = Date.parse('2026-09-02T12:00:00Z');
-  let store: MemoryStore;
-  let repo: MockRepository;
-
-  beforeEach(async () => {
-    store = new MemoryStore();
-    await store.set(SCHEMA_KEY, SCHEMA_VERSION);
-    repo = new MockRepository({ store, newId: () => 'me' });
-  });
-
-  it('tops an empty pouch to the floor: 100 material, 30 mana and wisdom', async () => {
-    await grantVersionGift(store, [], T0);
-    const pool = await repo.getResources(T0);
-    expect(pool.wood).toBe(100);
-    expect(pool.gold).toBe(100);
-    expect(pool.culture).toBe(100);
-    expect(pool.tokens).toBe(100);
-    expect(pool.mana).toBe(30);
-    expect(pool.wisdom).toBe(30);
-  });
-
-  it('never reduces a resource that is already above the floor', async () => {
-    await store.set('resources', {
-      pool: { ...EMPTY_POOL, stone: 400, mana: 50 },
-      since: T0,
-      sinceDay: T0,
-    });
-    await grantVersionGift(store, [], T0);
-    const pool = await repo.getResources(T0);
-    expect(pool.stone).toBe(400); // untouched, already past 100
-    expect(pool.mana).toBe(50); // untouched, already past 30
-    expect(pool.iron).toBe(100); // was 0, lifted to the floor
   });
 });
 
@@ -204,5 +169,142 @@ describe('resetPouch (BRDC-ECON-005)', () => {
     // the very next read does not pay back what the reset just threw away.
     const after = await settlePouch(store, [], T0);
     for (const k of RESOURCE_KINDS as readonly ResourceKind[]) expect(after.pool[k], k).toBe(0);
+  });
+});
+
+/**
+ * BRDC-ECON-007 — no subsidies. What the player gets, they get from playing: a yield
+ * every time ground is taken, and an hourly trickle a Collect press acknowledges.
+ */
+describe('awardClaims — every new cell pays, in a batch, and again next time', () => {
+  const T0 = Date.parse('2026-03-02T12:00:00Z');
+  const HOUR = 3_600_000;
+  const ring = gridDisk(latLngToCell(61.4729, 23.7258, 11), 3);
+  const producing = ring.filter((h3) => resourceOf(h3) !== null);
+  const barren = ring.filter((h3) => resourceOf(h3) === null);
+  const total = (p: ResourcePool) => RESOURCE_KINDS.reduce((s, k) => s + p[k], 0);
+  const claimed = (h3: string): CaptureOutcome => ({
+    h3,
+    kind: 'claimed',
+    strengthBefore: 0,
+    strengthAfter: 100,
+    previousOwner: null,
+  });
+
+  it('pays CLAIM_YIELD once per producing cell taken in one batch', async () => {
+    expect(producing.length).toBeGreaterThanOrEqual(2);
+    const store = new MemoryStore();
+    const take = producing.slice(0, 3);
+    await awardClaims(store, [], take.map(claimed), T0);
+    expect(total((await settlePouch(store, [], T0)).pool)).toBe(take.length * CLAIM_YIELD);
+  });
+
+  it('a barren cell yields nothing', async () => {
+    expect(barren.length).toBeGreaterThanOrEqual(1);
+    const store = new MemoryStore();
+    await awardClaims(store, [], [claimed(barren[0] as string)], T0);
+    expect(total((await settlePouch(store, [], T0)).pool)).toBe(0);
+  });
+
+  it('the same cell pays again when it is taken a second time', async () => {
+    const store = new MemoryStore();
+    const h3 = producing[0] as string;
+    await awardClaims(store, [], [claimed(h3)], T0);
+    await awardClaims(store, [], [{ ...claimed(h3), kind: 'taken', previousOwner: 'rival' }], T0 + HOUR);
+    expect(total((await settlePouch(store, [], T0 + HOUR)).pool)).toBe(2 * CLAIM_YIELD);
+  });
+
+  it('reinforced and unchanged outcomes pay nothing', async () => {
+    const store = new MemoryStore();
+    const outs: CaptureOutcome[] = producing.slice(0, 2).map((h3) => ({
+      h3,
+      kind: 'reinforced',
+      strengthBefore: 100,
+      strengthAfter: 125,
+      previousOwner: 'me',
+    }));
+    await awardClaims(store, [], outs, T0);
+    expect(total((await settlePouch(store, [], T0)).pool)).toBe(0);
+  });
+});
+
+describe('the founding stash (BRDC-ECON-007)', () => {
+  const T0 = Date.parse('2026-03-02T12:00:00Z');
+  const ORIGIN = { lat: 61.47290805294704, lng: 23.725882485862012 };
+
+  const fresh = async () => {
+    const store = new MemoryStore();
+    await store.set(SCHEMA_KEY, SCHEMA_VERSION);
+    return { store, repo: new MockRepository({ store, newId: () => 'me' }) };
+  };
+
+  it('a fresh Hearth grants exactly one Monument: 60 stone, 10 culture', async () => {
+    const { repo } = await fresh();
+    await repo.setHome(ORIGIN, T0);
+    const pool = await repo.getResources(T0);
+    expect(pool.stone).toBe(60);
+    expect(pool.culture).toBe(10);
+    expect(RESOURCE_KINDS.filter((k) => pool[k] > 0)).toEqual(['stone', 'culture']);
+  });
+
+  it('is given once — a second setHome does not stack it', async () => {
+    const { repo } = await fresh();
+    await repo.setHome(ORIGIN, T0);
+    await repo.setHome(ORIGIN, T0);
+    expect((await repo.getResources(T0)).stone).toBe(60);
+  });
+
+  it('never lands on top of resources already in the pouch', async () => {
+    const { store, repo } = await fresh();
+    await store.set('resources', { pool: { ...EMPTY_POOL, stone: 5 }, since: T0, sinceDay: T0 });
+    await repo.setHome(ORIGIN, T0);
+    expect((await repo.getResources(T0)).stone).toBe(5);
+  });
+});
+
+describe('collectPouch — acknowledges the trickle, does not pay it', () => {
+  const T0 = Date.parse('2026-03-02T12:00:00Z');
+  const HOUR = 3_600_000;
+  const fishery: Cell[] = [
+    {
+      h3: '8b112492eb03fff',
+      ownerId: 'me',
+      strength: 300,
+      lastVisitedAt: T0,
+      visitDays: [],
+      buildings: [{ id: 'fishery', builtAt: T0 }],
+    },
+  ];
+
+  it('the first press shows nothing and starts the clock', async () => {
+    const store = new MemoryStore();
+    expect(await collectPouch(store, fishery, T0)).toEqual({ delta: {}, total: 0, hours: 0, at: T0 });
+    const stored = await store.get<{ collectedAt: number }>('resources');
+    expect(stored?.collectedAt).toBe(T0);
+  });
+
+  it('a later press reports what came in since, and how long that was — without moving the pool', async () => {
+    const store = new MemoryStore();
+    await collectPouch(store, fishery, T0);
+    const before = (await settlePouch(store, fishery, T0 + 3 * HOUR)).pool;
+    const got = await collectPouch(store, fishery, T0 + 3 * HOUR);
+    const after = (await settlePouch(store, fishery, T0 + 3 * HOUR)).pool;
+
+    expect(got.hours).toBe(3);
+    expect(got.total).toBeGreaterThan(0);
+    for (const k of RESOURCE_KINDS as readonly ResourceKind[]) {
+      expect(after[k], `${k} unmoved`).toBe(before[k]);
+      expect(got.delta[k] ?? 0, `${k} measured`).toBe(before[k]);
+    }
+  });
+
+  it('spending between presses never shows as a negative collect', async () => {
+    const store = new MemoryStore();
+    await collectPouch(store, fishery, T0);
+    const state = await settlePouch(store, fishery, T0 + HOUR);
+    await store.set('resources', { ...state, pool: { ...EMPTY_POOL } });
+    const got = await collectPouch(store, fishery, T0 + HOUR);
+    expect(got.total).toBe(0);
+    for (const k of RESOURCE_KINDS as readonly ResourceKind[]) expect(got.delta[k] ?? 0).toBe(0);
   });
 });

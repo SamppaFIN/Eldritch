@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.42",
+    "date": "2026-09-07",
+    "notes": [
+      "No more handouts. The version gift is gone, and so is the safety net that refilled an empty pouch. What you have, you earn: found your Hearth and you are given exactly one Monument's worth of materials to start — 60 stone and 10 culture — and after that, resources come only from taking ground and holding it.",
+      "A Collect button. The hourly trickle still fills the pouch on its own, but pressing Collect is when you see it — a small rise of \"+N\" off the pouch, with how many hours it has been since you last collected. The old automatic hourly jingle is gone; this replaces it, and the \"while you were away\" card too.",
+      "Every time you take a new cell that produces something, it pays — verified now, in a test, for a batch of cells and for taking the same ground twice."
+    ]
+  },
+  {
     "version": "0.5.41",
     "date": "2026-09-06",
     "notes": [

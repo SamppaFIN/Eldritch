@@ -1,4 +1,4 @@
-/* Small "+N" rising off the HUD pouch when an hour settles (BRDC-CHAR-001). */
+/* Small "+N" rising off the HUD pouch when the player presses Collect (BRDC-ECON-007). */
 
 .pouch-gain {
   position: fixed;
@@ -14,7 +14,13 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-bold, 700);
   text-shadow: 0 0 6px var(--void-black), 0 1px 2px var(--void-black);
-  animation: pouch-gain-rise 1.9s var(--ease-out, ease-out) forwards;
+  animation: pouch-gain-rise 2.4s var(--ease-out, ease-out) forwards;
+}
+
+.pouch-gain__since {
+  font-weight: var(--weight-regular, 400);
+  font-size: calc(var(--text-sm) * 0.85);
+  opacity: 0.7;
 }
 
 @keyframes pouch-gain-rise {

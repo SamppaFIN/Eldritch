@@ -36,7 +36,7 @@ import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { RouteOutcome } from '../data/tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
-import type { Forecast } from '../data/pouch.js';
+import type { Collected, Forecast } from '../data/pouch.js';
 import type { StepClaimOutcome } from '../data/stepStore.js';
 import type { RevealOutcome } from '../data/revealStore.js';
 import type { ImportResult, WagerIdentity } from '../data/wager.js';
@@ -148,6 +148,12 @@ export interface GameRepository {
    * player actually earns: the storage cap, dormancy and the dark-time factor are in it.
    */
   getForecast(now: number): Promise<Forecast>;
+  /**
+   * Bank the collect mark and report what has come in since the last press (BRDC-ECON-007).
+   * The hourly trickle already accrues on its own — this only measures and acknowledges it,
+   * for the Collect button's readout and its reward jingle.
+   */
+  collect(now: number): Promise<Collected>;
   /**
    * Spend the pouch to raise one cell's strength.
    *

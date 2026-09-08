@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { levelState, load, speedMs } from '@es3/core';
 import type {
   BBox,
+  Collected,
   GameRepository,
   H3Index,
   PlayerProfile,
@@ -47,7 +48,6 @@ import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
-import { WelcomeBack } from '../features/hud/WelcomeBack.js';
 import { PouchGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
@@ -159,16 +159,13 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // Triggers must be stable primitives (BRDC-ECON-003 field bug): a fresh `clock` object
   // each render re-ran this effect and cancelled every in-flight getResources().
-  const { resources, forecast, gain, setResources } = usePouchPolling(repository, clock.now, [
-    clock.offsetDays,
-    territory.lastClaim?.at ?? 0,
-    trail.points.length,
-  ]);
+  const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length];
+  const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
+  const [collected, setCollected] = useState<Collected | null>(null);
 
   // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
   const laps = trail.points.length + (territory.lastClaim?.at ?? 0);
   const aside = useMapAside(repository, clock.now, laps, (h3) => inspect.onCellTap(h3));
-  const [welcomed, setWelcomed] = useState(false);
 
   // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
   const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
@@ -357,6 +354,7 @@ export function MapView({ onLeave }: MapViewProps) {
         now={clock.now()}
         standing={standingOn !== null}
         onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
+        onCollect={() => void repository?.collect(clock.now()).then(setCollected)}
         unobservedMs={trail.unobservedMs}
         settings={settings}
         waypoint={quest.waypoint}
@@ -369,8 +367,7 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       {aside.node}
-      <WelcomeBack gain={welcomed ? null : gain} settings={settings} onDismiss={() => setWelcomed(true)} />
-      <PouchGain gain={gain} settings={settings} />
+      <PouchGain collected={collected} settings={settings} />
 
       <SettingsMenu
         settings={settings}

@@ -210,7 +210,7 @@ export const WORLD_VERSION = 2;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.41';
+export const APP_VERSION = '0.5.42';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 
@@ -256,6 +256,14 @@ export const DEMOLISH_REFUND = 0.5;
 
 /** One day in ms — the fishery pays per calendar day, not per hour (BRDC-BUILD-002). */
 export const MS_PER_DAY = 86_400_000;
+
+/**
+ * The founding pouch (BRDC-ECON-007): granted once when the Hearth is raised, sized to
+ * exactly one Monument — `{ stone: 60, culture: 10 }`, the only building with no tech and
+ * no terrain requirement, so it is the one a new player can actually raise. It replaces
+ * `grantVersionGift`; after this, resources come only from claiming ground and holding it.
+ */
+export const STARTER_STASH = { stone: 60, culture: 10 } as const;
 
 /* --- Mana (BRDC-MANA-001) -------------------------------------------- */
 

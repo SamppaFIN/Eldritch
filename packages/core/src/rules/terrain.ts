@@ -241,6 +241,10 @@ export interface ResourceState {
    * then starts from `since`.
    */
   sinceDay?: number;
+  /** Last Collect press + the pool then — for the readout only; the trickle still accrues
+   *  on its own (BRDC-ECON-007). Absent on an old save; the first collect stamps `now`. */
+  collectedAt?: number;
+  poolAtCollect?: ResourcePool;
 }
 
 /** The hourly trickle is settled an hour at a time; a partial hour waits for the rest. */
@@ -294,8 +298,9 @@ export function settleResources(
   const nextSinceDay = dailyOn ? sinceDay + paidDayMs : Math.max(sinceDay, now);
 
   if (nextSince === state.since && nextSinceDay === sinceDay) return state;
+  // `...state` carries fields this function does not own — the Collect mark (BRDC-ECON-007).
   if (paidHourMs <= 0 && paidDayMs <= 0) {
-    return { pool: state.pool, since: nextSince, sinceDay: nextSinceDay };
+    return { ...state, pool: state.pool, since: nextSince, sinceDay: nextSinceDay };
   }
 
   const pool = { ...state.pool };
@@ -314,7 +319,7 @@ export function settleResources(
     }
   }
 
-  return { pool, since: nextSince, sinceDay: nextSinceDay };
+  return { ...state, pool, since: nextSince, sinceDay: nextSinceDay };
 }
 
 /** Can this pool afford that cost? */
