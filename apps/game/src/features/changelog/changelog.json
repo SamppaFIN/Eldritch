@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.46",
+    "date": "2026-09-09",
+    "notes": [
+      "Reload the page and the map opens where you are. It used to insist on a fresh, high-accuracy fix before deciding where to look, time out waiting for one, and open on the fallback in Tampere instead — a minute-old fix is now good enough for that one question. Live tracking still refuses stale fixes, so your ley-line is unaffected.",
+      "And if the map does open somewhere else, it now flies to you instead of crawling the whole way at walking zoom."
+    ]
+  },
+  {
     "version": "0.5.45",
     "date": "2026-09-09",
     "notes": [

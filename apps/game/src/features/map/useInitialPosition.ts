@@ -57,7 +57,12 @@ export function useInitialPosition(timeoutMs = 8_000): InitialPosition {
           permission: err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable',
         });
       },
-      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 },
+      // maximumAge is a minute here, not zero: this hook only answers "where does the
+      // camera open?". A fix from a minute ago is far better than the Tampere fallback,
+      // and a cold high-accuracy fix routinely outruns the timeout. Tracking keeps its
+      // own `maximumAge: 0` (usePositionSource) — there a stale fix would be read as
+      // movement and draw a ley-line nobody walked.
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 60_000 },
     );
 
     return () => {

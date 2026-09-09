@@ -48,12 +48,20 @@ async function panByHand(page: Page) {
     if (await unpinned.isVisible().catch(() => false)) break;
   }
   await expect(unpinned).toBeVisible();
+}
 
-  // A drag on this dense map can also land a tap; close the cell sheet the way a player
-  // would so it is not left covering the control on a narrow screen.
-  const close = page.locator('.cell-panel__close');
-  if (await close.isVisible().catch(() => false)) await close.click();
-  await expect(page.locator('.cell-panel')).toBeHidden();
+/**
+ * A drag on this dense map can also land a tap. Close the cell sheet the way a player
+ * would, so it is not left covering a control on a narrow screen.
+ */
+async function closeCellSheet(page: Page) {
+  const sheet = page.locator('.cell-panel');
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (!(await sheet.isVisible().catch(() => false))) return;
+    await page.locator('.cell-panel__close').click({ force: true }).catch(() => undefined);
+    await page.waitForTimeout(300);
+  }
+  await expect(sheet).toBeHidden();
 }
 
 /** How far the player marker sits from the viewport centre, in pixels. */
@@ -162,6 +170,33 @@ const flashOpacity = (page: Page): Promise<number> =>
     return (m.getPaintProperty('standing-flash-line', 'line-opacity') as number) ?? -1;
   });
 
+test('a reload brings the camera back to the player (BRDC-MAP-006)', async ({ page }) => {
+  // Field report: after a refresh the map sat somewhere else. `useInitialPosition` asks
+  // getCurrentPosition where to open the camera; when that times out — routinely, on a
+  // cold high-accuracy fix — it opens on the Tampere fallback instead, and the first fix
+  // from the watch has to fetch it back. Forcing getCurrentPosition to fail reproduces
+  // exactly that split: the camera opens on the fallback, the player is elsewhere.
+  await openMapSettled(page);
+
+  await page.addInitScript(() => {
+    const geo = navigator.geolocation;
+    geo.getCurrentPosition = (_ok, fail) => {
+      fail?.({ code: 3, message: 'timeout', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
+    };
+  });
+  // ~2 km north-east of the fallback: far enough that the camera is visibly wrong.
+  const away = { latitude: HERE.latitude + 0.018, longitude: HERE.longitude + 0.018, accuracy: 12 };
+  await page.context().setGeolocation(away);
+
+  await page.reload();
+  await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
+  // Land a fix on the reloaded page's own watch (Playwright only delivers on a fresh set).
+  await page.context().setGeolocation({ ...away, latitude: away.latitude + 0.00001 });
+  await page.context().setGeolocation(away);
+
+  await expect.poll(() => markerOffset(page), { timeout: 8_000 }).toBeLessThan(8);
+});
+
 test('a hand pan unpins the camera — the next fix does not snap it back (BRDC-MAP-004)', async ({
   page,
 }) => {
@@ -184,6 +219,7 @@ test('the recenter button pins the camera back on the player (BRDC-MAP-004)', as
   await openMapSettled(page);
 
   await panByHand(page);
+  await closeCellSheet(page);
   const recenter = page.getByRole('button', { name: 'Recenter the map on you' });
   await expect(recenter).toBeVisible();
   expect((await recenter.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
