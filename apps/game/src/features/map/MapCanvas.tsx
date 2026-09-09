@@ -6,7 +6,7 @@
  * MapLibre keeps it anchored for free. Everything there are many of — the trail, the
  * territory — goes through GeoJSON sources instead.
  */
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 import { cellAt, QUEST_SITES, siteCell } from '@es3/core';
@@ -50,6 +50,9 @@ import {
 } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
 import { useHearthTour } from './useHearthTour.js';
+import { useCameraFollow } from './useCameraFollow.js';
+import { useAccuracyRing } from './useAccuracyRing.js';
+import { CameraControl } from './CameraControl.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import type { BannerId } from '../nation/nation.js';
@@ -107,15 +110,18 @@ export interface MapCanvasProps {
   onCellTerrain?: (updates: TerrainUpdate[]) => void;
   /** Opening zoom. Wider on a first launch, so the world is not empty. */
   initialZoom?: number;
-  /** Keep the camera on the player. False once they pan away by hand. */
-  follow?: boolean;
   /** Draw every Work as its own isometric icon (BRDC-ART-003). Off = the single glyph. */
   buildingIcons?: boolean;
   bannerId?: BannerId | null; // the Keep banner, drawn on held hexes (BRDC-BANNER-001)
   onBasemapChange?: (state: BasemapState) => void;
 }
 
-export function MapCanvas({
+/** What the "Here" button reaches in for (BRDC-MAP-004). */
+export interface MapHandle {
+  focusHere: () => void;
+}
+
+export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanvas({
   initialCentre,
   position,
   accuracyM,
@@ -131,7 +137,6 @@ export function MapCanvas({
   now = 0,
   awakening = null,
   initialZoom,
-  follow = true,
   buildingIcons = true,
   bannerId = null,
   onBasemapChange,
@@ -140,7 +145,7 @@ export function MapCanvas({
   onCastleTap,
   onViewportChange,
   onCellTerrain,
-}: MapCanvasProps) {
+}: MapCanvasProps, ref) {
   const { containerRef, map, ready, basemap } = useMap(
     initialZoom === undefined
       ? { centre: initialCentre }
@@ -358,42 +363,22 @@ export function MapCanvas({
   // The founding tour: once, the camera walks the six hexes around a new Hearth.
   const touring = useHearthTour(map, ready, castle);
 
-  // Move the marker and the camera on each fix.
+  // The camera pin, and the ways back to the player (BRDC-MAP-004).
+  const { following, recenter, focusHere } = useCameraFollow({ map, ready, position, touring });
+  useImperativeHandle(ref, () => ({ focusHere }), [focusHere]);
+
+  // Move the marker on each fix; the camera is the hook's job now.
   useEffect(() => {
     if (!map || !ready || !position || !markerRef.current) return;
-
     markerRef.current.setLngLat([position.lng, position.lat]);
+  }, [map, ready, position]);
 
-    if (follow && !touring) {
-      // easeTo, not jumpTo: a hard cut on every fix reads as a stutter while walking.
-      map.easeTo({ center: [position.lng, position.lat], duration: 900 });
-    }
-  }, [map, ready, position, follow, touring]);
+  useAccuracyRing(map, ready, position, accuracyM, accuracyRef);
 
-  // The accuracy ring is sized in metres, so it has to be redrawn on zoom.
-  useEffect(() => {
-    if (!map || !ready || !position || accuracyM === undefined) return;
-
-    const ring = accuracyRef.current;
-    if (!ring) return;
-
-    const resize = () => {
-      // Web Mercator ground resolution at 256 px tiles — no `+ 8` here, that belongs in
-      // the tile-pixel form and drew a 5000 px ring for a 12 m fix. Clamped so a 50 m
-      // fix at low zoom informs rather than swallowing the screen.
-      const metresPerPixel =
-        (156543.03392 * Math.cos((position.lat * Math.PI) / 180)) / Math.pow(2, map.getZoom());
-      const px = Math.min(320, Math.max(24, (accuracyM * 2) / metresPerPixel));
-      ring.style.width = `${px}px`;
-      ring.style.height = `${px}px`;
-    };
-
-    resize();
-    map.on('zoom', resize);
-    return () => {
-      map.off('zoom', resize);
-    };
-  }, [map, ready, position, accuracyM]);
-
-  return <div ref={containerRef} className="es-map" data-basemap={basemap} />;
-}
+  return (
+    <>
+      <div ref={containerRef} className="es-map" data-basemap={basemap} />
+      <CameraControl following={following} onRecenter={recenter} />
+    </>
+  );
+});

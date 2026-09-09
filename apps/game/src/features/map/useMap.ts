@@ -6,7 +6,7 @@
  * appeared; nothing here may fire before `ready` is true.
  */
 import { useEffect, useRef, useState } from 'react';
-import { Map as MapLibreMap } from 'maplibre-gl';
+import { AttributionControl, Map as MapLibreMap } from 'maplibre-gl';
 import type { ErrorEvent } from 'maplibre-gl';
 import { createMapStyle } from './style.js';
 
@@ -64,7 +64,8 @@ export function useMap({ centre, zoom = ZOOM_WALKING }: UseMapOptions): UseMapRe
         style: createMapStyle(),
         center: [initial.current.lng, initial.current.lat],
         zoom,
-        attributionControl: { compact: true },
+        // Attribution goes bottom-left; the recenter control (BRDC-MAP-004) owns bottom-right.
+        attributionControl: false,
         // The player is walking. Tilt and rotate are accidents waiting to happen.
         pitchWithRotate: false,
         dragRotate: false,
@@ -76,6 +77,7 @@ export function useMap({ centre, zoom = ZOOM_WALKING }: UseMapOptions): UseMapRe
       // a half-built Map whose gesture handlers never attached; this line is where that
       // surfaces as a TypeError. Caught below rather than left to unmount the whole app.
       map.touchZoomRotate.disableRotation();
+      map.addControl(new AttributionControl({ compact: true }), 'bottom-left');
     } catch (err) {
       console.error('Map could not start — WebGL2 unavailable?', err);
       glFailedRef.current = true;

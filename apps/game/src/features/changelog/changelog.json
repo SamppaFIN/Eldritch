@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.45",
+    "date": "2026-09-09",
+    "notes": [
+      "The map no longer holds you on a leash. Drag it, pinch it, and it stays where you left it — a new button, bottom-right, lights up while the camera is on you and dims once you have looked away. Press it to fly back.",
+      "\"Here\" now does more than open the cell panel: it flies the map back to the hex you are standing in, drops the zoom to walking level, and flashes that hex's edge so you can see exactly where you are.",
+      "Map credits moved to the bottom-left corner to make room for the new button."
+    ]
+  },
+  {
     "version": "0.5.44",
     "date": "2026-09-08",
     "notes": [

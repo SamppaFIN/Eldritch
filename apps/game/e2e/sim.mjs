@@ -227,7 +227,7 @@ const run = async () => {
     await page.keyboard.press('Escape');
 
     // --- Rename (the fix from this session) -------------------------
-    await page.getByRole('button', { name: 'You' }).click();
+    await page.getByRole('button', { name: 'You', exact: true }).click();
     const name = page.getByLabel('Name', { exact: true });
     await name.waitFor({ state: 'visible', timeout: 6_000 });
     await page.waitForTimeout(500);
@@ -237,7 +237,7 @@ const run = async () => {
     await page.waitForTimeout(1_500);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
-    await page.getByRole('button', { name: 'You' }).click();
+    await page.getByRole('button', { name: 'You', exact: true }).click();
     await page.getByLabel('Name', { exact: true }).waitFor({ state: 'visible' });
     const finalName = await page.getByLabel('Name', { exact: true }).inputValue();
     step('renamed the player, and it stuck', finalName === 'Aavistus', `field reads "${finalName}"`);
@@ -279,6 +279,25 @@ const run = async () => {
       sentLine && submitted != null && typeof submitted.sum === 'string' && Array.isArray(submitted.cells),
       sentLine ? `sum=${String(submitted?.sum).slice(0, 12)} cells=${submitted?.cells?.length}` : 'no confirmation line',
     );
+
+    // --- The camera control is on the map (BRDC-MAP-004) ---------
+    // The unpin gesture, recenter and Here-refocus are all proven in map.spec.ts; here we
+    // check a walking player can actually find the control and press it thumb-first.
+    await page.keyboard.press('Escape'); // close the Keep if it is still up
+    await page.waitForTimeout(400);
+    const camera = page.locator('.camera-control');
+    const camBox = await camera.boundingBox().catch(() => null);
+    step(
+      'the camera control sits on the map, thumb-sized',
+      !!camBox && camBox.width >= 44 && camBox.height >= 44,
+      camBox ? `${Math.round(camBox.width)}x${Math.round(camBox.height)} px` : 'not found',
+    );
+    await page.evaluate(() => globalThis.__esMap?.setZoom?.(12.5));
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: 'Here', exact: true }).click({ force: true }).catch(() => {});
+    await page.waitForTimeout(1_200);
+    const zAfter = await page.evaluate(() => globalThis.__esMap?.getZoom?.() ?? 0);
+    step('Here flies back to the cell at walking zoom', zAfter > 15.4, `zoom out to 12.5, then Here -> ${zAfter.toFixed(1)}`);
 
     await page.screenshot({ path: join(dir, '../../..', 'sim-final.png'), fullPage: false });
   } catch (err) {

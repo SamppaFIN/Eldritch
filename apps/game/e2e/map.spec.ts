@@ -16,6 +16,65 @@ async function openMap(page: Page) {
   await open(page, HERE);
 }
 
+/** The live map's centre and zoom, read off the global the app exposes for tests. */
+function mapState(page: Page): Promise<{ lng: number; lat: number; zoom: number }> {
+  return page.evaluate(() => {
+    const m = (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap;
+    const c = m.getCenter();
+    return { lng: c.lng, lat: c.lat, zoom: m.getZoom() };
+  });
+}
+
+/**
+ * Move the camera by hand. A firm drag from the right edge is unambiguously a pan (well
+ * past MapLibre's 3 px click tolerance), so it fires dragstart with an originalEvent and
+ * is never taken for a cell tap. Escape clears anything a stray event may have opened.
+ */
+async function panByHand(page: Page) {
+  const vs = page.viewportSize();
+  const sx = (vs?.width ?? 360) - 20;
+  const sy = (vs?.height ?? 640) / 2;
+  const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.mouse.move(sx, sy);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i += 1) {
+      await page.mouse.move(sx - i * 20, sy - i * 7);
+      await page.waitForTimeout(15);
+    }
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+    if (await unpinned.isVisible().catch(() => false)) break;
+  }
+  await expect(unpinned).toBeVisible();
+
+  // A drag on this dense map can also land a tap; close the cell sheet the way a player
+  // would so it is not left covering the control on a narrow screen.
+  const close = page.locator('.cell-panel__close');
+  if (await close.isVisible().catch(() => false)) await close.click();
+  await expect(page.locator('.cell-panel')).toBeHidden();
+}
+
+/** How far the player marker sits from the viewport centre, in pixels. */
+async function markerOffset(page: Page): Promise<number> {
+  const core = await page.locator('.es-player__core').boundingBox();
+  const view = page.viewportSize();
+  const cx = (core?.x ?? 0) + (core?.width ?? 0) / 2;
+  const cy = (core?.y ?? 0) + (core?.height ?? 0) / 2;
+  return Math.hypot(cx - (view?.width ?? 0) / 2, cy - (view?.height ?? 0) / 2);
+}
+
+/** Open the map and wait out the one-time founding tour, which drives the camera itself. */
+async function openMapSettled(page: Page) {
+  await openMap(page);
+  // Land a fix on the map's own watch — Playwright only delivers to a watcher on a fresh
+  // set, so without this the camera has no player position to follow.
+  await page.context().setGeolocation({ ...HERE, latitude: HERE.latitude + 0.00001 });
+  await page.context().setGeolocation(HERE);
+  await expect.poll(() => markerOffset(page), { timeout: 15_000 }).toBeLessThan(6);
+}
+
 test('renders the map and places the player on it', async ({ page }) => {
   await openMap(page);
   await expect(page.locator('canvas')).toBeVisible();
@@ -94,6 +153,68 @@ test('does not scroll sideways on a phone', async ({ page }) => {
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+const flashOpacity = (page: Page): Promise<number> =>
+  page.evaluate(() => {
+    const m = (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap;
+    if (!m.getLayer('standing-flash-line')) return -1;
+    return (m.getPaintProperty('standing-flash-line', 'line-opacity') as number) ?? -1;
+  });
+
+test('a hand pan unpins the camera — the next fix does not snap it back (BRDC-MAP-004)', async ({
+  page,
+}) => {
+  await openMapSettled(page);
+  await expect(page.getByRole('button', { name: 'Camera follows you' })).toBeVisible();
+
+  await panByHand(page);
+  // The button's own label is a direct read of the follow state: it flipped.
+  await expect(page.getByRole('button', { name: 'Recenter the map on you' })).toBeVisible();
+
+  // A fix ~130 m away. A following camera would chase it and re-centre the marker; an
+  // unpinned one leaves the marker where the player walked off to.
+  await page
+    .context()
+    .setGeolocation({ latitude: HERE.latitude + 0.0012, longitude: HERE.longitude + 0.0012, accuracy: 12 });
+  await expect.poll(() => markerOffset(page), { timeout: 4_000 }).toBeGreaterThan(25);
+});
+
+test('the recenter button pins the camera back on the player (BRDC-MAP-004)', async ({ page }) => {
+  await openMapSettled(page);
+
+  await panByHand(page);
+  const recenter = page.getByRole('button', { name: 'Recenter the map on you' });
+  await expect(recenter).toBeVisible();
+  expect((await recenter.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+  await recenter.click();
+  // Pinned again, by its label and by the marker returning to centre.
+  await expect(page.getByRole('button', { name: 'Camera follows you' })).toBeVisible();
+  await expect.poll(() => markerOffset(page), { timeout: 5_000 }).toBeLessThan(8);
+});
+
+test('Here flies to the cell underfoot at walking zoom, and flashes its edge (BRDC-MAP-004)', async ({
+  page,
+}) => {
+  await openMapSettled(page);
+
+  await page.evaluate(() =>
+    (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap.setZoom(12.5),
+  );
+  await panByHand(page);
+  await page.waitForTimeout(400);
+
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+
+  // The flash layer is created the instant Here is pressed...
+  await expect.poll(() => flashOpacity(page), { timeout: 3_000 }).toBeGreaterThan(0);
+
+  // ...the camera flew back to walking zoom...
+  await expect.poll(() => mapState(page).then((s) => s.zoom), { timeout: 3_000 }).toBeGreaterThan(15.4);
+
+  // ...and the flash fades itself out.
+  await expect.poll(() => flashOpacity(page), { timeout: 3_000 }).toBeLessThan(0.05);
 });
 
 test('the menu reaches Retreat, thumb-sized and focusable, and it asks first', async ({ page }) => {

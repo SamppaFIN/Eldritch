@@ -12,7 +12,7 @@ test('the You panel renames the player, and it sticks over a reopen', async ({ p
   test.setTimeout(60_000);
   await openMap(page, HERE);
 
-  await page.getByRole('button', { name: 'You' }).click();
+  await page.getByRole('button', { name: 'You', exact: true }).click();
   const field = page.getByLabel('Name', { exact: true });
   await expect(field).toBeVisible();
 
@@ -21,7 +21,7 @@ test('the You panel renames the player, and it sticks over a reopen', async ({ p
 
   // Close and reopen — the write went to storage, not just local state.
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'You' }).click();
+  await page.getByRole('button', { name: 'You', exact: true }).click();
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Cornelius');
 });
 

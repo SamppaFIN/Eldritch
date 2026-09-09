@@ -5,7 +5,7 @@
  * render — with every stage carrying an explicit ready flag. v2 wired this through an
  * event bus, spawned entities before the map was listening, and lost them silently.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { levelState, load, speedMs } from '@es3/core';
 import type {
   BBox,
@@ -17,7 +17,7 @@ import type {
   TrailPoint,
 } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
-import { MapCanvas } from '../features/map/MapCanvas.js';
+import { MapCanvas, type MapHandle } from '../features/map/MapCanvas.js';
 import type { BasemapState } from '../features/map/useMap.js';
 import { useInitialPosition } from '../features/map/useInitialPosition.js';
 import { usePositionSource } from '../features/trail/usePositionSource.js';
@@ -191,6 +191,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // The cell underfoot — held against GPS jitter while still (BRDC-DWELL-002).
   const standingOn = useStandingCell(point, pace);
+  const mapRef = useRef<MapHandle | null>(null);
 
   const moments = useMoments();
 
@@ -227,6 +228,7 @@ export function MapView({ onLeave }: MapViewProps) {
   return (
     <main className="mapview">
       <MapCanvas
+        ref={mapRef}
         initialCentre={centre}
         position={point}
         accuracyM={point?.accuracy}
@@ -354,7 +356,7 @@ export function MapView({ onLeave }: MapViewProps) {
         spells={inspect.spell.active}
         now={clock.now()}
         standing={standingOn !== null}
-        onInspectHere={() => standingOn && inspect.onCellTap(standingOn)}
+        onInspectHere={() => { if (standingOn) inspect.onCellTap(standingOn); mapRef.current?.focusHere(); }}
         onCollect={() => void repository?.collect(clock.now()).then(setCollected)}
         unobservedMs={trail.unobservedMs}
         settings={settings}
