@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.47",
+    "date": "2026-09-09",
+    "notes": [
+      "Walking onto new ground finally says so. You get the line — \"1 awakened · +10 food\" — and the chime, the buzz, the burst of light and the gold flare over the hex you just took. All five were built and none of them had ever fired, because only a closed loop counted as a claim, and closing loops has been switched off by default since the day walking became the way you take ground. The resources were always arriving; the game just never mentioned them.",
+      "Each hex now also reports what it paid, so the reward is a number you can see rather than one you have to go and look up in the pouch."
+    ]
+  },
+  {
     "version": "0.5.46",
     "date": "2026-09-09",
     "notes": [

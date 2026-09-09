@@ -47,8 +47,16 @@ function formatArea(m2: number): string {
 export function ClaimBurst({ claim }: ClaimBurstProps) {
   const [showing, setShowing] = useState<ClaimEvent | null>(null);
 
+  /*
+   * Closures only (BRDC-CLAIM-013).
+   *
+   * A step-claim reports itself now too, and this is the wrong shape for it: the copy
+   * says "You closed the loop", and a full-screen panel that holds the map for five
+   * seconds would land every forty metres of walking. A step gets the HUD line, the
+   * chime, the buzz and the gold flare on the hex; the ceremony stays for the loop.
+   */
   useEffect(() => {
-    if (!claim) return;
+    if (!claim || claim.kind !== 'loop') return;
     setShowing(claim);
     const timer = setTimeout(() => setShowing(null), BURST_MS);
     return () => clearTimeout(timer);

@@ -11,6 +11,15 @@ import { bearing, cellAreaM2, cellBoundary, hoursUntilReleased, totalAreaM2 } fr
 import type { BBox, CaptureOutcome, Cell, GameRepository, RunId } from '@es3/core';
 
 export interface ClaimEvent {
+  /**
+   * How the ground was taken (BRDC-CLAIM-013).
+   *
+   * Both paths report a claim now, and they are not the same event: a closure is a
+   * ceremony worth stopping the screen for, a step is one hex among many on a walk. The
+   * burst reads this rather than guessing from the cell count, so its copy — "You closed
+   * the loop" — is only ever shown when a loop actually closed.
+   */
+  kind: 'loop' | 'step';
   outcomes: CaptureOutcome[];
   areaM2: number;
   at: number;
@@ -22,8 +31,16 @@ export interface TerritoryState {
   /** Measured from the cells themselves, never from the nominal cell area. */
   ownedAreaM2: number;
   strongest: number;
-  /** The most recent closure, for the HUD to announce. */
+  /** The most recent claim, for the HUD to announce. Both a closure and a step set it. */
   lastClaim: ClaimEvent | null;
+  /**
+   * Report a claim this hook did not make (BRDC-CLAIM-013).
+   *
+   * The loop path writes `lastClaim` itself; a step-claim happens over in `useDiscovery`,
+   * and until this existed it had no way to say so — which silently cost the spoils line,
+   * the chime, the buzz, the burst and the gold flare on the game's default way to play.
+   */
+  recordClaim: (event: ClaimEvent) => void;
   /** Cells within FADING_WARNING_HOURS of being reclaimed. */
   fading: number;
   /** Hours until the first of them goes, or null if nothing is close. */
@@ -134,7 +151,7 @@ export function useTerritory({
       const at = now();
       const result = await repository.closeLoop(runId, at);
       if (result.closed && mounted.current) {
-        setLastClaim({ outcomes: result.outcomes, areaM2: result.areaM2, at });
+        setLastClaim({ kind: 'loop', outcomes: result.outcomes, areaM2: result.areaM2, at });
       }
       if (mounted.current) await refresh();
     } finally {
@@ -192,6 +209,7 @@ export function useTerritory({
     ownedAreaM2: totalAreaM2(owned.map((c) => c.h3)),
     strongest: owned.reduce((max, c) => Math.max(max, c.strength), 0),
     lastClaim,
+    recordClaim: setLastClaim,
     fading,
     fadingInHours,
     released,

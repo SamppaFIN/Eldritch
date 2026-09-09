@@ -3,7 +3,7 @@ import { openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
- * BRDC-CLAIM-009 and BRDC-CLAIM-011 — with the loop off (the default), territory grows
+ * BRDC-CLAIM-009 and BRDC-CLAIM-013 — with the loop off (the default), territory grows
  * one hex at a time: step onto unclaimed ground that borders yours and it is taken, and
  * a "New ground" screen says so.
  *
@@ -101,6 +101,23 @@ test('walking past the Hearth ring raises "New ground", which closes itself', as
   // It must not sit in the way of the next step. The window is 4.5 s; the generous timeout
   // is for Chromium throttling a background context's timers, not for the app.
   await expect(newGround(page)).toBeHidden({ timeout: 25_000 });
+});
+
+test('a step says what it paid — the spoils line appears (BRDC-CLAIM-013)', async ({ page }) => {
+  // The whole reward loop hung on a wiring gap: only a closed loop set `lastClaim`, and
+  // loop closure is off by default since BRDC-CLAIM-009 — so walking onto new ground paid
+  // the pouch and said nothing. The claim line is the visible end of that fix.
+  test.setTimeout(150_000);
+  await openMap(page);
+
+  await stepUntilNewGround(page);
+
+  // Read the text, not the visibility: the "New ground" modal is a native <dialog> and
+  // everything behind it is inert while it is up, which is not the same as absent.
+  const claim = page.locator('.hud__claim');
+  await expect
+    .poll(() => claim.innerText().catch(() => ''), { timeout: 25_000 })
+    .toMatch(/awakened .* \+\d+ \w+/);
 });
 
 test('consecutive steps each commit — the count follows every one', async ({ page }) => {

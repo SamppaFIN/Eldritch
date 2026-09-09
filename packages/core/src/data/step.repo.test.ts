@@ -33,7 +33,7 @@ describe('claimStep', () => {
   });
 
   it('claims a bare hex that borders your ground', async () => {
-    expect(await repo.claimStep(near, T0)).toEqual({ claimed: near });
+    expect(await repo.claimStep(near, T0)).toMatchObject({ claimed: near });
     const owned = await repo.getOwnedCells(T0);
     expect(owned.some((c) => c.h3 === near && c.ownerId === 'me')).toBe(true);
   });
@@ -41,6 +41,22 @@ describe('claimStep', () => {
   it('claims nothing far off your border', async () => {
     const faraway = cellAt({ lat: ORIGIN.lat + 0.5, lng: ORIGIN.lng + 0.5 });
     expect(await repo.claimStep(faraway, T0)).toEqual({ claimed: null });
+  });
+
+  /*
+   * BRDC-CLAIM-013. The outcome used to be computed here, spent on `awardClaims`, and
+   * dropped — and without it the app could not build a `ClaimEvent`, so the spoils line,
+   * the chime, the buzz, the burst and the gold flare never fired on the game's default
+   * way to play. It travels out now.
+   */
+  it('hands back the outcome it took, not just the hex', async () => {
+    const result = await repo.claimStep(near, T0);
+    expect(result.claimed).toBe(near);
+    expect(result.claimed && result.outcome).toMatchObject({
+      h3: near,
+      kind: 'claimed',
+      previousOwner: null,
+    });
   });
 
   it('pays XP for a step-claim', async () => {

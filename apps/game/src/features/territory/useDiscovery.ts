@@ -10,7 +10,7 @@
  * call rather than three effects.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameRepository, H3Index, StepClaimOutcome } from '@es3/core';
+import type { CaptureOutcome, GameRepository, H3Index, StepClaimOutcome } from '@es3/core';
 
 export interface Discovery {
   h3: H3Index;
@@ -45,6 +45,11 @@ export function useDiscovery(
   loopClosure: boolean,
   /** Called after a claim or a reveal, so the HUD re-reads the pouch and profile. */
   onChanged: () => void,
+  /**
+   * Called with what the step actually took (BRDC-CLAIM-013), so the claim can be
+   * announced. `onChanged` re-reads state; this one reports the event.
+   */
+  onClaimed?: (outcome: CaptureOutcome, h3: H3Index) => void,
 ): DiscoveryState {
   const [discovered, setDiscovered] = useState<Discovery | null>(null);
   const [revealed, setRevealed] = useState<Record<H3Index, number>>({});
@@ -63,6 +68,12 @@ export function useDiscovery(
     inFlight.current.add(target);
     void repository.claimStep(target, now()).then((r) => {
       inFlight.current.delete(target);
+      // Announce before the dedupe: `claimed` guards the *discovery card*, and the ground
+      // was genuinely taken whether or not this cell has been carded before. `onChanged`
+      // below still does the re-reads — routing them through the claim event instead costs
+      // a render, and territory arriving a tick late breaks the reveal on the hex just
+      // taken (BRDC-CLAIM-013, `step-claim.spec.ts:142`).
+      if (r.claimed) onClaimed?.(r.outcome, r.claimed);
       const found = nextDiscovery(r, claimed.current);
       if (!found) return;
       claimed.current.add(found);

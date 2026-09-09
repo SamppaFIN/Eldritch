@@ -199,8 +199,8 @@ export function MapView({ onLeave }: MapViewProps) {
   // (CLAIM-009), draw a moment for a milestone it crossed (FX-001).
   const { awakening, discovery } = useClaimSync({
     repository, lastClaim: territory.lastClaim, standingOn, now: clock.now,
-    settings, refreshTerritory: territory.refresh, setProfile, setResources,
-    onMoment: moments.show,
+    settings, refreshTerritory: territory.refresh, recordClaim: territory.recordClaim,
+    setProfile, setResources, onMoment: moments.show,
   });
 
   // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
@@ -262,7 +262,6 @@ export function MapView({ onLeave }: MapViewProps) {
         revealed={discovery.revealed}
         onOpenCell={inspect.onCellTap}
         onReveal={discovery.onReveal}
-        settings={settings}
       />
       <PlaceReveal revealed={trail.revealed} />
       <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />

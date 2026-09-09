@@ -10,8 +10,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal, RitualButton, HexMandala } from '@es3/ui';
 import { revealOf, terrainForCell } from '@es3/core';
 import type { Cell, H3Index, TerrainKind } from '@es3/core';
-import { playChime } from '../hud/useClaimFeedback.js';
-import type { Settings } from '../hud/settings.js';
 import type { Discovery } from './useDiscovery.js';
 import './discovery-modal.css';
 
@@ -40,7 +38,6 @@ export interface DiscoveryModalProps {
   revealed: Readonly<Record<H3Index, number>>;
   onOpenCell: (h3: H3Index) => void;
   onReveal: (h3: H3Index) => void;
-  settings: Settings;
 }
 
 export function DiscoveryModal({
@@ -49,18 +46,23 @@ export function DiscoveryModal({
   revealed,
   onOpenCell,
   onReveal,
-  settings,
 }: DiscoveryModalProps) {
   const [shown, setShown] = useState<Discovery | null>(null);
   const seen = useRef(0);
 
-  // A genuinely new discovery: show it, and sound the chime once.
+  /*
+   * A genuinely new discovery: show it.
+   *
+   * The chime used to be sounded here too. Since BRDC-CLAIM-013 a step-claim reports a
+   * `ClaimEvent`, and `useClaimFeedback` sounds it for both ways of taking ground — so
+   * doing it here as well rang the same claim twice and built a second `AudioContext`
+   * per hex, which on a throttled phone is not free.
+   */
   useEffect(() => {
     if (!discovered || discovered.at === seen.current) return;
     seen.current = discovered.at;
     setShown(discovered);
-    if (settings.sound) playChime('claimed');
-  }, [discovered, settings.sound]);
+  }, [discovered]);
 
   // Auto-dismiss is armed off `shown`, not folded into the effect above — so any re-run
   // (a StrictMode remount included) re-arms it rather than leaving the screen up until it

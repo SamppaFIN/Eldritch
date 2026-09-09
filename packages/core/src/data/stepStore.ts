@@ -16,9 +16,19 @@ import { addXpTo } from './profileStore.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
-import type { Cell, H3Index, PlayerProfile } from '../types/domain.js';
+import type { CaptureOutcome, Cell, H3Index, PlayerProfile } from '../types/domain.js';
 
-export type StepClaimOutcome = { claimed: H3Index } | { claimed: null };
+/**
+ * The outcome travels with the cell (BRDC-CLAIM-013).
+ *
+ * `resolveCapture` computes it here and `awardClaims` spends it; dropping it on the way
+ * out left the app unable to build a `ClaimEvent`, and with it went the spoils line, the
+ * chime, the buzz, the burst and the gold flare — all of them written and tested, none of
+ * them ever fired on the way the game is actually played.
+ */
+export type StepClaimOutcome =
+  | { claimed: H3Index; outcome: CaptureOutcome }
+  | { claimed: null };
 
 export async function claimStepAt(
   store: KeyValueStore,
@@ -49,5 +59,5 @@ export async function claimStepAt(
   await addXpTo(store, newId, XP_PER_CELL_CLAIMED);
   await awardClaims(store, [...owned, cell], [outcome], now);
   await writeLogEntry(store, { at: now, kind: 'awaken', count: 1 });
-  return { claimed: h3 };
+  return { claimed: h3, outcome };
 }
