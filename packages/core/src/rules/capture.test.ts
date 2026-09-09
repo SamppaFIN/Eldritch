@@ -295,3 +295,38 @@ describe('a cell remembers its history (BRDC-HEX-001)', () => {
     expect(resolveCapture(released, ME, DAY(5)).cell.finder).toBe(RIVAL);
   });
 });
+
+describe('a Work changes hands with the ground (PIVOT-2026-09-09 P1)', () => {
+  const work = [{ id: 'mine' as const, builtAt: DAY(0) }];
+  /** A rival cell weak enough that one pass takes it. */
+  const theirs = (): Cell => ({
+    ...ownedBy(RIVAL, 1, DAY(0)),
+    buildings: work,
+    terrain: { kind: 'mountain', source: 'tiles' },
+  });
+
+  it('the taker inherits it, rather than razing it', () => {
+    const { cell, outcome } = resolveCapture(theirs(), { ...ME, ownedNeighbours: 0 }, DAY(1));
+    expect(outcome.kind).toBe('taken');
+    expect(cell.ownerId).toBe(ME.id);
+    expect(cell.buildings).toEqual(work);
+  });
+
+  /*
+   * Why inheritance and not a separate owner record: the siege already decides who holds
+   * the land, and a mine whose output belongs to somebody who no longer holds the
+   * mountain needs a second ownership model to explain itself. Build where you can defend.
+   */
+  it('and the resolved terrain with it, so it is not re-read after every capture', () => {
+    const { cell } = resolveCapture(theirs(), { ...ME, ownedNeighbours: 0 }, DAY(1));
+    expect(cell.terrain).toEqual({ kind: 'mountain', source: 'tiles' });
+  });
+
+  it('a pass that only damages leaves everything where it was', () => {
+    const strong: Cell = { ...theirs(), strength: MAX_STRENGTH };
+    const { cell, outcome } = resolveCapture(strong, { ...ME, ownedNeighbours: 0 }, DAY(1));
+    expect(outcome.kind).toBe('damaged');
+    expect(cell.ownerId).toBe(RIVAL);
+    expect(cell.buildings).toEqual(work);
+  });
+});

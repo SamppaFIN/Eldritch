@@ -21,15 +21,17 @@ export type MapNoticesProps = NoticeConditions;
 export function MapNotices(props: MapNoticesProps) {
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(() => new Set());
 
-  const { durable, schemaReset, worldStirredMs, shifted, offsetDays } = props;
+  const { durable, schemaReset, razed, worldStirredMs, shifted, offsetDays } = props;
   const notices = useMemo(
-    () => noticesFor({ durable, schemaReset, worldStirredMs, shifted, offsetDays }, dismissed),
-    [durable, schemaReset, worldStirredMs, shifted, offsetDays, dismissed],
+    () =>
+      noticesFor({ durable, schemaReset, razed, worldStirredMs, shifted, offsetDays }, dismissed),
+    [durable, schemaReset, razed, worldStirredMs, shifted, offsetDays, dismissed],
   );
 
   // One timer per showing notice, keyed by the ids on screen. A notice dismissed by hand
-  // drops out of `notices`, which re-runs this and clears its timer with it.
-  const ids = notices.map((n) => n.id).join(',');
+  // drops out of `notices`, which re-runs this and clears its timer with it. A sticky one
+  // gets no timer at all — it reports something already done, and waits to be read.
+  const ids = notices.filter((n) => !n.sticky).map((n) => n.id).join(',');
   useEffect(() => {
     if (ids === '') return;
     const timers = ids.split(',').map((id) =>

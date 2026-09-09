@@ -50,4 +50,6 @@ export const K = {
   templeSchool: 'temple-school',
   /** Set once the Hearth's founding stash has been granted, so it is never handed out twice (BRDC-ECON-007). */
   starterGiven: 'starter-given',
+  /** Works the one-per-cell migration took down, `BuildingId[]`, until they are paid back (BRDC-BUILD-009). */
+  razed: 'razed',
 } as const;

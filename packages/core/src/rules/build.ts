@@ -6,19 +6,17 @@
  * rules are functions over it — testable without instantiation, portable to SQL later.
  *
  * `ward.ts` is the shape. Refusals are values, not exceptions: "not yours", "wrong
- * terrain", "locked", "at capacity", "cannot afford" are all things the panel has to say
- * out loud. Warding is a special case of building, which is why `WARD_COST` stays.
+ * terrain", "locked", "this hex is full", "cannot afford" are all things the panel has to
+ * say out loud. Warding is a special case of building, which is why `WARD_COST` stays.
  *
  * `BUILDINGS` already carries `terrain`, `tech` and `requires` even though the four base
  * buildings barely use them — `BRDC-BUILD-002` adds seven rows of terrain-bound
  * improvements and no new code, and that is its acceptance test.
  */
 import {
-  BASE_BUILDING_CAP,
   CELL_BUILDING_CAP,
   DECAY_GRACE_HOURS,
   DEMOLISH_REFUND,
-  GRANARY_CAPACITY,
   STOREHOUSE_CAP_BONUS,
 } from './constants.js';
 import { BASE_STORAGE_CAP, canAfford, terrainForCell } from './terrain.js';
@@ -42,8 +40,6 @@ export interface Building {
   producesPerDay?: Readonly<Partial<ResourcePool>>;
   /** Storehouse only: added to the pouch's per-resource ceiling. */
   storageCapBonus?: number;
-  /** Granary only: added to how many buildings the player may hold. */
-  buildingCapacity?: number;
   /** An effect projected to a radius of cells (BRDC-BUILD-003). See `rules/aura.ts`. */
   aura?: { kind: AuraKind; radius: number; amount: number };
   /** Must be built next to a revealed place of this kind (BRDC-BUILD-003). */
@@ -57,7 +53,6 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     tech: 'early-farming',
     requires: [],
     produces: { food: 1 },
-    buildingCapacity: GRANARY_CAPACITY,
   },
   monument: {
     cost: { stone: 60, culture: 10 },
@@ -196,15 +191,40 @@ export function storageCap(buildings: readonly BuildingId[]): number {
   return BASE_STORAGE_CAP + stores * STOREHOUSE_CAP_BONUS;
 }
 
-/** How many buildings the player may hold, raised by each Granary. */
-export function buildingCapacity(buildings: readonly BuildingId[]): number {
-  const granaries = buildings.filter((b) => b === 'granary').length;
-  return BASE_BUILDING_CAP + granaries * GRANARY_CAPACITY;
-}
-
 /** The buildings on a set of cells, in cell order. */
 export function buildingsOf(cells: readonly Cell[]): BuildingId[] {
   return cells.flatMap((c) => (c.buildings ?? []).map((w) => w.id));
+}
+
+/** Everything one building cost, added up — one number to compare two Works by. */
+function totalCost(id: BuildingId): number {
+  return Object.values(BUILDINGS[id].cost).reduce((a, b) => a + b, 0);
+}
+
+/**
+ * Which single Work stays on a cell, now that a hex holds one (PIVOT-2026-09-09 §6).
+ *
+ * The most expensive stays. That is what "strongest" means here: an upgrade always costs
+ * more than the thing it replaces, so a Lumbermill never loses to the Sawmill beneath it,
+ * and the player keeps what they put the most into. Ties go to the one that has stood
+ * longest — of two equal Works, the older one is the one they have been living with.
+ *
+ * Pure, so the migration that calls it can be tested without a store.
+ */
+export function keepOne(works: readonly CellBuilding[]): {
+  keep: CellBuilding | null;
+  raze: CellBuilding[];
+} {
+  let keep: CellBuilding | null = null;
+  for (const w of works) {
+    if (!keep) {
+      keep = w;
+      continue;
+    }
+    const richer = totalCost(w.id) - totalCost(keep.id);
+    if (richer > 0 || (richer === 0 && w.builtAt < keep.builtAt)) keep = w;
+  }
+  return { keep, raze: works.filter((w) => w !== keep) };
 }
 
 /** What stands on one cell. `[]` for bare ground — the shape callers can always map over. */
@@ -266,14 +286,13 @@ export type BuildRefusal =
   | 'locked'
   | 'needs-a-temple'
   | 'cell-full'
-  | 'at-capacity'
   | 'cannot-afford';
 
 export interface BuildContext {
   playerId: PlayerId;
   researched: readonly TechId[];
   pool: ResourcePool;
-  /** The player's current buildings — its length is the count, and Granaries raise the cap. */
+  /** The player's current buildings. Read by callers that price a whole realm, not by `canBuild`. */
   buildings: readonly BuildingId[];
   /** Is the target cell on or next to a revealed temple? Gates Library and Temple Grove. */
   templeAdjacent?: boolean;
@@ -309,12 +328,9 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   if (b.needsPlace === 'temple' && !ctx.templeAdjacent) {
     return { ok: false, refused: 'needs-a-temple' };
   }
-  // An upgrade takes the slot it replaces, so it runs into neither cap.
-  if (!upgrading) {
-    if (here.length >= CELL_BUILDING_CAP) return { ok: false, refused: 'cell-full' };
-    if (ctx.buildings.length >= buildingCapacity(ctx.buildings)) {
-      return { ok: false, refused: 'at-capacity' };
-    }
+  // An upgrade takes the slot it replaces, so it does not run into the cap.
+  if (!upgrading && here.length >= CELL_BUILDING_CAP) {
+    return { ok: false, refused: 'cell-full' };
   }
   if (!canAfford(ctx.pool, b.cost)) return { ok: false, refused: 'cannot-afford' };
 

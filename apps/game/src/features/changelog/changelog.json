@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.54",
+    "date": "2026-09-10",
+    "notes": [
+      "A hex holds one Work. Building used to be a stacking exercise — pile three or four onto your best cell and the rest of the map was scenery. One per hex means the question is which Work this ground should carry, and the answer to \"I want another\" is to go and walk for more ground.",
+      "The cap on how many Works you could hold in total is gone with it. It was six, it counted across your whole realm, and with three hundred hexes claimed every build after the sixth was refused with the word \"cell full\" — which explained nothing. Land is the only limit now.",
+      "Taking someone's ground takes what stands on it. A siege used to raze the building when the cell changed hands; the mine on that mountain is now yours along with the mountain. Build where you can defend.",
+      "Saves with crowded hexes are brought forward rather than thrown away: the strongest Work on each stays, everything else comes down, and the full cost of every one is paid back into your pouch — not the half a demolition you chose would return. The map says how many, and the History panel names them."
+    ]
+  },
+  {
     "version": "0.5.53",
     "date": "2026-09-09",
     "notes": [

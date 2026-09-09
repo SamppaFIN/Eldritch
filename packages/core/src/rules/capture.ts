@@ -200,6 +200,18 @@ export function resolveCapture(
       // A stolen cell keeps whoever first revealed it, and its running days-held count.
       ...(cell.finder !== undefined ? { finder: cell.finder } : {}),
       ...(cell.revealedAt !== undefined ? { revealedAt: cell.revealedAt } : {}),
+      /*
+       * The Work standing here changes hands with the ground (PIVOT-2026-09-09 P1).
+       *
+       * It used to be dropped — taking a cell razed whatever stood on it. Infinite chose
+       * inheritance over a separate owner record: the siege already decides who holds the
+       * land, and a mine whose output belongs to someone who no longer holds the mountain
+       * needs a second ownership model to explain it. Build somewhere worth defending.
+       */
+      ...(cell.buildings !== undefined ? { buildings: cell.buildings } : {}),
+      // Terrain is a fact about the ground, not about who holds it; re-resolving it from
+      // the map's tiles after every capture is work for no reason.
+      ...(cell.terrain !== undefined ? { terrain: cell.terrain } : {}),
       ownedDays: cell.ownedDays ?? 1,
       history: appendChange(cell.history, {
         to: attacker.id,

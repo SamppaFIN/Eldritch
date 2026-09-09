@@ -52,6 +52,7 @@ import { PouchGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
+import type { NoticeConditions } from '../features/hud/notices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
 import { useNation } from '../features/nation/useNation.js';
@@ -63,10 +64,14 @@ export interface MapViewProps {
   onLeave: () => void;
 }
 
+/** The three things `createRepository` can report about the save it opened. */
+type BootAlerts = Pick<NoticeConditions, 'durable' | 'schemaReset' | 'razed'>;
+const QUIET_BOOT: BootAlerts = { durable: true, schemaReset: false, razed: 0 };
+
 export function MapView({ onLeave }: MapViewProps) {
   const [repository, setRepository] = useState<GameRepository | null>(null);
-  const [durable, setDurable] = useState(true);
-  const [schemaReset, setSchemaReset] = useState(false);
+  // What the boot found and had to say about it — one state, so `MapNotices` takes it whole.
+  const [alerts, setAlerts] = useState<BootAlerts>(QUIET_BOOT);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
   const [bbox, setBbox] = useState<BBox | null>(null);
@@ -90,8 +95,7 @@ export function MapView({ onLeave }: MapViewProps) {
       const handle = await createRepository();
       if (cancelled) return;
       setRepository(handle.repository);
-      setDurable(handle.durable);
-      setSchemaReset(handle.reset);
+      setAlerts({ durable: handle.durable, schemaReset: handle.reset, razed: handle.razed.length });
       setProfile(await handle.repository.getProfile());
       // A returning player already has a Keep; setHome below only fires for a fresh one.
       setCastle(await handle.repository.getCastle());
@@ -328,11 +332,8 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <MapNotices
-        durable={durable}
-        schemaReset={schemaReset}
-        worldStirredMs={world.stirredMs}
-        shifted={clock.shifted}
-        offsetDays={clock.offsetDays}
+        {...alerts} worldStirredMs={world.stirredMs}
+        shifted={clock.shifted} offsetDays={clock.offsetDays}
       />
 
       <Hud

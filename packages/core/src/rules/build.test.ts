@@ -3,10 +3,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
-  BASE_BUILDING_CAP,
   DEMOLISH_REFUND,
-  GRANARY_CAPACITY,
   STOREHOUSE_CAP_BONUS,
+  CELL_BUILDING_CAP,
 } from './constants.js';
 import { BASE_STORAGE_CAP, EMPTY_POOL, RESOURCE_KINDS, TERRAIN_TABLE } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
@@ -15,9 +14,9 @@ import type { TechId } from './tech.js';
 import {
   BUILDINGS,
   buildingBonus,
-  buildingCapacity,
   buildingsOf,
   canBuild,
+  keepOne,
   refund,
   storageCap,
 } from './build.js';
@@ -103,11 +102,9 @@ describe('upgrade chains (BRDC-BUILD-002)', () => {
     });
   });
 
-  it('an upgrade does not run into the building cap', () => {
-    const full = { ...loaded, buildings: Array(BASE_BUILDING_CAP).fill('sawmill') as BuildingId[] };
-    expect(canBuild(full, 'lumbermill', forest({ buildings: [{ id: 'sawmill', builtAt: T0 }] }))).toEqual({
-      ok: true,
-    });
+  it('an upgrade takes the slot it replaces, so a full hex still allows it', () => {
+    const standing = forest({ buildings: [{ id: 'sawmill', builtAt: T0 }] });
+    expect(canBuild(loaded, 'lumbermill', standing)).toEqual({ ok: true });
   });
 });
 
@@ -124,18 +121,18 @@ describe('canBuild refuses in order of how fundamental the objection is', () => 
     expect(canBuild(loaded, 'monument', built)).toEqual({ ok: false, refused: 'occupied' });
   });
 
-  it('lets a *different* Work join one already standing (BRDC-BUILD-007)', () => {
+  /*
+   * PIVOT-2026-09-09 kohta 6 reverses BRDC-BUILD-007: a hex held three Works, and holds
+   * one. What goes where is the decision now, and the answer is final until you demolish.
+   */
+  it('refuses a second Work, however different, once one stands', () => {
     const built = cell({ buildings: [{ id: 'monument', builtAt: T0 }] });
-    expect(canBuild(loaded, 'granary', built)).toEqual({ ok: true });
+    expect(canBuild(loaded, 'granary', built)).toEqual({ ok: false, refused: 'cell-full' });
   });
 
-  it('cell-full once the hex holds its cap', () => {
-    const full = cell({
-      buildings: (['monument', 'storehouse', 'market'] as BuildingId[]).map((id) => ({
-        id,
-        builtAt: T0,
-      })),
-    });
+  it('cell-full is the cap, and the cap is one', () => {
+    expect(CELL_BUILDING_CAP).toBe(1);
+    const full = cell({ buildings: [{ id: 'monument', builtAt: T0 }] });
     expect(canBuild(loaded, 'granary', full)).toEqual({ ok: false, refused: 'cell-full' });
   });
 
@@ -157,9 +154,16 @@ describe('canBuild refuses in order of how fundamental the objection is', () => 
     expect(canBuild({ ...loaded, templeAdjacent: true }, 'temple-grove', plain)).toEqual({ ok: true });
   });
 
-  it('at-capacity once the building count reaches the cap', () => {
-    const ctx = { ...loaded, buildings: Array(BASE_BUILDING_CAP).fill('monument') as BuildingId[] };
-    expect(canBuild(ctx, 'monument', cell())).toEqual({ ok: false, refused: 'at-capacity' });
+  /*
+   * PIVOT-2026-09-09 kohta 6: a hex holds one Work, and there is no longer a player-wide
+   * cap behind it. Land is the limit — the one a player can see on the map and walk to.
+   */
+  it('cell-full once a Work already stands here, however many you hold elsewhere', () => {
+    const many = { ...loaded, buildings: Array(20).fill('monument') as BuildingId[] };
+    expect(canBuild(many, 'monument', cell())).toEqual({ ok: true });
+    // A *different* Work standing here, so the refusal is the cap and not 'occupied'.
+    const taken = cell({ buildings: [{ id: 'storehouse', builtAt: T0 }] });
+    expect(canBuild(many, 'monument', taken)).toEqual({ ok: false, refused: 'cell-full' });
   });
 
   it('cannot-afford last', () => {
@@ -176,11 +180,6 @@ describe('caps and refunds', () => {
   it('a Storehouse raises the storage ceiling', () => {
     expect(storageCap([])).toBe(BASE_STORAGE_CAP);
     expect(storageCap(['storehouse', 'storehouse'])).toBe(BASE_STORAGE_CAP + 2 * STOREHOUSE_CAP_BONUS);
-  });
-
-  it('a Granary raises how many buildings may be held', () => {
-    expect(buildingCapacity([])).toBe(BASE_BUILDING_CAP);
-    expect(buildingCapacity(['granary'])).toBe(BASE_BUILDING_CAP + GRANARY_CAPACITY);
   });
 
   it('demolishing hands back half the cost, floored', () => {
@@ -216,5 +215,45 @@ describe('buildingBonus and buildingsOf', () => {
 
     const dormant = { ...cluster, lastVisitedAt: T0 - 10 * 86_400_000 };
     expect(buildingBonus([dormant], T0)).toEqual({});
+  });
+});
+
+describe('keepOne — which Work survives one-per-cell (PIVOT-2026-09-09 §6)', () => {
+  const work = (id: BuildingId, builtAt: number) => ({ id, builtAt });
+
+  it('leaves a lone Work exactly where it is', () => {
+    const only = [work('sawmill', T0)];
+    const { keep, raze } = keepOne(only);
+    expect(keep).toBe(only[0]);
+    expect(raze).toEqual([]);
+  });
+
+  it('keeps the more expensive one, whichever order they were built in', () => {
+    // Lumbermill 80 wood + 30 iron against Sawmill 30 wood: the upgrade always costs more
+    // than what it replaces, which is why cost is a fair reading of "strongest".
+    const older = keepOne([work('lumbermill', T0), work('sawmill', T0 + 1)]);
+    const newer = keepOne([work('sawmill', T0), work('lumbermill', T0 + 1)]);
+    expect(older.keep?.id).toBe('lumbermill');
+    expect(newer.keep?.id).toBe('lumbermill');
+    expect(newer.raze.map((w) => w.id)).toEqual(['sawmill']);
+  });
+
+  it('breaks a tie towards the one that has stood longest', () => {
+    // Two Monuments cannot both be here — `canBuild` refuses 'occupied' — but a tie of
+    // equal cost is reachable across the table, and it must not resolve at random.
+    const { keep } = keepOne([work('monument', T0 + 5_000), work('monument', T0)]);
+    expect(keep?.builtAt).toBe(T0);
+  });
+
+  it('razes everything it did not keep, and nothing twice', () => {
+    const works = [work('sawmill', T0), work('mine', T0 + 1), work('fortress', T0 + 2)];
+    const { keep, raze } = keepOne(works);
+    expect(keep?.id).toBe('fortress');
+    expect(raze).toHaveLength(2);
+    expect([keep, ...raze].sort()).toHaveLength(works.length);
+  });
+
+  it('has nothing to say about bare ground', () => {
+    expect(keepOne([])).toEqual({ keep: null, raze: [] });
   });
 });

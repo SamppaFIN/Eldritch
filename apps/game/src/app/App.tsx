@@ -5,6 +5,7 @@ import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { createRepository } from '../data/createRepository.js';
+import { razedLine } from '../features/hud/notices.js';
 import { Hearth } from '../features/hearth/Hearth.js';
 import './mapview.css';
 
@@ -88,7 +89,11 @@ export function App() {
   const openWager = useCallback(() => {
     setWager(true);
     if (repository) return;
-    void createRepository().then((handle) => setRepository(handle.repository));
+    void createRepository().then((handle) => {
+      setRepository(handle.repository);
+      // The migration's report is one-shot and this path consumes it too (PIVOT §6).
+      if (handle.razed.length > 0) setNotice(razedLine(handle.razed.length));
+    });
   }, [repository]);
 
   const begin = useCallback(() => {

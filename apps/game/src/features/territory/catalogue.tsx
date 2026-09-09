@@ -80,7 +80,6 @@ export function buildingEffect(id: BuildingId): string {
   for (const [k, v] of Object.entries(b.producesPerDay ?? {}))
     parts.push(`+${v} ${word(k as ResourceKind)} / day`);
   if (b.storageCapBonus) parts.push(`+${b.storageCapBonus} storage cap`);
-  if (b.buildingCapacity) parts.push(`+${b.buildingCapacity} build slots`);
   if (b.aura) {
     parts.push(
       b.aura.kind === 'defence'

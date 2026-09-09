@@ -10,6 +10,7 @@ import type { NoticeConditions } from './notices.js';
 const QUIET: NoticeConditions = {
   durable: true,
   schemaReset: false,
+  razed: 0,
   worldStirredMs: null,
   shifted: false,
   offsetDays: 0,
@@ -28,10 +29,10 @@ describe('noticesFor', () => {
 
   it('puts what threatens progress before what merely informs', () => {
     const all = noticesFor(
-      { durable: false, schemaReset: true, worldStirredMs: 7_200_000, shifted: true, offsetDays: 3 },
+      { ...QUIET, durable: false, schemaReset: true, razed: 2, worldStirredMs: 7_200_000, shifted: true, offsetDays: 3 },
       NONE,
     );
-    expect(all.map((n) => n.id)).toEqual(['durable', 'schema', 'world', 'clock']);
+    expect(all.map((n) => n.id)).toEqual(['durable', 'schema', 'razed', 'world', 'clock']);
   });
 
   it('leaves out anything already waved away, even while its condition holds', () => {
@@ -49,10 +50,29 @@ describe('noticesFor', () => {
 
   it('marks the dev clock as dev, and nothing else', () => {
     const all = noticesFor(
-      { durable: false, schemaReset: true, worldStirredMs: 1, shifted: true, offsetDays: 2 },
+      { ...QUIET, durable: false, schemaReset: true, worldStirredMs: 1, shifted: true, offsetDays: 2 },
       NONE,
     );
     expect(all.filter((n) => n.dev).map((n) => n.id)).toEqual(['clock']);
     expect(all.find((n) => n.id === 'clock')?.text).toContain('2 days ahead');
+  });
+
+  /*
+   * PIVOT-2026-09-09 §6. This is the only notice that reports something the game did to
+   * the player's realm without being asked, so it is the only one that must not expire on
+   * a timer — `MapNotices` skips the timer for a sticky notice.
+   */
+  it('reports the Works the one-per-cell migration took, and does not expire', () => {
+    const [one] = noticesFor({ ...QUIET, razed: 1 }, NONE);
+    expect(one?.text).toContain('One Work');
+    expect(one?.sticky).toBe(true);
+
+    const [many] = noticesFor({ ...QUIET, razed: 9 }, NONE);
+    expect(many?.text).toContain('9 Works');
+    expect(many?.text).toContain('back in your pouch');
+  });
+
+  it('says nothing about razing when the migration took nothing', () => {
+    expect(noticesFor({ ...QUIET, razed: 0 }, NONE)).toEqual([]);
   });
 });

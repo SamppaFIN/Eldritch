@@ -9,10 +9,7 @@
 import { useState } from 'react';
 import {
   BUILDINGS,
-  CELL_BUILDING_CAP,
   EMPTY_POOL,
-  GRANARY_CAPACITY,
-  buildingCapacity,
   canBuild,
   hasWork,
   refund,
@@ -45,8 +42,6 @@ export function reason(refused: BuildRefusal, id: BuildingId): string {
       return 'Already stands here';
     case 'cell-full':
       return 'This hex is full';
-    case 'at-capacity':
-      return 'No room — build a Granary';
     case 'cannot-afford':
       return 'Cannot afford';
     default:
@@ -83,17 +78,14 @@ export interface BuildPanelProps {
 /**
  * Why the build did not happen, said as what to do about it (BRDC-BUILD-008).
  *
- * This used to print the refusal slug — "That did not go through — at capacity." — which
- * is the eight refusals `canBuild` can return, flattened into a phrase that names none of
- * them usefully. `at-capacity` in particular is a wall a player walks into and cannot
- * read: it is the player-wide cap, not this hex, and a Granary is the only way past it.
+ * This used to print the refusal slug — "That did not go through — cell full." — which is
+ * every reason `canBuild` can return, flattened into a phrase that names none of them
+ * usefully. Each one says what to do about it now.
  */
 function refusalText(why: BuildRefusal, id: BuildingId | null): string {
   switch (why) {
-    case 'at-capacity':
-      return `You are holding all the Works you can. A Granary lets you hold ${GRANARY_CAPACITY} more.`;
     case 'cell-full':
-      return `This hex already holds ${CELL_BUILDING_CAP} Works. Demolish one, or build on another hex.`;
+      return 'A hex holds one Work. Demolish this one, or build on ground you have not used.';
     case 'cannot-afford':
       return id
         ? `Not enough in the pouch — ${titleCase(id)} costs ${costLine(BUILDINGS[id].cost)}.`
@@ -218,28 +210,12 @@ export function BuildPanel({
     <div className="cell-panel__build">
       {here.length > 0 ? (
         <>
-          <p className="cell-panel__build-has">
-            Standing here · {here.length}/{CELL_BUILDING_CAP}
-          </p>
+          <p className="cell-panel__build-has">Standing here</p>
           <ul className="cell-panel__build-list">{here.map(standing)}</ul>
         </>
       ) : null}
 
-      {/*
-        The player-wide cap, said before it is hit (BRDC-BUILD-008). "Standing here" above
-        is this hex; this is every Work you hold anywhere, and it is the limit people walk
-        into without being able to see it coming.
-      */}
-      <p className="cell-panel__build-head">
-        Build
-        <span className="cell-panel__build-cost">
-          {' · '}
-          {myBuildings.length}/{buildingCapacity(myBuildings)} Works held
-          {myBuildings.length >= buildingCapacity(myBuildings)
-            ? ' — a Granary holds three more'
-            : ''}
-        </span>
-      </p>
+      <p className="cell-panel__build-head">Build</p>
       {ready.length > 0 ? (
         <ul className="cell-panel__build-list">{[...ready].sort(byName).map(row)}</ul>
       ) : (

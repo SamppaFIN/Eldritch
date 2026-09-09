@@ -20,7 +20,7 @@ describe('reason', () => {
 
   it('phrases the other refusals plainly', () => {
     expect(reason('wrong-terrain', 'granary')).toBe('Wrong ground');
-    expect(reason('at-capacity', 'monument')).toBe('No room — build a Granary');
+    expect(reason('cell-full', 'monument')).toBe('This hex is full');
     expect(reason('cannot-afford', 'market')).toBe('Cannot afford');
   });
 });

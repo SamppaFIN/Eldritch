@@ -25,6 +25,10 @@
  * we do not know how to read, for data newer than the code, for data under no version
  * key at all — because inventing state is worse than admitting it is gone.
  */
+import { keepOne } from '../rules/build.js';
+import type { BuildingId } from '../rules/build.js';
+import type { CellBuilding } from '../types/domain.js';
+import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 
 /** Not in `keys.ts`'s `K`: that map is game data, this is the store's own metadata. */
@@ -37,13 +41,22 @@ export const SCHEMA_KEY = 'schema:version';
  *
  * 2 → 3: BRDC-BUILD-007 replaced `Cell.building` with `Cell.buildings`, a list. This one
  * *is* migrated — a field tester's ground is not worth throwing away for a rename.
+ *
+ * 3 → 4: PIVOT-2026-09-09 §6 put the list back down to one. This is the first migration
+ * that takes something away, so it does not do it quietly: what it removes is written to
+ * `K.razed` and paid back in full at the next open (`razedStore.ts`).
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /** A cell as schema 2 stored it: at most one building, under a singular key. */
 interface CellV2 {
   building?: { id: string; builtAt: number };
   buildings?: { id: string; builtAt: number }[];
+}
+
+/** A cell as schema 3 stored it: as many Works on one hex as the cap of the day allowed. */
+interface CellV3 {
+  buildings?: CellBuilding[];
 }
 
 /**
@@ -64,6 +77,23 @@ export const MIGRATIONS: Readonly<
       const { building, ...rest } = cell;
       await inner.set(key, { ...rest, buildings: [building] });
     }
+  },
+  /**
+   * The list goes back down to one per hex. The strongest Work stays; the rest are
+   * remembered under `K.razed` so the next open can hand their cost back and say so.
+   */
+  3: async (inner) => {
+    const razed: BuildingId[] = [];
+    for (const key of await inner.keys('cell:')) {
+      const cell = await inner.get<CellV3>(key);
+      const works = cell?.buildings ?? [];
+      if (works.length < 2) continue;
+      const { keep, raze } = keepOne(works);
+      if (!keep) continue;
+      razed.push(...raze.map((w) => w.id));
+      await inner.set(key, { ...cell, buildings: [keep] });
+    }
+    if (razed.length > 0) await inner.set(K.razed, razed);
   },
 };
 

@@ -37,7 +37,7 @@ describe('buildingEffect', () => {
     expect(buildingEffect('sawmill')).toBe('+5 timber / h');
     expect(buildingEffect('fishery')).toBe('+3 food / h · +1 tokens / day');
     expect(buildingEffect('storehouse')).toBe('+250 storage cap');
-    expect(buildingEffect('granary')).toBe('+1 food / h · +3 build slots');
+    expect(buildingEffect('granary')).toBe('+1 food / h');
     expect(buildingEffect('library')).toBe('+1 wisdom / h within 1');
     expect(buildingEffect('fortress')).toBe('−30 to attacks within 1');
   });

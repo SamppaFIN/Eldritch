@@ -169,6 +169,80 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
     const bare = await store.get<{ buildings?: unknown }>('cell:r6:8b112492eb07fff');
     expect(bare?.buildings).toBeUndefined();
   });
+
+  describe('3 → 4 puts a hex back down to one Work (PIVOT-2026-09-09 §6)', () => {
+    const cell = (h3: string, buildings: { id: string; builtAt: number }[]) => ({
+      h3,
+      ownerId: 'me',
+      strength: 300,
+      lastVisitedAt: T0,
+      visitDays: [],
+      buildings,
+    });
+
+    /** A schema-3 store with a crowded hex, a lone Work and bare ground. */
+    async function crowded(): Promise<KeyValueStore> {
+      const inner = new MemoryStore();
+      await inner.set(KEY, 3);
+      await inner.set(
+        'cell:r6:8b112492eb03fff',
+        cell('8b112492eb03fff', [
+          { id: 'sawmill', builtAt: T0 },
+          { id: 'lumbermill', builtAt: T0 + 1 },
+          { id: 'monument', builtAt: T0 + 2 },
+        ]),
+      );
+      await inner.set('cell:r6:8b112492eb07fff', cell('8b112492eb07fff', [
+        { id: 'mine', builtAt: T0 },
+      ]));
+      await inner.set('cell:r6:8b112492eb0ffff', {
+        h3: '8b112492eb0ffff',
+        ownerId: 'me',
+        strength: 120,
+        lastVisitedAt: T0,
+        visitDays: [],
+      });
+      return inner;
+    }
+
+    it('leaves the strongest standing and takes the rest down', async () => {
+      const inner = await crowded();
+      const store = versioned(inner);
+      expect(await store.schema()).toBe('migrated');
+
+      const many = await store.get<{ buildings: { id: string }[] }>('cell:r6:8b112492eb03fff');
+      expect(many?.buildings.map((w) => w.id)).toEqual(['lumbermill']);
+    });
+
+    it('does not touch a hex that already held one, or bare ground', async () => {
+      const store = versioned(await crowded());
+      await store.schema();
+
+      const one = await store.get<{ buildings: { id: string }[] }>('cell:r6:8b112492eb07fff');
+      expect(one?.buildings.map((w) => w.id)).toEqual(['mine']);
+      const bare = await store.get<{ buildings?: unknown }>('cell:r6:8b112492eb0ffff');
+      expect(bare?.buildings).toBeUndefined();
+    });
+
+    // The whole point of the razed key: what it took is owed back, so it cannot vanish
+    // silently. `razedStore.takeRazed` is what pays it.
+    it('writes down every Work it razed, so it can be paid back', async () => {
+      const inner = await crowded();
+      await versioned(inner).schema();
+      expect(await inner.get<string[]>('razed')).toEqual(['sawmill', 'monument']);
+    });
+
+    it('writes nothing down when it had nothing to take', async () => {
+      const inner = new MemoryStore();
+      await inner.set(KEY, 3);
+      await inner.set('cell:r6:8b112492eb07fff', cell('8b112492eb07fff', [
+        { id: 'mine', builtAt: T0 },
+      ]));
+
+      expect(await versioned(inner).schema()).toBe('migrated');
+      expect(await inner.get('razed')).toBeUndefined();
+    });
+  });
 });
 
 describe('MockRepository through the schema gate', () => {

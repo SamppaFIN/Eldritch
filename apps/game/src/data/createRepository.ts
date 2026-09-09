@@ -6,7 +6,7 @@
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
 import { MemoryStore, MockRepository, enableTerrainSurvey } from '@es3/core';
-import type { GameRepository } from '@es3/core';
+import type { BuildingId, GameRepository } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
 // The hand survey of the field-test area is client content, not a rule — on for the
@@ -19,6 +19,11 @@ export interface RepositoryHandle {
   durable: boolean;
   /** True when the store was wiped on open because its schema version was stale. */
   reset: boolean;
+  /**
+   * Works the one-per-cell migration took down, already paid back into the pouch
+   * (PIVOT-2026-09-09 §6). Empty on every open but the first one after the upgrade.
+   */
+  razed: BuildingId[];
 }
 
 export async function createRepository(): Promise<RepositoryHandle> {
@@ -27,6 +32,9 @@ export async function createRepository(): Promise<RepositoryHandle> {
 
   const repository = new MockRepository({ store });
   const reset = (await repository.schemaOutcome()) === 'reset';
+  // Right after the schema gate, before anything reads the pouch: the migration's debt is
+  // settled here or the player never hears about it.
+  const razed = await repository.takeRazed(Date.now());
 
   /*
    * No starter grant here any more (BRDC-ECON-007). The founding stash is handed out
@@ -34,5 +42,5 @@ export async function createRepository(): Promise<RepositoryHandle> {
    * fills only from claiming ground and holding it. `grantVersionGift` and its safety net
    * are gone: an empty pouch is now a real state, not one to paper over.
    */
-  return { repository, durable, reset };
+  return { repository, durable, reset, razed };
 }

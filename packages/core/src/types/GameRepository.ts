@@ -171,6 +171,12 @@ export interface GameRepository {
   build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome>;
   /** Demolish a cell's building and return half its cost. */
   demolish(h3: H3Index, now: number, id?: BuildingId): Promise<DemolishOutcome>;
+  /**
+   * Take back what the one-per-cell migration took down (PIVOT-2026-09-09 §6): the full
+   * cost of every Work it razed goes into the pouch, and the list is returned so the
+   * player can be told. `[]` on every open but the first one after the upgrade.
+   */
+  takeRazed(now: number): Promise<BuildingId[]>;
 
   /* --- Trade Routes (BRDC-BUILD-004) ---------------------------------- */
   /** The two-cell links the player holds; each pays gold while both ends are awake. */

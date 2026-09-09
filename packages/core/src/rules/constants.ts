@@ -210,7 +210,7 @@ export const WORLD_VERSION = 2;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.53';
+export const APP_VERSION = '0.5.54';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -241,20 +241,15 @@ export const MAX_LOG_ENTRIES = 200;
 /* --- Buildings (BRDC-BUILD-001) ---------------------------------------- */
 
 /**
- * How many buildings a player may hold before a Granary is needed.
+ * Works one cell may hold — **one** (PIVOT-2026-09-09 kohta 6, päätös P5).
  *
- * The plan's Granary gives "+2 housing capacity" in a game with no population — this is
- * the light reading that makes that line true: capacity caps building count, and a
- * Granary raises it. Not a simulation, one number.
+ * Was three, alongside a player-wide cap of six that a Granary raised. Both are gone as a
+ * pair: with one Work per hex the constraint is land, and land is a limit the player can
+ * see on the map and go and earn. Six-across-the-whole-game was a number nothing on
+ * screen mentioned until you hit it, and in a realm of three hundred cells it made the
+ * pivot's own story — find a good mountain, own what it makes — impossible.
  */
-export const BASE_BUILDING_CAP = 6;
-export const GRANARY_CAPACITY = 3;
-/**
- * Works one cell may hold (BRDC-BUILD-007). A hex is a small cluster, not a city: three
- * is enough for a sawmill beside a storehouse beside a monument, and few enough that
- * choosing what goes where still matters. The player-wide cap (Granaries) is separate.
- */
-export const CELL_BUILDING_CAP = 3;
+export const CELL_BUILDING_CAP = 1;
 /** A Storehouse adds this to the pouch's per-resource ceiling (BRDC-ECON-001's other half). */
 export const STOREHOUSE_CAP_BONUS = 250;
 /** Demolishing hands back this fraction of the cost, floored per resource. */

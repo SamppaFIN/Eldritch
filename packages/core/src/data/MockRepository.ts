@@ -25,6 +25,7 @@ import type { WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
+import { takeRazed } from './razedStore.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools } from './templeStore.js';
 import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from './templeStore.js';
@@ -173,6 +174,10 @@ export class MockRepository implements GameRepository {
 
   async demolish(h3: H3Index, now: number, id?: BuildingId): Promise<DemolishOutcome> {
     return demolishOn(this.store, h3, await this.getOwnedCells(now), now, id);
+  }
+
+  async takeRazed(now: number): Promise<BuildingId[]> {
+    return takeRazed(this.store, await this.getOwnedCells(now), now);
   }
   getTradeRoutes = (): Promise<TradeRoute[]> => readRoutes(this.store);
 

@@ -38,11 +38,11 @@ describe('build / demolish', () => {
     expect(here?.buildings?.[0]?.id).toBe('monument');
   });
 
-  it('takes a second, different Work on the same cell (BRDC-BUILD-007)', async () => {
+  it('refuses a second Work on the same cell (PIVOT-2026-09-09 kohta 6)', async () => {
     await repo.build(home, 'monument', T0);
-    expect((await repo.build(home, 'market', T0)).ok).toBe(true);
+    expect(await repo.build(home, 'market', T0)).toEqual({ ok: false, refused: 'cell-full' });
     const here = (await repo.getCells(BOX, T0)).find((c) => c.h3 === home);
-    expect(here?.buildings?.map((w) => w.id)).toEqual(['monument', 'market']);
+    expect(here?.buildings?.map((w) => w.id)).toEqual(['monument']);
   });
 
   it('refuses the same Work twice on one cell', async () => {
@@ -126,25 +126,20 @@ describe('build / demolish', () => {
     expect((await r.getResources(T0)).wood).toBe(afterSawmill - 80);
   });
 
-  it('demolishes the named Work, leaving the others (BRDC-BUILD-007)', async () => {
+  it('demolishes the one Work standing here, named or not', async () => {
     const { repo: r } = await repoWith({ wood: 999, stone: 999, gold: 999, culture: 999 }, [
       'early-farming',
     ]);
     const h = await r.setHome(ORIGIN, T0);
     await r.setCellTerrain(h, { kind: 'plain', source: 'tiles' });
     await r.build(h, 'granary', T0);
-    await r.build(h, 'monument', T0);
-    await r.build(h, 'market', T0);
 
-    expect((await r.demolish(h, T0, 'monument')).ok).toBe(true);
+    expect((await r.demolish(h, T0, 'granary')).ok).toBe(true);
     const here = (await r.getCells(BOX, T0)).find((c) => c.h3 === h);
-    expect(here?.buildings?.map((w) => w.id)).toEqual(['granary', 'market']);
+    expect(here?.buildings ?? []).toEqual([]);
 
-    // No id given → the most recent one goes.
-    await r.demolish(h, T0);
-    expect(
-      (await r.getCells(BOX, T0)).find((c) => c.h3 === h)?.buildings?.map((w) => w.id),
-    ).toEqual(['granary']);
+    // And the hex is free again, which is the whole point of one-per-cell.
+    expect((await r.build(h, 'monument', T0)).ok).toBe(true);
   });
 
   it('a Fishery yields a token once a day (BRDC-BUILD-002)', async () => {
@@ -177,5 +172,42 @@ describe('build / demolish', () => {
 
     // ...and nothing is left for a second one.
     expect(await r.build(h, 'monument', T0)).toMatchObject({ ok: false });
+  });
+});
+
+describe('takeRazed — the migration pays back what it took (PIVOT-2026-09-09 §6)', () => {
+  it('hands back the full cost, logs each one, and only ever once', async () => {
+    const { repo, store } = await repoWith({ wood: 0, stone: 0, gold: 0, culture: 0 });
+    await repo.setHome(ORIGIN, T0);
+    // Sawmill 30 wood, Monument 60 stone + 10 culture — the full build cost, not the half
+    // a chosen demolition pays back. Nobody chose this one.
+    await store.set('razed', ['sawmill', 'monument']);
+
+    const razed = await repo.takeRazed(T0);
+    expect(razed).toEqual(['sawmill', 'monument']);
+
+    const pool = await repo.getResources(T0);
+    expect(pool.wood).toBeGreaterThanOrEqual(30);
+    expect(pool.stone).toBeGreaterThanOrEqual(60);
+    expect(pool.culture).toBeGreaterThanOrEqual(10);
+
+    // `getLog` reads newest first, so the list comes back the other way up.
+    const log = await repo.getLog();
+    expect(log.filter((e) => e.kind === 'demolish').map((e) => e.ref)).toEqual([
+      'monument',
+      'sawmill',
+    ]);
+
+    // Second open: nothing owed, nothing paid.
+    const stone = pool.stone;
+    expect(await repo.takeRazed(T0)).toEqual([]);
+    expect((await repo.getResources(T0)).stone).toBe(stone);
+  });
+
+  it('is silent on a save the migration never touched', async () => {
+    const { repo } = await repoWith({ wood: 100 });
+    await repo.setHome(ORIGIN, T0);
+    expect(await repo.takeRazed(T0)).toEqual([]);
+    expect((await repo.getLog()).some((e) => e.kind === 'demolish')).toBe(false);
   });
 });
