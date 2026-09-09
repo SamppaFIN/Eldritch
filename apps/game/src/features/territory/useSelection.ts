@@ -32,7 +32,8 @@ import { useResearch } from './useResearch.js';
 import { useAnomaly } from './useAnomaly.js';
 import type { AnomalyBinding } from './useAnomaly.js';
 
-type BuildFail = BuildRefusal | 'nothing-here';
+/** Why a build was refused, and which Work it was — the message names both (BRDC-BUILD-008). */
+type BuildFail = { why: BuildRefusal | 'nothing-here'; id: BuildingId | null };
 type ExpandFail = ExpandRefusal | 'not-a-temple';
 
 export interface UseSelectionOptions {
@@ -291,7 +292,7 @@ export function useSelection({
       if (!repository) return;
       void (async () => {
         const r = await repository.build(h3, id, now());
-        setBuildRefusal(r.ok ? null : r.refused);
+        setBuildRefusal(r.ok ? null : { why: r.refused, id });
         if (r.ok) await afterSpend();
       })();
     },
@@ -301,7 +302,7 @@ export function useSelection({
   const onDemolish = useCallback((h3: H3Index, id: BuildingId) => {
     if (!repository) return;
     void repository.demolish(h3, now(), id).then((r) => {
-      setBuildRefusal(r.ok ? null : r.refused);
+      setBuildRefusal(r.ok ? null : { why: r.refused, id });
       if (r.ok) void afterSpend();
     });
   }, [repository, now, afterSpend]);

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.49",
+    "date": "2026-09-09",
+    "notes": [
+      "When a Work will not go up, the game now says what to do about it. It used to print the reason in its own words — \"That did not go through — at capacity\" — which named none of the eight things that can actually stop a build. Each one has a sentence now: what it costs, which research it waits on, or that a Granary is what lets you hold more.",
+      "And the limit you were hitting is visible before you hit it. The Build heading shows how many Works you hold against how many you may — that is a limit on you, not on the hex, and nothing on screen had ever mentioned it."
+    ]
+  },
+  {
     "version": "0.5.48",
     "date": "2026-09-09",
     "notes": [

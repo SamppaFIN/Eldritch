@@ -7,7 +7,17 @@
  * GREEN 8) — timber, a technology, or the wrong ground.
  */
 import { useState } from 'react';
-import { BUILDINGS, CELL_BUILDING_CAP, EMPTY_POOL, canBuild, hasWork, refund, worksOn } from '@es3/core';
+import {
+  BUILDINGS,
+  CELL_BUILDING_CAP,
+  EMPTY_POOL,
+  GRANARY_CAPACITY,
+  buildingCapacity,
+  canBuild,
+  hasWork,
+  refund,
+  worksOn,
+} from '@es3/core';
 import type { BuildRefusal, BuildingId, Cell, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
@@ -67,14 +77,53 @@ export interface BuildPanelProps {
   onDemolish: (h3: string, id: BuildingId) => void;
   /** Open a building's Guide page (BRDC-WIKI-004). Absent → the name is plain text. */
   onWiki?: ((id: BuildingId) => void) | undefined;
-  refusal: BuildRefusal | 'nothing-here' | null;
+  refusal: { why: BuildRefusal | 'nothing-here'; id: BuildingId | null } | null;
 }
 
-function refusalLine(refusal: BuildRefusal | 'nothing-here' | null) {
-  if (!refusal || refusal === 'nothing-here') return null;
+/**
+ * Why the build did not happen, said as what to do about it (BRDC-BUILD-008).
+ *
+ * This used to print the refusal slug — "That did not go through — at capacity." — which
+ * is the eight refusals `canBuild` can return, flattened into a phrase that names none of
+ * them usefully. `at-capacity` in particular is a wall a player walks into and cannot
+ * read: it is the player-wide cap, not this hex, and a Granary is the only way past it.
+ */
+function refusalText(why: BuildRefusal, id: BuildingId | null): string {
+  switch (why) {
+    case 'at-capacity':
+      return `You are holding all the Works you can. A Granary lets you hold ${GRANARY_CAPACITY} more.`;
+    case 'cell-full':
+      return `This hex already holds ${CELL_BUILDING_CAP} Works. Demolish one, or build on another hex.`;
+    case 'cannot-afford':
+      return id
+        ? `Not enough in the pouch — ${titleCase(id)} costs ${costLine(BUILDINGS[id].cost)}.`
+        : 'Not enough in the pouch.';
+    case 'wrong-terrain':
+      return id
+        ? `${titleCase(id)} cannot stand on this ground.`
+        : 'That cannot stand on this ground.';
+    case 'locked': {
+      const tech = id ? BUILDINGS[id].tech : null;
+      return tech
+        ? `Research ${titleCase(tech)} first — it is what unlocks this.`
+        : 'An earlier building has to stand before this one.';
+    }
+    case 'needs-a-temple':
+      return 'It has to be built beside a temple.';
+    case 'occupied':
+      return 'One of those already stands here.';
+    case 'not-yours':
+      return 'This ground is not yours yet. Walk it to take it.';
+    default:
+      return 'That cannot be built here.';
+  }
+}
+
+function refusalLine(refusal: { why: BuildRefusal | 'nothing-here'; id: BuildingId | null } | null) {
+  if (!refusal || refusal.why === 'nothing-here') return null;
   return (
     <p className="cell-panel__refusal" role="status">
-      That did not go through — {refusal.replace(/-/g, ' ')}.
+      {refusalText(refusal.why, refusal.id)}
     </p>
   );
 }
@@ -176,7 +225,21 @@ export function BuildPanel({
         </>
       ) : null}
 
-      <p className="cell-panel__build-head">Build</p>
+      {/*
+        The player-wide cap, said before it is hit (BRDC-BUILD-008). "Standing here" above
+        is this hex; this is every Work you hold anywhere, and it is the limit people walk
+        into without being able to see it coming.
+      */}
+      <p className="cell-panel__build-head">
+        Build
+        <span className="cell-panel__build-cost">
+          {' · '}
+          {myBuildings.length}/{buildingCapacity(myBuildings)} Works held
+          {myBuildings.length >= buildingCapacity(myBuildings)
+            ? ' — a Granary holds three more'
+            : ''}
+        </span>
+      </p>
       {ready.length > 0 ? (
         <ul className="cell-panel__build-list">{[...ready].sort(byName).map(row)}</ul>
       ) : (
