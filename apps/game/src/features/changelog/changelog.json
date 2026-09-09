@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.51",
+    "date": "2026-09-09",
+    "notes": [
+      "Research pays now. Until this version a technology unlocked buildings and rites and did nothing whatsoever to what your land produced — the trickle was the same in your first minute and your fiftieth hour. Each technology now lifts the ground it speaks to: Forestry pays on every forest you hold, Mining on every mountain, and the panel says so in as many words.",
+      "It is aimed rather than universal on purpose. A bonus that applied to every hex would compound the whole tree into forty times the base yield on a single cell; aimed at its own terrain the best a cell can reach is +16 an hour, and only if you actually own that kind of ground. Which forest-or-mountain realm you are building is now a reason to research one branch before another."
+    ]
+  },
+  {
     "version": "0.5.50",
     "date": "2026-09-09",
     "notes": [

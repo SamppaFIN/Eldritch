@@ -5,7 +5,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import { EMPTY_POOL } from './terrain.js';
-import type { ResourcePool } from './terrain.js';
+import type { ResourcePool, TerrainKind } from './terrain.js';
+import type { Cell } from '../types/domain.js';
 import {
   ERAS,
   TECHS,
@@ -15,6 +16,7 @@ import {
   eraOf,
   hasTech,
   research,
+  researchBonus,
   researchable,
   researchableFor,
   researchableSchoolless,
@@ -185,5 +187,64 @@ describe('riteChain (BRDC-TEMPLE-003)', () => {
       for (const req of TECHS[id].requires) expect(seen.has(req)).toBe(true);
       seen.add(id);
     }
+  });
+});
+
+describe('researchBonus — research pays on its own ground (PIVOT-2026-09-09 §3)', () => {
+  const T0 = Date.parse('2026-09-09T12:00:00Z');
+  /** A held cell of a given terrain, walked just now. */
+  const cell = (h3: string, kind: TerrainKind): Cell => ({
+    h3,
+    ownerId: 'me',
+    strength: 100,
+    lastVisitedAt: T0,
+    visitDays: [],
+    terrain: { kind, source: 'hash' },
+  });
+
+  it('pays nothing before anything is researched', () => {
+    expect(researchBonus([], [cell('a', 'forest')], T0)).toEqual({});
+  });
+
+  it('lifts only the ground its technology speaks to', () => {
+    const owned = [cell('a', 'forest'), cell('b', 'mountain')];
+    // Forestry is wood; the mountain is untouched by it.
+    expect(researchBonus(['forestry'], owned, T0)).toEqual({ wood: 2 });
+  });
+
+  it('stacks the technologies that share a resource, and only those', () => {
+    const owned = [cell('a', 'hill')]; // stone
+    const stone = ['toolmaking', 'masonry', 'fortification'] as TechId[];
+    expect(researchBonus(stone, owned, T0)).toEqual({ stone: 2 + 4 + 10 });
+  });
+
+  it('pays per cell, so territory is what makes research worth anything', () => {
+    const three = ['a', 'b', 'c'].map((h) => cell(h, 'forest'));
+    expect(researchBonus(['forestry'], three, T0)).toEqual({ wood: 3 * 2 });
+  });
+
+  /*
+   * The reason the bonus is aimed rather than universal. Thirteen technologies applied to
+   * every hex would compound to +82/h on one cell against a base trickle of 2; aimed at
+   * their own ground the worst case is +16, which is a strong cell and not a broken one.
+   */
+  it('never compounds the whole tree onto one hex', () => {
+    const worst = Math.max(
+      ...(['forest', 'hill', 'mountain', 'lake', 'coast', 'market'] as TerrainKind[]).map(
+        (k) => Object.values(researchBonus(ALL, [cell('a', k)], T0))[0] ?? 0,
+      ),
+    );
+    const everything = ALL.reduce((sum, id) => sum + (TECHS[id].yield?.perCell ?? 0), 0);
+    expect(worst).toBeLessThan(everything / 3);
+    expect(worst).toBe(16);
+  });
+
+  it('a hex you have stopped walking to stops paying, research or no research', () => {
+    const stale = { ...cell('a', 'forest'), lastVisitedAt: T0 - 10 * 86_400_000 };
+    expect(researchBonus(['forestry'], [stale], T0)).toEqual({});
+  });
+
+  it('plain ground produces nothing, so nothing lifts it', () => {
+    expect(researchBonus(ALL, [cell('a', 'plain')], T0)).toEqual({});
   });
 });

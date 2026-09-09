@@ -114,6 +114,28 @@ export function techUnlocks(id: TechId): string {
   return leadsTo.length > 0 ? `Leads to ${andList(leadsTo.map(titleCase))}` : '';
 }
 
+/**
+ * What a technology pays, per hour, on the ground it speaks to (PIVOT-2026-09-09 §3).
+ *
+ * The whole reason to spend wisdom on it, and until now the panel never said it. Named
+ * by terrain rather than by resource — "every forest you hold" is a thing a player can go
+ * and look at; "wood cells" is a database row.
+ */
+const GROUND: Readonly<Record<string, string>> = {
+  wood: 'forest',
+  stone: 'hill',
+  iron: 'mountain',
+  food: 'lake and shore',
+  gold: 'market',
+};
+
+export function techYieldLine(id: TechId): string {
+  const y = TECHS[id].yield;
+  if (!y) return '';
+  const where = GROUND[y.resource] ?? y.resource;
+  return `+${y.perCell} ${RESOURCE_WORD[y.resource]} an hour on every ${where} you hold`;
+}
+
 const TINT: Readonly<Record<string, string>> = Object.fromEntries(
   RESOURCE_KINDS.map((k) => [RESOURCE_WORD[k], RESOURCE_COLOUR[k]]),
 );

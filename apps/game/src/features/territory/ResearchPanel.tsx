@@ -10,7 +10,7 @@ import { MetatronsCube, RitualButton } from '@es3/ui';
 import { TECHS, researchCost, timeToAfford } from '@es3/core';
 import type { ResourcePool, TechId, TechRefusal } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
-import { TECH_BLURB, techUnlocks } from './catalogue.js';
+import { TECH_BLURB, techUnlocks, techYieldLine } from './catalogue.js';
 import type { ResearchBinding } from './useSelection.js';
 
 const TOTAL = Object.keys(TECHS).length;
@@ -40,6 +40,7 @@ export interface TechRowProps {
 export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch, locked }: TechRowProps) {
   const cost = researchCost(id);
   const gain = techUnlocks(id);
+  const pays = techYieldLine(id);
   return (
     <div className="hearth-panel__research-row">
       <div className="hearth-panel__research-text">
@@ -48,7 +49,8 @@ export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch, 
           <span className="hearth-panel__research-wait">{waitFor(cost, pool, wisdomPerHour)}</span>
         </span>
         <span className="hearth-panel__research-blurb">{TECH_BLURB[id]}</span>
-        {gain ? <span className="hearth-panel__research-gain">{gain}</span> : null}
+        {pays ? <span className="hearth-panel__research-gain">{pays}</span> : null}
+        {gain ? <span className="hearth-panel__research-blurb">{gain}</span> : null}
       </div>
       {locked ? (
         <span className="hearth-panel__research-wait">Locked</span>

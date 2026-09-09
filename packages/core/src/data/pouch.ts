@@ -9,7 +9,7 @@ import { EMPTY_POOL, RESOURCE_KINDS, addClaimYield, settleResources } from '../r
 import type { ResourceKind, ResourcePool, ResourceState } from '../rules/terrain.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
-import { research } from '../rules/tech.js';
+import { research, researchBonus } from '../rules/tech.js';
 import type { ResearchResult, TechId } from '../rules/tech.js';
 import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
 import { placesWithHome } from '../rules/dwell.js';
@@ -51,8 +51,9 @@ function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void
 
 /**
  * The per-hour bonus `settleResources` adds on top of the raw trickle: building
- * production (BRDC-BUILD-001), mana from held places (BRDC-MANA-001), a running research
- * spell (BRDC-SPELL-001), and area auras from Libraries and the like (BRDC-BUILD-003),
+ * production (BRDC-BUILD-001), mana and wisdom from held places (BRDC-MANA-002), what
+ * research pays on its own ground (PIVOT-2026-09-09 §3), a running research spell
+ * (BRDC-SPELL-001), and area auras from Libraries and the like (BRDC-BUILD-003),
  * merged additively. Each is filtered by its own rule — kept here so `rules/terrain.ts`
  * stays blind to all of it.
  */
@@ -70,6 +71,9 @@ async function perHourBonus(
   const spells = (await store.get<ActiveSpell[]>(K.spells)) ?? [];
   addInto(merged, domainSpellBonus(activeSpells(spells, now), now));
   addInto(merged, resourceAura(owned, now));
+
+  const researched = (await store.get<TechId[]>(K.researched)) ?? [];
+  addInto(merged, researchBonus(researched, owned, now));
 
   const routes = (await store.get<TradeRoute[]>(K.tradeRoutes)) ?? [];
   addInto(merged, routeGoldBonus(routes, owned, now));

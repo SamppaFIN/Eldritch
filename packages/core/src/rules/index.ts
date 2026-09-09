@@ -19,6 +19,7 @@ export {
   hasTech,
   research,
   researchCost,
+  researchBonus,
   researchable,
   researchableFor,
   researchableSchoolless,

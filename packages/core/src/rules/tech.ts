@@ -12,8 +12,9 @@
  * Eras are **derived**, never a counter: you are in an era once the one before it is
  * complete, capped at the last, the same discipline as `MAX_LEVEL`.
  */
-import { canAfford, spend } from './terrain.js';
-import type { ResourcePool } from './terrain.js';
+import { DORMANT_AFTER_MS, canAfford, resourceForCell, spend } from './terrain.js';
+import type { ResourceKind, ResourcePool } from './terrain.js';
+import type { Cell } from '../types/domain.js';
 
 export type Era = 'prehistory' | 'antiquity' | 'medieval';
 
@@ -61,6 +62,16 @@ export interface Tech {
    * schoolless and stays exactly as it was.
    */
   school?: TempleSchool;
+  /**
+   * What researching this adds to every owned, awake cell that produces this resource,
+   * per hour (PIVOT-2026-09-09 kohta 3).
+   *
+   * Aimed at the technology's own ground rather than at everything: a Mining bonus lifts
+   * mountains, not lakes. That is what keeps thirteen technologies from compounding into
+   * one absurd number on every hex — a fully researched cell reaches +16/h over a base
+   * trickle of `TRICKLE_PER_HOUR`, not +82.
+   */
+  yield?: { resource: ResourceKind; perCell: number };
 }
 
 /**
@@ -71,23 +82,25 @@ export interface Tech {
  * that every `requires` id exists and sits in the same era or an earlier one.
  */
 export const TECHS: Readonly<Record<TechId, Tech>> = {
-  'early-farming': { cost: 20, requires: [], era: 'prehistory' },
-  forestry: { cost: 20, requires: [], era: 'prehistory' },
-  toolmaking: { cost: 30, requires: [], era: 'prehistory' },
+  'early-farming': { cost: 20, requires: [], era: 'prehistory', yield: { resource: 'food', perCell: 2 } },
+  forestry: { cost: 20, requires: [], era: 'prehistory', yield: { resource: 'wood', perCell: 2 } },
+  toolmaking: { cost: 30, requires: [], era: 'prehistory', yield: { resource: 'stone', perCell: 2 } },
 
-  irrigation: { cost: 60, requires: ['early-farming'], era: 'antiquity' },
-  masonry: { cost: 60, requires: ['toolmaking'], era: 'antiquity' },
-  mining: { cost: 80, requires: ['toolmaking', 'masonry'], era: 'antiquity' },
-  seafaring: { cost: 70, requires: ['forestry'], era: 'antiquity' },
+  irrigation: { cost: 60, requires: ['early-farming'], era: 'antiquity', yield: { resource: 'food', perCell: 4 } },
+  masonry: { cost: 60, requires: ['toolmaking'], era: 'antiquity', yield: { resource: 'stone', perCell: 4 } },
+  mining: { cost: 80, requires: ['toolmaking', 'masonry'], era: 'antiquity', yield: { resource: 'iron', perCell: 4 } },
+  seafaring: { cost: 70, requires: ['forestry'], era: 'antiquity', yield: { resource: 'gold', perCell: 4 } },
 
   // These six unlock a Rite (rules/spell.ts) and move to their temple; the seven
   // above unlock only buildings and stay in the Keep, schoolless.
-  fortification: { cost: 140, requires: ['masonry', 'mining'], era: 'medieval', school: 'earth' },
-  'guild-craft': { cost: 160, requires: ['irrigation', 'seafaring'], era: 'medieval', school: 'air' },
+  fortification: { cost: 140, requires: ['masonry', 'mining'], era: 'medieval', school: 'earth', yield: { resource: 'stone', perCell: 10 } },
+  'guild-craft': { cost: 160, requires: ['irrigation', 'seafaring'], era: 'medieval', school: 'air', yield: { resource: 'gold', perCell: 10 } },
+  // Astronomy is the one with no ground of its own: it buys the Insight rite, which pays
+  // in wisdom, and wisdom is not something a hex produces.
   astronomy: { cost: 150, requires: ['seafaring'], era: 'medieval', school: 'spirit' },
-  smithing: { cost: 150, requires: ['mining'], era: 'medieval', school: 'fire' },
-  'tide-lore': { cost: 140, requires: ['seafaring'], era: 'medieval', school: 'water' },
-  wildcraft: { cost: 120, requires: ['forestry'], era: 'medieval', school: 'nature' },
+  smithing: { cost: 150, requires: ['mining'], era: 'medieval', school: 'fire', yield: { resource: 'iron', perCell: 10 } },
+  'tide-lore': { cost: 140, requires: ['seafaring'], era: 'medieval', school: 'water', yield: { resource: 'food', perCell: 10 } },
+  wildcraft: { cost: 120, requires: ['forestry'], era: 'medieval', school: 'nature', yield: { resource: 'wood', perCell: 10 } },
 };
 
 const ALL_TECHS = Object.keys(TECHS) as TechId[];
@@ -193,4 +206,37 @@ export function eraOf(researched: readonly TechId[]): Era {
 export function eraChanged(before: readonly TechId[], after: readonly TechId[]): Era | null {
   const now = eraOf(after);
   return now === eraOf(before) ? null : now;
+}
+
+/**
+ * What research adds to the hourly trickle, over every owned, awake cell (PIVOT §3).
+ *
+ * Each technology lifts its **own** ground: Mining pays on mountains, Irrigation on
+ * water. So the bonus a hex gets is the sum of the technologies that speak to that hex,
+ * not of every technology owned — which is what keeps a full tree from turning one cell
+ * into eighty-two an hour.
+ *
+ * Gated on the same 48 h dormancy clock as buildings and places (BRDC-ECON-001): ground
+ * you have stopped walking to stops paying, research or no research.
+ */
+export function researchBonus(
+  researched: readonly TechId[],
+  owned: readonly Cell[],
+  now: number,
+): Partial<ResourcePool> {
+  const perCell: Partial<Record<ResourceKind, number>> = {};
+  for (const id of researched) {
+    const y = TECHS[id]?.yield;
+    if (y) perCell[y.resource] = (perCell[y.resource] ?? 0) + y.perCell;
+  }
+  if (Object.keys(perCell).length === 0) return {};
+
+  const out: Partial<ResourcePool> = {};
+  for (const cell of owned) {
+    if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
+    const resource = resourceForCell(cell);
+    const add = resource ? perCell[resource] : undefined;
+    if (add) out[resource as ResourceKind] = (out[resource as ResourceKind] ?? 0) + add;
+  }
+  return out;
 }
