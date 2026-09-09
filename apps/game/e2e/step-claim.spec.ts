@@ -118,6 +118,10 @@ test('a step says what it paid — the spoils line appears (BRDC-CLAIM-013)', as
   await expect
     .poll(() => claim.innerText().catch(() => ''), { timeout: 25_000 })
     .toMatch(/awakened .* \+\d+ \w+/);
+
+  // ...and then lets go (BRDC-HUD-004). It is a reward, not a readout; leaving it up
+  // means the HUD carries the first hex of the walk for the rest of the session.
+  await expect(claim).toBeHidden({ timeout: 15_000 });
 });
 
 test('consecutive steps each commit — the count follows every one', async ({ page }) => {

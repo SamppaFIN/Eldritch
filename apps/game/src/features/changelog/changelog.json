@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.48",
+    "date": "2026-09-09",
+    "notes": [
+      "Notices behave like notices. They stack in a column instead of drawing on top of each other — two at once used to mean you only ever saw the second — and each one leaves on its own after a few seconds, or straight away if you tap it. Wave one away and it stays away.",
+      "The claim line lets go too. It was written for a closed loop, which happens rarely; now that every hex you walk into reports itself, leaving it up meant the first hex of a walk sat in the HUD until you closed the game. The full record is still in History."
+    ]
+  },
+  {
     "version": "0.5.47",
     "date": "2026-09-09",
     "notes": [

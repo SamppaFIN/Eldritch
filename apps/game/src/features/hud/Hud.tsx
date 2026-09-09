@@ -17,7 +17,7 @@ import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
 import { Vigil, vigilLine } from './Vigil.js';
-import { gainsLine, resourceGainsFor } from './claimFeedback.js';
+import { HudClaim } from './HudClaim.js';
 import { useClaimFeedback } from './useClaimFeedback.js';
 import type { Settings } from './settings.js';
 import type { HelpTopic } from '../help/help.js';
@@ -60,33 +60,6 @@ export interface HudProps {
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
   onOpenLog?: () => void;
-}
-
-/**
- * What a closed loop just did, in lore rather than in code words.
- *
- * `claim` is "Awakening the Ground", `steal` is "Corruption" — the domain model in
- * claude.md, used consistently so the interface and the fiction are the same language.
- */
-function claimLine(claim: ClaimEvent): string {
-  const count = (kind: string) => claim.outcomes.filter((o) => o.kind === kind).length;
-  const parts: string[] = [];
-
-  const awakened = count('claimed');
-  const corrupted = count('taken');
-  const reinforced = count('reinforced');
-  const damaged = count('damaged');
-
-  if (awakened) parts.push(`${awakened} awakened`);
-  if (corrupted) parts.push(`${corrupted} corrupted`);
-  if (reinforced) parts.push(`${reinforced} reinforced`);
-  if (damaged) parts.push(`${damaged} weakened`);
-
-  // What the ground paid for being taken — the same CLAIM_YIELD the pouch just gained.
-  const spoils = gainsLine(resourceGainsFor(claim.outcomes));
-  if (spoils) parts.push(spoils);
-
-  return parts.length > 0 ? parts.join(' · ') : 'The ground did not stir';
 }
 
 /** Hours, said the way a person would say them. */
@@ -219,18 +192,9 @@ export function Hud({
 
   return (
     <div className="hud" ref={hudRef}>
+      {/* Outside the panel on purpose — it is a notice, and it must not grow the HUD. */}
+      <HudClaim lastClaim={lastClaim} onOpenLog={onOpenLog} />
       <GlassPanel as="section" className="hud__panel" aria-label="Status">
-        {lastClaim ? (
-          <button
-            type="button"
-            className="hud__claim"
-            aria-live="polite"
-            onClick={onOpenLog}
-            disabled={!onOpenLog}
-          >
-            <span aria-hidden>◈</span> {claimLine(lastClaim)}
-          </button>
-        ) : null}
 
         {fading > 0 ? (
           <p className="hud__note hud__note--warn" role="status">

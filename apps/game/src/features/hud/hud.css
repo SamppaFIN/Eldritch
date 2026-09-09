@@ -97,20 +97,44 @@
 /* A closure is the game's one moment of reward. It gets the accent colour and
    the sacred-gold tick, and nothing else in the HUD does. */
 /* A button, styled as the status line it replaced — it also opens the full log. */
+/*
+ * The claim line floats above the panel rather than sitting inside it (BRDC-HUD-004).
+ *
+ * It used to appear only on a closed loop, which is rare. BRDC-CLAIM-013 made every hex
+ * you walk into report itself, and inside the panel that pushed the HUD from 25% of a
+ * phone screen to 31.7% — past the 30% the map is entitled to (BRDC-HUD-001), for the
+ * whole time it was up. Absolutely positioned against the fixed `.hud`, it costs the
+ * panel no height at all and leaves `--hud-height` honest for the panels that cap
+ * against it.
+ */
 .hud__claim {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline: min(var(--space-3), 3vw);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
-  inline-size: 100%;
-  padding: 0;
-  border: none;
-  background: none;
-  text-align: start;
+  margin-inline: auto;
+  max-inline-size: 30rem;
+  min-block-size: var(--touch-min);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--accent-warm) 40%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  pointer-events: auto;
+  text-align: center;
   color: var(--accent-warm);
-  font: inherit;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   cursor: pointer;
   animation: es-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.hud__claim:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
 }
 
 .hud__claim:disabled {

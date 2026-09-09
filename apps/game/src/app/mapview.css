@@ -22,20 +22,45 @@
   font-size: var(--text-body);
 }
 
-.mapview__warning {
+/* One column, so two notices stack instead of drawing on the same coordinates. The
+   container passes taps through to the map; only the notices themselves take them. */
+.mapview__notices {
   position: fixed;
   z-index: var(--z-hud);
   top: max(var(--space-3), env(safe-area-inset-top));
   left: min(var(--space-3), 3vw);
   right: min(var(--space-3), 3vw);
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.mapview__warning {
+  pointer-events: auto;
+  inline-size: 100%;
   max-width: 30rem;
+  min-block-size: var(--touch-min);
   padding: var(--space-2) var(--space-3);
   border: 1px solid color-mix(in oklch, var(--warning) 45%, transparent);
   border-radius: var(--radius-md);
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   color: var(--text);
+  font-family: var(--font-body);
   font-size: var(--text-sm);
   text-align: center;
+  cursor: pointer;
+}
+
+.mapview__warning--dev {
+  border-color: color-mix(in oklch, var(--awareness-green) 45%, transparent);
+  color: var(--awareness-green);
+  font-family: var(--font-numeric, monospace);
+}
+
+.mapview__warning:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
 }

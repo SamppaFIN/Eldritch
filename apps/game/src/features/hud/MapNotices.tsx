@@ -1,53 +1,64 @@
 /**
- * The row of status lines above the HUD — storage warnings, the shared world's age,
- * the dev time-shift. Lifted out of MapView, which was at its four-hundred-line ceiling;
- * these four `<p>`s are one concern (things the player should know that are not the
- * game itself) and none of the rest of the screen depends on them.
+ * The notices above the HUD — storage warnings, the shared world's age, the dev clock.
+ *
+ * They used to be four `position: fixed` paragraphs on identical coordinates, so two at
+ * once drew exactly on top of each other, and none of them ever left: they were rendered
+ * straight off their conditions, and a condition stays true. BRDC-HUD-004 makes them
+ * behave like notices — a stack, a few seconds, and a tap to be rid of one sooner.
+ *
+ * What the notices *are* lives in `notices.ts`, pure and tested. This is the timing and
+ * the DOM.
  */
-export interface MapNoticesProps {
-  /** False when this device will not persist progress. */
-  durable: boolean;
-  /** True when a save from an older schema was found and reset. */
-  schemaReset: boolean;
-  /** Age of the newest world shard in ms, or null when there is none. */
-  worldStirredMs: number | null;
-  /** Dev clock running ahead. */
-  shifted: boolean;
-  offsetDays: number;
-}
+import { useEffect, useMemo, useState } from 'react';
+import { noticesFor } from './notices.js';
+import type { NoticeConditions } from './notices.js';
 
-export function MapNotices({
-  durable,
-  schemaReset,
-  worldStirredMs,
-  shifted,
-  offsetDays,
-}: MapNoticesProps) {
+/** Long enough to read a sentence while walking; short enough to be gone before it matters. */
+const DISMISS_MS = 7_000;
+
+export type MapNoticesProps = NoticeConditions;
+
+export function MapNotices(props: MapNoticesProps) {
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(() => new Set());
+
+  const { durable, schemaReset, worldStirredMs, shifted, offsetDays } = props;
+  const notices = useMemo(
+    () => noticesFor({ durable, schemaReset, worldStirredMs, shifted, offsetDays }, dismissed),
+    [durable, schemaReset, worldStirredMs, shifted, offsetDays, dismissed],
+  );
+
+  // One timer per showing notice, keyed by the ids on screen. A notice dismissed by hand
+  // drops out of `notices`, which re-runs this and clears its timer with it.
+  const ids = notices.map((n) => n.id).join(',');
+  useEffect(() => {
+    if (ids === '') return;
+    const timers = ids.split(',').map((id) =>
+      window.setTimeout(() => {
+        setDismissed((prev) => new Set(prev).add(id));
+      }, DISMISS_MS),
+    );
+    return () => {
+      for (const t of timers) clearTimeout(t);
+    };
+  }, [ids]);
+
+  if (notices.length === 0) return null;
+
   return (
-    <>
-      {!durable ? (
-        <p className="mapview__warning" role="status">
-          This device will not keep your progress. The Void forgets between visits.
-        </p>
-      ) : null}
-
-      {schemaReset ? (
-        <p className="mapview__warning" role="status">
-          A sanctuary from an older age was found, and could not be read. It has returned to the Void.
-        </p>
-      ) : null}
-
-      {worldStirredMs !== null ? (
-        <p className="mapview__warning" role="status">
-          Other realms last stirred {Math.max(1, Math.round(worldStirredMs / 3_600_000))} h ago.
-        </p>
-      ) : null}
-
-      {shifted ? (
-        <p className="mapview__warning mapview__warning--dev" role="status">
-          Time is running {offsetDays} days ahead · T to advance · Shift+T to return
-        </p>
-      ) : null}
-    </>
+    <div className="mapview__notices">
+      {notices.map((n) => (
+        <button
+          key={n.id}
+          type="button"
+          className={`mapview__warning${n.dev ? ' mapview__warning--dev' : ''}`}
+          // A real button: it is dismissible, so it is focusable, answers Enter and Space,
+          // and gets the focus ring every other control has.
+          aria-label={`Dismiss: ${n.text}`}
+          onClick={() => setDismissed((prev) => new Set(prev).add(n.id))}
+        >
+          {n.text}
+        </button>
+      ))}
+    </div>
   );
 }
