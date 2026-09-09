@@ -322,8 +322,8 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <FirstLook
-        show={territory.owned.length === 0 && territory.lastClaim === null}
-        rivalCells={territory.cells.length}
+        owned={territory.owned.length} works={inspect.build.myBuildings.length}
+        researched={inspect.build.researched.length} rivalCells={territory.cells.length}
         rivalBearing={territory.rivalBearing}
       />
 

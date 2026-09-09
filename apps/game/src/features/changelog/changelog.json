@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.52",
+    "date": "2026-09-09",
+    "notes": [
+      "The game tells you what to do next, all the way through the opening. The line above the HUD used to say one thing and then go silent the instant you founded a Hearth — which is exactly when a new player has their first question. It now walks you through four rungs: take the hex beside you, raise a Work on it, spend your wisdom on Research, then go and get ten hexes. Then it stops for good.",
+      "It also stopped giving the wrong instruction. The first sentence the game said to anybody was \"Walk a closed loop\" — a mechanic that has been switched off by default since walking into a hex became the way you take ground."
+    ]
+  },
+  {
     "version": "0.5.51",
     "date": "2026-09-09",
     "notes": [

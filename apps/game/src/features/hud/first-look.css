@@ -1,11 +1,13 @@
-/* Sits above the HUD, out of the thumb's way, gone once it is no longer true. */
+/* Sits above the HUD, out of the thumb's way, gone once it is no longer true.
+   Measured against the HUD's own published height rather than a guess: the panel grows
+   and shrinks with what it has to say, and 12.5rem was right for none of those states. */
 
 .first-look {
   position: fixed;
   z-index: var(--z-hud);
   left: 0;
   right: 0;
-  bottom: 12.5rem;
+  bottom: calc(var(--hud-height, 9rem) + var(--space-4));
   display: flex;
   flex-direction: column;
   align-items: center;
