@@ -105,7 +105,6 @@ export {
   TRICKLE_PER_HOUR,
   addClaimYield,
   canAfford,
-  localShare,
   resourceForCell,
   resourceOf,
   settleResources,
@@ -161,3 +160,4 @@ export type {
 } from './spell.js';
 export { muster, resolveWager, wagerSeed } from './wagerBattle.js';
 export type { Combatant, Defence, WagerOutcome, WagerRound } from './wagerBattle.js';
+export { localShare } from './share.js';

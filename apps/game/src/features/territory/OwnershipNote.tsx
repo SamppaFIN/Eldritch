@@ -54,9 +54,21 @@ export function OwnershipNote({ cell, me }: OwnershipNoteProps) {
             transform="rotate(-90 18 18)"
           />
         </svg>
-        <p className="wager__shared-split es-numeric">
-          Yours {minePct}% · Theirs {100 - minePct}%
-        </p>
+        <div className="wager__shared-figures">
+          <p className="wager__shared-split es-numeric">
+            Yours {minePct}% · Theirs {100 - minePct}%
+          </p>
+          {/* Say what the split was worked out from, or the number is a verdict with no
+              case behind it (PIVOT-2026-09-09 §5). Days are the rule; strength at import
+              is the fallback for a tag written before days travelled. */}
+          {s ? (
+            <p className="wager__shared-why">
+              {typeof s.myDays === 'number' && typeof s.theirDays === 'number' && s.myDays !== s.theirDays
+                ? `You walked it on ${s.myDays} ${s.myDays === 1 ? 'day' : 'days'}, they on ${s.theirDays}.`
+                : 'Split by the strength each side held when the message arrived.'}
+            </p>
+          ) : null}
+        </div>
       </div>
       {s ? (
         <p className="cell-panel__note">

@@ -156,3 +156,16 @@
   color: var(--text);
   font-size: var(--text-body);
 }
+
+/* The case behind the percentage — smaller than the figure it explains. */
+.wager__shared-figures {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.wager__shared-why {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}

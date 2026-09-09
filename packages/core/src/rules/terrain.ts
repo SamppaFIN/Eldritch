@@ -17,6 +17,7 @@
 import { cellToParent } from 'h3-js';
 import { DECAY_GRACE_HOURS } from './constants.js';
 import { seededTerrainOf } from './terrainSeed.js';
+import { localShare } from './share.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 
 export type { Terrain, TerrainKind, TerrainSource } from '../types/domain.js';
@@ -211,24 +212,6 @@ export function trickle(cells: readonly Cell[], ms: number, now: number): Resour
   const floored = { ...EMPTY_POOL };
   for (const k of RESOURCE_KINDS) floored[k] = Math.floor(pool[k]);
   return floored;
-}
-
-/**
- * The fraction of a cell's trickle the local player keeps.
- *
- * `1` for ground held outright. A cell an imported challenge also claimed
- * (`cell.shared`, BRDC-WAGER-JSON-002, -006) is split by each side's strength at the
- * moment of import; when those are equal, by the days each side has walked it
- * (`myDays` / `theirDays`), and when neither separates them, evenly. Reinforcing the cell
- * on a new day drops `shared` and takes the whole yield back.
- */
-export function localShare(cell: Cell): number {
-  const s = cell.shared;
-  if (!s) return 1;
-  const total = s.mineAtImport + s.theirsAtImport;
-  if (total > 0 && s.mineAtImport !== s.theirsAtImport) return s.mineAtImport / total;
-  const dTotal = (s.myDays ?? 0) + (s.theirDays ?? 0);
-  return dTotal > 0 ? (s.myDays ?? 0) / dTotal : 0.5;
 }
 
 export interface ResourceState {

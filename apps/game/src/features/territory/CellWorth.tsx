@@ -65,6 +65,15 @@ export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
           <dt>Neighbours</dt>
           <dd className="es-numeric">+{NEIGHBOUR_BONUS} each</dd>
         </div>
+        {/* Separate days walked, not visits (PIVOT-2026-09-09 §5). It is the basis of the
+            share on a contested hex, so it belongs with the basics rather than tacked onto
+            the end of the history sentence, which is where it used to live. */}
+        <div>
+          <dt>Walked</dt>
+          <dd className="es-numeric">
+            {cell.ownedDays ? `${cell.ownedDays} ${cell.ownedDays === 1 ? 'day' : 'days'}` : '—'}
+          </dd>
+        </div>
       </dl>
 
       <p className="cell-panel__worth-note">

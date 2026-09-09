@@ -228,7 +228,7 @@ export function CellPanel({
       {history ? (
         <p className="cell-panel__history">
           {history}
-          {cell.ownedDays && cell.ownedDays > 1 ? ` · walked on ${cell.ownedDays} days` : ''}
+
         </p>
       ) : null}
 
