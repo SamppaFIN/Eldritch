@@ -67,9 +67,7 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
           ? `Chose ${school[0]?.toUpperCase()}${school.slice(1)} for a temple`
           : e.ref === 'consecrate'
             ? 'Consecrated a temple'
-            : e.ref === 'channel'
-              ? `Channelled mana into ${e.count ?? 0} wisdom`
-              : `Raised the Altar${e.count ? ` to level ${e.count}` : ''}`,
+            : `Raised the Altar${e.count ? ` to level ${e.count}` : ''}`,
         topic,
       };
     }

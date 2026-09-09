@@ -1,21 +1,20 @@
 /**
  * The Keep's economy, in the store (BRDC-KEEP-002).
  *
- * The maths is pure (`rules/mana.js`): `manaRate`, `expandTemple`, `channelMana`. This is
+ * The maths is pure (`rules/mana.js`): `manaRate` and `expandTemple`. This is
  * the seam that touches the store — the same shape as `templeStore.js` and `wagerRepo.js`,
  * lifted out of MockRepository to keep it under its line limit.
  *
  * The Altar is the Anchor invested in: raising it moves the Anchor cell's entry in
- * `K.expansions`, which `manaRate` already reads. Channelling turns the mana it makes
- * into wisdom, for a player with no Library.
+ * `K.expansions`, which `manaRate` already reads.
+ * A place pays its rate into mana **and** wisdom (PIVOT-2026-09-09 P3); channelling one
+ * into the other is gone with it.
  */
-import { channelMana, expandTemple, placesWithMana } from '../rules/mana.js';
-import type { ChannelRefusal, ExpandRefusal } from '../rules/mana.js';
+import { expandTemple, placesWithMana } from '../rules/mana.js';
+import type { ExpandRefusal } from '../rules/mana.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
 import { readExpansions } from './templeStore.js';
-import { BASE_STORAGE_CAP } from '../rules/terrain.js';
-import { MANA_CHANNEL_STEP, MANA_TO_WISDOM_RATE } from '../rules/constants.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
@@ -25,9 +24,6 @@ import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
 export type AltarOutcome =
   | { ok: true; level: number }
   | { ok: false; refused: ExpandRefusal | 'not-the-altar' };
-export type ChannelOutcome =
-  | { ok: true; gained: number }
-  | { ok: false; refused: ChannelRefusal };
 
 /** The public reads a Keep verb needs — MockRepository is passed as `this`. */
 export interface KeepDeps {
@@ -70,18 +66,3 @@ export async function raiseAltarFor(
   return { ok: true, level: r.level };
 }
 
-/** Channel a fixed step of mana into wisdom at the Altar. */
-export async function channelManaFor(
-  store: KeyValueStore,
-  d: KeepDeps,
-  now: number,
-): Promise<ChannelOutcome> {
-  const state = await settlePouch(store, await d.getOwnedCells(now), now);
-  const r = channelMana(state.pool, MANA_CHANNEL_STEP, MANA_TO_WISDOM_RATE, BASE_STORAGE_CAP);
-  if (!r.ok) return r;
-
-  const gained = MANA_CHANNEL_STEP / MANA_TO_WISDOM_RATE;
-  await writePouch(store, r.pool, now);
-  await writeLogEntry(store, { at: now, kind: 'mana', ref: 'channel', count: gained });
-  return { ok: true, gained };
-}

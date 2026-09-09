@@ -210,7 +210,7 @@ export const WORLD_VERSION = 2;
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2.
  */
-export const APP_VERSION = '0.5.49';
+export const APP_VERSION = '0.5.50';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -283,7 +283,8 @@ export const STARTER_STASH = { stone: 60, culture: 10 } as const;
  * were spent on. Whole units, like every other rate, for SQL parity in Phase 3.
  */
 export const MANA_ANCHOR_RATE = 6;
-export const MANA_TEMPLE_RATE = 4;
+/** 4 → 6 with PIVOT-2026-09-09 P3: Hearth and temple pay alike, and each pays twice. */
+export const MANA_TEMPLE_RATE = 6;
 export const MANA_RANK_STEP = 1;
 export const MANA_TEMPLE_MIN = 1;
 export const MAX_TEMPLE_EXPANSION = 3;
@@ -299,15 +300,10 @@ export const MANA_EXPANSION_STEP = 0.5;
  */
 export const TEMPLE_CONSECRATE_COST = { stone: 120, gold: 80 } as const;
 
-/* --- The Altar and channelling (BRDC-KEEP-002) -------------------------
-   The Altar is the Anchor invested in: it uses the temple expansion curve
-   (`expansionCost`, cap `MAX_TEMPLE_EXPANSION`). Channelling turns the mana it
-   makes into wisdom, a slow path to research for a player with no Library. */
-
-/** Mana spent per unit of wisdom when channelling at the Altar. */
-export const MANA_TO_WISDOM_RATE = 5;
-/** One channel press spends this much mana (→ MANA_CHANNEL_STEP / rate wisdom). */
-export const MANA_CHANNEL_STEP = 25;
+/* --- The Altar (BRDC-KEEP-002, PIVOT-2026-09-09 P3) --------------------
+   The Anchor invested in; it uses the temple expansion curve (`expansionCost`, cap
+   `MAX_TEMPLE_EXPANSION`). Channelling mana into wisdom is gone: a place now pays both,
+   so there is nothing left to trade. */
 
 /* --- Area effects and loyalty (BRDC-BUILD-003) --------------------- */
 

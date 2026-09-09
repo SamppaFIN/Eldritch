@@ -1,10 +1,11 @@
 /**
- * The Keep's Mana tab: the Altar's level and rate, and the two verbs (BRDC-KEEP-002).
+ * The Keep's Mana tab: the Altar's level and rate, and the one verb (BRDC-KEEP-002).
  *
  * Mirrors `useAdventure` / `useAnomaly` — its own fetch, its own refusal string, one
  * binding back. The Altar *is* the Anchor: its level is the Anchor place's `expansion`,
- * its rate the Anchor's `manaPerHour`. Both verbs settle the pouch server-side, so each
- * refetches and calls `afterSpend` to refresh the panels around it.
+ * its rate the Anchor's `manaPerHour` — which it now also pays in wisdom
+ * (PIVOT-2026-09-09 P3, so channelling is gone). Raising settles the pouch server-side,
+ * so it refetches and calls `afterSpend` to refresh the panels around it.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { MAX_TEMPLE_EXPANSION } from '@es3/core';
@@ -16,7 +17,6 @@ export interface KeepEconomy {
   atMax: boolean;
   refusal: string | null;
   onRaiseAltar: () => void;
-  onChannel: () => void;
 }
 
 export function useKeepEconomy(
@@ -58,6 +58,5 @@ export function useKeepEconomy(
     atMax: altarLevel >= MAX_TEMPLE_EXPANSION,
     refusal,
     onRaiseAltar: () => repository && run(() => repository.raiseAltar(now())),
-    onChannel: () => repository && run(() => repository.channelMana(now())),
   };
 }

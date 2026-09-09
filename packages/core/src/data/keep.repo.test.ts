@@ -1,5 +1,5 @@
 /**
- * BRDC-KEEP-002 — the Altar and channelling through the repository.
+ * BRDC-KEEP-002 — the Altar through the repository, and what a held place pays.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { EMPTY_POOL, MANA_ANCHOR_RATE } from '@es3/core';
@@ -62,20 +62,24 @@ describe('the Altar', () => {
   });
 });
 
-describe('channelling mana to wisdom', () => {
-  it('moves the pouch at the fixed rate and logs it', async () => {
-    const r = await repo.channelMana(T0);
-    expect(r).toEqual({ ok: true, gained: 5 });
+describe('what a place pays (PIVOT-2026-09-09 P3)', () => {
+  it('pays its rate into mana and wisdom alike, every hour', async () => {
+    const before = await repo.getResources(T0);
+    const after = await repo.getResources(T0 + 3 * 3_600_000);
 
-    const pool = await repo.getResources(T0);
-    expect(pool.mana).toBe(75);
-    expect(pool.wisdom).toBe(5);
-
-    expect((await repo.getLog()).some((e) => e.kind === 'mana' && e.ref === 'channel')).toBe(true);
+    // The Hearth's Anchor is the only place here, so its rate is the whole of both.
+    expect(after.mana - before.mana).toBe(3 * MANA_ANCHOR_RATE);
+    expect(after.wisdom - before.wisdom).toBe(3 * MANA_ANCHOR_RATE);
   });
 
-  it('refuses when there is not a full step of mana', async () => {
-    await store.set('resources', { pool: { ...EMPTY_POOL, mana: 10 }, since: T0, sinceDay: T0 });
-    expect(await repo.channelMana(T0)).toEqual({ ok: false, refused: 'cannot-afford' });
+  it('raising the Altar raises both, not just the mana it is named for', async () => {
+    const base = await repo.getResources(T0);
+    await repo.raiseAltar(T0);
+    const raised = (await anchor())?.manaPerHour ?? 0;
+    expect(raised).toBeGreaterThan(MANA_ANCHOR_RATE);
+
+    const after = await repo.getResources(T0 + 3_600_000);
+    expect(after.wisdom - base.wisdom).toBe(raised);
+    expect(after.mana - base.mana).toBe(raised);
   });
 });

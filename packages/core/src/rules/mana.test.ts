@@ -19,11 +19,10 @@ import {
 import { EMPTY_POOL } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
 import {
-  channelMana,
   consecrateCost,
   expandTemple,
   expansionCost,
-  manaBonus,
+  placeBonus,
   manaRate,
   placesWithMana,
 } from './mana.js';
@@ -92,30 +91,33 @@ describe('consecrateCost (BRDC-TEMPLE-001)', () => {
   });
 });
 
-describe('manaBonus', () => {
+describe('placeBonus', () => {
   it('sums the rate of every awake, held place', () => {
     const owned = [cell({ h3: 'a' }), cell({ h3: 't1' })];
-    expect(manaBonus([anchor, temple(1)], {}, owned, T0)).toEqual({
-      mana: manaRate(anchor, 0) + manaRate(temple(1), 0),
-    });
+    const rate = manaRate(anchor, 0) + manaRate(temple(1), 0);
+    // One rate, paid into both pools (PIVOT-2026-09-09 P3): mana is what a spell costs,
+    // wisdom is what research costs, and a place you keep walking to pays for both.
+    expect(placeBonus([anchor, temple(1)], {}, owned, T0)).toEqual({ mana: rate, wisdom: rate });
   });
 
   it('skips a place whose cell has gone dormant', () => {
     const owned = [cell({ h3: 'a', lastVisitedAt: T0 - 10 * 86_400_000 })];
-    expect(manaBonus([anchor], {}, owned, T0)).toEqual({});
+    expect(placeBonus([anchor], {}, owned, T0)).toEqual({});
   });
 
   it('skips a place the player does not hold', () => {
-    expect(manaBonus([anchor], {}, [], T0)).toEqual({});
+    expect(placeBonus([anchor], {}, [], T0)).toEqual({});
   });
 
   it('is empty when there are no places', () => {
-    expect(manaBonus([], {}, [cell()], T0)).toEqual({});
+    expect(placeBonus([], {}, [cell()], T0)).toEqual({});
   });
 
   it('counts a temple expansion', () => {
-    expect(manaBonus([temple(1)], { t1: 2 }, [cell({ h3: 't1' })], T0)).toEqual({
-      mana: manaRate(temple(1), 2),
+    const rate = manaRate(temple(1), 2);
+    expect(placeBonus([temple(1)], { t1: 2 }, [cell({ h3: 't1' })], T0)).toEqual({
+      mana: rate,
+      wisdom: rate,
     });
   });
 });
@@ -149,34 +151,6 @@ describe('expandTemple', () => {
   });
 });
 
-describe('channelMana', () => {
-  it('turns mana into wisdom at the rate', () => {
-    const r = channelMana(pool({ mana: 30 }), 25, 5, 500);
-    expect(r).toEqual({ ok: true, pool: pool({ mana: 5, wisdom: 5 }) });
-  });
-
-  it('refuses cannot-afford below the step', () => {
-    expect(channelMana(pool({ mana: 20 }), 25, 5, 500)).toEqual({
-      ok: false,
-      refused: 'cannot-afford',
-    });
-  });
-
-  it('refuses wisdom-full rather than overfilling the cap', () => {
-    expect(channelMana(pool({ mana: 100, wisdom: 498 }), 25, 5, 500)).toEqual({
-      ok: false,
-      refused: 'wisdom-full',
-    });
-  });
-
-  it('never mutates the pool it was handed', () => {
-    const p = pool({ mana: 100 });
-    const snapshot = { ...p };
-    channelMana(p, 25, 5, 500);
-    expect(p).toEqual(snapshot);
-  });
-});
-
 describe('placesWithMana', () => {
   it('attaches expansion and a rate to each place', () => {
     const t: Place = { h3: 't1', kind: 'temple', dwellMs: 1, rank: 1 };
@@ -202,7 +176,7 @@ describe('the dwell gap cannot be farmed into mana', () => {
     expect(MAX_DWELL_GAP_MS).toBeLessThan(ANCHOR_THRESHOLD_MS);
     expect(revealPlaces(dwell)).toEqual([]);
     expect(
-      manaBonus(revealPlaces(dwell), {}, [cell({ h3: 'bedroom' })], T0 + 8 * 3_600_000),
+      placeBonus(revealPlaces(dwell), {}, [cell({ h3: 'bedroom' })], T0 + 8 * 3_600_000),
     ).toEqual({});
   });
 

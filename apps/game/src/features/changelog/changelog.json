@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.50",
+    "date": "2026-09-09",
+    "notes": [
+      "Wisdom now arrives on its own. Every place you hold — your Hearth, and every temple — pays its rate twice an hour: once in mana, which is what Rites cost, and once in wisdom, which is what Research costs. A temple pays six of each now, the same as the Hearth.",
+      "Channelling mana into wisdom is gone. It was a button you had to remember to press, twenty-five mana at a time, and it was the only way research moved for anyone without a Library. Research advances by walking and holding ground now, like everything else."
+    ]
+  },
+  {
     "version": "0.5.49",
     "date": "2026-09-09",
     "notes": [

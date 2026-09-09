@@ -11,8 +11,12 @@
  * for eight hours is credited forty minutes, not eight hours, so a temple cannot be
  * minted from one overnight gap — you have to keep coming back, which is the whole point.
  *
+ * PIVOT-2026-09-09 P3: a place pays the same number twice — once in mana, which is what
+ * spells cost, and once in wisdom, which is what research costs. Channelling one into the
+ * other is gone with it; there is nothing left to trade.
+ *
  * Pure and clock-free where it can be: `manaRate`, `expansionCost` and `expandTemple`
- * take no `now`. `manaBonus` takes one only to answer the dormancy question.
+ * take no `now`. `placeBonus` takes one only to answer the dormancy question.
  */
 import {
   MANA_ANCHOR_RATE,
@@ -27,10 +31,6 @@ import { TEMPLE_THRESHOLD_MS } from './dwell.js';
 import { DORMANT_AFTER_MS, spend } from './terrain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 
-export type ChannelRefusal = 'cannot-afford' | 'wisdom-full';
-export type ChannelResult =
-  | { ok: true; pool: ResourcePool }
-  | { ok: false; refused: ChannelRefusal };
 import type { Place } from './dwell.js';
 import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
 
@@ -73,13 +73,13 @@ export function consecrateCost(dwellMs: number): Partial<ResourcePool> {
 }
 
 /**
- * Per-hour mana from every awake place the player still holds.
+ * Per-hour mana **and wisdom** from every awake place the player still holds.
  *
- * Gated on ownership and the same 48 h dormancy clock as terrain and buildings
- * (BRDC-ECON-001): a temple you have stopped walking to stops paying. `{}` when there is
- * nothing, so a caller can merge it away.
+ * One rate, paid into both pools (PIVOT-2026-09-09 P3). Gated on ownership and the same
+ * 48 h dormancy clock as terrain and buildings (BRDC-ECON-001): a temple you have stopped
+ * walking to stops paying. `{}` when there is nothing, so a caller can merge it away.
  */
-export function manaBonus(
+export function placeBonus(
   places: readonly Place[],
   expansions: Readonly<Record<H3Index, number>>,
   owned: readonly Cell[],
@@ -88,11 +88,11 @@ export function manaBonus(
   const awake = new Set(
     owned.filter((c) => now - c.lastVisitedAt <= DORMANT_AFTER_MS).map((c) => c.h3),
   );
-  let mana = 0;
+  let rate = 0;
   for (const place of places) {
-    if (awake.has(place.h3)) mana += manaRate(place, expansions[place.h3] ?? 0);
+    if (awake.has(place.h3)) rate += manaRate(place, expansions[place.h3] ?? 0);
   }
-  return mana > 0 ? { mana } : {};
+  return rate > 0 ? { mana: rate, wisdom: rate } : {};
 }
 
 /**
@@ -106,26 +106,6 @@ export function expandTemple(level: number, pool: ResourcePool): ExpandResult {
   const paid = spend(pool, expansionCost(level + 1));
   if (!paid) return { ok: false, refused: 'cannot-afford' };
   return { ok: true, level: level + 1, pool: paid };
-}
-
-/**
- * Channel mana into wisdom at the Altar (BRDC-KEEP-002).
- *
- * A slow path to research for a player who has not built a Library — the Altar makes
- * mana, this turns it into wisdom at a fixed rate. Refuses rather than overfills: if the
- * wisdom would cross the storage cap, nothing is spent. Never mutates `pool`.
- */
-export function channelMana(
-  pool: ResourcePool,
-  manaSpent: number,
-  rate: number,
-  cap: number,
-): ChannelResult {
-  const gained = Math.floor(manaSpent / rate);
-  if (pool.wisdom + gained > cap) return { ok: false, refused: 'wisdom-full' };
-  const paid = spend(pool, { mana: manaSpent });
-  if (!paid) return { ok: false, refused: 'cannot-afford' };
-  return { ok: true, pool: { ...paid, wisdom: paid.wisdom + gained } };
 }
 
 /** Attach `expansion` and `manaPerHour` to each place, for the panels. Pure. */

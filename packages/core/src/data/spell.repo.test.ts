@@ -2,7 +2,7 @@
  * BRDC-SPELL-001 — casting through the repository: research yields, protection shelters.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EMPTY_POOL, SPELLS, neighboursOf } from '@es3/core';
+import { EMPTY_POOL, MANA_ANCHOR_RATE, SPELLS, neighboursOf } from '@es3/core';
 import type { ResourcePool } from '@es3/core';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
@@ -38,20 +38,24 @@ describe('spells through the repository', () => {
     expect(cast).toMatchObject({ ok: true, spell: { id: 'insight' } });
     expect((await repo.getResources(T0)).mana).toBe(500 - SPELLS.insight.cost);
 
-    // Six awake hours under the spell: six times the per-hour wisdom.
+    // Six awake hours. The spell pays its per-hour wisdom, and since PIVOT-2026-09-09 P3
+    // the Hearth's Anchor pays wisdom at its mana rate as well — both, every hour.
     const perH = SPELLS.insight.domainBonusPerH?.wisdom ?? 0;
-    expect((await repo.getResources(T0 + 6 * HOUR)).wisdom).toBe(6 * perH);
+    expect((await repo.getResources(T0 + 6 * HOUR)).wisdom).toBe(6 * (perH + MANA_ANCHOR_RATE));
   });
 
   it('stops counting a research spell the moment it has expired (GREEN 6)', async () => {
     await repo.castSpell('insight', null, T0);
     const perH = SPELLS.insight.domainBonusPerH?.wisdom ?? 0;
     const settled = (await repo.getResources(T0 + 6 * HOUR)).wisdom;
+    expect(settled).toBe(6 * (perH + MANA_ANCHOR_RATE));
 
-    // Insight lasts 12 h; a read past that adds nothing for the hours since.
+    // Insight lasts 12 h. Reading eight hours later banks those eight hours of the
+    // Anchor's wisdom and *none* of the spell's — that is the whole claim, and it is
+    // worth stating as the spell's own share rather than as a frozen total.
     const later = T0 + SPELLS.insight.durationMs + 2 * HOUR;
-    expect((await repo.getResources(later)).wisdom).toBe(settled);
-    expect(settled).toBe(6 * perH);
+    const after = (await repo.getResources(later)).wisdom;
+    expect(after - settled).toBe(8 * MANA_ANCHOR_RATE);
   });
 
   it('a protection spell shelters its cell from decay, and the hours outlast the spell', async () => {

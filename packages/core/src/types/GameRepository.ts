@@ -31,7 +31,7 @@ import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { BuildOutcome, DemolishOutcome } from '../data/buildStore.js';
 import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from '../data/templeStore.js';
-import type { AltarOutcome, ChannelOutcome } from '../data/keepStore.js';
+import type { AltarOutcome } from '../data/keepStore.js';
 import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { RouteOutcome } from '../data/tradeStore.js';
@@ -290,8 +290,6 @@ export interface GameRepository {
   assignTempleSchool(h3: H3Index, school: TempleSchool, now: number): Promise<SchoolOutcome>;
   /** Raise the Altar — the Anchor cell — one expansion step (BRDC-KEEP-002). */
   raiseAltar(now: number): Promise<AltarOutcome>;
-  /** Channel a fixed step of mana into wisdom at the Altar. Refuses if short or wisdom-full. */
-  channelMana(now: number): Promise<ChannelOutcome>;
 
   /* --- Anomalies (BRDC-EVENT-001) ------------------------------------- */
   /** Anomalies on ground the player holds, with their state, for the map and the panel. */

@@ -14,7 +14,7 @@ import type { ResearchResult, TechId } from '../rules/tech.js';
 import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
-import { manaBonus } from '../rules/mana.js';
+import { placeBonus } from '../rules/mana.js';
 import { activeSpells, domainSpellBonus } from '../rules/spell.js';
 import type { ActiveSpell } from '../rules/spell.js';
 import { resourceAura } from '../rules/aura.js';
@@ -65,7 +65,7 @@ async function perHourBonus(
   const dwell = (await store.get<DwellMap>(K.dwell)) ?? {};
   const home = (await store.get<H3Index>(K.home)) ?? null;
   const expansions = (await store.get<Record<H3Index, number>>(K.expansions)) ?? {};
-  addInto(merged, manaBonus(placesWithHome(dwell, home), expansions, owned, now));
+  addInto(merged, placeBonus(placesWithHome(dwell, home), expansions, owned, now));
 
   const spells = (await store.get<ActiveSpell[]>(K.spells)) ?? [];
   addInto(merged, domainSpellBonus(activeSpells(spells, now), now));

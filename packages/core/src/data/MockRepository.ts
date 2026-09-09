@@ -11,8 +11,8 @@
  * (Phase 3) assert the two agree cell by cell.
  */
 import { latLngToCell } from 'h3-js';
-import { readPlaces, readDwellFor, raiseAltarFor, channelManaFor } from './keepStore.js';
-import type { AltarOutcome, ChannelOutcome } from './keepStore.js';
+import { readPlaces, readDwellFor, raiseAltarFor } from './keepStore.js';
+import type { AltarOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
@@ -245,7 +245,6 @@ export class MockRepository implements GameRepository {
   getPlaces = (): Promise<RevealedPlace[]> => readPlaces(this.store, () => this.getHome());
   getDwellFor = (h3: string): Promise<number> => readDwellFor(this.store, h3);
   raiseAltar = (now: number): Promise<AltarOutcome> => raiseAltarFor(this.store, this, now);
-  channelMana = (now: number): Promise<ChannelOutcome> => channelManaFor(this.store, this, now);
   expandTemple = async (h3: H3Index, now: number): Promise<ExpandOutcome> =>
     expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
   consecrateTemple = async (h3: H3Index, now: number): Promise<ConsecrateOutcome> =>
