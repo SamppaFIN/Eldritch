@@ -3,7 +3,13 @@
  */
 import { describe, expect, it } from 'vitest';
 import { cellAt, cellsWithin } from '../geo/cells.js';
-import { RARITY_SHARE, REVEAL_MULT, revealBonus, revealOf } from './reveal.js';
+import {
+  PLAIN_REVEAL_RESOURCE,
+  RARITY_SHARE,
+  REVEAL_MULT,
+  revealBonus,
+  revealOf,
+} from './reveal.js';
 import type { Rarity } from './reveal.js';
 import { CLAIM_YIELD, resourceOf } from './terrain.js';
 
@@ -38,14 +44,25 @@ describe('distribution over a large real sample', () => {
     expect(SAMPLE.length).toBeGreaterThan(5000);
   });
 
-  it('wonders are about one per cent', () => {
-    expect(share('legendary')).toBeGreaterThan(0.003);
-    expect(share('legendary')).toBeLessThan(0.025);
+  it('wonders stay rare, at about one cell in fifty', () => {
+    expect(share('legendary')).toBeGreaterThan(0.008);
+    expect(share('legendary')).toBeLessThan(0.04);
   });
 
-  it('anomalies are about five per cent', () => {
-    expect(share('rare')).toBeGreaterThan(0.03);
-    expect(share('rare')).toBeLessThan(0.08);
+  it('anomalies are about one cell in ten', () => {
+    expect(share('rare')).toBeGreaterThan(0.05);
+    expect(share('rare')).toBeLessThan(0.16);
+  });
+
+  /*
+   * Raised 2026-09-10. The old split put three reveals in four on `common`, which pays
+   * double a claim and reads as nothing — for an action a player takes on every hex they
+   * hold. Ordinary is still the single likeliest outcome, but it is no longer most of
+   * them.
+   */
+  it('leaves common as the ordinary case without letting it be nearly all of them', () => {
+    expect(share('common')).toBeGreaterThan(0.4);
+    expect(share('common')).toBeLessThan(0.65);
   });
 
   it('every tier is within a reasonable band of its share', () => {
@@ -80,8 +97,23 @@ describe('revealBonus (BRDC-CLAIM-009)', () => {
     if (legendary) expect(revealBonus(legendary).tokens).toBe(3);
   });
 
-  it('plain ground with no resource and a common tier pays nothing', () => {
+  /*
+   * This test used to assert the opposite, and asserting it did not make it right.
+   * `TERRAIN_TABLE.plain.resource` is null and plain is about two thirds of the map, so
+   * two reveals in three paid nothing at all — a button that genuinely did nothing, with
+   * a passing test standing over it saying that was the design.
+   */
+  it('pays plain ground in wisdom rather than nothing at all', () => {
     const plain = SAMPLE.find((h3) => resourceOf(h3) === null && revealOf(h3) === 'common');
-    if (plain) expect(revealBonus(plain)).toEqual({});
+    expect(plain).toBeDefined();
+    if (!plain) return;
+    expect(revealBonus(plain)).toEqual({ [PLAIN_REVEAL_RESOURCE]: CLAIM_YIELD * REVEAL_MULT.common });
+  });
+
+  it('never pays nothing, on any cell in the sample', () => {
+    for (const h3 of SAMPLE) {
+      const total = Object.values(revealBonus(h3)).reduce((a, b) => a + b, 0);
+      expect(total).toBeGreaterThan(0);
+    }
   });
 });

@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.60",
+    "date": "2026-09-10",
+    "notes": [
+      "Revealing ground pays every time now, and says so. Two thirds of the map is plain, plain ground has no resource of its own, and the reveal quietly paid nothing at all on it — so the button really was doing nothing, most of the time. Ground with no resource pays wisdom instead: revealing is looking, and wisdom is what looking gives.",
+      "And the payout is visible. A “+N” rises off the pouch with the same colours, words and pling as Collect, instead of the resources appearing in the HUD with no announcement at all.",
+      "Better ground is commoner. The old split put three reveals in four on ordinary ground — written for a game where revealing was rare, when it is something you do on every hex you take. Ordinary is still the likeliest single outcome, but no longer most of them."
+    ]
+  },
+  {
     "version": "0.5.59",
     "date": "2026-09-10",
     "notes": [

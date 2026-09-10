@@ -15,12 +15,17 @@ import type { ResourcePool } from './terrain.js';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
 /**
- * Thresholds over the hash, cumulative from 0. ~1% legendary and ~5% rare are the plan's
- * own numbers (§8.1); they are gates across a hash, not dice.
+ * Thresholds over the hash, cumulative from 0. Gates across a hash, not dice.
+ *
+ * Raised from the plan's §8.1 numbers (1 % / 5 % / 19 %) on 2026-09-10, because those were
+ * written for a game where revealing was a rare event and it turned out to be something a
+ * player does on every hex they take. Three quarters of reveals landed on `common`, which
+ * pays double a claim and reads as nothing at all. Half is still the ordinary case; the
+ * other half is now worth the tap.
  */
-const LEGENDARY_BELOW = 0.01;
-const RARE_BELOW = 0.06;
-const UNCOMMON_BELOW = 0.25;
+const LEGENDARY_BELOW = 0.02;
+const RARE_BELOW = 0.12;
+const UNCOMMON_BELOW = 0.45;
 
 /** FNV-1a over the salted index. The same cheap, stable spread `terrain.ts` thresholds on. */
 function hash(s: string): number {
@@ -61,6 +66,19 @@ export const REVEAL_MULT: Readonly<Record<Rarity, number>> = {
 };
 
 /**
+ * What plain ground pays instead of a resource it does not have.
+ *
+ * `TERRAIN_TABLE.plain.resource` is null, and plain is about **two thirds of the map**
+ * (52 % of regions outright, plus the frayed edges of the other six). So two reveals in
+ * three used to pay *nothing whatsoever* and the button was, accurately, doing nothing.
+ *
+ * Wisdom, because revealing is the act of looking and wisdom is what looking gives — and
+ * because the player this hurt most was the one whose neighbourhood is all plain, who had
+ * no other way to reach Research at all.
+ */
+export const PLAIN_REVEAL_RESOURCE = 'wisdom' as const;
+
+/**
  * The pouch bonus for revealing the ground at `h3`.
  *
  * Its terrain resource, scaled by the tier — a forest cell pays timber, a market gold,
@@ -69,10 +87,9 @@ export const REVEAL_MULT: Readonly<Record<Rarity, number>> = {
  */
 export function revealBonus(h3: string): Partial<ResourcePool> {
   const tier = revealOf(h3);
-  const resource = resourceOf(h3);
-  const out: Partial<ResourcePool> = resource
-    ? { [resource]: CLAIM_YIELD * REVEAL_MULT[tier] }
-    : {};
+  // Never nothing: ground with no resource of its own pays wisdom for the looking.
+  const resource = resourceOf(h3) ?? PLAIN_REVEAL_RESOURCE;
+  const out: Partial<ResourcePool> = { [resource]: CLAIM_YIELD * REVEAL_MULT[tier] };
   if (tier === 'legendary') out.tokens = 3;
   else if (tier === 'rare') out.tokens = 1;
   return out;

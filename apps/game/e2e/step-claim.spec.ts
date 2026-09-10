@@ -162,6 +162,27 @@ test('the new hex opens its own card, and reveal pays out once', async ({ page }
   await expect(card.getByRole('button', { name: 'Reveal this ground' })).toBeHidden();
 });
 
+test('revealing shows what it paid, on any ground at all (BRDC-REVEAL-002)', async ({ page }) => {
+  /*
+   * It used to pay into the pouch and say nothing — and on plain ground, which is about
+   * two thirds of the map, it paid literally nothing at all. Both halves are asserted:
+   * a "+N resource" rises off the HUD, and it does so whatever hex the walk landed on.
+   */
+  test.setTimeout(150_000);
+  await openMap(page);
+
+  await stepUntilNewGround(page);
+  await page.getByRole('dialog').getByRole('button', { name: 'Open its card' }).click();
+  const card = page.getByRole('region', { name: 'Selected cell' });
+  await expect(card).toBeVisible({ timeout: 8_000 });
+
+  await card.getByRole('button', { name: 'Reveal this ground' }).click();
+
+  const toast = page.locator('.pouch-gain');
+  await expect(toast).toBeVisible({ timeout: 12_000 });
+  await expect(toast).toContainText(/\+\d+/);
+});
+
 test('a tap on the map opens a cell card even with almost no ground drawn', async ({ page }) => {
   // CLAIM-009 regression: a tap used to fall through to nothing when the fog left the map
   // bare — queryRenderedFeatures found no hex under the point. The fix derives the cell

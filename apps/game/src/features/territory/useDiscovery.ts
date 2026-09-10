@@ -10,7 +10,13 @@
  * call rather than three effects.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CaptureOutcome, GameRepository, H3Index, StepClaimOutcome } from '@es3/core';
+import type {
+  CaptureOutcome,
+  Collected,
+  GameRepository,
+  H3Index,
+  StepClaimOutcome,
+} from '@es3/core';
 
 export interface Discovery {
   h3: H3Index;
@@ -36,6 +42,8 @@ export interface DiscoveryState {
   revealed: Readonly<Record<H3Index, number>>;
   /** Reveal a held cell for its tier bonus, once. */
   onReveal: (h3: H3Index) => void;
+  /** What the last reveal paid, shaped for `PouchGain` — the toast and the pling. */
+  revealGain: Collected | null;
 }
 
 export function useDiscovery(
@@ -53,6 +61,7 @@ export function useDiscovery(
 ): DiscoveryState {
   const [discovered, setDiscovered] = useState<Discovery | null>(null);
   const [revealed, setRevealed] = useState<Record<H3Index, number>>({});
+  const [revealGain, setRevealGain] = useState<Collected | null>(null);
   const claimed = useRef<Set<H3Index>>(new Set());
   const inFlight = useRef<Set<H3Index>>(new Set());
 
@@ -86,11 +95,23 @@ export function useDiscovery(
     // now / onChanged read fresh on fire; the real triggers are the cell and the mode.
   }, [repository, standingOn, loopClosure]);
 
+  /*
+   * Revealing paid into the pouch and said nothing whatsoever — no line, no sound, no
+   * number. The button changed into a sentence about the tier and that was the whole of
+   * it, so "nothing happened" was a fair reading of what the player saw.
+   *
+   * The payout is handed to `PouchGain` in the shape Collect already uses, so the two
+   * actions that put resources in the pouch look and sound the same (claude.md §14: same
+   * action, same appearance). `hours: 0` — a reveal is not a wait being cashed in.
+   */
   const onReveal = useCallback(
     (h3: H3Index) => {
       if (!repository) return;
-      void repository.revealCell(h3, now()).then((r) => {
+      const at = now();
+      void repository.revealCell(h3, at).then((r) => {
         if (!r.ok) return;
+        const total = Object.values(r.bonus).reduce((sum, n) => sum + n, 0);
+        if (total > 0) setRevealGain({ delta: r.bonus, total, hours: 0, at });
         refreshRevealed();
         onChanged();
       });
@@ -98,5 +119,5 @@ export function useDiscovery(
     [repository, refreshRevealed, onChanged, now],
   );
 
-  return { discovered, revealed, onReveal };
+  return { discovered, revealed, onReveal, revealGain };
 }

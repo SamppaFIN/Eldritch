@@ -48,7 +48,7 @@ import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
-import { PouchGain } from '../features/hud/PouchGain.js';
+import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
@@ -370,7 +370,7 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       {aside.node}
-      <PouchGain collected={collected} settings={settings} />
+      <PouchGain collected={latestGain(collected, discovery.revealGain)} settings={settings} />
 
       <SettingsMenu
         settings={settings}
