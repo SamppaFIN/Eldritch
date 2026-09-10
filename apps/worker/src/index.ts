@@ -6,6 +6,7 @@
  *
  *   POST /submit        a sealed `WorldSubmission`; kept as this player's latest
  *   GET  /world/<res6>  the shard for one region, rebuilt on every submit
+ *   GET  /demographics  the Codex of Dominion, every realm measured (BRDC-CODEX-001)
  *
  * No key on the client and no account for the player. The Worker trusts `id` + checksum
  * exactly as far as the issue path did: it can tell a torn message from a whole one, and
@@ -14,7 +15,7 @@
  * Reads are the hot path, so shards are built when someone *writes* and served from a
  * single KV read. Writes are rare — one player, now and then.
  */
-import { buildShards, mergePlayerFiles, parseSubmission } from '@es3/core/data';
+import { buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
 import type { PlayerFile } from '@es3/core/data';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
 
@@ -32,6 +33,12 @@ export interface Env {
 
 const PLAYER = 'player:';
 const SHARD = 'shard:';
+/**
+ * One key for the whole Codex. `rebuild` already walks every player file, so measuring
+ * them costs one more pass over data that is already in memory — and it means the client
+ * asks one question instead of one per region it happens to be looking at.
+ */
+const CODEX = 'codex';
 /** One submission a minute per player. KV's own floor for an expiry is 60 s. */
 const COOLDOWN_S = 60;
 
@@ -68,14 +75,16 @@ async function allFiles(kv: KV): Promise<PlayerFile[]> {
 
 /** Rebuild every region's shard from the players still inside the TTL. */
 async function rebuild(kv: KV, now: number): Promise<number> {
-  const shards = buildShards(mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS), now);
-  const live = new Set<string>();
+  const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS);
+  await kv.put(CODEX, JSON.stringify(demographicsOf(live, now)));
+  const shards = buildShards(live, now);
+  const kept = new Set<string>();
   for (const [region, shard] of shards) {
-    live.add(SHARD + region);
+    kept.add(SHARD + region);
     await kv.put(SHARD + region, JSON.stringify(shard));
   }
   const { keys } = await kv.list({ prefix: SHARD });
-  for (const key of keys) if (!live.has(key.name)) await kv.delete(key.name);
+  for (const key of keys) if (!kept.has(key.name)) await kv.delete(key.name);
   return shards.size;
 }
 
@@ -107,8 +116,20 @@ export default {
       });
     }
 
+    // Served from a single KV read like the shards: it is rebuilt on write, never on read.
+    if (request.method === 'GET' && url.pathname === '/demographics') {
+      const codex = await env.WORLD.get(CODEX);
+      if (!codex) return bare(204);
+      return new Response(codex, {
+        headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+      });
+    }
+
     if (request.method === 'GET' && url.pathname === '/') {
-      return send({ world: 'eldritch', endpoints: ['POST /submit', 'GET /world/<res6>'] });
+      return send({
+        world: 'eldritch',
+        endpoints: ['POST /submit', 'GET /world/<res6>', 'GET /demographics'],
+      });
     }
 
     return bare(404);

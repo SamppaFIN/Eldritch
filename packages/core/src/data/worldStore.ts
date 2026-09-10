@@ -8,6 +8,8 @@
  */
 import { parseWorld, worldSourceFrom, worldToCells } from './world.js';
 import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
+import { leyLineM } from '../geo/paths.js';
+import { readPaths } from './pathStore.js';
 import { muster } from './wagerRepo.js';
 import type { MusterDeps } from './wagerRepo.js';
 import { K } from './keys.js';
@@ -51,13 +53,19 @@ export async function mergeWorld(
  * The local player's own ground, sealed for publishing (BRDC-SHARE-002).
  *
  * Same `muster` the Wager gathers — who you are, the ground still standing, the Keep —
- * turned into a `WorldSource` the client carries to the cron job as a GitHub issue.
+ * turned into a `WorldSource` the client POSTs to the Worker.
+ *
+ * The ley-line goes with it (BRDC-CODEX-001). It is measured here rather than stored as a
+ * running total because the walked-path map is the only honest source: it holds one entry
+ * per distinct stretch, so a hundred laps of one block measure one block. A counter would
+ * have to decide what to do about that, and it would get it wrong.
  */
 export async function exportWorldSource(
   deps: MusterDeps,
   identity: WorldIdentity,
   now: number,
+  store: KeyValueStore,
 ): Promise<WorldSource> {
   const m = await muster(deps, now);
-  return worldSourceFrom(m.me, m.owned, m.castle, identity);
+  return worldSourceFrom(m.me, m.owned, m.castle, identity, leyLineM(await readPaths(store)));
 }

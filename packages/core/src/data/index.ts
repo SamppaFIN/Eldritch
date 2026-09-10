@@ -59,14 +59,9 @@ export type {
 } from './challenge.js';
 export type { ImportResult, WagerIdentity, WagerReport } from './wager.js';
 export {
-  buildPlayerFile,
-  buildShards,
   buildSubmission,
-  encodePlayerFile,
   encodeSubmission,
   encodeWorld,
-  mergePlayerFiles,
-  parsePlayerFile,
   parseSubmission,
   parseWorld,
   worldSourceFrom,
@@ -74,8 +69,6 @@ export {
   worldAgeMs,
 } from './world.js';
 export type {
-  PlayerFile,
-  PlayerFileParse,
   WorldFault,
   WorldIdentity,
   WorldParse,
@@ -86,3 +79,21 @@ export type {
   SubmissionParse,
   WorldImportResult,
 } from './world.js';
+
+export {
+  buildPlayerFile,
+  buildShards,
+  encodePlayerFile,
+  mergePlayerFiles,
+  parsePlayerFile,
+} from './worldMerge.js';
+export type { PlayerFile, PlayerFileParse } from './worldMerge.js';
+export { METRIC_IDS, demographicsOf, placementIn } from './demographics.js';
+export type {
+  Demographics,
+  Measurable,
+  Metric,
+  MetricId,
+  Placement,
+  Standing,
+} from './demographics.js';

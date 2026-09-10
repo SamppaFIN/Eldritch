@@ -209,7 +209,7 @@ export class MockRepository implements GameRepository {
     mergeWorld(this.store, text, (await this.getProfile()).id, now);
 
   exportWorldSource = (now: number, identity: WorldIdentity): Promise<WorldSource> =>
-    sealWorld(this, identity, now);
+    sealWorld(this, identity, now, this.store);
 
   getDefence = (): Promise<Defence> => readDefence(this.store);
 

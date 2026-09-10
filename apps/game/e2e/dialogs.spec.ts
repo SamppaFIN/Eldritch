@@ -158,3 +158,101 @@ test('the menu control is a real button with a real name, and reaches Delete pro
   const delBox = await del.boundingBox();
   expect(delBox?.height ?? 0).toBeGreaterThanOrEqual(44);
 });
+
+test('the Codex opens from the menu, and says so when the world is empty', async ({ page }) => {
+  /*
+   * BRDC-CODEX-001. Nothing has been published in a test run, and that is the state worth
+   * locking: a player with no friends online must get a sentence telling them how the
+   * Codex fills, not a spinner, an error, or a table of zeroes.
+   */
+  await openMap(page);
+  await openMenuAction(page, 'Codex of Dominion');
+
+  const codex = page.getByRole('region', { name: 'Codex of Dominion' });
+  await expect(codex).toBeVisible();
+  await expect(codex).toContainText(/No realm has published yet/i, { timeout: 10_000 });
+
+  // Same contract as every other sheet: ESC closes it (claude.md §14).
+  await page.keyboard.press('Escape');
+  await expect(codex).toHaveCount(0);
+});
+
+/** A Codex the Worker might serve: three realms, and the local player is not the best. */
+function cannedCodex(meNameless = 'me') {
+  const realm = (id: string, value: number, nation?: string) => ({
+    id,
+    name: id,
+    ...(nation ? { nation } : {}),
+    value,
+  });
+  const metric = (id: string, mine: number, best: number, worst: number) => ({
+    id,
+    ranked: [realm('rival', best, 'The Pale Warden'), realm(meNameless, mine), realm('third', worst)],
+    best,
+    worst,
+    average: (best + mine + worst) / 3,
+  });
+  return {
+    v: 1,
+    generatedAt: Date.now(),
+    players: 3,
+    metrics: [
+      metric('land', 11_353, 2_500_000, 2_150),
+      metric('leyline', 840, 12_400, 100),
+      metric('consciousness', 2, 9, 1),
+      metric('population', 280, 4_000, 40),
+      metric('works', 1, 30, 0),
+      metric('provinces', 1, 6, 1),
+      metric('footfall', 15, 300, 1),
+    ],
+  };
+}
+
+/** The local player's id, straight out of the store the app writes it to. */
+async function playerId(page: Page): Promise<string> {
+  return page.evaluate(
+    () =>
+      new Promise<string>((resolve) => {
+        const open = indexedDB.open('es3');
+        open.onsuccess = () => {
+          const get = open.result.transaction('kv', 'readonly').objectStore('kv').get('profile');
+          get.onsuccess = () => resolve((get.result as { id?: string } | undefined)?.id ?? '');
+          get.onerror = () => resolve('');
+        };
+        open.onerror = () => resolve('');
+      }),
+  );
+}
+
+test('the Codex shows where you stand, not just who won', async ({ page }) => {
+  /*
+   * BRDC-CODEX-001. The Worker is not reachable from a test run, so the table is served
+   * here — with the real local id in it, because the thing this screen exists for is
+   * *your* figure, in its own unit, against the best/average/worst.
+   */
+  await openMap(page);
+  const me = await playerId(page);
+  expect(me).not.toBe('');
+
+  await page.route('**/demographics', (route) =>
+    route.fulfill({ contentType: 'application/json', body: JSON.stringify(cannedCodex(me)) }),
+  );
+  await openMenuAction(page, 'Codex of Dominion');
+
+  const codex = page.getByRole('region', { name: 'Codex of Dominion' });
+  await expect(codex).toContainText('3 realms measured');
+
+  // Your own land in m² rather than "0.01 km²", and the best of the three in km².
+  await expect(codex).toContainText('11,353 m²');
+  await expect(codex).toContainText('2.5 km²');
+  // Ley-line in metres, footfall in days — each measure in the unit a walker reads.
+  await expect(codex).toContainText('840 m');
+  await expect(codex).toContainText('15 days');
+  // And a placing, said as a placing: second of three, on every row.
+  await expect(codex).toContainText('2nd of 3');
+
+  // Tapping a row explains the measure and names who leads it.
+  await codex.getByRole('button', { name: /Ley-line/ }).click();
+  await expect(codex).toContainText('The Pale Warden');
+  await expect(codex).toContainText(/A hundred laps of one block/i);
+});

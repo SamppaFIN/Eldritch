@@ -13,6 +13,7 @@
  * ever rises with visits, and pruning keeps the most-worn.
  */
 import { latLngToCell } from 'h3-js';
+import { haversine } from './haversine.js';
 import { cellCentre } from './cells.js';
 import { PATH_SEGMENT_RES, PATH_TIERS, PATH_TIER_VISITS } from '../rules/constants.js';
 import type { H3Index, LatLng } from '../types/domain.js';
@@ -109,4 +110,19 @@ export function walkedEdges(map: Readonly<Record<string, PathSegment>>): WalkedE
       visits: seg.visits,
     };
   });
+}
+
+/**
+ * Metres of *distinct* ground the player has ever walked — the ley-line's true length
+ * (BRDC-CODEX-001).
+ *
+ * Distinct, not cumulative: the stored map is one entry per stretch however many times it
+ * has been crossed, so a hundred laps of the same block measure one block. That is the
+ * honest reading of "how much of the world have you walked", and it is the only one worth
+ * ranking — a pedometer total rewards a treadmill.
+ */
+export function leyLineM(map: Readonly<Record<string, PathSegment>>): number {
+  let metres = 0;
+  for (const { a, b } of walkedEdges(map)) metres += haversine(a, b);
+  return metres;
 }

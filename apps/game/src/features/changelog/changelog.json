@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.57",
+    "date": "2026-09-10",
+    "notes": [
+      "The Codex of Dominion is open — ☰ → Codex of Dominion. Seven measures, and each one shows your figure, your placing, and the best, average and worst across every realm that has published: Land, Ley-line, Consciousness, Population, Works, Provinces and Footfall.",
+      "It is a demographics table rather than a scoreboard, on purpose. A ranked list tells six of seven friends that they lost; this tells all seven something true about their own realm, and someone third in Land can find they are first in Ley-line.",
+      "Ley-line counts distinct ground walked, not steps taken. A hundred laps of the same block measure one block — the honest answer to how much of the world you have walked, and the only one worth ranking.",
+      "Footfall is every day walked on every hex you hold, added up. It is the one measure an afternoon cannot buy: it only grows by coming back."
+    ]
+  },
+  {
     "version": "0.5.56",
     "date": "2026-09-10",
     "notes": [

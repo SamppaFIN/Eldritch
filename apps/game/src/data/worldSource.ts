@@ -35,6 +35,22 @@ export async function fetchWorldShards(regions: readonly string[]): Promise<stri
   return texts;
 }
 
+/**
+ * Fetch the Codex of Dominion — every realm the Worker holds, measured (BRDC-CODEX-001).
+ *
+ * One request, not one per region: the Worker builds the table on write and serves it
+ * from a single KV read. `null` for a world nobody has published to yet, and for every
+ * failure — the Codex is a view of other people, and there may simply be none.
+ */
+export async function fetchDemographics(): Promise<string | null> {
+  try {
+    const res = await fetch(`${WORLD_API}/demographics`, { cache: 'no-store' });
+    return res.ok && res.status !== 204 ? await res.text() : null;
+  } catch {
+    return null;
+  }
+}
+
 export type PublishResult = 'ok' | 'rate-limited' | 'failed';
 
 /**

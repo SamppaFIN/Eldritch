@@ -9,20 +9,22 @@ import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { cellAt, regionOf } from '../geo/cells.js';
 import { destination } from '../geo/project.js';
 import {
-  buildPlayerFile,
-  buildShards,
   buildSubmission,
-  encodePlayerFile,
   encodeSubmission,
   encodeWorld,
-  mergePlayerFiles,
-  parsePlayerFile,
   parseSubmission,
   parseWorld,
   worldAgeMs,
   worldSourceFrom,
   worldToCells,
 } from './world.js';
+import {
+  buildPlayerFile,
+  buildShards,
+  encodePlayerFile,
+  mergePlayerFiles,
+  parsePlayerFile,
+} from './worldMerge.js';
 import { toWireCell } from './challenge.js';
 import type { WorldSource } from './world.js';
 import type { Cell } from '../types/domain.js';

@@ -7,7 +7,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { destination } from '../geo/project.js';
 import { cellAt, ringToCells } from '../geo/cells.js';
-import { buildShards, encodeWorld } from './world.js';
+import { encodeWorld } from './world.js';
+import { buildShards } from './worldMerge.js';
 import type { WorldSource } from './world.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';

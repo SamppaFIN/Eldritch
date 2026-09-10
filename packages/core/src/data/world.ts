@@ -17,7 +17,6 @@
  * is the Hearth cell — the game is among friends, and this file carries the real home.
  */
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
-import { regionOf } from '../geo/cells.js';
 import { checksum, toWireCell } from './challenge.js';
 import type { WireCell } from './challenge.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
@@ -31,6 +30,11 @@ export interface WorldPlayer {
   /** Their Keep — the Hearth cell, published (BRDC-CASTLE-001 reversal). */
   castle: H3Index | null;
   cells: WireCell[];
+  /** Consciousness level and metres of distinct ground walked (BRDC-CODEX-001).
+   *  Additive — an older submission carries neither, and the Codex reads them as unknown
+   *  rather than as zero. */
+  level?: number;
+  leyM?: number;
 }
 
 export interface WorldShard {
@@ -63,6 +67,9 @@ export interface WorldSource {
    * accepted (it satisfies `WireCell`); `toWireCell` trims one that carries terrain.
    */
   cells: readonly WireCell[];
+  /** What the Codex ranks that the cells cannot answer (BRDC-CODEX-001). Both additive. */
+  level?: number;
+  leyM?: number;
 }
 
 /**
@@ -80,11 +87,13 @@ export interface WorldSubmission {
   banner?: string;
   castle: H3Index | null;
   cells: WireCell[];
+  level?: number;
+  leyM?: number;
   sum: string;
 }
 
 /** h3, strength, and terrain/building/days when the source carried them. */
-function trimWire(c: WireCell): WireCell {
+export function trimWire(c: WireCell): WireCell {
   const w: WireCell = { h3: c.h3, strength: Math.round(c.strength) };
   if (c.t) w.t = c.t;
   if (c.b) w.b = c.b;
@@ -100,6 +109,8 @@ export function buildSubmission(source: WorldSource): WorldSubmission {
     ...(source.nation ? { nation: source.nation } : {}),
     ...(source.banner ? { banner: source.banner } : {}),
     castle: source.castle,
+    ...(source.level ? { level: source.level } : {}),
+    ...(source.leyM ? { leyM: Math.round(source.leyM) } : {}),
     cells: [...source.cells]
       .sort((a, b) => b.strength - a.strength)
       .slice(0, MAX_SHARD_CELLS)
@@ -151,6 +162,8 @@ export function parseSubmission(text: string): SubmissionParse {
       ...(s.nation ? { nation: s.nation } : {}),
       ...(s.banner ? { banner: s.banner } : {}),
       castle: s.castle ?? null,
+      ...(typeof s.level === 'number' ? { level: s.level } : {}),
+      ...(typeof s.leyM === 'number' ? { leyM: s.leyM } : {}),
       cells: s.cells,
     },
   };
@@ -165,52 +178,6 @@ export function parseSubmission(text: string): SubmissionParse {
  * Trusted repo content (the *submission* was checksum-checked on the way in), so the read
  * is a light structural one, not a signature.
  */
-export interface PlayerFile {
-  source: WorldSource;
-  submittedAt: number;
-}
-
-export type PlayerFileParse = { ok: true; file: PlayerFile } | { ok: false; fault: WorldFault };
-
-export function buildPlayerFile(source: WorldSource, submittedAt: number): PlayerFile {
-  return { source, submittedAt };
-}
-
-export function encodePlayerFile(file: PlayerFile): string {
-  return JSON.stringify(file);
-}
-
-export function parsePlayerFile(text: string): PlayerFileParse {
-  let raw: unknown;
-  try {
-    raw = JSON.parse(text.trim());
-  } catch {
-    return { ok: false, fault: 'not-json' };
-  }
-  if (typeof raw !== 'object' || raw === null) return { ok: false, fault: 'not-a-shard' };
-  const f = raw as Partial<PlayerFile>;
-  if (
-    typeof f.submittedAt !== 'number' ||
-    !Number.isFinite(f.submittedAt) ||
-    typeof f.source !== 'object' ||
-    f.source === null ||
-    typeof f.source.id !== 'string' ||
-    !Array.isArray(f.source.cells)
-  ) {
-    return { ok: false, fault: 'not-a-shard' };
-  }
-  return { ok: true, file: { source: f.source as WorldSource, submittedAt: f.submittedAt } };
-}
-
-/** The un-stale players' ground, ready for `buildShards`. */
-export function mergePlayerFiles(
-  files: readonly PlayerFile[],
-  now: number,
-  ttlMs: number,
-): WorldSource[] {
-  return files.filter((f) => now - f.submittedAt <= ttlMs).map((f) => f.source);
-}
-
 export interface WorldIdentity {
   nation?: string;
   banner?: string;
@@ -218,10 +185,12 @@ export interface WorldIdentity {
 
 /** Assemble the local player's own ground for publishing. Mirrors `exportChallengeFrom`. */
 export function worldSourceFrom(
-  me: { id: PlayerId; name: string },
+  me: { id: PlayerId; name: string; level?: number },
   owned: readonly Cell[],
   castle: H3Index | null,
   identity: WorldIdentity = {},
+  /** Metres of distinct ground walked, for the Codex (BRDC-CODEX-001). */
+  leyM = 0,
 ): WorldSource {
   return {
     id: me.id,
@@ -229,71 +198,10 @@ export function worldSourceFrom(
     ...(identity.nation ? { nation: identity.nation } : {}),
     ...(identity.banner ? { banner: identity.banner } : {}),
     castle,
+    ...(me.level ? { level: me.level } : {}),
+    ...(leyM > 0 ? { leyM: Math.round(leyM) } : {}),
     cells: owned.map(toWireCell),
   };
-}
-
-/**
- * Bucket every source's ground by res-6 region and seal one shard per populated region.
- *
- * A player's cells routinely span more than one region, so the same player appears in
- * several shards, each carrying only the cells that belong there. A region past
- * `MAX_SHARD_CELLS` keeps the strongest across everyone in it — a busy city is a
- * directory of shards, but one region's file still has a ceiling.
- */
-export function buildShards(
-  sources: readonly WorldSource[],
-  now: number,
-): Map<H3Index, WorldShard> {
-  const who = new Map<
-    PlayerId,
-    { name: string; nation?: string; banner?: string; castle: H3Index | null }
-  >();
-  const byRegion = new Map<H3Index, Array<{ id: PlayerId } & WireCell>>();
-
-  for (const source of sources) {
-    who.set(source.id, {
-      name: source.name,
-      ...(source.nation ? { nation: source.nation } : {}),
-      ...(source.banner ? { banner: source.banner } : {}),
-      castle: source.castle,
-    });
-    for (const cell of source.cells) {
-      const region = regionOf(cell.h3);
-      const bucket = byRegion.get(region) ?? [];
-      bucket.push({ id: source.id, ...trimWire(cell) });
-      byRegion.set(region, bucket);
-    }
-  }
-
-  const shards = new Map<H3Index, WorldShard>();
-  for (const [region, flat] of byRegion) {
-    const kept = [...flat].sort((a, b) => b.strength - a.strength).slice(0, MAX_SHARD_CELLS);
-
-    const grouped = new Map<PlayerId, WireCell[]>();
-    for (const { id, ...wire } of kept) {
-      const list = grouped.get(id) ?? [];
-      list.push(wire);
-      grouped.set(id, list);
-    }
-
-    const players: WorldPlayer[] = [];
-    for (const [id, cells] of grouped) {
-      const w = who.get(id);
-      players.push({
-        id,
-        name: w?.name ?? id,
-        ...(w?.nation ? { nation: w.nation } : {}),
-        ...(w?.banner ? { banner: w.banner } : {}),
-        castle: w?.castle ?? null,
-        cells,
-      });
-    }
-
-    const payload = { v: WORLD_VERSION, region, generatedAt: now, players };
-    shards.set(region, { ...payload, sum: checksum(payload) });
-  }
-  return shards;
 }
 
 export function encodeWorld(shard: WorldShard): string {

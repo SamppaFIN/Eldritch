@@ -1,9 +1,9 @@
 /**
- * The map's set-aside panels — Help, History, Character (BRDC-CHAR-001).
+ * The map's set-aside panels — Help, History, Character, Codex (BRDC-CHAR-001, -CODEX-001).
  *
- * None of them is about the ground under your feet, and all three are opened from the HUD
+ * None of them is about the ground under your feet, and all four are opened from the HUD
  * or the menu and closed with ESC. Bundled into one hook so MapView holds a line, not
- * fourteen: the open state, the log fetch, the encounter registry (BRDC-WIKI-002), and
+ * eighteen: the open state, the log fetch, the encounter registry (BRDC-WIKI-002), and
  * the renders live here.
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -17,6 +17,7 @@ import { GuideNews } from '../help/GuideNews.js';
 import { useEncountered } from '../help/useEncountered.js';
 import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
+import { CodexPanel } from '../codex/CodexPanel.js';
 
 export interface MapAside {
   node: ReactNode;
@@ -27,6 +28,8 @@ export interface MapAside {
   openGuide: () => void;
   openLog: () => void;
   openCharacter: () => void;
+  /** The Codex of Dominion — every realm measured (BRDC-CODEX-001). */
+  openCodex: () => void;
 }
 
 export function useMapAside(
@@ -44,6 +47,8 @@ export function useMapAside(
   const [logOpen, setLogOpen] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [characterOpen, setCharacterOpen] = useState(false);
+  const [codexOpen, setCodexOpen] = useState(false);
+  const [meId, setMeId] = useState<string | null>(null);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
 
   // Live data for a derived page's status line — "held on 3 cells", "yours to cast"
@@ -63,6 +68,12 @@ export function useMapAside(
     void repository.getResearched().then(setResearched);
     void repository.getActiveSpells(now()).then(setSpells);
   }, [repository, help, now, version]);
+
+  // Only so the Codex can point at the player's own row. Read once, not per open.
+  useEffect(() => {
+    if (!repository) return;
+    void repository.getProfile().then((p) => setMeId(p.id));
+  }, [repository]);
 
   /** Open one page. A hand topic is folded into the registry; a derived ref just opens. */
   const openTopic = useCallback(
@@ -102,6 +113,7 @@ export function useMapAside(
         onTopic={openTopic}
         onClose={() => setCharacterOpen(false)}
       />
+      <CodexPanel open={codexOpen} me={meId} onClose={() => setCodexOpen(false)} />
     </>
   );
 
@@ -111,5 +123,6 @@ export function useMapAside(
     openGuide: () => setHelp('index'),
     openLog: () => setLogOpen(true),
     openCharacter: () => setCharacterOpen(true),
+    openCodex: () => setCodexOpen(true),
   };
 }
