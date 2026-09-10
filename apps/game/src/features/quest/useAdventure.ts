@@ -5,6 +5,15 @@
  * verb changes the book, XP or the pouch, so each one refetches the list. The pouch and
  * XP readouts around it catch up on their own minute poll — an adventure step is rare and
  * never time-critical.
+ *
+ * `now` is the clock **function**, not a reading of it (BRDC-ECON-009). It used to be a
+ * number, and the caller produced it by calling the clock during render — so every render
+ * handed this hook a fresh millisecond, `refetch` was a new function, the effect ran
+ * again, the fetch set new state, and that rendered. A self-feeding loop, and not a cheap
+ * one: `getAdventures` settles the whole pouch and sweeps every owned cell, so it ran
+ * about six full IndexedDB round-trips a second forever. Everything else that needed the
+ * store — the HUD pouch, the build menu's "can I afford this" — queued behind it and
+ * arrived seconds late, which is what "no button does anything" actually was.
  */
 import { useCallback, useEffect, useState } from 'react';
 import type { AdventureView, GameRepository } from '@es3/core';
@@ -22,7 +31,7 @@ export interface AdventureBinding {
 
 export function useAdventure(
   repository: GameRepository | null,
-  now: number,
+  now: () => number,
   /** Bumped as ground is claimed, so a locked choice unlocks the moment its gate is met. */
   version: number,
 ): AdventureBinding {
@@ -31,7 +40,7 @@ export function useAdventure(
   const [justEnded, setJustEnded] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
-    if (repository) setList(await repository.getAdventures(now));
+    if (repository) setList(await repository.getAdventures(now()));
   }, [repository, now]);
 
   useEffect(() => {
@@ -57,11 +66,11 @@ export function useAdventure(
     active,
     refusal,
     justEnded,
-    onStart: (id) => repository && run(() => repository.startAdventure(id, now)),
+    onStart: (id) => repository && run(() => repository.startAdventure(id, now())),
     onChoose: (i) =>
       repository &&
       active &&
-      run(() => repository.chooseInAdventure(active.id, i, now), active.title),
+      run(() => repository.chooseInAdventure(active.id, i, now()), active.title),
     onAbandon: (id) => repository && run(() => repository.abandonAdventure(id)),
   };
 }

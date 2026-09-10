@@ -7,15 +7,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { levelState, load, speedMs } from '@es3/core';
-import type {
-  BBox,
-  Collected,
-  GameRepository,
-  H3Index,
-  PlayerProfile,
-  RevealedPlace,
-  TrailPoint,
-} from '@es3/core';
+import type { BBox, Collected, RevealedPlace, TrailPoint } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { MapCanvas, type MapHandle } from '../features/map/MapCanvas.js';
 import type { BasemapState } from '../features/map/useMap.js';
@@ -43,6 +35,7 @@ import { AdventureDialog } from '../features/quest/AdventureDialog.js';
 import { useCellTerrain } from '../features/map/useCellTerrain.js';
 import { useStandingCell } from '../features/map/useStandingCell.js';
 import { useMapAside } from '../features/map/useMapAside.js';
+import { useBoot } from '../features/map/useBoot.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
@@ -52,11 +45,10 @@ import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
-import { geoTrouble, type NoticeConditions } from '../features/hud/notices.js';
+import { geoTrouble } from '../features/hud/notices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
 import { useNation } from '../features/nation/useNation.js';
-import { createRepository } from '../data/createRepository.js';
 import { useSharedWorld } from '../features/territory/useSharedWorld.js';
 import './mapview.css';
 
@@ -64,20 +56,11 @@ export interface MapViewProps {
   onLeave: () => void;
 }
 
-/** The three things `createRepository` can report about the save it opened. */
-type BootAlerts = Pick<NoticeConditions, 'durable' | 'schemaReset' | 'razed'>;
-const QUIET_BOOT: BootAlerts = { durable: true, schemaReset: false, razed: 0 };
-
 export function MapView({ onLeave }: MapViewProps) {
-  const [repository, setRepository] = useState<GameRepository | null>(null);
-  // What the boot found and had to say about it — one state, so `MapNotices` takes it whole.
-  const [alerts, setAlerts] = useState<BootAlerts>(QUIET_BOOT);
-  const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [basemap, setBasemap] = useState<BasemapState>('loading');
   const [bbox, setBbox] = useState<BBox | null>(null);
   const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
-  const [castle, setCastle] = useState<H3Index | null>(null);
   const [settings, onSettingsChange] = useSettings();
   const [nation] = useNation();
 
@@ -89,21 +72,7 @@ export function MapView({ onLeave }: MapViewProps) {
   // Only the opening camera position; live permission state is usePositionSource's job.
   const { centre, settled, permission } = useInitialPosition();
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const handle = await createRepository();
-      if (cancelled) return;
-      setRepository(handle.repository);
-      setAlerts({ durable: handle.durable, schemaReset: handle.reset, razed: handle.razed.length });
-      setProfile(await handle.repository.getProfile());
-      // A returning player already has a Keep; setHome below only fires for a fresh one.
-      setCastle(await handle.repository.getCastle());
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { repository, alerts, profile, setProfile, castle } = useBoot(clock.now, clock);
 
   const simulate = useSimulateKey();
 
@@ -112,21 +81,6 @@ export function MapView({ onLeave }: MapViewProps) {
     origin: centre,
     simulate,
   });
-
-  // Write the accepted Hearth through once — a claimed cell and an Anchor Stone. Guarded
-  // on `getHome` so a save that already has one is never overwritten; `setHome` itself is
-  // idempotent under a double call (the effect re-fires on every fresh `clock`).
-  useEffect(() => {
-    if (!repository) return;
-    const mark = load<{ position: { lat: number; lng: number } } | null>('hearth', null);
-    if (!mark) return;
-    void (async () => {
-      if (await repository.getHome()) return;
-      await repository.setHome(mark.position, clock.now());
-      setProfile(await repository.getProfile());
-      setCastle(await repository.getCastle());
-    })();
-  }, [repository, clock]);
 
   // The world exists as soon as the game knows where you are, not once trail is written.
   useEffect(() => {
@@ -163,7 +117,11 @@ export function MapView({ onLeave }: MapViewProps) {
   });
 
   // Stable primitives, not a fresh `clock` object each render (BRDC-ECON-003 field bug).
-  const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length];
+  // `castle` is here because the Hearth is founded *after* the repository exists
+  // (BRDC-ECON-008): the first read saw an empty pouch, the founding stash landed a moment
+  // later, and nothing asked again for a minute — so the HUD showed nothing and the build
+  // menu, which judges affordability from this same copy, refused everything.
+  const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length, castle];
   const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
   const [collected, setCollected] = useState<Collected | null>(null);
 

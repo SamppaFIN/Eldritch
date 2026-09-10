@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.61",
+    "date": "2026-09-10",
+    "notes": [
+      "Fixed the reason nothing seemed to work. The game was stuck in a loop that re-read the entire save about six times a second and got worse the longer you played, so everything else queued behind it: the pouch showed empty while your resources sat in storage, and the build menu — which judges what you can afford from that same reading — refused every building.",
+      "The founding gift is exactly one Monument, 60 stone and 10 culture, so the first thing a new player is meant to do was the one thing that could not be done. Your resources now appear as soon as your Hearth is founded, and the Monument can be built."
+    ]
+  },
+  {
     "version": "0.5.60",
     "date": "2026-09-10",
     "notes": [

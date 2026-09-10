@@ -38,7 +38,9 @@ export function useFumingLake(
   clearWaypointKey: number,
 ): FumingLake {
   const [questHex, setQuestHex] = useState<H3Index | null>(null);
-  const adventures = useAdventure(repository, now(), ownedCount);
+  // The clock itself, not a reading taken during render: a fresh millisecond every render
+  // turned this into a loop that hammered the store (BRDC-ECON-009).
+  const adventures = useAdventure(repository, now, ownedCount);
   const fuming = adventures.list.find((a) => a.id === 'fuming-lake');
   const stage = fuming?.state === 'done' ? 'deep' : (fuming?.stageId ?? null);
   const finds = useQuestFinds(repository, standingOn, fuming?.state === 'active', now);
