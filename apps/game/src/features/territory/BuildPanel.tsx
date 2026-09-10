@@ -19,6 +19,7 @@ import type { BuildRefusal, BuildingId, Cell, PlayerId, ResourcePool, TechId } f
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
 import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
+import './build-panel.css';
 
 export { titleCase };
 
@@ -50,16 +51,29 @@ export function reason(refused: BuildRefusal, id: BuildingId): string {
 }
 
 /**
- * Split a set of build checks into what can go here now and what is still blocked
- * (BRDC-BUILD-005). Order within each list is the caller's; this only partitions.
+ * Split a set of build checks three ways (BRDC-BUILD-010).
+ *
+ * `ready` can go up now. `here` is blocked but belongs on this ground — a Mine on a
+ * mountain you have not researched Mining for. `elsewhere` is refused because the ground
+ * is wrong, and is the only part worth hiding.
+ *
+ * It used to be two lists, and everything blocked went behind a `+ N more` toggle. So a
+ * player standing on a mountain saw "Nothing can be built here yet", with the Mine filed
+ * alphabetically among fourteen things that could never go there — and concluded the game
+ * had no mines in it. Ground should say what it is for, even when you cannot use it yet.
  */
 export function splitBuildable(
-  checks: ReadonlyMap<BuildingId, { ok: boolean }>,
-): { ready: BuildingId[]; locked: BuildingId[] } {
+  checks: ReadonlyMap<BuildingId, { ok: boolean; refused?: BuildRefusal }>,
+): { ready: BuildingId[]; here: BuildingId[]; elsewhere: BuildingId[] } {
   const ready: BuildingId[] = [];
-  const locked: BuildingId[] = [];
-  for (const [id, c] of checks) (c.ok ? ready : locked).push(id);
-  return { ready, locked };
+  const here: BuildingId[] = [];
+  const elsewhere: BuildingId[] = [];
+  for (const [id, c] of checks) {
+    if (c.ok) ready.push(id);
+    else if (c.refused === 'wrong-terrain' || c.refused === 'needs-a-temple') elsewhere.push(id);
+    else here.push(id);
+  }
+  return { ready, here, elsewhere };
 }
 
 export interface BuildPanelProps {
@@ -171,15 +185,15 @@ export function BuildPanel({
     );
   };
 
-  const moreToggle = (locked: BuildingId[]) =>
-    locked.length > 0 ? (
+  const moreToggle = (elsewhere: BuildingId[]) =>
+    elsewhere.length > 0 ? (
       <button
         type="button"
         className="cell-panel__build-more"
         aria-expanded={showLocked}
         onClick={() => setShowLocked((v) => !v)}
       >
-        {showLocked ? 'Show less' : `+ ${locked.length} more`}
+        {showLocked ? 'Show less' : `+ ${elsewhere.length} for other ground`}
       </button>
     ) : null;
 
@@ -204,8 +218,9 @@ export function BuildPanel({
     );
   };
 
-  // Default: only what can go here now. The wall of "Wrong ground" rows is behind the `+`.
-  const { ready, locked } = splitBuildable(checks);
+  // What can go here now, then what this ground is for but you cannot raise yet. Only the
+  // wall of "Wrong ground" rows is behind the `+`.
+  const { ready, here: soon, elsewhere } = splitBuildable(checks);
   return (
     <div className="cell-panel__build">
       {here.length > 0 ? (
@@ -218,12 +233,24 @@ export function BuildPanel({
       <p className="cell-panel__build-head">Build</p>
       {ready.length > 0 ? (
         <ul className="cell-panel__build-list">{[...ready].sort(byName).map(row)}</ul>
-      ) : (
-        <p className="cell-panel__build-none">Nothing can be built here yet.</p>
-      )}
-      {moreToggle(locked)}
+      ) : null}
+
+      {soon.length > 0 ? (
+        <>
+          <p className="cell-panel__build-soon">
+            {ready.length > 0 ? 'This ground also holds' : 'This ground holds'}
+          </p>
+          <ul className="cell-panel__build-list">{[...soon].sort(byName).map(row)}</ul>
+        </>
+      ) : null}
+
+      {ready.length === 0 && soon.length === 0 ? (
+        <p className="cell-panel__build-none">Nothing can be built on this ground.</p>
+      ) : null}
+
+      {moreToggle(elsewhere)}
       {showLocked ? (
-        <ul className="cell-panel__build-list">{[...locked].sort(byName).map(row)}</ul>
+        <ul className="cell-panel__build-list">{[...elsewhere].sort(byName).map(row)}</ul>
       ) : null}
       {refusalLine(refusal)}
     </div>

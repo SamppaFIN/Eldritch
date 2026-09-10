@@ -1,0 +1,104 @@
+/**
+ * The build sub-panel's own styles (BRDC-BUILD-010).
+ *
+ * Split out of `cell-panel.css`, which reached its four hundred lines. The seam matches
+ * the components: `BuildPanel.tsx` has been its own file since BRDC-BUILD-001, and these
+ * are the only rules it uses.
+ */
+
+/* The build sub-panel (BRDC-BUILD-001). */
+.cell-panel__build {
+  margin-block-start: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+  padding-block-start: var(--space-2);
+}
+
+.cell-panel__build-head {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cell-panel__build-list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cell-panel__build-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+/* The building's name is a link into its Guide page (BRDC-WIKI-004). */
+.cell-panel__build-name {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mystic-cyan);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.cell-panel__build-name:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.cell-panel__build-cost {
+  color: var(--text-dim);
+}
+
+.cell-panel__build-why {
+  color: var(--text-dim);
+  text-align: end;
+}
+
+.cell-panel__build-btn {
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+  flex-shrink: 0;
+}
+
+.cell-panel__build-has {
+  font-size: var(--text-sm);
+}
+
+.cell-panel__build-none {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+/* The `+ N more` toggle for the blocked buildings (BRDC-BUILD-005). */
+.cell-panel__build-more {
+  align-self: start;
+  min-block-size: var(--touch-min);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--mystic-cyan);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.cell-panel__build-more:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+/* "This ground holds" — what belongs here but cannot be raised yet (BRDC-BUILD-010). */
+.cell-panel__build-soon {
+  margin: var(--space-2) 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

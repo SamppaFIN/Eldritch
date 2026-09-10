@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.66",
+    "date": "2026-09-11",
+    "notes": [
+      "Ground now says what it is for, even when you cannot build it yet. A mountain lists the Mine and the Quarry with “Needs Mining” beside them, instead of reading as ground with nothing to offer.",
+      "The Mine has existed for a long time. It was filed alphabetically behind a “+ 14 more” toggle among fourteen buildings that could never stand on a mountain, so nobody ever found it. Only buildings for other ground are hidden now, and the toggle says so."
+    ]
+  },
+  {
     "version": "0.5.65",
     "date": "2026-09-10",
     "notes": [

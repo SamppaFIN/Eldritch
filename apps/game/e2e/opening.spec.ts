@@ -169,3 +169,23 @@ test('and ESC closes the cell card too', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(card).toHaveCount(0);
 });
+
+test('ground says what it is for, even when you cannot build it yet', async ({ page }) => {
+  /*
+   * BRDC-BUILD-010. Infinite: "puuttuu rakennus joka buustaa vuorien tuotantoa, tarvitaan
+   * kaivokset". The Mine has existed since BUILD-002 — it was filed alphabetically behind
+   * a "+ 14 more" toggle among fourteen buildings that could never go on that ground, so
+   * a mountain read as having nothing to offer.
+   */
+  await openMap(page);
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+  const card = page.getByRole('region', { name: 'Selected cell' });
+  await expect(card).toBeVisible({ timeout: 15_000 });
+
+  // What belongs on this hex but is out of reach is named, with the reason.
+  await expect(card).toContainText(/This ground (also )?holds/i, { timeout: 15_000 });
+  await expect(card).toContainText(/Needs [A-Z]/);
+
+  // Only buildings for other ground stay behind the toggle, and it says so.
+  await expect(card.getByRole('button', { name: /for other ground/ })).toBeVisible();
+});
