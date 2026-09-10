@@ -172,4 +172,16 @@ export {
 export type { Bounty, BountyId } from './bounty.js';
 export { holdingOf, sortHoldings, summarise } from './holdings.js';
 export type { Holding, HoldingsSummary } from './holdings.js';
+export {
+  CITY_STATES,
+  TRADE_LOSS,
+  TRADE_PARCEL,
+  cityStateById,
+  cityStateOf,
+  isCityState,
+  stepsToDoor,
+  trade,
+  tradeReturn,
+} from './cityState.js';
+export type { CityState, CityStateId, TradeRefusal, TradeResult } from './cityState.js';
 export { localShare } from './share.js';

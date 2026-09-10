@@ -13,6 +13,7 @@
  * static site, and in Phase 3 the same arithmetic runs in SQL — a scheduled job would
  * put the two out of step, and the golden-fixture tests would be right to fail.
  */
+import { isCityState } from './cityState.js';
 import type { Cell, H3Index } from '../types/domain.js';
 import {
   BLIGHT_FULL_HOURS,
@@ -57,6 +58,12 @@ export function projectCell(
   // never witnesses its visits, so ageing it here would invent a decay nobody agreed to
   // and eventually release a cell its real owner still holds (BRDC-SHARE-001).
   if (cell.imported) return cell;
+
+  // A city state's ground is placed by hand and holds for good (BRDC-DIPLO-001). It is
+  // deliberately *not* `imported`: that flag also makes a cell render outside the
+  // viewport, which is right for a rival you were sent and wrong for a village that
+  // would then be drawn on the far side of the world.
+  if (isCityState(cell.ownerId)) return cell;
 
   // A Bulwark bought this cell time: the hours it granted were baked into `shelteredMs`
   // when it was cast (BRDC-SPELL-001), and they come off the decay clock for good.

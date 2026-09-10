@@ -8,10 +8,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BUILDINGS, buildingsOf, cellsWithin, emptyCell, hasWork, worksOn } from '@es3/core';
 import type {
-  ActiveSpell,
   BuildRefusal,
   BuildingId,
-  CastRefusal,
   Cell,
   Era,
   ExpandRefusal,
@@ -20,7 +18,6 @@ import type {
   ResourcePool,
   RevealedPlace,
   RouteRefusal,
-  SpellId,
   TechId,
   TechRefusal,
   TempleSchool,
@@ -28,6 +25,8 @@ import type {
   WardRefusal,
 } from '@es3/core';
 import { useTradeRoutes } from './useTradeRoutes.js';
+import { useDiplomacy, type CityBinding } from './useDiplomacy.js';
+import { useSpells, type SpellBinding } from './useSpells.js';
 import { useResearch } from './useResearch.js';
 import { useAnomaly } from './useAnomaly.js';
 import type { AnomalyBinding } from './useAnomaly.js';
@@ -77,15 +76,6 @@ export interface PlaceBinding {
   onConsecrate: (h3: H3Index) => void;
 }
 
-/** Spell casting for the selected cell and the domain, in one bundle (BRDC-SPELL-001). */
-export interface SpellBinding {
-  active: readonly ActiveSpell[];
-  refusal: CastRefusal | null;
-  onCast: (id: SpellId, target: H3Index | null) => void;
-  /** What is researched — a rite whose tech is missing is shown locked, not castable. */
-  researched: readonly TechId[];
-}
-
 /** The research screen's bundle: the frontier, the era, and the ceremony (BRDC-TECH-001). */
 export interface ResearchBinding {
   researched: readonly TechId[];
@@ -130,6 +120,8 @@ export interface Selection {
   spell: SpellBinding;
   trade: TradeBinding;
   research: ResearchBinding;
+  /** The quay, when the selected hex is a city state's (BRDC-DIPLO-001). */
+  city: CityBinding;
   anomaly: AnomalyBinding;
   refusal: WardRefusal | null;
   sanctum: boolean;
@@ -162,8 +154,6 @@ export function useSelection({
   const [refusal, setRefusal] = useState<WardRefusal | null>(null);
   const [buildRefusal, setBuildRefusal] = useState<BuildFail | null>(null);
   const [expandRefusal, setExpandRefusal] = useState<ExpandFail | null>(null);
-  const [castRefusal, setCastRefusal] = useState<CastRefusal | null>(null);
-  const [spells, setSpells] = useState<readonly ActiveSpell[]>([]);
   const [dwellMs, setDwellMs] = useState(0);
 
   // The places prop is MapView's; this local copy is what the panel reads, so a temple
@@ -177,18 +167,6 @@ export function useSelection({
   // it impossible to build anything). An off-screen building can still under-count; fine.
   const myBuildings = useMemo(() => buildingsOf(cells.filter((c) => !c.imported)), [cells]);
 
-  useEffect(() => {
-    if (!repository) return;
-    let alive = true;
-    // Running spells, re-read as the trail grows so a countdown stays honest and an
-    // expired spell drops from the panel on its own (BRDC-SPELL-001).
-    void repository.getActiveSpells(now()).then((s) => {
-      if (alive) setSpells(s);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [repository, now, trailVersion]);
   const [sanctum, setSanctum] = useState(false);
   const [wager, setWager] = useState(false);
   const [researchOpen, setResearchOpen] = useState(false);
@@ -214,7 +192,6 @@ export function useSelection({
       setRefusal(null);
       setBuildRefusal(null);
       setExpandRefusal(null);
-      setCastRefusal(null);
       setSanctum(false);
     },
     [tradeHook],
@@ -322,22 +299,9 @@ export function useSelection({
     });
   }, [repository, now, afterSpend]);
 
-  const onCast = useCallback(
-    (id: SpellId, target: H3Index | null) => {
-      if (!repository) return;
-      void (async () => {
-        const r = await repository.castSpell(id, target, now());
-        setCastRefusal(r.ok ? null : r.refused);
-        if (r.ok) {
-          setSpells(await repository.getActiveSpells(now()));
-          await afterSpend();
-        }
-      })();
-    },
-    [repository, now, afterSpend],
-  );
-
   const research = useResearch(repository, now, trailVersion, afterSpend);
+  const diplomacy = useDiplomacy(repository, selected, cell, now, afterSpend);
+  const spell = useSpells(repository, now, trailVersion, selected, research.researched, afterSpend);
 
   const here = selected ? (livePlaces.find((p) => p.h3 === selected) ?? null) : null;
 
@@ -367,8 +331,9 @@ export function useSelection({
       onExpand,
       onConsecrate,
     },
-    spell: { active: spells, refusal: castRefusal, onCast, researched: research.researched },
+    spell,
     research,
+    city: diplomacy,
     trade: tradeHook.binding,
     anomaly,
     refusal,

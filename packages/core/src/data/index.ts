@@ -97,3 +97,5 @@ export type {
   Placement,
   Standing,
 } from './demographics.js';
+export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
+export type { TradeOutcome } from './cityStateStore.js';

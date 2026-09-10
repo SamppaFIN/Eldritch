@@ -12,6 +12,7 @@ import {
   TRICKLE_PER_HOUR,
   cellAreaM2,
   hoursUntilReleased,
+  isCityState,
   resourceForCell,
 } from '@es3/core';
 import type { Cell } from '@es3/core';
@@ -95,7 +96,13 @@ export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
           <p className="cell-panel__strength es-numeric">
             {Math.round(cell.strength)} / {MAX_STRENGTH}
           </p>
-          <p className="cell-panel__decay">{remaining(hoursLeft(cell, now))}</p>
+          {/* Ground that cannot be lost gets no countdown — a clock on a village that
+              never rots is a lie with a number on it (BRDC-DIPLO-001, BRDC-LANDS-001). */}
+          {isCityState(cell.ownerId) ? (
+            <p className="cell-panel__decay">Held for good — the Void has no claim here.</p>
+          ) : (
+            <p className="cell-panel__decay">{remaining(hoursLeft(cell, now))}</p>
+          )}
         </>
       ) : null}
     </>

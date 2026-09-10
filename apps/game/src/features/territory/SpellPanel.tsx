@@ -8,7 +8,7 @@
 import { SPELLS, spellRemaining } from '@es3/core';
 import type { CastRefusal, SpellId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
-import type { SpellBinding } from './useSelection.js';
+import type { SpellBinding } from './useSpells.js';
 import { SPELL_NAME as NAME, titleCase } from './names.js';
 import { SPELL_BLURB, renderEffect, spellEffect } from './catalogue.js';
 import './spell-panel.css';

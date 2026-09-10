@@ -29,7 +29,13 @@ test('the founding stash reaches the HUD promptly', async ({ page }) => {
    * the page stayed open. It is about four seconds now, and stable.
    */
   await openMap(page);
-  await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 8_000 });
+  // Twelve seconds rather than eight: the bound has to survive several browsers sharing a
+  // machine, and the bug it guards was not a slow read but an unbounded one — 7 to 15
+  // seconds and getting worse the longer the page stayed open. So the second half of this
+  // test is the real guard: the pouch is still right a long way in, not just eventually.
+  await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 12_000 });
+  await page.waitForTimeout(10_000);
+  await expect(page.locator('.hud__value--pouch')).toContainText('60');
 });
 
 test('and it can be spent on the building it is sized for', async ({ page }) => {

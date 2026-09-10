@@ -12,7 +12,10 @@ import { gridDisk, latLngToCell } from 'h3-js';
 import { destination } from '../geo/project.js';
 import { BASE_STRENGTH, H3_RES_OWNERSHIP, MAX_STRENGTH } from '../rules/constants.js';
 import { prng } from '../sim/walk.js';
-import type { Cell, LatLng, PlayerId } from '../types/domain.js';
+import type { Cell, LatLng, PlayerId, TrailPoint } from '../types/domain.js';
+import { placeCityStates } from './cityStateStore.js';
+import { K } from './keys.js';
+import type { KeyValueStore } from './kv.js';
 
 export interface SeedNeighbour {
   id: PlayerId;
@@ -105,4 +108,31 @@ export function seedCells(origin: LatLng, now: number, seed = 20260826): Cell[] 
   });
 
   return cells;
+}
+
+/**
+ * Everything the world needs the first time the game knows where the player is.
+ *
+ * Lifted out of `MockRepository`, which reached its four hundred lines when diplomacy
+ * arrived (BRDC-DIPLO-001). The seam is honest: this is "what exists around you before you
+ * have done anything", and it now has two halves that behave differently.
+ *
+ * City states are placed on **every** call, not once. They are hand-placed content that
+ * can be added to between versions, and `placeCityStates` writes only where there is no
+ * cell — so a returning player gets a village that shipped after they started, and never
+ * loses ground to one. The rival seed stays once-only: those are generated, and
+ * re-rolling them would move a player's neighbours under them.
+ */
+export async function seedWorldAt(
+  store: KeyValueStore,
+  origin: TrailPoint,
+  seed: number,
+): Promise<void> {
+  await placeCityStates(store, origin.t);
+
+  if (await store.get<boolean>(K.seeded)) return;
+  await store.set(K.seeded, true);
+  for (const cell of seedCells(origin, origin.t, seed)) {
+    await store.set(K.cell(cell.h3), cell);
+  }
 }

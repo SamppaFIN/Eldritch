@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.67",
+    "date": "2026-09-11",
+    "notes": [
+      "There is a fishing village at Härmälänranta. Nineteen hexes of it, held for good — it does not rot, and walking on it takes nothing. It is the first thing on this map that is *there* rather than generated around wherever you happen to start.",
+      "Its quay trades. Twenty of one resource for fifteen of another, and the quarter they keep is the whole reason it is a choice rather than a button you press in a loop: swapping back and forth leaves you with less than you started.",
+      "Diplomacy happens at one hex, so reaching a city state is a walk to a place. Every other hex of the village tells you how far its quay is, so the door is not a hunt."
+    ]
+  },
+  {
     "version": "0.5.66",
     "date": "2026-09-11",
     "notes": [

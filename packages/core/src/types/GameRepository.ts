@@ -24,7 +24,7 @@ import type {
   TrailPoint,
   TrailResult,
 } from './domain.js';
-import type { ResourcePool } from '../rules/terrain.js';
+import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
 import type { WalkedEdge } from '../geo/paths.js';
 import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
@@ -36,6 +36,8 @@ import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { RouteOutcome } from '../data/tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
+import type { CityState } from '../rules/cityState.js';
+import type { TradeOutcome } from '../data/cityStateStore.js';
 import type { Collected, Forecast } from '../data/pouch.js';
 import type { StepClaimOutcome } from '../data/stepStore.js';
 import type { RevealOutcome } from '../data/revealStore.js';
@@ -177,6 +179,15 @@ export interface GameRepository {
    * player can be told. `[]` on every open but the first one after the upgrade.
    */
   takeRazed(now: number): Promise<BuildingId[]>;
+
+  /* --- Diplomacy (BRDC-DIPLO-001) -------------------------------------- */
+  /** The city state whose quay this hex is, or null. Diplomacy happens at a place. */
+  cityAt(h3: H3Index): Promise<CityState | null>;
+  /**
+   * Swap a parcel of one resource for another at a quay, at `TRADE_LOSS`. Refusals are
+   * values — "same-resource", "cannot-afford" — and nothing is written on one.
+   */
+  trade(h3: H3Index, give: ResourceKind, want: ResourceKind, now: number): Promise<TradeOutcome>;
 
   /* --- Trade Routes (BRDC-BUILD-004) ---------------------------------- */
   /** The two-cell links the player holds; each pays gold while both ends are awake. */

@@ -273,6 +273,7 @@ export function MapView({ onLeave }: MapViewProps) {
         build={inspect.build}
         anomaly={inspect.anomaly}
         quest={quest.questCell}
+        city={inspect.city}
         onQuestOpen={() => quest.openQuestHex(inspect.selected)}
         revealed={discovery.revealed}
         onReveal={discovery.onReveal}

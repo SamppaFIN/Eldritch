@@ -26,6 +26,9 @@ import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
 import { buildOn, demolishOn } from './buildStore.js';
 import { takeRazed } from './razedStore.js';
+import { cityAtDoor, tradeAt } from './cityStateStore.js';
+import type { CityState } from '../rules/cityState.js';
+import type { ResourceKind } from '../rules/terrain.js';
 import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
 import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools } from './templeStore.js';
 import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from './templeStore.js';
@@ -69,7 +72,7 @@ import type { KeyValueStore } from './kv.js';
 import { MemoryStore } from './kv.js';
 import { versioned } from './schema.js';
 import type { SchemaOutcome, VersionedStore } from './schema.js';
-import { seedCells } from './seed.js';
+import { seedWorldAt } from './seed.js';
 import { K } from './keys.js';
 import { readDefence, writeDefence, type ImportResult, type WagerIdentity } from './wager.js';
 import { combatantFrom, exportChallengeFrom, importChallengeInto, muster } from './wagerRepo.js';
@@ -378,14 +381,13 @@ export class MockRepository implements GameRepository {
   }
 
   /** Cells only exist once we know where the player is; seeding is therefore lazy. */
-  private async ensureSeeded(origin: TrailPoint): Promise<void> {
-    if (await this.store.get<boolean>(K.seeded)) return;
-    await this.store.set(K.seeded, true);
+  private ensureSeeded = (origin: TrailPoint): Promise<void> =>
+    seedWorldAt(this.store, origin, this.seed);
 
-    for (const cell of seedCells(origin, origin.t, this.seed)) {
-      await this.store.set(K.cell(cell.h3), cell);
-    }
-  }
+  /* --- Diplomacy (BRDC-DIPLO-001) ---------------------------------------- */
+  cityAt = (h3: H3Index): Promise<CityState | null> => cityAtDoor(this.store, h3);
+  trade = async (h3: H3Index, give: ResourceKind, want: ResourceKind, now: number) =>
+    tradeAt(this.store, h3, give, want, await this.getOwnedCells(now), now);
 }
 
 /** The ownership-resolution cell for a position, without importing h3-js downstream. */

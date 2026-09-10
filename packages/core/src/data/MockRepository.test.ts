@@ -6,6 +6,7 @@ import { MAX_ACCURACY_M, MIN_POINT_INTERVAL_MS } from '../rules/constants.js';
 import { simulateWalk } from '../sim/walk.js';
 import type { BBox, TrailPoint } from '../types/domain.js';
 import { MockRepository } from './MockRepository.js';
+import { isCityState } from '../rules/cityState.js';
 import { SEED_NEIGHBOURS } from './seed.js';
 import { MemoryStore } from './kv.js';
 
@@ -167,16 +168,22 @@ describe('seeded neighbours', () => {
     expect(cells.length).toBeGreaterThan(30);
   });
 
-  it('are three distinct rivals', async () => {
+  it('are three distinct rivals, and a city state is not one of them', async () => {
     // The player owns ground too now — walking takes it (BRDC-GROW-001) — so the
     // assertion is about who the neighbours are, not that nobody else exists.
+    //
+    // A city state holds ground near this origin as well (BRDC-DIPLO-001) and is
+    // deliberately not a rival: you never take its land by walking and it never takes
+    // yours, which is the whole reason `isCityState` exists.
     const me = await repo.getProfile();
     const id = await repo.startRun(T0);
     await repo.submitTrail(id, walk());
 
     const cells = await repo.getCells(around(ORIGIN, 5), T0);
-    const rivals = new Set(cells.map((c) => c.ownerId).filter((o) => o !== me.id));
+    const others = cells.map((c) => c.ownerId).filter((o) => o !== me.id);
+    const rivals = new Set(others.filter((o) => !isCityState(o)));
     expect(rivals).toEqual(new Set(SEED_NEIGHBOURS.map((n) => n.id)));
+    expect(others.some((o) => isCityState(o))).toBe(true);
   });
 
   it('seed only once, however many batches arrive', async () => {

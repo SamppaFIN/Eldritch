@@ -10,6 +10,7 @@ import {
   TEMPLE_THRESHOLD_MS,
   WARD_COST,
   canAfford,
+  cityStateOf,
   shortOf,
   expansionCost,
   revealProgress,
@@ -29,10 +30,13 @@ import { SpellPanel } from './SpellPanel.js';
 import { TempleSchoolPanel } from './TempleSchoolPanel.js';
 import { TradeControls } from './TradeControls.js';
 import { AnomalyPanel } from './AnomalyPanel.js';
+import { TradePost, VillageNote } from './TradePost.js';
 import { QuestCellPanel } from '../quest/QuestCellPanel.js';
 import type { QuestCellInfo } from '../quest/questCell.js';
 import type { AnomalyBinding } from './useAnomaly.js';
-import type { BuildBinding, PlaceBinding, ResearchBinding, SpellBinding, TradeBinding } from './useSelection.js';
+import type { BuildBinding, PlaceBinding, ResearchBinding, TradeBinding } from './useSelection.js';
+import type { SpellBinding } from './useSpells.js';
+import type { CityBinding } from './useDiplomacy.js';
 import { historyLine } from './cellHistory.js';
 import { terrainGlyph } from './territoryFeatures.js';
 import { shortNote } from './gateNote.js';
@@ -60,6 +64,8 @@ export interface CellPanelProps {
   /** The build sub-panel's bundle (BRDC-BUILD-001), and the anomaly on this cell (BRDC-EVENT-001). */
   build?: BuildBinding;
   anomaly?: AnomalyBinding;
+  /** The quay of a city state, when this hex is one (BRDC-DIPLO-001). */
+  city?: CityBinding;
   /** The Fuming Lake on this hex, if it has a step or a landmark here (BRDC-QUEST-002). */
   quest?: QuestCellInfo | null;
   onQuestOpen?: () => void;
@@ -150,6 +156,7 @@ export function CellPanel({
   trade,
   build,
   anomaly,
+  city,
   quest,
   onQuestOpen,
   revealed,
@@ -234,7 +241,11 @@ export function CellPanel({
       </div>
 
       <p className="cell-panel__owner">
-        {mine ? 'Yours' : cell.ownerId === null ? 'Unclaimed' : 'Held by another'}
+        {mine
+          ? 'Yours'
+          : cell.ownerId === null
+            ? 'Unclaimed'
+            : (cityStateOf(cell.ownerId)?.name ?? 'Held by another')}
         {/* Separate arrivals, not fixes — standing still is one (BRDC-HEX-002). */}
         {cell.visits ? ` · ${cell.visits} ${cell.visits === 1 ? 'visit' : 'visits'}` : ''}
       </p>
@@ -363,6 +374,16 @@ export function CellPanel({
 
       {trade && mine ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
       {anomaly?.current && mine ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
+      {city?.city ? (
+        <TradePost
+          city={city.city}
+          resources={resources}
+          refusal={city.refusal}
+          onTrade={city.onTrade}
+        />
+      ) : null}
+      {city?.village ? <VillageNote city={city.village.city} steps={city.village.steps} /> : null}
+
       {quest ? <QuestCellPanel info={quest} onOpen={onQuestOpen ?? (() => {})} /> : null}
 
       {refusal ? (

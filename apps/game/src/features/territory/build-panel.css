@@ -102,3 +102,55 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+
+/* The quay — trading with a city state (BRDC-DIPLO-001). Chips, because a resource is
+   picked with a thumb while standing at a harbour, not from a select. */
+.trade__label {
+  margin: var(--space-2) 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.trade__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.trade__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--touch-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.trade__chip--on {
+  border-color: color-mix(in oklch, var(--sacred-gold) 60%, transparent);
+  color: var(--sacred-gold);
+}
+
+.trade__chip:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.trade__chip:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.trade__pip {
+  inline-size: 0.6em;
+  block-size: 0.6em;
+  border-radius: var(--radius-full);
+}
