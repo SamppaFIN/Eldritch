@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.64",
+    "date": "2026-09-10",
+    "notes": [
+      "New page: Your lands, from the ☰ menu. Every hex you hold, with its ground, what it yields, its strength, the days you have walked it, the Work standing on it, and how long before the Void takes it back.",
+      "Unrevealed ground is listed first, because revealing is free, pays every time, and is the only thing on the list you can act on without walking anywhere. After that comes whatever is closest to being lost; ground that cannot be lost sinks to the bottom, because it is doing fine.",
+      "Tap any row to open that hex on the map. The heading counts the lot, so you can read the state of your realm without reading the list."
+    ]
+  },
+  {
     "version": "0.5.63",
     "date": "2026-09-10",
     "notes": [

@@ -160,4 +160,6 @@ export type {
 } from './spell.js';
 export { muster, resolveWager, wagerSeed } from './wagerBattle.js';
 export type { Combatant, Defence, WagerOutcome, WagerRound } from './wagerBattle.js';
+export { holdingOf, sortHoldings, summarise } from './holdings.js';
+export type { Holding, HoldingsSummary } from './holdings.js';
 export { localShare } from './share.js';

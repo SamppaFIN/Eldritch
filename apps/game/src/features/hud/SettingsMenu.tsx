@@ -29,6 +29,8 @@ export interface SettingsMenuProps {
   onOpenLog: () => void;
   /** Opens the Codex of Dominion (BRDC-CODEX-001). */
   onOpenCodex: () => void;
+  /** Opens the ledger of held ground (BRDC-LANDS-001). */
+  onOpenLands: () => void;
   /** Opens the in-game guide's front page (BRDC-WIKI-001). */
   onOpenGuide: () => void;
   /** For the field report — the log tail and a rough position (BRDC-BUGREPORT-001). */
@@ -49,6 +51,7 @@ export function SettingsMenu({
   onDeleteProgress,
   onOpenLog,
   onOpenCodex,
+  onOpenLands,
   onOpenGuide,
   repository,
   position,
@@ -167,6 +170,9 @@ export function SettingsMenu({
           </button>
           <button type="button" className="settings-menu__action" onClick={() => run(onOpenLog)}>
             History
+          </button>
+          <button type="button" className="settings-menu__action" onClick={() => run(onOpenLands)}>
+            Your lands
           </button>
           <button type="button" className="settings-menu__action" onClick={() => run(onOpenCodex)}>
             Codex of Dominion

@@ -1,10 +1,10 @@
 /**
- * The map's set-aside panels — Help, History, Character, Codex (BRDC-CHAR-001, -CODEX-001).
+ * The map's set-aside panels — Help, History, Character, Codex, Lands.
  *
- * None of them is about the ground under your feet, and all four are opened from the HUD
- * or the menu and closed with ESC. Bundled into one hook so MapView holds a line, not
- * eighteen: the open state, the log fetch, the encounter registry (BRDC-WIKI-002), and
- * the renders live here.
+ * None of them is about the ground under your feet, and all of them are opened from the
+ * HUD or the menu and closed with ESC. Bundled into one hook so MapView holds a line, not
+ * twenty: the open state, the log fetch, the encounter registry (BRDC-WIKI-002), and the
+ * renders live here.
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ActiveSpell, Cell, GameRepository, LogEntry, TechId } from '@es3/core';
@@ -18,6 +18,7 @@ import { useEncountered } from '../help/useEncountered.js';
 import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
 import { CodexPanel } from '../codex/CodexPanel.js';
+import { LandsPanel } from '../lands/LandsPanel.js';
 
 export interface MapAside {
   node: ReactNode;
@@ -30,6 +31,8 @@ export interface MapAside {
   openCharacter: () => void;
   /** The Codex of Dominion — every realm measured (BRDC-CODEX-001). */
   openCodex: () => void;
+  /** The ledger of held ground (BRDC-LANDS-001). */
+  openLands: () => void;
 }
 
 export function useMapAside(
@@ -48,6 +51,7 @@ export function useMapAside(
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [characterOpen, setCharacterOpen] = useState(false);
   const [codexOpen, setCodexOpen] = useState(false);
+  const [landsOpen, setLandsOpen] = useState(false);
   const [meId, setMeId] = useState<string | null>(null);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
 
@@ -114,6 +118,16 @@ export function useMapAside(
         onClose={() => setCharacterOpen(false)}
       />
       <CodexPanel open={codexOpen} me={meId} onClose={() => setCodexOpen(false)} />
+      <LandsPanel
+        open={landsOpen}
+        repository={repository}
+        now={now}
+        onShowCell={(h3) => {
+          setLandsOpen(false);
+          showCell.current(h3);
+        }}
+        onClose={() => setLandsOpen(false)}
+      />
     </>
   );
 
@@ -124,5 +138,6 @@ export function useMapAside(
     openLog: () => setLogOpen(true),
     openCharacter: () => setCharacterOpen(true),
     openCodex: () => setCodexOpen(true),
+    openLands: () => setLandsOpen(true),
   };
 }

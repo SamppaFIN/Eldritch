@@ -1,0 +1,152 @@
+/* The ledger of held ground. Same sheet as the Codex and History: fixed above the map,
+   capped clear of the HUD, scrolling inside itself. */
+
+.lands {
+  position: fixed;
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  z-index: var(--z-hud);
+  margin-inline: auto;
+  max-inline-size: 34rem;
+  max-block-size: calc(
+    100dvh - var(--hud-height, 12rem) - max(var(--space-3), env(safe-area-inset-top)) -
+      var(--space-3)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lands__bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  /* The heading stays put while three hundred rows go past under it. */
+  position: sticky;
+  inset-block-start: 0;
+  background: inherit;
+}
+
+.lands__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.lands__close {
+  flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+  padding-inline: 0;
+}
+
+.lands__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.lands__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lands__row {
+  border-block-end: 1px solid var(--glass-border);
+}
+
+/* The whole row is the target: a thumb on a walk should not have to find a link. */
+.lands__cell {
+  inline-size: 100%;
+  min-block-size: var(--touch-min);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.lands__cell:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: -2px;
+}
+
+.lands__ground {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+}
+
+.lands__glyph {
+  font-size: 1.1em;
+}
+
+.lands__tag {
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+}
+
+.lands__tag--new {
+  border: 1px solid color-mix(in oklch, var(--sacred-gold) 55%, transparent);
+  color: var(--sacred-gold);
+}
+
+.lands__tag--home {
+  border: 1px solid color-mix(in oklch, var(--mystic-cyan) 55%, transparent);
+  color: var(--mystic-cyan);
+}
+
+.lands__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.lands__res {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.lands__res--none {
+  color: var(--text-dim);
+}
+
+.lands__pip {
+  inline-size: 0.6em;
+  block-size: 0.6em;
+  border-radius: var(--radius-full);
+  align-self: center;
+}
+
+/* The one figure with a deadline on it. */
+.lands__fading {
+  color: var(--danger);
+}
+
+.lands__work {
+  color: var(--accent-warm);
+  font-size: var(--text-sm);
+}

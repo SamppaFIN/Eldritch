@@ -335,7 +335,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onChange={onSettingsChange}
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
-        onOpenLog={aside.openLog} onOpenCodex={aside.openCodex}
+        onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
         onOpenGuide={aside.openGuide}
         repository={repository}
         position={point}
