@@ -10,6 +10,7 @@ import {
   TEMPLE_THRESHOLD_MS,
   WARD_COST,
   canAfford,
+  shortOf,
   expansionCost,
   revealProgress,
   terrainForCell,
@@ -33,6 +34,7 @@ import type { AnomalyBinding } from './useAnomaly.js';
 import type { BuildBinding, PlaceBinding, ResearchBinding, SpellBinding, TradeBinding } from './useSelection.js';
 import { historyLine } from './cellHistory.js';
 import { terrainGlyph } from './territoryFeatures.js';
+import { shortNote } from './gateNote.js';
 import type { WikiRef } from '../help/wikiPages.js';
 import './cell-panel.css';
 
@@ -175,8 +177,19 @@ export function CellPanel({
   const history = historyLine(cell, me, now);
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
+  /*
+   * Why not, said beside the button (BRDC-UI-002). A hex walked for weeks sits at full
+   * strength, and Ward was simply grey there — which reads as a broken button, not as
+   * "this ground could not be any safer".
+   */
+  const wardGate = !mine
+    ? null
+    : cell.strength >= MAX_STRENGTH
+      ? 'Already at full strength — a ward would add nothing.'
+      : shortNote(shortOf(resources, WARD_COST));
   const nextCost = place.kind === 'temple' ? expansionCost(place.expansion + 1) : {};
   const canExpand = resources !== null && canAfford(resources, nextCost);
+  const expandGate = canExpand ? null : shortNote(shortOf(resources, nextCost));
 
   return (
     <GlassPanel
@@ -243,13 +256,20 @@ export function CellPanel({
             <span className="es-numeric"> · Mana +{place.manaPerHour}/h</span>
           </p>
           {place.kind === 'temple' && place.expansion < MAX_TEMPLE_EXPANSION ? (
-            <RitualButton
-              className="cell-panel__expand"
-              disabled={!canExpand}
-              onClick={() => place.onExpand(cell.h3)}
-            >
-              Expand · {costLine(nextCost)}
-            </RitualButton>
+            <>
+              <RitualButton
+                className="cell-panel__expand"
+                disabled={!canExpand}
+                onClick={() => place.onExpand(cell.h3)}
+              >
+                Expand · {costLine(nextCost)}
+              </RitualButton>
+              {expandGate ? (
+                <p className="cell-panel__why" role="status">
+                  {expandGate}
+                </p>
+              ) : null}
+            </>
           ) : null}
           {place.refusal ? (
             <p className="cell-panel__refusal" role="status">
@@ -285,6 +305,11 @@ export function CellPanel({
           <RitualButton className="cell-panel__ward" disabled={!canWard} onClick={() => onWard(cell.h3)}>
             Ward · {WARD_COST.wood} timber
           </RitualButton>
+          {wardGate ? (
+            <p className="cell-panel__why" role="status">
+              {wardGate}
+            </p>
+          ) : null}
           {/* Warding holds ground without walking to it — its limit sits by the button. */}
           <p className="cell-panel__note">
             A ward adds strength. It does not reset the clock — only your feet do that.

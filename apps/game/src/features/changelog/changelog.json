@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.62",
+    "date": "2026-09-10",
+    "notes": [
+      "Ward, Consecrate and Expand now say why they are out of reach instead of just going grey. A disabled button with no reason beside it is indistinguishable from a broken one, and a touchscreen has no hover to explain it — so “I press it and nothing happens” was a fair description of what the game was doing.",
+      "Ward on ground you have walked for weeks is the worst of them: a hex at full strength cannot be warded any further, and the game answered that by saying nothing at all. It now says so — and when it is timber you are short of, it says that instead.",
+      "Consecrate also mentions the other way to pay it: time spent standing in the cell takes the price down."
+    ]
+  },
+  {
     "version": "0.5.61",
     "date": "2026-09-10",
     "notes": [

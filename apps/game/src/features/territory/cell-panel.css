@@ -372,3 +372,12 @@
   font-size: var(--text-sm);
   text-wrap: pretty;
 }
+
+/* Why a greyed action is out of reach, said beside it (BRDC-UI-002). A disabled button
+   with no reason is indistinguishable from a broken one, and a touchscreen has no hover
+   to explain it. Same weight as `__note`, marked apart by the warm accent. */
+.cell-panel__why {
+  margin: 0;
+  color: var(--accent-warm);
+  font-size: var(--text-sm);
+}

@@ -25,3 +25,25 @@ export function timeToAfford(
   }
   return ms;
 }
+
+/**
+ * What the pouch is short of, per resource — the shape a "you cannot do this yet" line is
+ * written from (BRDC-UI-002). Empty when it can be paid for.
+ *
+ * Pure and separate from `canAfford`, which answers yes or no. A disabled button that does
+ * not say *what* it is waiting for is indistinguishable from a broken one, and on a
+ * touchscreen there is no hover to explain it either.
+ */
+export function shortOf(
+  pool: ResourcePool | null,
+  cost: Partial<ResourcePool>,
+): Partial<ResourcePool> {
+  const out: Partial<ResourcePool> = {};
+  for (const [k, need] of Object.entries(cost) as [ResourceKind, number][]) {
+    // A pouch that has not been read yet is short of everything the cost names: saying
+    // "you need 120 stone" while the number is still loading is better than a grey button.
+    const short = need - (pool?.[k] ?? 0);
+    if (short > 0) out[k] = short;
+  }
+  return out;
+}

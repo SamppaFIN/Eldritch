@@ -8,11 +8,12 @@
  *
  * A sub-panel of CellPanel, the shape `BuildPanel` is, so neither file grows past the
  * limit. The button is only shown when consecration would succeed, so there is no
- * refusal line — the disabled state carries "cannot afford".
+ * refusal line — the button says what it is still short of (BRDC-UI-002).
  */
-import { TEMPLE_THRESHOLD_MS, canAfford, consecrateCost } from '@es3/core';
+import { TEMPLE_THRESHOLD_MS, canAfford, consecrateCost, shortOf } from '@es3/core';
 import type { Cell, ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { shortNote } from './gateNote.js';
 
 const NAME: Readonly<Record<string, string>> = {
   wood: 'timber',
@@ -44,6 +45,7 @@ export function ConsecratePanel({
   const free = Object.keys(cost).length === 0;
   const paidPct = Math.min(100, Math.round((dwellMs / TEMPLE_THRESHOLD_MS) * 100));
   const canPay = free || (resources !== null && canAfford(resources, cost));
+  const missing = canPay ? null : shortNote(shortOf(resources, cost));
 
   return (
     <div className="cell-panel__place">
@@ -59,6 +61,11 @@ export function ConsecratePanel({
       >
         {free ? 'Consecrate · your time here has paid it' : `Consecrate · ${costLine(cost)}`}
       </RitualButton>
+      {missing ? (
+        <p className="cell-panel__why" role="status">
+          {missing} Walking here longer also pays it down.
+        </p>
+      ) : null}
     </div>
   );
 }
