@@ -150,3 +150,8 @@
   color: var(--accent-warm);
   font-size: var(--text-sm);
 }
+
+/* A find belongs to its hex, so it sits on the row rather than in the facts strip. */
+.lands__bounty {
+  color: var(--sacred-gold);
+}

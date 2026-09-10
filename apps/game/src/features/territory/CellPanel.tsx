@@ -322,6 +322,7 @@ export function CellPanel({
             <RevealControl
               h3={cell.h3}
               revealed={revealed?.[cell.h3] !== undefined}
+              cell={cell}
               onReveal={onReveal}
             />
           ) : null}

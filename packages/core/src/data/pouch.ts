@@ -15,6 +15,7 @@ import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rul
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
 import { placeBonus } from '../rules/mana.js';
+import { bountyBonus } from '../rules/bounty.js';
 import { activeSpells, domainSpellBonus } from '../rules/spell.js';
 import type { ActiveSpell } from '../rules/spell.js';
 import { resourceAura } from '../rules/aura.js';
@@ -74,6 +75,11 @@ async function perHourBonus(
 
   const researched = (await store.get<TechId[]>(K.researched)) ?? [];
   addInto(merged, researchBonus(researched, owned, now));
+
+  // Bounties pay only on ground that has been revealed (BRDC-BOUNTY-001) — the reveal is
+  // how you find out what your own land is worth.
+  const revealed = (await store.get<Record<H3Index, number>>(K.revealed)) ?? {};
+  addInto(merged, bountyBonus(owned, revealed, now));
 
   const routes = (await store.get<TradeRoute[]>(K.tradeRoutes)) ?? [];
   addInto(merged, routeGoldBonus(routes, owned, now));

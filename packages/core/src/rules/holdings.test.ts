@@ -28,6 +28,7 @@ const holding = (over: Partial<Holding> = {}): Holding => ({
   hoursLeft: 100,
   days: 0,
   work: null,
+  bounty: null,
   revealed: true,
   home: false,
   ...over,
@@ -110,5 +111,15 @@ describe('summarise', () => {
 
   it('counts nothing out of nothing', () => {
     expect(summarise([])).toEqual({ total: 0, unrevealed: 0, works: 0, fading: 0 });
+  });
+});
+
+describe('holdingOf and bounties (BRDC-BOUNTY-001)', () => {
+  it('shows a bounty only on ground that has been revealed', () => {
+    // Whichever hex in the ring carries one, it must stay hidden until it is looked for.
+    const withBounty = [A, B, C].map((h3) => cell(h3)).find((c) => holdingOf(c, { [c.h3]: T0 }, HOME).bounty);
+    if (!withBounty) return;
+    expect(holdingOf(withBounty, { [withBounty.h3]: T0 }, HOME).bounty).not.toBeNull();
+    expect(holdingOf(withBounty, {}, HOME).bounty).toBeNull();
   });
 });

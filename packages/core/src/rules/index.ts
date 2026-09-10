@@ -160,6 +160,16 @@ export type {
 } from './spell.js';
 export { muster, resolveWager, wagerSeed } from './wagerBattle.js';
 export type { Combatant, Defence, WagerOutcome, WagerRound } from './wagerBattle.js';
+export {
+  BOUNTIES,
+  BOUNTY_IDS,
+  BOUNTY_SHARE,
+  bountiesFor,
+  bountyBonus,
+  bountyOn,
+  bountyYield,
+} from './bounty.js';
+export type { Bounty, BountyId } from './bounty.js';
 export { holdingOf, sortHoldings, summarise } from './holdings.js';
 export type { Holding, HoldingsSummary } from './holdings.js';
 export { localShare } from './share.js';

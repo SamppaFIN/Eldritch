@@ -381,3 +381,11 @@
   color: var(--accent-warm);
   font-size: var(--text-sm);
 }
+
+/* What this particular hex turned out to have on it (BRDC-BOUNTY-001). Gold, because it
+   is a find — the one line on the card that is about luck rather than about rules. */
+.cell-panel__bounty {
+  margin: 0;
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}

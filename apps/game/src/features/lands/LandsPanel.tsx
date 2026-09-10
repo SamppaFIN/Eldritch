@@ -15,6 +15,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GameRepository, Holding } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { BUILDING_NAME } from '../territory/names.js';
+import { BOUNTY_GLYPH, BOUNTY_NAME } from '../territory/bounty.js';
 import { RESOURCE_COLOUR, RESOURCE_WORD, terrainGlyph } from '../territory/territoryFeatures.js';
 import { useLands } from './useLands.js';
 import './lands-panel.css';
@@ -86,7 +87,17 @@ export function LandsPanel({ open, repository, now, onShowCell, onClose }: Lands
           </span>
         </span>
 
-        {h.work ? <span className="lands__work">{BUILDING_NAME[h.work]}</span> : null}
+        {h.bounty || h.work ? (
+          <span className="lands__work">
+            {h.bounty ? (
+              <span className="lands__bounty">
+                <span aria-hidden>{BOUNTY_GLYPH[h.bounty]}</span> {BOUNTY_NAME[h.bounty]}
+              </span>
+            ) : null}
+            {h.bounty && h.work ? ' · ' : ''}
+            {h.work ? BUILDING_NAME[h.work] : null}
+          </span>
+        ) : null}
       </button>
     </li>
   );

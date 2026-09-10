@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.65",
+    "date": "2026-09-10",
+    "notes": [
+      "Some ground has something on it. About one hex in eight carries a find — Wheat, a Herd, Deer, Furs, Gems, Marble, Fish, Amber or Spices — and it belongs to its own terrain: fish in water, gems in mountains, wheat on the plain. It adds to what that hex pays every hour, roughly doubling it.",
+      "It is the plain that needed this most. Two thirds of the map is plain and plain yields nothing, so most ground was interchangeable; now some of it is worth walking to.",
+      "A find pays only once you have revealed the hex, which turns revealing from a one-off bonus into the way you learn what your own land is worth. Your lands lists every find you have made, and an unrevealed hex keeps its own secret.",
+      "Where a find is, is fixed — never rolled. Two players on the same street find the same deer, and reloading the page does not shuffle them."
+    ]
+  },
+  {
     "version": "0.5.64",
     "date": "2026-09-10",
     "notes": [
