@@ -11,8 +11,13 @@
  * more, then go and get more of it. The rungs are `steps.ts`, read from state and tested
  * without a browser; this is the line they are said on. It goes quiet for good at the
  * goal — ten hexes, a Work and a technology.
+ *
+ * BRDC-TUTOR-003: and it can be waved away. It was six lines of centred text floating in
+ * the middle of the map with no way to be rid of it — on the one screen whose whole job
+ * is showing you where you are. It is a card now, hugging the HUD, dismissed by a tap and
+ * back on the next rung: a hint you have read is not a hint any more.
  */
-import { VesicaDivider } from '@es3/ui';
+import { useState } from 'react';
 import { nextStep } from './steps.js';
 import type { Progress } from './steps.js';
 import './first-look.css';
@@ -48,18 +53,26 @@ export function compassPoint(bearingDeg: number): string {
 
 export function FirstLook({ owned, works, researched, rivalCells, rivalBearing }: FirstLookProps) {
   const step = nextStep({ owned, works, researched });
-  if (!step) return null;
+  // Kept by rung, not by a flag: waving away "walk" must not silence "build" as well.
+  const [waved, setWaved] = useState<string | null>(null);
+  if (!step || waved === step.id) return null;
 
   return (
-    <aside className="first-look" role="note">
-      <VesicaDivider size={140} className="first-look__rule" />
-      <p className="first-look__line">{step.hint}</p>
-      <p className="first-look__sub">{step.because}</p>
-      {step.id === 'walk' && rivalCells > 0 && rivalBearing !== null ? (
-        <p className="first-look__sub">
-          Someone already holds ground to the {compassPoint(rivalBearing)}.
-        </p>
-      ) : null}
+    <aside className="first-look">
+      <button
+        type="button"
+        className="first-look__card"
+        aria-label={`Dismiss: ${step.hint}`}
+        onClick={() => setWaved(step.id)}
+      >
+        <span className="first-look__line">{step.hint}</span>
+        <span className="first-look__sub">{step.because}</span>
+        {step.id === 'walk' && rivalCells > 0 && rivalBearing !== null ? (
+          <span className="first-look__sub">
+            Someone already holds ground to the {compassPoint(rivalBearing)}.
+          </span>
+        ) : null}
+      </button>
     </aside>
   );
 }

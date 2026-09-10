@@ -90,6 +90,29 @@ test('the HUD leaves the map most of the screen', async ({ page }) => {
   expect(ratio).toBeLessThan(0.3);
 });
 
+test('the opening hint is a card at the edge, and a tap sends it away', async ({ page }) => {
+  /*
+   * BRDC-TUTOR-003. It was six lines of centred text floating in the middle of the map
+   * with no way to be rid of it — on the one screen whose whole job is showing you where
+   * you are. Two things are locked here: it is small, and it can be dismissed.
+   */
+  await openMap(page);
+  const hint = page.locator('.first-look__card');
+  await expect(hint).toBeVisible();
+
+  const card = await hint.boundingBox();
+  const hud = await page.locator('.hud').boundingBox();
+  const view = page.viewportSize();
+  const height = view?.height ?? 1;
+
+  expect((card?.height ?? 0) / height).toBeLessThan(0.2);
+  // The hint and the HUD together still leave the map the larger half of the screen.
+  expect(((card?.height ?? 0) + (hud?.height ?? 0)) / height).toBeLessThan(0.5);
+
+  await hint.click();
+  await expect(hint).toHaveCount(0);
+});
+
 test('a fix too poor to use says exactly that', async ({ page }) => {
   /*
    * HUD-001. MAX_ACCURACY_M is 50, so 80 m is past the point of being usable, and

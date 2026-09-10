@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.55",
+    "date": "2026-09-10",
+    "notes": [
+      "The opening hint stopped covering the map. It was six lines of centred text floating over the middle of the screen — on the one view whose whole job is showing you where you are — and there was no way to be rid of it until you had done what it said. It is a small card at the edge now, and a tap sends it away until the next thing worth telling you.",
+      "It also stopped sitting on top of the map's own buttons. The strip above the status panel already held the attribution toggle and the recenter button, and a full-width panel covered both — two of them were buttons you could see and could not press."
+    ]
+  },
+  {
     "version": "0.5.54",
     "date": "2026-09-10",
     "notes": [

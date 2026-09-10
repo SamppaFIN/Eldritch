@@ -1,43 +1,61 @@
-/* Sits above the HUD, out of the thumb's way, gone once it is no longer true.
-   Measured against the HUD's own published height rather than a guess: the panel grows
-   and shrinks with what it has to say, and 12.5rem was right for none of those states. */
+/* Hugs the HUD, out of the thumb's way, gone once it is no longer true — or once it has
+   been read. It used to be six lines of centred text on a 26ch measure floating in the
+   middle of the map with no way to be rid of it (BRDC-TUTOR-003); the map is the one
+   thing this screen exists to show, so the hint is a card at its edge now, on the same
+   glass as `.mapview__warning`, and a tap sends it away. */
 
 .first-look {
   position: fixed;
   z-index: var(--z-hud);
   left: 0;
   right: 0;
-  bottom: calc(var(--hud-height, 9rem) + var(--space-4));
+  /* Above the map's own controls, not across them. The strip directly over the HUD is
+     already taken at both ends — the attribution toggle bottom-left, the recenter button
+     bottom-right (`camera-control.css`, 44 px at `hud-height + 2rem`) — and a full-width
+     card there covers both. Two targets in one place is a WCAG 2.2 target-size failure
+     and, on a phone, simply a button you cannot press. The controls are permanent and the
+     hint is temporary, so the hint is the one that moves. */
+  bottom: calc(var(--hud-height, 9rem) + var(--space-8) + var(--touch-min) + var(--space-3));
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  padding-inline: min(var(--space-4), 5vw);
+  justify-content: center;
+  padding-inline: min(var(--space-3), 3vw);
+  /* The container passes taps through to the map; only the card itself takes them. */
   pointer-events: none;
-  text-align: center;
   animation: es-rise var(--dur-ritual) var(--ease-out) both;
 }
 
-.first-look__rule {
-  color: var(--accent-warm);
-  opacity: 0.45;
+.first-look__card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  inline-size: 100%;
+  /* Twice the old measure: the same words on three lines instead of six. */
+  max-width: 30rem;
+  min-block-size: var(--touch-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--accent-warm) 40%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  text-align: center;
+  cursor: pointer;
+}
+
+.first-look__card:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
 }
 
 .first-look__line {
-  max-width: 26ch;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1rem;
   letter-spacing: 0.02em;
-  /* Legible over whatever the map happens to be showing underneath. */
-  text-shadow:
-    0 0 12px var(--bg),
-    0 0 24px var(--bg);
 }
 
 .first-look__sub {
-  max-width: 26ch;
   color: var(--text-muted);
-  font-size: 0.85rem;
-  text-shadow: 0 0 12px var(--bg);
+  font-size: var(--text-sm);
+  line-height: 1.35;
 }
