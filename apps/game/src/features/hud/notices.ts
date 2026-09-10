@@ -10,6 +10,9 @@
  * `MapNotices`.
  */
 
+import type { PermissionState } from '../map/useInitialPosition.js';
+import type { GeoStatus } from '../trail/usePositionSource.js';
+
 export interface Notice {
   /** Stable across renders, so dismissing one keeps it dismissed. */
   id: string;
@@ -31,6 +34,12 @@ export interface NoticeConditions {
   schemaReset: boolean;
   /** How many Works the one-per-cell migration took down, already paid back. */
   razed: number;
+  /**
+   * The location trouble worth explaining, or null while it is merely slow
+   * (BRDC-GEO-001). `denied` is a decision that can be reversed; `blocked` is the browser
+   * never answering at all, which on a phone is nearly always a setting two menus deep.
+   */
+  geo: 'denied' | 'blocked' | null;
   /** Age of the newest world shard in ms, or null when there is none. */
   worldStirredMs: number | null;
   /** Dev clock running ahead. */
@@ -51,6 +60,42 @@ export interface NoticeConditions {
 export function razedLine(count: number): string {
   const works = count === 1 ? 'One Work' : `${count} Works`;
   return `A hex holds one Work now. ${works} came down, and every stone of it is back in your pouch.`;
+}
+
+/**
+ * What to actually do about a refused or silent location (BRDC-GEO-001).
+ *
+ * The HUD says the state in three words, which is right for a line read while walking and
+ * useless for fixing anything. This is the other half. iPhone is named because that is
+ * where it bites: iOS hides the switch in two places, and a player who has already allowed
+ * the site in Safari will swear it is on — the one that is off is the system-wide
+ * Location Services entry for Safari, which no web page can see or ask about.
+ */
+export function geoAdvice(trouble: 'denied' | 'blocked'): string {
+  const settings =
+    'On iPhone check both: Settings → Privacy & Security → Location Services → Safari Websites, and the ⓐA menu in the address bar → Website Settings → Location.';
+  return trouble === 'denied'
+    ? `Location is refused, so no ground can be claimed. ${settings}`
+    : `Your browser never answered the request for a location. ${settings}`;
+}
+
+/**
+ * Whether the location trouble is worth explaining yet (BRDC-GEO-001).
+ *
+ * Only once tracking has also given up: the opening fix times out routinely on a cold
+ * start indoors and the watch then succeeds a few seconds later, and a page that shouts
+ * about settings every time the sky is slow is a page nobody reads. `null` while it is
+ * merely searching.
+ */
+export function geoTrouble(
+  permission: PermissionState,
+  tracking: GeoStatus,
+): NoticeConditions['geo'] {
+  if (permission === 'denied' || tracking === 'denied') return 'denied';
+  if (tracking === 'unavailable' || (permission === 'timed-out' && tracking !== 'tracking')) {
+    return 'blocked';
+  }
+  return null;
 }
 
 /** Hours, floored at one — "0 h ago" reads as a bug rather than as freshness. */
@@ -80,6 +125,9 @@ export function noticesFor(c: NoticeConditions, dismissed: ReadonlySet<string>):
     });
   }
   if (c.razed > 0) all.push({ id: 'razed', sticky: true, text: razedLine(c.razed) });
+  // Sticky: without a location there is no game at all, so this one waits to be read
+  // rather than sliding past in seven seconds.
+  if (c.geo) all.push({ id: 'geo', sticky: true, text: geoAdvice(c.geo) });
   if (c.worldStirredMs !== null) {
     all.push({
       id: 'world',

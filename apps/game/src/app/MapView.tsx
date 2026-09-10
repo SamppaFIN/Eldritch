@@ -52,7 +52,7 @@ import { PouchGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
-import type { NoticeConditions } from '../features/hud/notices.js';
+import { geoTrouble, type NoticeConditions } from '../features/hud/notices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
 import { useNation } from '../features/nation/useNation.js';
@@ -87,7 +87,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const clock = useGameClock();
 
   // Only the opening camera position; live permission state is usePositionSource's job.
-  const { centre, settled } = useInitialPosition();
+  const { centre, settled, permission } = useInitialPosition();
 
   useEffect(() => {
     let cancelled = false;
@@ -332,7 +332,7 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <MapNotices
-        {...alerts} worldStirredMs={world.stirredMs}
+        {...alerts} geo={geoTrouble(permission, status)} worldStirredMs={world.stirredMs}
         shifted={clock.shifted} offsetDays={clock.offsetDays}
       />
 

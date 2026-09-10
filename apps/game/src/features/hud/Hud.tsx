@@ -96,9 +96,9 @@ function signalLine(
 ): string {
   switch (status) {
     case 'denied':
-      return 'Location refused — the ground stays silent';
+      return 'Location refused — check your browser settings';
     case 'unavailable':
-      return 'No location sensor on this device';
+      return 'No location available from this browser';
     case 'searching':
       return 'Searching for the sky…';
     case 'pending':

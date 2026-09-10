@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.59",
+    "date": "2026-09-10",
+    "notes": [
+      "Fixed a bug that could leave the game stuck on “Listening for the ground beneath you…” forever. A browser is allowed to answer a location request with neither yes nor no, and iPhones do it often — the map waited for an answer that was never coming, and tracking never started either, because it waits for the map. The game sets its own deadline now: if the browser has not answered, the map opens anyway and tracking gets its own try.",
+      "A slow phone is no longer called a broken one. A location request that times out means no fix yet — indoors, in a tunnel, on a cold start — and the search is still running, so it says Searching and keeps your last position instead of announcing that your device has no location sensor and throwing the position away.",
+      "And when location really is refused, the game says where the switch is. On iPhone it is in two places, and no web page can see or ask about the outer one, so it names both."
+    ]
+  },
+  {
     "version": "0.5.58",
     "date": "2026-09-10",
     "notes": [

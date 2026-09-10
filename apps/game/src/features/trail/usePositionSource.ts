@@ -87,6 +87,18 @@ export function usePositionSource({
         });
       },
       (err) => {
+        /*
+         * A TIMEOUT is not a fault (BRDC-GEO-001). It means "no fix yet" — indoors, in a
+         * tunnel, on a cold start — and the watch is still running, so one may well
+         * arrive. Reporting it as `unavailable` told the player their phone had no
+         * location sensor, and threw away the last good point along with it. Both are
+         * wrong, and together they are the shape of the iPhone bug: a device that was
+         * merely slow looked broken and stayed broken on screen.
+         */
+        if (err.code === err.TIMEOUT) {
+          setState((prev) => ({ ...prev, status: 'searching' }));
+          return;
+        }
         setState({
           point: null,
           status: err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { noticesFor } from './notices.js';
+import { geoTrouble, noticesFor } from './notices.js';
 import type { NoticeConditions } from './notices.js';
 
 /**
@@ -11,6 +11,7 @@ const QUIET: NoticeConditions = {
   durable: true,
   schemaReset: false,
   razed: 0,
+  geo: null,
   worldStirredMs: null,
   shifted: false,
   offsetDays: 0,
@@ -74,5 +75,49 @@ describe('noticesFor', () => {
 
   it('says nothing about razing when the migration took nothing', () => {
     expect(noticesFor({ ...QUIET, razed: 0 }, NONE)).toEqual([]);
+  });
+
+  /*
+   * BRDC-GEO-001. Without a location there is no game at all, so this notice waits to be
+   * read rather than sliding past in seven seconds like the informational ones.
+   */
+  it('explains a refused location, and does not let the advice expire', () => {
+    const [notice] = noticesFor({ ...QUIET, geo: 'denied' }, NONE);
+    expect(notice?.id).toBe('geo');
+    expect(notice?.sticky).toBe(true);
+    expect(notice?.text).toMatch(/refused/i);
+    expect(notice?.text).toMatch(/Location Services/);
+  });
+
+  it('says something different when the browser simply never answered', () => {
+    const [notice] = noticesFor({ ...QUIET, geo: 'blocked' }, NONE);
+    expect(notice?.text).toMatch(/never answered/i);
+  });
+});
+
+describe('geoTrouble', () => {
+  it('stays quiet while the sky is merely slow', () => {
+    expect(geoTrouble('pending', 'searching')).toBeNull();
+    expect(geoTrouble('pending', 'pending')).toBeNull();
+    expect(geoTrouble('granted', 'tracking')).toBeNull();
+  });
+
+  /*
+   * The opening fix times out routinely on a cold start indoors and the watch succeeds a
+   * few seconds later. A page that shouts about settings every time that happens is a
+   * page whose warnings nobody reads by the time one is true.
+   */
+  it('says nothing about an opening timeout that tracking then recovered from', () => {
+    expect(geoTrouble('timed-out', 'tracking')).toBeNull();
+  });
+
+  it('speaks once tracking has given up too', () => {
+    expect(geoTrouble('timed-out', 'searching')).toBe('blocked');
+    expect(geoTrouble('granted', 'unavailable')).toBe('blocked');
+  });
+
+  it('calls a refusal a refusal, from either half', () => {
+    expect(geoTrouble('denied', 'pending')).toBe('denied');
+    expect(geoTrouble('pending', 'denied')).toBe('denied');
   });
 });
