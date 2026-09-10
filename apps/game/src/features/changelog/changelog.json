@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.63",
+    "date": "2026-09-10",
+    "notes": [
+      "Escape closes the Keep and the cell card. It always closed the Guide, History, Character and Codex — the two panels you open most were the two that never got it, so the Keep stayed open behind Research and You with all its buttons still live.",
+      "Research says how much wisdom you are short, beside the button. It showed the price and a forecast, and never the plain fact it was refusing on.",
+      "Investigate, Light the Altar and temple expansion now say what they are short of too — the last three buttons that greyed out without a reason."
+    ]
+  },
+  {
     "version": "0.5.62",
     "date": "2026-09-10",
     "notes": [

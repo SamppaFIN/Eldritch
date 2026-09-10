@@ -213,7 +213,7 @@ export const WORLD_VERSION = 2;
 /** The Codex table's own shape version, separate from `WORLD_VERSION` (BRDC-CODEX-001). */
 export const CODEX_VERSION = 1;
 
-export const APP_VERSION = '0.5.62';
+export const APP_VERSION = '0.5.63';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**

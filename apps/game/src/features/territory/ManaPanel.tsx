@@ -7,9 +7,10 @@
  * other used to live here; there is nothing left to trade. A section of the Hearth panel,
  * `ResearchPanel`'s shape.
  */
-import { expansionCost } from '@es3/core';
+import { expansionCost, shortOf } from '@es3/core';
 import type { ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { shortNote } from './gateNote.js';
 import type { KeepEconomy } from './useKeepEconomy.js';
 
 const REFUSAL: Readonly<Record<string, string>> = {
@@ -27,6 +28,8 @@ export function ManaPanel({ keep, pool }: ManaPanelProps) {
   const cost = expansionCost(keep.altarLevel + 1);
   const canRaise =
     !keep.atMax && (pool ? (pool.stone >= (cost.stone ?? 0) && pool.gold >= (cost.gold ?? 0)) : false);
+  // "At its height" already explains the maxed case; this covers the other one.
+  const raiseGate = canRaise || keep.atMax ? null : shortNote(shortOf(pool, cost));
 
   return (
     <div className="hearth-panel__tabbody">
@@ -50,6 +53,12 @@ export function ManaPanel({ keep, pool }: ManaPanelProps) {
           {keep.atMax ? 'At its height' : `${cost.stone} stone · ${cost.gold} gold`}
         </RitualButton>
       </div>
+
+      {raiseGate ? (
+        <p className="hearth-panel__line hearth-panel__line--warn" role="status">
+          {raiseGate}
+        </p>
+      ) : null}
 
       {keep.refusal ? (
         <p className="hearth-panel__line hearth-panel__line--warn" role="status">

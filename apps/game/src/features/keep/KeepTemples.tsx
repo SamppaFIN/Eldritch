@@ -7,9 +7,10 @@
  * dwelling; this is only the upkeep.
  */
 import { useEffect, useState } from 'react';
-import { MAX_TEMPLE_EXPANSION, expansionCost } from '@es3/core';
+import { MAX_TEMPLE_EXPANSION, expansionCost, shortOf } from '@es3/core';
 import type { ExpandRefusal, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { shortNote } from '../territory/gateNote.js';
 
 const REFUSAL: Readonly<Record<string, string>> = {
   'not-a-temple': 'That place is not a temple.',
@@ -86,6 +87,11 @@ export function KeepTemples({ places, pool, repository, now, onPouch }: KeepTemp
             >
               {level >= MAX_TEMPLE_EXPANSION ? 'At its height' : `${cost.stone} stone · ${cost.gold} gold`}
             </RitualButton>
+            {level < MAX_TEMPLE_EXPANSION && cannotExpand(level, pool) ? (
+              <p className="hearth-panel__line hearth-panel__line--warn" role="status">
+                {shortNote(shortOf(pool, cost))}
+              </p>
+            ) : null}
           </div>
         );
       })}

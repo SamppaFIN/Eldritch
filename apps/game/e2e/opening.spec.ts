@@ -127,3 +127,45 @@ test('Ward explains itself on ground that is already as safe as it gets', async 
   await expect(card).toBeVisible({ timeout: 15_000 });
   await expect(card).toContainText(/Already at full strength/, { timeout: 15_000 });
 });
+
+test('Research says how much wisdom is missing, not just the price', async ({ page }) => {
+  /*
+   * BRDC-UI-003. Found by auditing every button on every surface: three technologies sat
+   * greyed out showing their cost, with a forecast ("~4 h") in small type beside the
+   * title. Neither says the plain fact the button is refusing on — that you have none of
+   * the twenty.
+   */
+  await openMap(page);
+  await page.getByRole('button', { name: 'Research', exact: true }).click();
+
+  const research = page.locator('.hearth-panel__research-row').first();
+  await expect(research).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('body')).toContainText(/Short \d+ wisdom/, { timeout: 10_000 });
+});
+
+test('ESC closes the Keep, so its controls do not follow you around', async ({ page }) => {
+  /*
+   * The same audit found the Keep could not be closed with ESC — `HelpPanel`, `LogPanel`,
+   * `CharacterPanel` and `CodexPanel` each had their own listener and the two sheets a
+   * player opens most had none. With the Keep stuck open, its buttons were still on
+   * screen behind Research and You: a keyboard trap, and a pile of controls belonging to
+   * a panel the player thought they had left (claude.md §14, WCAG 2.2).
+   */
+  await openMap(page);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+
+  const keep = page.locator('.hearth-panel').first();
+  await expect(keep).toBeVisible({ timeout: 15_000 });
+  await page.keyboard.press('Escape');
+  await expect(keep).toHaveCount(0);
+});
+
+test('and ESC closes the cell card too', async ({ page }) => {
+  await openMap(page);
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+
+  const card = page.getByRole('region', { name: 'Selected cell' });
+  await expect(card).toBeVisible({ timeout: 15_000 });
+  await page.keyboard.press('Escape');
+  await expect(card).toHaveCount(0);
+});

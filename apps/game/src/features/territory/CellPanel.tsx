@@ -18,6 +18,7 @@ import {
 import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es3/core';
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
+import { useEscape } from '../hud/useEscape.js';
 import { BuildPanel } from './BuildPanel.js';
 import { CellWorth } from './CellWorth.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
@@ -166,6 +167,9 @@ export function CellPanel({
   useEffect(() => {
     if (h3) panelRef.current?.focus();
   }, [h3]);
+  // Above the early return: hooks cannot be conditional, and `h3` already carries whether
+  // there is a card open at all.
+  useEscape(h3 !== null, onClose);
 
   if (!cell) return null;
 

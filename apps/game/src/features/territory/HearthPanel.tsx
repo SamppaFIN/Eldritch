@@ -11,6 +11,7 @@
  */
 import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
+import { useEscape } from '../hud/useEscape.js';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
 import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
 import { dominionOf } from './dominion.js';
@@ -85,6 +86,7 @@ export function HearthPanel({
   onClose,
 }: HearthPanelProps) {
   const [tab, setTab] = useState<KeepTab>('mana');
+  useEscape(true, onClose);
   const afterKeepSpend = useCallback(() => {
     void repository?.getResources(now).then(onPouch);
   }, [repository, now, onPouch]);

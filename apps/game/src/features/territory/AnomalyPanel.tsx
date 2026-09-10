@@ -5,9 +5,10 @@
  * investigating shows the clock; ready offers the look; a chain shows the stage and its
  * choices. The stories themselves are `BRDC-QUEST-001`; this is the frame.
  */
-import { ANOMALY_INVESTIGATE_COST, canAfford } from '@es3/core';
+import { ANOMALY_INVESTIGATE_COST, shortOf, canAfford } from '@es3/core';
 import type { ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { shortNote } from './gateNote.js';
 import type { AnomalyBinding } from './useAnomaly.js';
 
 const REFUSAL: Readonly<Record<string, string>> = {
@@ -27,6 +28,8 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
   const a = anomaly.current;
   if (!a) return null;
   const affordable = resources ? canAfford(resources, ANOMALY_INVESTIGATE_COST) : false;
+  // Why not, beside the button rather than nowhere (BRDC-UI-002).
+  const gate = affordable ? null : shortNote(shortOf(resources, ANOMALY_INVESTIGATE_COST));
 
   return (
     <section className="cell-panel__anomaly" aria-label="Anomaly">
@@ -40,6 +43,11 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
           >
             Investigate · {ANOMALY_INVESTIGATE_COST.food} food
           </RitualButton>
+          {gate ? (
+            <p className="cell-panel__why" role="status">
+              {gate}
+            </p>
+          ) : null}
         </>
       ) : null}
 

@@ -7,6 +7,7 @@
  * turns, which is the one ceremony the tree has.
  */
 import { MetatronsCube, RitualButton } from '@es3/ui';
+import { shortNote } from './gateNote.js';
 import { TECHS, researchCost, timeToAfford } from '@es3/core';
 import type { ResourcePool, TechId, TechRefusal } from '@es3/core';
 import { titleCase } from './BuildPanel.js';
@@ -55,10 +56,18 @@ export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch, 
       {locked ? (
         <span className="hearth-panel__research-wait">Locked</span>
       ) : (
-        <RitualButton variant="ghost" disabled={wisdom < cost || pending} onClick={() => onResearch(id)}>
-          {/* A tap can take a visible second (BRDC-SCALE-001); silence that long reads as broken. */}
-          {pending ? 'Researching…' : `${cost} wisdom`}
-        </RitualButton>
+        <>
+          <RitualButton variant="ghost" disabled={wisdom < cost || pending} onClick={() => onResearch(id)}>
+            {/* A tap can take a visible second (BRDC-SCALE-001); silence that long reads as broken. */}
+            {pending ? 'Researching…' : `${cost} wisdom`}
+          </RitualButton>
+          {/* The wait beside the title is a forecast; this is the plain fact the button is
+              refusing on. "You have 0 of 20" is what a greyed price needs to say
+              (BRDC-UI-002). */}
+          {!pending && wisdom < cost ? (
+            <span className="hearth-panel__research-wait">{shortNote({ wisdom: cost - wisdom })}</span>
+          ) : null}
+        </>
       )}
     </div>
   );
