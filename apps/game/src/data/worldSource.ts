@@ -39,15 +39,28 @@ export async function fetchWorldShards(regions: readonly string[]): Promise<stri
  * Fetch the Codex of Dominion — every realm the Worker holds, measured (BRDC-CODEX-001).
  *
  * One request, not one per region: the Worker builds the table on write and serves it
- * from a single KV read. `null` for a world nobody has published to yet, and for every
- * failure — the Codex is a view of other people, and there may simply be none.
+ * from a single KV read.
+ *
+ * The three outcomes are kept apart on purpose, because collapsing them lies to the
+ * player. This first shipped returning `null` for all of them, and the very first person
+ * to open it had just published their realm and was told nobody had — the Worker had not
+ * been redeployed, so the endpoint 404'd. "Nobody is here" and "I could not ask" are
+ * different sentences and the panel has to be able to say both.
  */
-export async function fetchDemographics(): Promise<string | null> {
+export type CodexFetch =
+  | { ok: true; text: string }
+  | { ok: false; reason: 'empty' | 'unreachable' };
+
+export async function fetchDemographics(): Promise<CodexFetch> {
   try {
     const res = await fetch(`${WORLD_API}/demographics`, { cache: 'no-store' });
-    return res.ok && res.status !== 204 ? await res.text() : null;
+    // 204 is the Worker saying "asked and answered: nothing yet". Anything else that is
+    // not a success — 404 from a Worker without this endpoint, a 5xx — is unreachable.
+    if (res.status === 204) return { ok: false, reason: 'empty' };
+    if (!res.ok) return { ok: false, reason: 'unreachable' };
+    return { ok: true, text: await res.text() };
   } catch {
-    return null;
+    return { ok: false, reason: 'unreachable' };
   }
 }
 

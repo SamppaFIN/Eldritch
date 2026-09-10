@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.58",
+    "date": "2026-09-10",
+    "notes": [
+      "The Codex stopped telling you nobody had published when it simply could not ask. Every failure — an endpoint that is not there, a server error, no network — was being reported as an empty world, so publishing your realm and then being told no realm had published was possible. It now says it could not be reached, adds that your own ground is safe on this device, and offers to try again.",
+      "And the Codex builds itself the first time it is asked, so a freshly deployed world shows the table straight away instead of waiting for somebody to publish again."
+    ]
+  },
+  {
     "version": "0.5.57",
     "date": "2026-09-10",
     "notes": [

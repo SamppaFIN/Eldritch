@@ -114,6 +114,18 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
         </p>
       ) : null}
 
+      {state.status === 'unreachable' ? (
+        <>
+          <p className="codex__note">
+            The Codex could not be reached. Your own realm is safe on this device — this is
+            the shared world being quiet, not your ground.
+          </p>
+          <RitualButton variant="ghost" className="codex__reload" onClick={reload}>
+            Try again
+          </RitualButton>
+        </>
+      ) : null}
+
       {state.status === 'ready' ? (
         <>
           <p className="codex__note">

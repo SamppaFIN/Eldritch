@@ -2,8 +2,11 @@
  * The Codex of Dominion, fetched when it is opened (BRDC-CODEX-001).
  *
  * Not on a timer and not at boot: it is a screen you visit, and the table only changes
- * when somebody publishes. Every failure is a quiet `null` — the shared world is optional
- * and a player with no friends online should see "nobody has published", not an error.
+ * when somebody publishes.
+ *
+ * `empty` and `unreachable` stay apart all the way to the screen. A player who has just
+ * published and is told "no realm has published yet" learns something false about their
+ * own game — which is exactly what happened the first time this shipped.
  */
 import { useCallback, useEffect, useState } from 'react';
 import type { Demographics } from '@es3/core';
@@ -13,7 +16,8 @@ export type CodexState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; table: Demographics }
-  | { status: 'empty' };
+  | { status: 'empty' }
+  | { status: 'unreachable' };
 
 export function useCodex(open: boolean): { state: CodexState; reload: () => void } {
   const [state, setState] = useState<CodexState>({ status: 'idle' });
@@ -24,19 +28,23 @@ export function useCodex(open: boolean): { state: CodexState; reload: () => void
     let cancelled = false;
     setState({ status: 'loading' });
     void (async () => {
-      const text = await fetchDemographics();
+      const result = await fetchDemographics();
       if (cancelled) return;
-      // A table that will not parse is the same to the player as no table at all, and
-      // saying "damaged" about somebody else's server helps nobody.
+      if (!result.ok) {
+        setState({ status: result.reason });
+        return;
+      }
+      // A table that arrived but will not parse is a broken answer, not an absent one:
+      // the Worker is reachable and saying something this client cannot read.
       try {
-        const table = text ? (JSON.parse(text) as Demographics) : null;
+        const table = JSON.parse(result.text) as Demographics;
         setState(
-          table && Array.isArray(table.metrics) && table.players > 0
+          Array.isArray(table.metrics) && table.players > 0
             ? { status: 'ready', table }
             : { status: 'empty' },
         );
       } catch {
-        setState({ status: 'empty' });
+        setState({ status: 'unreachable' });
       }
     })();
     return () => {

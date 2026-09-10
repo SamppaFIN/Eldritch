@@ -161,10 +161,11 @@ test('the menu control is a real button with a real name, and reaches Delete pro
 
 test('the Codex opens from the menu, and says so when the world is empty', async ({ page }) => {
   /*
-   * BRDC-CODEX-001. Nothing has been published in a test run, and that is the state worth
-   * locking: a player with no friends online must get a sentence telling them how the
-   * Codex fills, not a spinner, an error, or a table of zeroes.
+   * BRDC-CODEX-001. 204 is the Worker saying "asked and answered: nothing yet", and that
+   * is the state worth locking: a player with no friends online must get a sentence
+   * telling them how the Codex fills, not a spinner, an error, or a table of zeroes.
    */
+  await page.route('**/demographics', (route) => route.fulfill({ status: 204 }));
   await openMap(page);
   await openMenuAction(page, 'Codex of Dominion');
 
@@ -175,6 +176,25 @@ test('the Codex opens from the menu, and says so when the world is empty', async
   // Same contract as every other sheet: ESC closes it (claude.md §14).
   await page.keyboard.press('Escape');
   await expect(codex).toHaveCount(0);
+});
+
+test('a Codex it cannot reach does not claim the world is empty', async ({ page }) => {
+  /*
+   * BRDC-CODEX-002, and the reason it exists. This first shipped collapsing every failure
+   * into "no realm has published yet", and the first person to open it had just published
+   * their own realm — the Worker had not been redeployed, so the endpoint 404'd and the
+   * game told them their publish had not happened. It had.
+   */
+  await page.route('**/demographics', (route) => route.fulfill({ status: 404 }));
+  await openMap(page);
+  await openMenuAction(page, 'Codex of Dominion');
+
+  const codex = page.getByRole('region', { name: 'Codex of Dominion' });
+  await expect(codex).toContainText(/could not be reached/i, { timeout: 10_000 });
+  await expect(codex).not.toContainText(/No realm has published yet/i);
+  // And it says the thing the player actually needs to know: their ground is fine.
+  await expect(codex).toContainText(/safe on this device/i);
+  await expect(codex.getByRole('button', { name: 'Try again' })).toBeVisible();
 });
 
 /** A Codex the Worker might serve: three realms, and the local player is not the best. */

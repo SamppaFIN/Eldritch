@@ -116,10 +116,22 @@ export default {
       });
     }
 
-    // Served from a single KV read like the shards: it is rebuilt on write, never on read.
+    /*
+     * Served from a single KV read like the shards — with one exception. A Worker that has
+     * just been deployed has players in KV but no table yet, and making the player publish
+     * again to see a screen they already earned is a bad first impression of a feature
+     * whose whole job is telling them where they stand. So a missing key is built here,
+     * once, from files that are already stored. After that it is written on submit.
+     */
     if (request.method === 'GET' && url.pathname === '/demographics') {
-      const codex = await env.WORLD.get(CODEX);
-      if (!codex) return bare(204);
+      let codex = await env.WORLD.get(CODEX);
+      if (!codex) {
+        const now = Date.now();
+        const live = mergePlayerFiles(await allFiles(env.WORLD), now, WORLD_PLAYER_TTL_MS);
+        if (live.length === 0) return bare(204);
+        codex = JSON.stringify(demographicsOf(live, now));
+        await env.WORLD.put(CODEX, codex);
+      }
       return new Response(codex, {
         headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
       });
