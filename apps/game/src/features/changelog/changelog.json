@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.56",
+    "date": "2026-09-10",
+    "notes": [
+      "Mana reaches past your feet now. Farsight reads the ground two rings out from any hex on the map — terrain, owner, all of it — without walking there, so where to put a mine is a decision instead of a guess. It costs 30, and it is the first rite the air school ever had.",
+      "Quickening wakes the free ground beside yours at once, one ring around a hex on your border. It costs 120, more than anything else mana buys, and that is deliberate: at six an hour that is twenty hours, and walking the same seven hexes takes ten minutes. It is not a shortcut — it is for ground your feet cannot reach, across water or behind a fence.",
+      "It will not take a hex somebody holds, whoever they are. Ground changes hands by siege, over two or three walks on separate days, and no rite gets to skip that."
+    ]
+  },
+  {
     "version": "0.5.55",
     "date": "2026-09-10",
     "notes": [

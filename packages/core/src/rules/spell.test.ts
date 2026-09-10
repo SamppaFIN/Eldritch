@@ -15,6 +15,7 @@ import {
   spellRemaining,
 } from './spell.js';
 import type { ActiveSpell, CastContext, SpellId } from './spell.js';
+import { cellAt, neighboursOf } from '../geo/cells.js';
 import type { Cell } from '../types/domain.js';
 
 const T0 = Date.parse('2026-09-01T12:00:00Z');
@@ -145,5 +146,70 @@ describe('bulwark, wired', () => {
     // subtracts it. The end-to-end effect is spell.repo.test.ts / decay.test.ts.
     expect(BULWARK_SHELTER_MS).toBe(SPELLS.bulwark.durationMs);
     expect(BULWARK_SHELTER_MS).toBeGreaterThan(0);
+  });
+});
+
+describe('the two Rites that reach past your feet (PIVOT-2026-09-09 §7)', () => {
+  const HOME = cellAt({ lat: 61.4729, lng: 23.7259 });
+  const [BESIDE] = neighboursOf(HOME) as [string];
+  const FAR = cellAt({ lat: 61.5, lng: 23.9 });
+  const here = (over: Partial<CastContext> = {}) =>
+    ctx({ owned: [cell(HOME)], pool: pool({ mana: 999 }), ...over });
+
+  it('both act at once rather than running — nothing to store, nothing to sweep', () => {
+    for (const id of ['farsight', 'quickening'] as SpellId[]) {
+      expect(SPELLS[id].via).toBe('home');
+      expect(SPELLS[id].durationMs).toBe(0);
+      expect(activeSpells([{ id, castAt: T0 }], T0)).toEqual([]);
+    }
+  });
+
+  it('Farsight lands on any hex at all — that is the whole point of looking', () => {
+    const result = castSpell(here(), 'farsight', FAR, T0);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.pool.mana).toBe(999 - SPELLS.farsight.cost);
+  });
+
+  it('but it still needs somewhere to look', () => {
+    expect(castSpell(here(), 'farsight', null, T0)).toEqual({
+      ok: false,
+      refused: 'needs-a-target',
+    });
+  });
+
+  it('Quickening takes free ground that touches yours', () => {
+    expect(castSpell(here(), 'quickening', BESIDE, T0).ok).toBe(true);
+  });
+
+  it('and refuses ground that touches nothing of yours', () => {
+    expect(castSpell(here(), 'quickening', FAR, T0)).toEqual({
+      ok: false,
+      refused: 'not-on-your-border',
+    });
+  });
+
+  /*
+   * The refusal that matters most: aimed at your own hex it says so, rather than charging
+   * 120 mana to claim what you already hold.
+   */
+  it('and refuses ground already yours, by name', () => {
+    expect(castSpell(here(), 'quickening', HOME, T0)).toEqual({
+      ok: false,
+      refused: 'already-held',
+    });
+  });
+
+  it('costs more than anything else mana buys — walking must stay the cheap way', () => {
+    const others = (Object.keys(SPELLS) as SpellId[])
+      .filter((id) => id !== 'quickening')
+      .map((id) => SPELLS[id].cost);
+    expect(SPELLS.quickening.cost).toBeGreaterThan(Math.max(...others));
+  });
+
+  it('gives air the home Rite it never had', () => {
+    const homeSchools = (Object.keys(SPELLS) as SpellId[])
+      .filter((id) => SPELLS[id].via === 'home')
+      .map((id) => SPELLS[id].school);
+    expect(homeSchools).toContain('air');
   });
 });

@@ -37,6 +37,8 @@ export const SPELL_BLURB: Readonly<Record<SpellId, string>> = {
   greenwake: 'Every wood you hold quickened — timber comes in faster.',
   snare: "A rival's ground caught fast. Carried into a Wager, not cast at home.",
   dominion: "Another's people turned to your word. Carried into a Wager.",
+  farsight: 'The land two rings out read from where you stand — its ground, without the walk.',
+  quickening: 'Unheld ground beside yours wakes at once. Held ground it will not touch.',
 };
 
 export const BUILDING_BLURB: Readonly<Record<BuildingId, string>> = {
@@ -95,10 +97,16 @@ export function spellEffect(id: SpellId): string {
   const s = SPELLS[id];
   const hours = Math.round(s.durationMs / 3_600_000);
   if (id === 'bulwark') return `Shelters this cell from decay · ${hours} h`;
+  // The two reaching Rites are instant: they say what they do and how far, not how long
+  // (PIVOT-2026-09-09 §7). `ringWord` is the unit a walker actually thinks in.
+  if (id === 'farsight') return `Reveals ${ringWord(s.reach ?? 0)} around this hex · at once`;
+  if (id === 'quickening') return `Wakes the free ground ${ringWord(s.reach ?? 0)} out · at once`;
   const bonus = Object.entries(s.domainBonusPerH ?? {})[0];
   if (bonus) return `+${bonus[1]} ${word(bonus[0] as ResourceKind)} / h to the domain · ${hours} h`;
   return 'Carried into a Wager';
 }
+
+const ringWord = (rings: number): string => (rings === 1 ? 'one ring' : `${rings} rings`);
 
 /** "Unlocks Library and the Insight rite" / "Leads to Masonry and Mining" / "". */
 export function techUnlocks(id: TechId): string {

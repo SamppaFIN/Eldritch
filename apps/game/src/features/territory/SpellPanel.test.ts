@@ -9,12 +9,23 @@ describe('HOME_SPELLS', () => {
   it('is exactly the spells that act at home', () => {
     expect([...HOME_SPELLS].sort()).toEqual([
       'bulwark',
+      'farsight',
       'forgeheart',
       'greenwake',
       'insight',
+      'quickening',
       'wellspring',
     ]);
     for (const id of HOME_SPELLS) expect(SPELLS[id].via).toBe('home');
+  });
+
+  // PIVOT-2026-09-09 §7. The panel is a cell card, so a Rite that is not cast on the whole
+  // domain is cast on the hex whose card it is — including the two that reach past it.
+  it('gives every Rite but a domain one a cell to land on', () => {
+    for (const id of HOME_SPELLS) {
+      if (SPELLS[id].scope === 'domain') continue;
+      expect(SPELLS[id].scope).toMatch(/cell$/);
+    }
   });
 });
 

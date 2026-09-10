@@ -2,7 +2,7 @@
  * BRDC-SPELL-001 — casting through the repository: research yields, protection shelters.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EMPTY_POOL, MANA_ANCHOR_RATE, SPELLS, neighboursOf } from '@es3/core';
+import { EMPTY_POOL, MANA_ANCHOR_RATE, SPELLS, cellsWithin, neighboursOf } from '@es3/core';
 import type { ResourcePool } from '@es3/core';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
@@ -96,5 +96,108 @@ describe('spells through the repository', () => {
   it('refuses a spell whose tech is not researched', async () => {
     const { repo: unlearned } = await repoWith({ mana: 500 }, []);
     expect(await unlearned.castSpell('insight', null, T0)).toEqual({ ok: false, refused: 'locked' });
+  });
+});
+
+describe('the two Rites that reach past your feet (PIVOT-2026-09-09 §7)', () => {
+  const ALL = ['guild-craft', 'fortification'];
+
+  /**
+   * The first free hex outward from the Hearth.
+   *
+   * `setHome` claims the Hearth *and its ring* (BRDC-HEARTH-002), so ring 1 is already
+   * yours and Quickening rightly refuses it. Ring 2 is where the border actually is.
+   */
+  const firstFree = (home: string): string =>
+    cellsWithin(home, 2).find((h3) => !cellsWithin(home, 1).includes(h3)) as string;
+
+  it('Farsight puts the ground two rings out on the map, without a step', async () => {
+    const { repo, store, home } = await repoWith({ mana: 500 }, ALL);
+    const far = cellsWithin(home, 6)[20] as string;
+    expect(await store.get(K.cell(far))).toBeUndefined();
+
+    const out = await repo.castSpell('farsight', far, T0);
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+
+    // It reports what it actually put there, and every one of those is an unowned cell —
+    // the map's neutral seen-not-held tone. Cells that were already in the store are not
+    // in the list, which is the next test.
+    const reached = out.reached ?? [];
+    expect(reached.length).toBeGreaterThan(0);
+    expect(reached.every((h3) => cellsWithin(far, SPELLS.farsight.reach ?? 0).includes(h3))).toBe(true);
+    for (const h3 of reached) {
+      expect((await store.get<{ ownerId: string | null }>(K.cell(h3)))?.ownerId).toBeNull();
+    }
+  });
+
+  it('and never overwrites a hex that already exists — including one you hold', async () => {
+    const { repo, store, home } = await repoWith({ mana: 500 }, ALL);
+    const before = await store.get<{ strength: number }>(K.cell(home));
+
+    await repo.castSpell('farsight', home, T0);
+    expect(await store.get<{ strength: number }>(K.cell(home))).toEqual(before);
+  });
+
+  it('Quickening takes the free ground beside yours, and it is ground like any other', async () => {
+    const { repo, home } = await repoWith({ mana: 500 }, ALL);
+    const target = firstFree(home);
+
+    const before = (await repo.getOwnedCells(T0)).length;
+    expect(await repo.castSpell('quickening', target, T0)).toMatchObject({ ok: true });
+
+    const owned = await repo.getOwnedCells(T0);
+    expect(owned.length).toBeGreaterThan(before);
+    expect(owned.find((c) => c.h3 === target)?.strength).toBeGreaterThan(0);
+    // Written the way a step-claim writes it: the log calls it an awakening, not a spell
+    // effect, because a hex taken this way is not a different kind of hex.
+    const log = await repo.getLog();
+    expect(log.some((e) => e.kind === 'awaken')).toBe(true);
+    expect(log.some((e) => e.kind === 'spell' && e.ref === 'quickening')).toBe(true);
+  });
+
+  it('refuses ground already yours by name, rather than charging for it', async () => {
+    const { repo, home } = await repoWith({ mana: 500 }, ALL);
+    expect(await repo.castSpell('quickening', home, T0)).toEqual({
+      ok: false,
+      refused: 'already-held',
+    });
+    expect((await repo.getResources(T0)).mana).toBeGreaterThanOrEqual(500);
+  });
+
+  /*
+   * The line this Rite must not cross. A siege takes two or three walks on separate days
+   * (CLAUDE.md §11); if 120 mana could flip a held cell, that whole model would be
+   * optional. Held ground is skipped in silence, whoever holds it.
+   */
+  it('but it will not touch ground somebody holds', async () => {
+    const { repo, store, home } = await repoWith({ mana: 500 }, ALL);
+    const target = firstFree(home);
+    const rival = neighboursOf(target).find((h) => !cellsWithin(home, 1).includes(h)) as string;
+    await store.set(K.cell(rival), {
+      h3: rival,
+      ownerId: 'the-pale-warden',
+      strength: 300,
+      lastVisitedAt: T0,
+      visitDays: [],
+    });
+
+    await repo.castSpell('quickening', target, T0);
+    const after = await store.get<{ ownerId: string; strength: number }>(K.cell(rival));
+    expect(after?.ownerId).toBe('the-pale-warden');
+    expect(after?.strength).toBe(300);
+  });
+
+  it('charges its mana — the most expensive thing a Rite costs', async () => {
+    const { repo, home } = await repoWith({ mana: 500 }, ALL);
+    await repo.castSpell('quickening', firstFree(home), T0);
+    expect((await repo.getResources(T0)).mana).toBeLessThanOrEqual(500 - SPELLS.quickening.cost);
+  });
+
+  it('neither is stored among the running spells — they are done when they are cast', async () => {
+    const { repo, home } = await repoWith({ mana: 500 }, ALL);
+    await repo.castSpell('farsight', home, T0);
+    await repo.castSpell('quickening', firstFree(home), T0);
+    expect(await repo.getActiveSpells(T0)).toEqual([]);
   });
 });

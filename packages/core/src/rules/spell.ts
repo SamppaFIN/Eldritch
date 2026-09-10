@@ -14,6 +14,7 @@
  * Pure, `ward.ts`'s shape: `castSpell` returns `{ ok, … } | { refused }`, pays through
  * `terrain.ts#spend`, and only `activeSpells`/`spellRemaining` look at the clock.
  */
+import { neighboursOf } from '../geo/cells.js';
 import { spend } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
 import type { TechId, TempleSchool } from './tech.js';
@@ -31,10 +32,12 @@ export type SpellId =
   | 'wellspring'
   | 'greenwake'
   | 'snare'
-  | 'dominion';
+  | 'dominion'
+  | 'farsight'
+  | 'quickening';
 
 /** Where a spell's effect lands, and what `castSpell` has to check. */
-export type SpellScope = 'domain' | 'own-cell' | 'enemy-cell';
+export type SpellScope = 'domain' | 'own-cell' | 'enemy-cell' | 'any-cell' | 'border-cell';
 
 /** `home` spells act now; `wager` spells are carried in a challenge (BRDC-SPELL-002). */
 export type SpellVia = 'home' | 'wager';
@@ -45,12 +48,26 @@ export interface Spell {
   scope: SpellScope;
   /** Mana to cast. */
   cost: number;
-  /** How long the effect lasts, ms. Zero for a `wager` spell — it resolves in one duel. */
+  /**
+   * How long the effect lasts, ms.
+   *
+   * Zero means the Rite does not run: a `wager` spell resolves in one duel, and an
+   * instant `home` spell (PIVOT-2026-09-09 §7) does its whole work at the moment of the
+   * cast. `activeSpells` drops a zero-duration spell on sight, so neither is ever stored
+   * among the running ones. A *lasting* effect that never ends is a building, not a Rite.
+   */
   durationMs: number;
   /** The technology that unlocks it. */
   tech: TechId;
   /** For a wired `home` effect: the per-hour resource bonus to the caster's domain. */
   domainBonusPerH?: Partial<ResourcePool>;
+  /**
+   * Rings of cells the Rite touches around its target (PIVOT-2026-09-09 §7).
+   *
+   * Here rather than in `constants.ts` for the same reason `cost` and `durationMs` are:
+   * it is a number belonging to one Rite, and the table is where a Rite's numbers live.
+   */
+  reach?: number;
 }
 
 const HOUR = 3_600_000;
@@ -125,6 +142,41 @@ export const SPELLS: Readonly<Record<SpellId, Spell>> = {
     durationMs: 0,
     tech: 'guild-craft',
   },
+
+  /* --- PIVOT-2026-09-09 §7: the two Rites that reach past your feet --------- */
+
+  // Air's home Rite, and the school's first: seeing at a distance is what air is for.
+  // Cheap, because what it buys is knowledge, and knowledge only tells you where to walk.
+  farsight: {
+    school: 'air',
+    via: 'home',
+    scope: 'any-cell',
+    cost: 30,
+    durationMs: 0,
+    tech: 'guild-craft',
+    // Two rings is nineteen hexes of ground read before deciding where to walk. Generous,
+    // because all it buys is knowing — it still takes feet to own any of it.
+    reach: 2,
+  },
+  /*
+   * The most expensive thing mana buys, on purpose.
+   *
+   * At 6 mana an hour from one place, 120 is twenty hours — far slower than walking the
+   * same seven hexes. That is the point: this is not a shortcut, it is a way to reach
+   * ground your feet cannot (across water, behind a fence, on the far side of a motorway).
+   * It takes unheld ground only. A rival's cell is taken by siege, never by a Rite.
+   */
+  quickening: {
+    school: 'earth',
+    via: 'home',
+    scope: 'border-cell',
+    cost: 120,
+    durationMs: 0,
+    tech: 'fortification',
+    // One ring. Seven hexes at most, and only the free ones: taking ground without
+    // walking is the one thing this game must never make comfortable.
+    reach: 1,
+  },
 };
 
 export interface ActiveSpell {
@@ -141,6 +193,8 @@ export type CastRefusal =
   | 'carry-in-a-wager'
   | 'needs-a-target'
   | 'not-your-cell'
+  | 'not-on-your-border'
+  | 'already-held'
   | 'already-running';
 
 export interface CastContext {
@@ -174,10 +228,17 @@ export function castSpell(
   if (spell.via === 'wager') return { ok: false, refused: 'carry-in-a-wager' };
   if (!ctx.researched.includes(spell.tech)) return { ok: false, refused: 'locked' };
 
-  if (spell.scope === 'own-cell') {
-    if (!target) return { ok: false, refused: 'needs-a-target' };
-    const mine = ctx.owned.some((c) => c.h3 === target && c.ownerId === ctx.playerId);
-    if (!mine) return { ok: false, refused: 'not-your-cell' };
+  if (spell.scope !== 'domain' && !target) return { ok: false, refused: 'needs-a-target' };
+  const mine = (h3: H3Index) => ctx.owned.some((c) => c.h3 === h3 && c.ownerId === ctx.playerId);
+
+  if (spell.scope === 'own-cell' && target && !mine(target)) {
+    return { ok: false, refused: 'not-your-cell' };
+  }
+  // Quickening reaches one ring past your border, so the hex it is aimed at has to be on
+  // that border and has to be free. Ground you already hold is not somewhere to expand to.
+  if (spell.scope === 'border-cell' && target) {
+    if (mine(target)) return { ok: false, refused: 'already-held' };
+    if (!neighboursOf(target).some(mine)) return { ok: false, refused: 'not-on-your-border' };
   }
 
   const already = ctx.active.some((a) =>
@@ -193,7 +254,11 @@ export function castSpell(
   return { ok: true, spell: active, pool: paid };
 }
 
-/** Those still within their duration at `now`. The rest are simply gone (GREEN 6). */
+/**
+ * Those still within their duration at `now`. The rest are simply gone (GREEN 6) — and a
+ * zero-duration Rite is never among them, which is what keeps an instant one out of the
+ * stored list without a second flag to check.
+ */
 export function activeSpells(spells: readonly ActiveSpell[], now: number): ActiveSpell[] {
   return spells.filter((s) => now - s.castAt < SPELLS[s.id].durationMs);
 }

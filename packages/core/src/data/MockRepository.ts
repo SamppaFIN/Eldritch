@@ -353,7 +353,8 @@ export class MockRepository implements GameRepository {
 
   async castSpell(id: SpellId, target: H3Index | null, now: number): Promise<CastOutcome> {
     const me = await this.getProfile();
-    return castSpellAt(this.store, id, target, me.id, await this.getOwnedCells(now), now);
+    const owned = await this.getOwnedCells(now);
+    return castSpellAt(this.store, id, target, me, this.newId, owned, now);
   }
 
   /* --- Maintenance ------------------------------------------------------ */

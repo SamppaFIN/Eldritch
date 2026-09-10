@@ -25,6 +25,8 @@ const REFUSAL: Readonly<Record<CastRefusal, string>> = {
   'carry-in-a-wager': 'This rite is cast in a duel, not at home.',
   'needs-a-target': 'Choose a cell for it first.',
   'not-your-cell': 'You do not hold this ground.',
+  'not-on-your-border': 'Aim it at free ground that touches yours.',
+  'already-held': 'This hex is already yours — aim it past your border.',
   'already-running': 'That rite is already at work here.',
 };
 
@@ -49,10 +51,14 @@ export function SpellPanel({ spell, cellH3, mine, mana, now }: SpellPanelProps) 
 
       {HOME_SPELLS.map((id) => {
         const s = SPELLS[id];
-        const target = s.scope === 'own-cell' ? cellH3 : null;
+        // Every Rite but a domain one is cast at the hex whose card this is.
+        const target = s.scope === 'domain' ? null : cellH3;
         const running = spell.active.some((a) => a.id === id && (a.target ?? null) === target);
         const unlocked = spell.researched.includes(s.tech);
-        const blocked = !unlocked || running || mana < s.cost || (s.scope === 'own-cell' && !mine);
+        // Bulwark needs the ground to be yours; Quickening needs it not to be.
+        const wrongGround =
+          (s.scope === 'own-cell' && !mine) || (s.scope === 'border-cell' && mine);
+        const blocked = !unlocked || running || mana < s.cost || wrongGround;
         return (
           <div key={id} className="cell-panel__rite">
             <RitualButton
