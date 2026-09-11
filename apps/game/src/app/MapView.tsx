@@ -36,6 +36,8 @@ import { useCellTerrain } from '../features/map/useCellTerrain.js';
 import { useStandingCell } from '../features/map/useStandingCell.js';
 import { useMapAside } from '../features/map/useMapAside.js';
 import { useBoot } from '../features/map/useBoot.js';
+import { EditorPanel } from '../features/editor/EditorPanel.js';
+import { EDITOR_AVAILABLE, useEditor } from '../features/editor/useEditor.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
@@ -75,6 +77,8 @@ export function MapView({ onLeave }: MapViewProps) {
   const { repository, alerts, profile, setProfile, castle } = useBoot(clock.now, clock);
 
   const simulate = useSimulateKey();
+  // Dev only, and compiled out of a player's build (BRDC-MAP-EDIT-001).
+  const editor = useEditor();
 
   const { point, status, source } = usePositionSource({
     enabled: settled,
@@ -209,7 +213,7 @@ export function MapView({ onLeave }: MapViewProps) {
         buildingIcons={settings.buildingIcons}
         bannerId={nation.bannerId}
         onBasemapChange={setBasemap}
-        onCellTap={inspect.onCellTap}
+        onCellTap={editor.on ? editor.onCell : inspect.onCellTap}
         onPlaceTap={inspect.onPlaceTap}
         onCastleTap={inspect.onCastleTap}
         onViewportChange={onViewportChange}
@@ -329,6 +333,7 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       {aside.node}
+      {EDITOR_AVAILABLE ? <EditorPanel editor={editor} /> : null}
       <PouchGain collected={latestGain(collected, discovery.revealGain)} settings={settings} />
 
       <SettingsMenu
@@ -337,6 +342,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
         onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
+        onOpenEditor={EDITOR_AVAILABLE ? editor.toggle : undefined}
         onOpenGuide={aside.openGuide}
         repository={repository}
         position={point}

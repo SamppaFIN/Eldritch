@@ -31,6 +31,8 @@ export interface SettingsMenuProps {
   onOpenCodex: () => void;
   /** Opens the ledger of held ground (BRDC-LANDS-001). */
   onOpenLands: () => void;
+  /** Dev only: the map editor (BRDC-MAP-EDIT-001). Absent in a player's build. */
+  onOpenEditor?: (() => void) | undefined;
   /** Opens the in-game guide's front page (BRDC-WIKI-001). */
   onOpenGuide: () => void;
   /** For the field report — the log tail and a rough position (BRDC-BUGREPORT-001). */
@@ -52,6 +54,7 @@ export function SettingsMenu({
   onOpenLog,
   onOpenCodex,
   onOpenLands,
+  onOpenEditor,
   onOpenGuide,
   repository,
   position,
@@ -217,6 +220,15 @@ export function SettingsMenu({
           >
             Delete progress
           </button>
+          {import.meta.env.DEV && onOpenEditor ? (
+            <button
+              type="button"
+              className="settings-menu__action settings-menu__action--dev"
+              onClick={() => run(onOpenEditor)}
+            >
+              Map editor
+            </button>
+          ) : null}
           {import.meta.env.DEV && onDebugGrant ? (
             <button
               type="button"

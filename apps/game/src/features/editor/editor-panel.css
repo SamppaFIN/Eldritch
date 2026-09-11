@@ -1,0 +1,108 @@
+/* The map editor's strip (BRDC-MAP-EDIT-001). Top of the screen, as little of it as
+   possible: the whole point is to see the map while painting it. */
+
+.editor {
+  position: fixed;
+  z-index: var(--z-hud);
+  inset-inline: max(var(--space-2), env(safe-area-inset-left))
+    max(var(--space-2), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-2), env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid color-mix(in oklch, var(--awareness-green) 45%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--void-black) 88%, var(--cosmic-purple));
+  /* A dev tool should never be mistaken for the game: green, like the clock notice. */
+  color: var(--awareness-green);
+}
+
+.editor__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.editor__name {
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+}
+
+.editor__count {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.editor__btn {
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+/* A file input styled as a button — the label is the control, the input is hidden. */
+.editor__file {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.editor__file input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+
+.editor__file:focus-within {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.editor__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.editor__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.editor__chip--on {
+  border-color: var(--awareness-green);
+  color: var(--awareness-green);
+}
+
+.editor__chip:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.editor__hint,
+.editor__fault {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.editor__hint {
+  color: var(--text-dim);
+}
+
+.editor__fault {
+  color: var(--danger);
+}

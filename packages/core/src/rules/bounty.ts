@@ -24,6 +24,7 @@
 import { TRICKLE_PER_HOUR, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
 import { DECAY_GRACE_HOURS } from './constants.js';
+import { paintedBountyOf } from '../data/mapData.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
 export type BountyId =
@@ -100,6 +101,10 @@ export function bountiesFor(kind: TerrainKind): BountyId[] {
  * different bounty.
  */
 export function bountyOn(cell: Cell): BountyId | null {
+  // A bounty placed by hand wins, for the same reason hand-drawn terrain does.
+  const drawn = paintedBountyOf(cell.h3);
+  if (drawn) return drawn;
+
   const kind = terrainForCell(cell).kind;
   const candidates = bountiesFor(kind);
   if (candidates.length === 0) return null;

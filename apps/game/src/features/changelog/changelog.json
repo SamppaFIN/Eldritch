@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.69",
+    "date": "2026-09-11",
+    "notes": [
+      "Groundwork for hand-drawn maps. Terrain and finds can now be set one hex at a time from a file, and a hand-drawn hex beats every guess the game makes — the tile reading and the hash both — because a person looked at that hex and said so.",
+      "The editor that draws those files paints straight onto the live map rather than onto a screenshot: real tiles, real hexes, exact coordinates, nothing to line up."
+    ]
+  },
+  {
     "version": "0.5.68",
     "date": "2026-09-11",
     "notes": [

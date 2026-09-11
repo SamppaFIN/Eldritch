@@ -17,6 +17,7 @@
 import { cellToParent } from 'h3-js';
 import { DECAY_GRACE_HOURS } from './constants.js';
 import { seededTerrainOf } from './terrainSeed.js';
+import { paintedTerrainOf } from '../data/mapData.js';
 import { localShare } from './share.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 
@@ -146,6 +147,11 @@ function kindForRegion(region: number): TerrainKind {
  * uniform hexagons reads as generated, because it is.
  */
 export function terrainOf(h3: H3Index): Terrain {
+  // A hex somebody drew by hand wins over everything (BRDC-MAP-EDIT-001): it is the most
+  // deliberate answer available, because a person looked at that hex and said so.
+  const drawn = paintedTerrainOf(h3);
+  if (drawn) return drawn;
+
   // A hand-surveyed test area wins over the hash (BRDC-TERRAIN-003); null everywhere else.
   const seeded = seededTerrainOf(h3);
   if (seeded) return seeded;
@@ -156,12 +162,14 @@ export function terrainOf(h3: H3Index): Terrain {
 }
 
 /**
- * The terrain to use for a cell: the survey if it covers this cell, then whatever a
- * tile read stored, then the hash. The survey beats a stored tile value on purpose —
- * it is the thing that was checked by hand.
+ * The terrain to use for a cell: a hand-drawn hex first, then the survey, then whatever a
+ * tile read stored, then the hash. Both hand answers beat a stored tile value on purpose —
+ * they are the ones that were checked by a person.
  */
 export function terrainForCell(cell: Cell): Terrain {
-  return seededTerrainOf(cell.h3) ?? cell.terrain ?? terrainOf(cell.h3);
+  return (
+    paintedTerrainOf(cell.h3) ?? seededTerrainOf(cell.h3) ?? cell.terrain ?? terrainOf(cell.h3)
+  );
 }
 
 export function resourceOf(h3: H3Index): ResourceKind | null {

@@ -101,3 +101,15 @@ export type {
 } from './demographics.js';
 export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
 export type { TradeOutcome } from './cityStateStore.js';
+export {
+  MAP_DATA_VERSION,
+  encodeDrawing,
+  loadDrawings,
+  loadedCells,
+  newDrawing,
+  paint,
+  paintedBountyOf,
+  paintedTerrainOf,
+  parseDrawing,
+} from './mapData.js';
+export type { DrawingFault, DrawingParse, MapDrawing, PaintedCell } from './mapData.js';
