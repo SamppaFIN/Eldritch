@@ -15,7 +15,7 @@
  * Like `useTerrainResolver`, the browser half is exercised in the browser. The part with a
  * decision in it, `pendingSurvey`, is pure and tested.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { cellAt, cellCentre, cellsWithin, recordSurvey, terrainFromTiles } from '@es3/core';
 import type { H3Index, LatLng, TerrainKind } from '@es3/core';
@@ -83,17 +83,21 @@ export interface UseNearbySurveyOptions {
 
 export function useNearbySurvey({ map, ready, position }: UseNearbySurveyOptions): void {
   const done = useRef<Set<H3Index>>(new Set());
-  /** Bumped after every pass, so the effect re-runs until the ring is exhausted. */
-  const [pass, setPass] = useState(0);
 
   useEffect(() => {
     if (!map || !ready || !position) return;
-    if (map.getZoom() < SURVEY_MIN_ZOOM) return;
 
-    const batch = pendingSurvey(cellAt(position), done.current);
-    if (batch.length === 0) return;
+    // The sweep chains itself through idle callbacks rather than through React state. A
+    // pass per render would re-render MapCanvas dozens of times for a single walk, and the
+    // camera sits one component above — nothing here is worth a render.
+    let stopped = false;
+    let cancel: (() => void) | null = null;
 
-    return whenIdle(() => {
+    const step = (): void => {
+      if (stopped || map.getZoom() < SURVEY_MIN_ZOOM) return;
+      const batch = pendingSurvey(cellAt(position), done.current);
+      if (batch.length === 0) return;
+
       const readings: Record<H3Index, TerrainKind> = {};
       for (const h3 of batch) {
         done.current.add(h3);
@@ -102,7 +106,13 @@ export function useNearbySurvey({ map, ready, position }: UseNearbySurveyOptions
         if (kind) readings[h3] = kind;
       }
       recordSurvey(readings);
-      setPass((n) => n + 1);
-    });
-  }, [map, ready, position, pass]);
+      cancel = whenIdle(step);
+    };
+
+    cancel = whenIdle(step);
+    return () => {
+      stopped = true;
+      cancel?.();
+    };
+  }, [map, ready, position]);
 }
