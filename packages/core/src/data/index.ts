@@ -30,6 +30,8 @@ export {
   SITE_VERB,
   STAGE_SITE,
   secretSiteAt,
+  anchorQuestSites,
+  questSiteAt,
   siteCell,
   visibleQuestSites,
 } from './questSites.js';

@@ -1,12 +1,25 @@
 /**
- * The named places of the Fuming Lake (BRDC-QUEST-001).
+ * The named places of the Fuming Lake (BRDC-QUEST-001, BRDC-QUEST-004).
  *
  * Real Härmälä coordinates, lifted from v2's `QuestFumingLake.js`. The statue is the
  * canonical origin; the lake at (61.4753, 23.7280) is what fixes the water in
  * `terrainSeed.ts`. An adventure gate can require the player to *hold* one of these
  * cells — you walked there and claimed it.
+ *
+ * **The table is now a layout, not an address.** Every site was a fixed coordinate in one
+ * Tampere park, which meant the whole tale was unreachable for anybody who lives anywhere
+ * else — it could not be started at all, because starting it means standing on the statue.
+ * Infinite hit exactly that: *"koitin käydä seikkailua läpi, mutta en saanut mitään tarina
+ * dialogia.. se toimi jo joskus."* It had worked, once, near Pyynikki.
+ *
+ * So the coordinates below are kept as the **authored shape** — the bearings and distances
+ * between the statue, the lake, the hermit and the bridge are a hand-made walk, and they
+ * are worth keeping exactly. `anchorQuestSites` moves that shape to a player's own Hearth
+ * without changing it. Unanchored, it stays where it was written.
  */
 import { cellAt } from '../geo/cells.js';
+import { bearing, destination } from '../geo/project.js';
+import { haversine } from '../geo/haversine.js';
 import type { H3Index, LatLng } from '../types/domain.js';
 
 export type QuestSiteId =
@@ -36,9 +49,47 @@ export const QUEST_SITES: Readonly<Record<QuestSiteId, LatLng & { label: string 
 
 export const QUEST_SITE_IDS = Object.keys(QUEST_SITES) as QuestSiteId[];
 
+/**
+ * Each site as a bearing and a distance from the statue — the authored walk, as a shape.
+ *
+ * Derived from the table rather than written twice, so the two can never drift: change a
+ * coordinate above and the shape follows.
+ */
+const SHAPE: Readonly<Record<QuestSiteId, { bearing: number; metres: number }>> =
+  Object.fromEntries(
+    QUEST_SITE_IDS.map((id) => [
+      id,
+      {
+        bearing: bearing(QUEST_SITES.statue, QUEST_SITES[id]),
+        metres: haversine(QUEST_SITES.statue, QUEST_SITES[id]),
+      },
+    ]),
+  ) as Record<QuestSiteId, { bearing: number; metres: number }>;
+
+/**
+ * Where the tale is being walked. Null means where it was written.
+ *
+ * A module-level anchor rather than a parameter threaded through eleven call sites — the
+ * same shape `enableTerrainSurvey` already uses, and for the same reason: it is one fact
+ * about the world, set once, that almost nothing wants to talk about.
+ */
+let anchor: LatLng | null = null;
+
+/** Move the tale to a player's own ground. `null` puts it back where it was written. */
+export function anchorQuestSites(home: LatLng | null): void {
+  anchor = home;
+}
+
+/** Where a site stands — at the anchor if there is one, in Härmälä if there is not. */
+export function questSiteAt(id: QuestSiteId): LatLng {
+  if (!anchor) return QUEST_SITES[id];
+  const { bearing: deg, metres } = SHAPE[id];
+  return metres === 0 ? anchor : destination(anchor, deg, metres);
+}
+
 /** The ownership cell a quest site falls in. */
 export function siteCell(id: QuestSiteId): H3Index {
-  return cellAt(QUEST_SITES[id]);
+  return cellAt(questSiteAt(id));
 }
 
 /**

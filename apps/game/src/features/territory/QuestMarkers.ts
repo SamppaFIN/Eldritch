@@ -11,7 +11,7 @@
  */
 import type { FeatureCollection, Point } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { QUEST_SITES } from '@es3/core';
+import { QUEST_SITES, questSiteAt } from '@es3/core';
 import type { QuestSiteId } from '@es3/core';
 
 export const QUEST_SOURCE = 'quest-sites';
@@ -27,12 +27,14 @@ function toGeoJson(ids: readonly string[]): FeatureCollection<Point> {
     features: ids
       .filter((id): id is QuestSiteId => id in QUEST_SITES)
       .map((id) => {
-        const site = QUEST_SITES[id];
+        // The label is the authored table; the position is wherever the tale is being
+        // walked (BRDC-QUEST-004).
+        const at = questSiteAt(id);
         return {
           type: 'Feature',
           id,
-          properties: { label: site.label.toUpperCase() },
-          geometry: { type: 'Point', coordinates: [site.lng, site.lat] },
+          properties: { label: QUEST_SITES[id].label.toUpperCase() },
+          geometry: { type: 'Point', coordinates: [at.lng, at.lat] },
         };
       }),
   };

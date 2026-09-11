@@ -13,7 +13,7 @@
  * and a stash to go with it.
  */
 import { useEffect, useState } from 'react';
-import { load } from '@es3/core';
+import { anchorQuestSites, cellCentre, load } from '@es3/core';
 import type { GameRepository, H3Index, PlayerProfile } from '@es3/core';
 import { createRepository } from '../../data/createRepository.js';
 import type { NoticeConditions } from '../hud/notices.js';
@@ -69,6 +69,17 @@ export function useBoot(now: () => number, clock: unknown): Boot {
       setCastle(await repository.getCastle());
     })();
   }, [repository, clock, now]);
+
+  /*
+   * Move the Fuming Lake to the player's own ground (BRDC-QUEST-004).
+   *
+   * Its places were fixed coordinates in one Tampere park, so the tale could not be begun
+   * by anybody who lives anywhere else — begun means standing on the statue. The authored
+   * walk keeps its shape; only where it is walked changes.
+   */
+  useEffect(() => {
+    anchorQuestSites(castle ? cellCentre(castle) : null);
+  }, [castle]);
 
   return { repository, alerts, profile, setProfile, castle };
 }
