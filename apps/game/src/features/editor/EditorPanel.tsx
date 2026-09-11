@@ -8,15 +8,18 @@
  * terrain decides what ground yields, and a player able to paint their own neighbourhood
  * could paint themselves an iron mine (claude.md §15).
  */
-import { BOUNTY_IDS, TERRAIN_TABLE } from '@es3/core';
+import { BOUNTY_IDS, TERRAIN_TABLE, cellAt, cellsWithin } from '@es3/core';
 import type { BountyId, TerrainKind } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BOUNTY_GLYPH, BOUNTY_NAME } from '../territory/bounty.js';
 import { terrainGlyph } from '../territory/territoryFeatures.js';
+import { BRUSH_SIZES } from './useEditor.js';
 import type { Editor } from './useEditor.js';
 import './editor-panel.css';
 
 const KINDS = Object.keys(TERRAIN_TABLE) as TerrainKind[];
+/** Any cell will do: a ring's size is the same everywhere, so this only labels the chips. */
+const SAMPLE = cellAt({ lat: 61.4729, lng: 23.7259 });
 
 const FAULT: Readonly<Record<string, string>> = {
   'not-json': 'That file is not JSON.',
@@ -85,12 +88,27 @@ export function EditorPanel({ editor }: EditorPanelProps) {
       </div>
 
       <div className="editor__row">
+        {/* A drag cannot both paint and pan, so which it does is said rather than guessed. */}
+        {chip('paint', 'Paint', '✎', editor.mode === 'paint', () => editor.setMode('paint'))}
+        {chip('move', 'Move map', '✥', editor.mode === 'move', () => editor.setMode('move'))}
+      </div>
+
+      <div className="editor__row">
         {chip('scrub', 'Scrub', '␡', brush.terrain === null && brush.bounty === null, () =>
-          setBrush({ terrain: null, bounty: null }),
+          setBrush({ ...brush, terrain: null, bounty: null }),
         )}
         {KINDS.map((k) =>
           chip(k, k, terrainGlyph(k)?.char ?? '·', brush.terrain === k, () =>
             setBrush({ ...brush, terrain: k }),
+          ),
+        )}
+      </div>
+
+      <div className="editor__row">
+        {/* How far a stroke reaches — one hex for a shoreline, thirty-seven for a forest. */}
+        {BRUSH_SIZES.map((r) =>
+          chip(`size-${r}`, `${cellsWithin(SAMPLE, r).length} hex`, '◎', brush.size === r, () =>
+            setBrush({ ...brush, size: r }),
           ),
         )}
       </div>
@@ -105,6 +123,12 @@ export function EditorPanel({ editor }: EditorPanelProps) {
           ),
         )}
       </div>
+
+      {editor.zoomedOut ? (
+        <p className="editor__fault" role="status">
+          Too far out to draw — come closer and the grid appears.
+        </p>
+      ) : null}
 
       {editor.fault ? (
         <p className="editor__fault" role="status">

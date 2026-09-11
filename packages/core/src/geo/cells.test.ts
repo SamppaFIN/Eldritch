@@ -11,6 +11,7 @@ import {
   regionsCoveringBBox,
   ringToCells,
   totalAreaM2,
+  cellsCoveringBBox,
 } from './cells.js';
 import { detectLoops } from './loopDetection.js';
 import { haversine } from './haversine.js';
@@ -213,5 +214,38 @@ describe('cellAreaM2', () => {
 
   it('is zero for nothing', () => {
     expect(totalAreaM2([])).toBe(0);
+  });
+});
+
+describe('cellsCoveringBBox (BRDC-MAP-EDIT-002)', () => {
+  const around = (centre: { lat: number; lng: number }, metres: number) => {
+    const d = metres / 111_320;
+    return {
+      south: centre.lat - d,
+      north: centre.lat + d,
+      west: centre.lng - d * 2,
+      east: centre.lng + d * 2,
+    };
+  };
+
+  it('covers a small box with the hexes inside it', () => {
+    const cells = cellsCoveringBBox(around(ORIGIN, 120));
+    expect(cells.length).toBeGreaterThan(5);
+    for (const h3 of cells) expect(h3).toHaveLength(15);
+  });
+
+  /*
+   * The cap is the whole reason this is safe to call from a redraw. A res-11 cell is about
+   * 2150 m², so a city-sized box is millions of them — returning them would take the tab
+   * with it. Empty is a truthful "come closer", not a slow lie.
+   */
+  it('returns nothing rather than millions when the box is too big', () => {
+    expect(cellsCoveringBBox(around(ORIGIN, 20_000))).toEqual([]);
+  });
+
+  it('honours a cap the caller sets', () => {
+    const box = around(ORIGIN, 300);
+    expect(cellsCoveringBBox(box, 1).length).toBe(0);
+    expect(cellsCoveringBBox(box, 100_000).length).toBeGreaterThan(0);
   });
 });

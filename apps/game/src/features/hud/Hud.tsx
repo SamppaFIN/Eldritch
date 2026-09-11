@@ -24,6 +24,15 @@ import type { HelpTopic } from '../help/help.js';
 import './hud.css';
 
 export interface HudProps {
+  /**
+   * A sheet is covering the map, so the HUD drops to the walking bar (BRDC-HUD-005).
+   *
+   * The stats answer "how am I doing while walking". With a panel open the player is
+   * reading that panel, and the readout is just height taken off what they came to read —
+   * on a phone the two together left almost no room. The nav buttons stay, because
+   * switching screens is the one thing still wanted.
+   */
+  compact?: boolean;
   profile: PlayerProfile | null;
   distanceM: number;
   accuracyM: number | null;
@@ -130,6 +139,7 @@ function formatDistance(m: number): string {
 const EMPTY = '—';
 
 export function Hud({
+  compact = false,
   profile,
   distanceM,
   accuracyM,
@@ -191,7 +201,7 @@ export function Hud({
     .join(' · ');
 
   return (
-    <div className="hud" ref={hudRef}>
+    <div className="hud" data-compact={compact || undefined} ref={hudRef}>
       {/* Outside the panel on purpose — it is a notice, and it must not grow the HUD. */}
       <HudClaim lastClaim={lastClaim} onOpenLog={onOpenLog} />
       <GlassPanel as="section" className="hud__panel" aria-label="Status">

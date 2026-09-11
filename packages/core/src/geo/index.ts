@@ -11,6 +11,7 @@ export {
   cellBoundary,
   cellAt,
   cellCentre,
+  cellsCoveringBBox,
   cellsWithin,
   hexDistance,
   neighboursOf,

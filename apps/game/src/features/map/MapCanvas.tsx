@@ -10,6 +10,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 import { cellAt, QUEST_SITES, siteCell } from '@es3/core';
+import { useEditorPaint } from '../editor/useEditorPaint.js';
+import type { Editor } from '../editor/useEditor.js';
 import type {
   BBox,
   Cell,
@@ -98,8 +100,13 @@ export interface MapCanvasProps {
    * cell list alone can be identical two laps running.
    */
   awakening?: { cells: readonly H3Index[]; at: number } | null;
-  /** Called when a hexagon is tapped, with its H3 index. */
-  onCellTap?: (h3: string) => void;
+  /** Called when a hexagon is tapped, with its H3 index. Absent = taps do nothing. */
+  onCellTap?: ((h3: string) => void) | undefined;
+  /**
+   * The map editor, when one is open (BRDC-MAP-EDIT-002). Absent in a player's build — it
+   * lives here only because the grid and drag-painting need the map itself.
+   */
+  editor?: Editor | undefined;
   /** Called when an Anchor Stone or temple marker is tapped. */
   onPlaceTap?: (h3: string) => void;
   /** Called when the Keep marker is tapped — opens the nation panel. */
@@ -141,6 +148,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   bannerId = null,
   onBasemapChange,
   onCellTap,
+  editor,
   onPlaceTap,
   onCastleTap,
   onViewportChange,
@@ -361,10 +369,14 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   useAwakening(map, ready, awakening);
 
   // The founding tour: once, the camera walks the six hexes around a new Hearth.
-  const touring = useHearthTour(map, ready, castle);
+  // The camera stops chasing the player while the map is being drawn on: the editor needs
+  // it to stay where it is put (BRDC-MAP-EDIT-002).
+  const held = useHearthTour(map, ready, castle) || (editor?.on ?? false);
 
   // The camera pin, and the ways back to the player (BRDC-MAP-004).
-  const { following, recenter, focusHere } = useCameraFollow({ map, ready, position, touring });
+  const { following, recenter, focusHere } = useCameraFollow({ map, ready, position, touring: held });
+  useEditorPaint(map, ready, editor ?? null);
+
   useImperativeHandle(ref, () => ({ focusHere }), [focusHere]);
 
   // Move the marker on each fix; the camera is the hook's job now.

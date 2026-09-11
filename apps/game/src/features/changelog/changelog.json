@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.70",
+    "date": "2026-09-11",
+    "notes": [
+      "The status panel shrinks to the walking bar whenever a screen is open over the map. Its readouts answer “how am I doing while walking”, and with a panel open you are reading the panel — the numbers were just height taken off what you came to read. The buttons stay, because switching screens is the one thing still wanted."
+    ]
+  },
+  {
     "version": "0.5.69",
     "date": "2026-09-11",
     "notes": [

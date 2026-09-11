@@ -64,3 +64,20 @@
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
+
+/* While the map editor is open the screen belongs to it (BRDC-MAP-EDIT-002).
+   The game's own controls are hidden rather than unmounted: nothing loses its state, and
+   closing the editor puts the map back exactly as it was. Infinite: "poista pelin
+   kontrollit map editin ajaksi". */
+.mapview[data-editing] .hud,
+.mapview[data-editing] .camera-control,
+.mapview[data-editing] .first-look,
+.mapview[data-editing] .mapview__notices,
+.mapview[data-editing] .settings-menu {
+  display: none;
+}
+
+/* A crosshair says the map is a canvas now — but only while the brush is the tool. */
+.mapview[data-editing='paint'] .maplibregl-canvas {
+  cursor: crosshair;
+}

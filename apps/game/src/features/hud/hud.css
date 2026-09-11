@@ -377,3 +377,17 @@
 .hud__collect:hover {
   background: color-mix(in oklch, var(--cosmic-purple) 46%, transparent);
 }
+
+/* A sheet is covering the map, so the HUD drops to the walking bar (BRDC-HUD-005).
+   Hidden in CSS rather than unmounted: the panel keeps its identity, the measured
+   `--hud-height` keeps updating, and nothing re-mounts when a sheet closes. */
+.hud[data-compact] .hud__stats,
+.hud[data-compact] .hud__signal,
+.hud[data-compact] .hud__note,
+.hud[data-compact] .hud__claim {
+  display: none;
+}
+
+.hud[data-compact] .hud__panel {
+  padding-block: var(--space-2);
+}

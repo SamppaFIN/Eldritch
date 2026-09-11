@@ -33,6 +33,8 @@ export interface MapAside {
   openCodex: () => void;
   /** The ledger of held ground (BRDC-LANDS-001). */
   openLands: () => void;
+  /** True while any of these sheets is covering the map (BRDC-HUD-005). */
+  anyOpen: boolean;
 }
 
 export function useMapAside(
@@ -139,5 +141,6 @@ export function useMapAside(
     openCharacter: () => setCharacterOpen(true),
     openCodex: () => setCodexOpen(true),
     openLands: () => setLandsOpen(true),
+    anyOpen: help !== null || logOpen || characterOpen || codexOpen || landsOpen,
   };
 }

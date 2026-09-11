@@ -13,14 +13,23 @@
  * map, and we have one.
  */
 import { useCallback, useState } from 'react';
-import { encodeDrawing, loadDrawings, newDrawing, paint, parseDrawing } from '@es3/core';
+import { cellsWithin, encodeDrawing, loadDrawings, newDrawing, paint, parseDrawing } from '@es3/core';
 import type { BountyId, DrawingFault, MapDrawing, PaintedCell, TerrainKind } from '@es3/core';
 
 /** What the brush is loaded with. `null` scrubs a hex back to the hash. */
 export interface Brush {
   terrain: TerrainKind | null;
   bounty: BountyId | null;
+  /**
+   * Rings painted around the hex under the pointer: 0 is one hex, 1 is seven, 3 is
+   * thirty-seven (BRDC-MAP-EDIT-002). One hex at a time is the right tool for a shoreline
+   * and a terrible one for a forest.
+   */
+  size: number;
 }
+
+/** The sizes offered, and what each actually covers. `cellsWithin` is the arithmetic. */
+export const BRUSH_SIZES = [0, 1, 2, 3] as const;
 
 /**
  * What one tap of a loaded brush says about a hex — `null` scrubs it.
@@ -36,8 +45,20 @@ export function strokeOf(brush: Brush): PaintedCell | null {
   };
 }
 
+/**
+ * What a drag does (BRDC-MAP-EDIT-002).
+ *
+ * A drag cannot both paint and pan, and guessing between them is worse than either. So it
+ * is a stated mode: `paint` while drawing, `move` to get somewhere. The first version had
+ * no toggle, disabled panning outright, and left the map unreachable — Infinite:
+ * *"karttaa ei pysty liikuttamaan editori tilassa"*.
+ */
+export type EditorMode = 'paint' | 'move';
+
 export interface Editor {
   on: boolean;
+  mode: EditorMode;
+  setMode: (mode: EditorMode) => void;
   drawing: MapDrawing;
   brush: Brush;
   /** How many hexes have been said something about. */
@@ -45,8 +66,11 @@ export interface Editor {
   fault: DrawingFault | null;
   toggle: () => void;
   setBrush: (brush: Brush) => void;
-  /** Paint the hex under the tap, or scrub it when the brush is empty. */
+  /** Paint under the pointer — the hex, and `brush.size` rings around it. */
   onCell: (h3: string) => void;
+  /** True when the map is too far out for the grid to be drawable. */
+  zoomedOut: boolean;
+  setZoomedOut: (on: boolean) => void;
   undo: () => void;
   exportJson: () => string;
   importJson: (text: string) => void;
@@ -59,22 +83,43 @@ export function useEditor(): Editor {
   const [on, setOn] = useState(false);
   const [drawing, setDrawing] = useState<MapDrawing>(() => newDrawing('untitled'));
   const [, setHistory] = useState<MapDrawing[]>([]);
-  const [brush, setBrush] = useState<Brush>({ terrain: 'plain', bounty: null });
+  const [brush, setBrush] = useState<Brush>({ terrain: 'plain', bounty: null, size: 1 });
+  const [zoomedOut, setZoomedOut] = useState(false);
+  const [mode, setMode] = useState<EditorMode>('paint');
   const [fault, setFault] = useState<DrawingFault | null>(null);
 
-  const apply = useCallback((next: MapDrawing, previous: MapDrawing) => {
-    setHistory((h) => [...h.slice(-49), previous]);
-    setDrawing(next);
-    // Applied live, so the map redraws in the colours the file will actually produce —
-    // painting blind and checking afterwards is how a drawing ends up subtly wrong.
-    loadDrawings(next);
+  /**
+   * Every change goes through here, and it takes a *function* of the current drawing.
+   *
+   * It took the next drawing directly at first, which meant the brush closed over whatever
+   * the drawing was when the listener was attached. A drag across twenty hexes then
+   * painted each stroke onto the same stale picture and only the last one survived — the
+   * drag looked like a single tap. Nothing here may assume it knows the current drawing.
+   */
+  const apply = useCallback((change: (current: MapDrawing) => MapDrawing) => {
+    setDrawing((current) => {
+      const next = change(current);
+      if (next === current) return current;
+      setHistory((h) => [...h.slice(-49), current]);
+      // Applied live, so the map redraws in the colours the file will actually produce —
+      // painting blind and checking afterwards is how a drawing ends up subtly wrong.
+      loadDrawings(next);
+      return next;
+    });
   }, []);
 
   const onCell = useCallback(
     (h3: string) => {
-      apply(paint(drawing, h3, strokeOf(brush)), drawing);
+      const what = strokeOf(brush);
+      // One entry in the history for the whole stroke, so Undo takes back a brush-load
+      // rather than thirty-seven hexes one at a time.
+      apply((current) => {
+        let next = current;
+        for (const cell of cellsWithin(h3, brush.size)) next = paint(next, cell, what);
+        return next;
+      });
     },
-    [apply, brush, drawing],
+    [apply, brush],
   );
 
   const undo = useCallback(() => {
@@ -95,9 +140,9 @@ export function useEditor(): Editor {
         return;
       }
       setFault(null);
-      apply(parsed.drawing, drawing);
+      apply(() => parsed.drawing);
     },
-    [apply, drawing],
+    [apply],
   );
 
   const toggle = useCallback(() => {
@@ -112,6 +157,8 @@ export function useEditor(): Editor {
 
   return {
     on,
+    mode,
+    setMode,
     drawing,
     brush,
     // Counted from the drawing, not from what is loaded: the drawing is React state, so
@@ -121,6 +168,8 @@ export function useEditor(): Editor {
     toggle,
     setBrush,
     onCell,
+    zoomedOut,
+    setZoomedOut,
     undo,
     exportJson: () => encodeDrawing(drawing),
     importJson,

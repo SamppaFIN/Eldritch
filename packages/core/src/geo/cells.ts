@@ -145,3 +145,44 @@ export function totalAreaM2(cells: readonly H3Index[]): number {
 export function cellBoundary(cell: H3Index): Array<[number, number]> {
   return cellToBoundary(cell).map(([lat, lng]) => [lng, lat] as [number, number]);
 }
+
+/**
+ * Every ownership cell whose centre falls inside a box (BRDC-MAP-EDIT-002).
+ *
+ * The map editor needs the grid *drawn*, not just the hexes somebody happens to own — you
+ * cannot paint ground you cannot see. That is the only caller: the game itself never wants
+ * this, because fog of war is deliberate (claude.md §13).
+ *
+ * Bounded on purpose. A res-11 cell is ~2150 m², so a city-sized box is millions of them
+ * and would take the tab with it; `cap` is a ceiling the caller can trust rather than a
+ * promise that every cell is returned. Over the cap it returns nothing, which the editor
+ * reads as "zoom in" — a truthful empty rather than a slow lie.
+ *
+ * **The size is judged before any cell is made.** The first version generated them and
+ * then counted, which meant the guard against freezing the tab froze the tab: a 20 km box
+ * spent eleven seconds building three million hexes in order to throw them away. Area
+ * over the nominal cell size is a rough count, and rough is all a ceiling needs.
+ */
+export function cellsCoveringBBox(bbox: BBox, cap = 4_000): H3Index[] {
+  if (roughCellCount(bbox) > cap) return [];
+
+  const ring: Array<[number, number]> = [
+    [bbox.south, bbox.west],
+    [bbox.south, bbox.east],
+    [bbox.north, bbox.east],
+    [bbox.north, bbox.west],
+  ];
+  const cells = polygonToCells([ring], H3_RES_OWNERSHIP);
+  return cells.length > cap ? [] : cells;
+}
+
+/** The nominal area of one res-11 cell — a global mean, which is the right tool for a guess. */
+const NOMINAL_CELL_M2 = 2150;
+
+/** About how many ownership cells a box holds. Deliberately approximate and very cheap. */
+function roughCellCount(bbox: BBox): number {
+  const midLat = ((bbox.north + bbox.south) / 2) * (Math.PI / 180);
+  const tall = Math.abs(bbox.north - bbox.south) * 111_320;
+  const wide = Math.abs(bbox.east - bbox.west) * 111_320 * Math.cos(midLat);
+  return (tall * wide) / NOMINAL_CELL_M2;
+}

@@ -170,6 +170,14 @@ export function MapView({ onLeave }: MapViewProps) {
   });
 
   // The Fuming Lake (BRDC-QUEST-001, -002): begun and advanced from its own hexes.
+  /*
+   * A sheet is covering the map (BRDC-HUD-005). The HUD drops to the walking bar: its
+   * stats answer "how am I doing while walking", and with a panel open the player is
+   * reading the panel — the readout is height taken off what they came to read.
+   */
+  const sheetOpen =
+    inspect.selected !== null || inspect.sanctum || inspect.researchOpen || aside.anyOpen;
+
   const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
   const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
   useMomentTriggers({ show: moments.show, xp: profile?.xp, riteLearned: inspect.research.lastRite, questEnded: quest.adventures.justEnded });
@@ -192,7 +200,7 @@ export function MapView({ onLeave }: MapViewProps) {
   }
 
   return (
-    <main className="mapview">
+    <main className="mapview" data-editing={editor.on ? editor.mode : undefined}>
       <MapCanvas
         ref={mapRef}
         initialCentre={centre}
@@ -213,7 +221,10 @@ export function MapView({ onLeave }: MapViewProps) {
         buildingIcons={settings.buildingIcons}
         bannerId={nation.bannerId}
         onBasemapChange={setBasemap}
-        onCellTap={editor.on ? editor.onCell : inspect.onCellTap}
+        // While the editor is open the map belongs to it: a tap paints and must not also
+        // open a cell card (BRDC-MAP-EDIT-002).
+        onCellTap={editor.on ? undefined : inspect.onCellTap}
+        editor={EDITOR_AVAILABLE ? editor : undefined}
         onPlaceTap={inspect.onPlaceTap}
         onCastleTap={inspect.onCastleTap}
         onViewportChange={onViewportChange}
@@ -300,6 +311,7 @@ export function MapView({ onLeave }: MapViewProps) {
       />
 
       <Hud
+        compact={sheetOpen}
         profile={profile}
         distanceM={trail.distanceM}
         accuracyM={point?.accuracy ?? null}
