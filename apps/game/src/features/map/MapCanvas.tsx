@@ -58,6 +58,7 @@ import { CameraControl } from './CameraControl.js';
 import { useMap } from './useMap.js';
 import type { BasemapState } from './useMap.js';
 import type { BannerId } from '../nation/nation.js';
+import { useNearbySurvey } from './useNearbySurvey.js';
 import { useTerrainResolver } from './useTerrainResolver.js';
 import type { TerrainUpdate } from './useTerrainResolver.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -167,6 +168,8 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   }, [basemap, onBasemapChange]);
 
   useTerrainResolver({ map, ready, cells: cells ?? NO_CELLS, onResolved: onCellTerrain ?? noResolve });
+  // Ahead of the feet, so a claim pays the map and not the hash (BRDC-SURVEY-001).
+  useNearbySurvey({ map, ready, position });
 
   // Create the marker once the map is ready, never before.
   useEffect(() => {

@@ -18,6 +18,7 @@ import { cellToParent } from 'h3-js';
 import { DECAY_GRACE_HOURS } from './constants.js';
 import { seededTerrainOf } from './terrainSeed.js';
 import { paintedTerrainOf } from '../data/mapData.js';
+import { surveyedTerrainOf } from '../data/localSurvey.js';
 import { localShare } from './share.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 
@@ -158,6 +159,12 @@ export function terrainOf(h3: H3Index): Terrain {
   // A hand-surveyed test area wins over the hash (BRDC-TERRAIN-003); null everywhere else.
   const seeded = seededTerrainOf(h3);
   if (seeded) return seeded;
+
+  // What the game read off the map's own tiles before anyone stood here (BRDC-SURVEY-001).
+  // Below both hand answers — a person looked at those — and above the hash, which looked
+  // at nothing. This is what makes a claim pay the ground rather than a die roll.
+  const surveyed = surveyedTerrainOf(h3);
+  if (surveyed) return surveyed;
 
   const kind = kindForRegion(hash(`terrain:${cellToParent(h3, CLUSTER_RES)}`));
   if (kind === 'plain') return { kind: 'plain', source: 'hash' };

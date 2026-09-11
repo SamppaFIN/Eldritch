@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.73",
+    "date": "2026-09-11",
+    "notes": [
+      "The game reads the ground around you before you step on it. Until now a claim paid whatever the fallback said, and the real reading of the map arrived a moment later — so you could be paid stone for a hex that turned out to be a lake.",
+      "It reads the map already on your screen rather than fetching anything, so it costs no data and works with the map you can see. It only reads when you are zoomed in close enough for the map to be telling the truth.",
+      "Ground somebody drew by hand still wins over anything the game read for itself."
+    ]
+  },
+  {
     "version": "0.5.72",
     "date": "2026-09-11",
     "notes": [
