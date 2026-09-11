@@ -47,6 +47,7 @@ import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { UnlockTeacher } from '../features/tutor/UnlockTeacher.js';
+import { WonderMoment } from '../features/wonder/WonderMoment.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { geoTrouble } from '../features/hud/notices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
@@ -312,9 +313,9 @@ export function MapView({ onLeave }: MapViewProps) {
         rivalBearing={territory.rivalBearing}
       />
 
-      {/* A mechanic opening, taught once, on a clear map when the player has stopped
-          (BRDC-TUTOR-001). A component, so its own state never re-renders this screen —
-          the camera follow lives here and a stray render moves it. */}
+      {/* A mechanic opening, taught once (BRDC-TUTOR-001). A component, not a hook: its
+          state must not re-render this screen, where the camera follow lives. */}
+      {discovery.wonderFound ? <WonderMoment id={discovery.wonderFound} onClose={discovery.clearWonder} /> : null}
       <UnlockTeacher
         repository={repository} paceMs={pace} onSee={aside.openHelp}
         reach={{

@@ -16,6 +16,7 @@ import type {
   GameRepository,
   H3Index,
   StepClaimOutcome,
+  WonderId,
 } from '@es3/core';
 
 export interface Discovery {
@@ -44,6 +45,10 @@ export interface DiscoveryState {
   onReveal: (h3: H3Index) => void;
   /** What the last reveal paid, shaped for `PouchGain` — the toast and the pling. */
   revealGain: Collected | null;
+  /** A wonder this reveal turned up (BRDC-WONDER-001). Null on all but one reveal ever. */
+  wonderFound: WonderId | null;
+  /** Dismiss the wonder card. The find itself is already written and permanent. */
+  clearWonder: () => void;
 }
 
 export function useDiscovery(
@@ -62,6 +67,9 @@ export function useDiscovery(
   const [discovered, setDiscovered] = useState<Discovery | null>(null);
   const [revealed, setRevealed] = useState<Record<H3Index, number>>({});
   const [revealGain, setRevealGain] = useState<Collected | null>(null);
+  /** The wonder this reveal turned up, until it is dismissed. Null almost always. */
+  const [wonderFound, setWonderFound] = useState<WonderId | null>(null);
+  const clearWonder = useCallback(() => setWonderFound(null), []);
   const claimed = useRef<Set<H3Index>>(new Set());
   const inFlight = useRef<Set<H3Index>>(new Set());
 
@@ -112,6 +120,9 @@ export function useDiscovery(
         if (!r.ok) return;
         const total = Object.values(r.bonus).reduce((sum, n) => sum + n, 0);
         if (total > 0) setRevealGain({ delta: r.bonus, total, hours: 0, at });
+        // Looking closely is how a wonder is found (BRDC-WONDER-001). Almost every reveal
+        // carries nothing here; the one that does is the largest event in the game.
+        if (r.wonder) setWonderFound(r.wonder);
         refreshRevealed();
         onChanged();
       });
@@ -119,5 +130,5 @@ export function useDiscovery(
     [repository, refreshRevealed, onChanged, now],
   );
 
-  return { discovered, revealed, onReveal, revealGain };
+  return { discovered, revealed, onReveal, revealGain, wonderFound, clearWonder };
 }

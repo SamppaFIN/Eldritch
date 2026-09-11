@@ -54,4 +54,6 @@ export const K = {
   razed: 'razed',
   /** Mechanics already taught, `Record<UnlockId, number>` — id → the ms it was shown (BRDC-TUTOR-001). */
   unlocksSeen: 'unlocks-seen',
+  /** Wonders found, `Partial<Record<WonderId, WonderFind>>` — where and when (BRDC-WONDER-001). */
+  wonderFinds: 'wonder-finds',
 } as const;
