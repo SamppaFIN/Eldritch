@@ -184,6 +184,20 @@ export {
   tradeReturn,
 } from './cityState.js';
 export type { CityState, CityStateId, TradeRefusal, TradeResult } from './cityState.js';
+export { WONDERS, WONDER_IDS, WONDER_STARS, wonderFits } from './wonder.js';
+export type { Wonder, WonderId } from './wonder.js';
+export {
+  WONDER_PROVINCE_RES,
+  WONDER_SCOPE_RES,
+  WONDER_SET_VERSION,
+  assignProvinces,
+  legendaryWonders,
+  localWonders,
+  wonderInProvince,
+  wonderRoll,
+  wondersNear,
+  wondersOfRarity,
+} from './wonderPlace.js';
 export { UNLOCK_IDS, UNLOCK_REWARD, nextUnlock, unlockedBy, walked } from './unlock.js';
 export type { Reach, UnlockId } from './unlock.js';
 export { localShare } from './share.js';
