@@ -132,8 +132,11 @@ function kindForRegion(region: number): TerrainKind {
   if (region < 0.09) return 'lake';
   if (region < 0.16) return 'coast';
   if (region < 0.27) return 'forest';
-  if (region < 0.34) return 'hill';
-  if (region < 0.41) return 'mountain';
+  // Hill against mountain is not an even split, because the demand is not even: stone is
+  // in twelve of the fifteen building costs and iron in two (BRDC-TERRAIN-004). Eleven
+  // per cent hill, four per cent mountain — supply shaped like the bill.
+  if (region < 0.38) return 'hill';
+  if (region < 0.42) return 'mountain';
   if (region < 0.48) return 'market';
   return 'plain';
 }
@@ -324,67 +327,4 @@ export function spend(pool: ResourcePool, cost: Partial<ResourcePool>): Resource
   const next = { ...pool };
   for (const k of Object.keys(cost) as ResourceKind[]) next[k] -= cost[k] ?? 0;
   return next;
-}
-
-/* --- Real terrain from vector tiles (BRDC-TERRAIN-002) ------------------- */
-
-export interface TileFeature {
-  /** The tile source-layer, e.g. `water`, `landcover`, `landuse`, `poi`. */
-  sourceLayer?: string;
-  /** `null` is allowed so a raw MapLibre feature list can be passed straight in. */
-  properties?: Record<string, unknown> | null;
-}
-
-const has = (set: readonly string[], value: unknown): boolean =>
-  typeof value === 'string' && set.includes(value);
-
-/**
- * Read a kind out of the vector-tile features under a point, or `null` when the tiles say
- * nothing and the hash should stand in.
- *
- * Tolerant of the common OpenMapTiles-style schema: a `sourceLayer` plus a `class` /
- * `subclass` / `natural` / `landuse` property. Order matters — water and coastline are
- * checked before land cover, because a shoreline feature carries both.
- *
- * Hill and mountain come from tags, not elevation — the tiles carry no height model
- * (`BRDC-TERRAIN-002`: "ei korkeusdataa"). `natural=peak|cliff|ridge` is a mountain;
- * scrub, heath and moor read as hill. It is a guess, and the hash covers where it is
- * wrong.
- */
-export function terrainFromTiles(features: readonly TileFeature[]): TerrainKind | null {
-  const tags = features.map((f) => ({
-    layer: f.sourceLayer ?? '',
-    p: f.properties ?? {},
-  }));
-
-  const any = (test: (t: { layer: string; p: Record<string, unknown> }) => boolean) =>
-    tags.some(test);
-
-  if (any(({ layer, p }) => layer === 'water' && has(['ocean', 'sea'], p.class)) ||
-      any(({ p }) => has(['coastline'], p.natural))) {
-    return 'coast';
-  }
-  if (any(({ layer, p }) => layer === 'water' || layer === 'waterway' || has(['water'], p.natural))) {
-    return 'lake';
-  }
-  if (any(({ p }) => has(['peak', 'cliff', 'ridge', 'rock', 'scree'], p.natural))) {
-    return 'mountain';
-  }
-  if (any(({ layer, p }) =>
-    (layer === 'landcover' || layer === 'landuse') && has(['wood', 'forest'], p.class ?? p.subclass) ||
-    has(['wood'], p.natural))) {
-    return 'forest';
-  }
-  if (any(({ p }) =>
-    has(['scrub', 'heath', 'fell', 'moor', 'grassland'], p.natural) ||
-    has(['meadow'], p.landuse ?? p.class))) {
-    return 'hill';
-  }
-  if (any(({ layer, p }) =>
-    layer === 'poi' && has(['marketplace'], p.class ?? p.subclass) ||
-    has(['commercial', 'retail'], p.landuse ?? p.class) ||
-    typeof p.shop === 'string')) {
-    return 'market';
-  }
-  return null;
 }

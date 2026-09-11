@@ -110,10 +110,11 @@ export {
   settleResources,
   spend,
   terrainForCell,
-  terrainFromTiles,
   terrainOf,
   trickle,
 } from './terrain.js';
+export { terrainFromTiles } from './terrainTiles.js';
+export type { TileFeature } from './terrainTiles.js';
 export { HARMALA_STATUE, SEED_BOX, enableTerrainSurvey, seededTerrainOf } from './terrainSeed.js';
 export type {
   BuildSite,
@@ -123,7 +124,6 @@ export type {
   Terrain,
   TerrainKind,
   TerrainSource,
-  TileFeature,
 } from './terrain.js';
 export { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
 export type { WardRefusal, WardResult } from './ward.js';

@@ -36,7 +36,8 @@ export type BountyId =
   | 'marble'
   | 'fish'
   | 'amber'
-  | 'spice';
+  | 'spice'
+  | 'granite';
 
 export interface Bounty {
   /** Ground it can be found on. */
@@ -66,6 +67,12 @@ export const BOUNTIES: Readonly<Record<BountyId, Bounty>> = {
   // neighbourhood is a place of trade could walk for weeks and never find anything —
   // and `bountiesFor` returning nothing is a silent exclusion, not a design.
   spice: { terrain: ['market', 'plain'], resource: 'culture', perHour: 2 },
+  // Civilization V's Stone, and the only bounty that pays a building material
+  // (BRDC-TERRAIN-004). Twelve of the fifteen Works are quoted in stone and hill is the
+  // one terrain that gives it, so a player whose neighbourhood has no hill in it could
+  // not build. A field with granite under it is an answer to that, and it is also simply
+  // true of this country.
+  granite: { terrain: ['plain', 'hill'], resource: 'stone', perHour: 2 },
 };
 
 export const BOUNTY_IDS = Object.keys(BOUNTIES) as BountyId[];

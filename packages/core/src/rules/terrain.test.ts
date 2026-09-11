@@ -16,7 +16,6 @@ import {
   resourceOf,
   settleResources,
   spend,
-  terrainFromTiles,
   terrainOf,
   trickle,
 } from './terrain.js';
@@ -64,6 +63,17 @@ describe('terrainOf', () => {
     expect(kinds).toEqual(
       new Set<TerrainKind>(['plain', 'forest', 'hill', 'mountain', 'lake', 'coast', 'market']),
     );
+  });
+
+  // BRDC-TERRAIN-004. Stone is quoted in twelve of the fifteen building costs and iron in
+  // two, so the ground that gives stone must be the commoner of the pair. Measured over a
+  // wide sample rather than read off the thresholds, because the thresholds are on the
+  // *region* roll and what a player actually walks over is cells.
+  it('gives stone country more ground than iron country, because the bill is not even', () => {
+    const kinds = sample(2000).map(kindOf);
+    const share = (k: TerrainKind) => kinds.filter((x) => x === k).length / kinds.length;
+    expect(share('hill')).toBeGreaterThan(share('mountain') * 1.5);
+    expect(share('hill')).toBeGreaterThan(0.05);
   });
 
   it('leaves most ground plain, so a producing cell is worth walking to', () => {
@@ -334,47 +344,6 @@ describe('settleResources', () => {
     expect(hourly.pool.tokens).toBe(once.pool.tokens);
   });
 });
-
-describe('terrainFromTiles', () => {
-  it('reads a lake from a water layer', () => {
-    expect(terrainFromTiles([{ sourceLayer: 'water', properties: { class: 'lake' } }])).toBe('lake');
-    expect(terrainFromTiles([{ sourceLayer: 'waterway', properties: {} }])).toBe('lake');
-  });
-
-  it('reads the coast from ocean water or a coastline', () => {
-    expect(terrainFromTiles([{ sourceLayer: 'water', properties: { class: 'ocean' } }])).toBe('coast');
-    expect(terrainFromTiles([{ properties: { natural: 'coastline' } }])).toBe('coast');
-  });
-
-  it('reads woodland from land cover or a natural tag', () => {
-    expect(terrainFromTiles([{ sourceLayer: 'landcover', properties: { class: 'wood' } }])).toBe('forest');
-    expect(terrainFromTiles([{ properties: { natural: 'wood' } }])).toBe('forest');
-  });
-
-  it('reads rock as mountain and scrub as hill — tags, not elevation', () => {
-    expect(terrainFromTiles([{ properties: { natural: 'peak' } }])).toBe('mountain');
-    expect(terrainFromTiles([{ properties: { natural: 'scrub' } }])).toBe('hill');
-  });
-
-  it('reads a marketplace or shops as market', () => {
-    expect(terrainFromTiles([{ sourceLayer: 'landuse', properties: { class: 'commercial' } }])).toBe('market');
-    expect(terrainFromTiles([{ properties: { shop: 'bakery' } }])).toBe('market');
-  });
-
-  it('returns null when the tiles say nothing', () => {
-    expect(terrainFromTiles([])).toBeNull();
-    expect(terrainFromTiles([{ sourceLayer: 'building', properties: {} }])).toBeNull();
-  });
-
-  it('checks water before land cover when a feature carries both', () => {
-    const shoreline = [
-      { sourceLayer: 'landcover', properties: { class: 'wood' } },
-      { sourceLayer: 'water', properties: { class: 'ocean' } },
-    ];
-    expect(terrainFromTiles(shoreline)).toBe('coast');
-  });
-});
-
 describe('spending', () => {
   const pool: ResourcePool = { ...EMPTY_POOL, food: 30, wood: 10, gold: 5 };
 

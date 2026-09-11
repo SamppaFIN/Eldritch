@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.72",
+    "date": "2026-09-11",
+    "notes": [
+      "Bare rock is a quarry, not an iron mine. Walking over an outcrop paid iron, which is most of the rock in this country, so stone was the one thing the map would not give you — and twelve of the fifteen Works are quoted in stone.",
+      "Fields read as fields. Farmland, orchards and meadow are plain ground now instead of being guessed at, so a field is a reading of the map rather than the absence of one.",
+      "Hill country outnumbers mountain country roughly three to one, because the building costs are not even either. Before this, iron was very slightly the commoner of the two.",
+      "Granite joins the bounties — Civilization's Stone, found on plains and hills. It is the only bounty that pays a building material, so a neighbourhood with no hill in it can still raise something."
+    ]
+  },
+  {
     "version": "0.5.71",
     "date": "2026-09-11",
     "notes": [

@@ -18,6 +18,7 @@ export const BOUNTY_NAME: Readonly<Record<BountyId, string>> = {
   fish: 'Fish',
   amber: 'Amber',
   spice: 'Spices',
+  granite: 'Granite',
 };
 
 /** One glyph each, in the same register as the terrain glyphs — drawn, not emoji. */
@@ -31,6 +32,7 @@ export const BOUNTY_GLYPH: Readonly<Record<BountyId, string>> = {
   fish: '≈',
   amber: '❂',
   spice: '✽',
+  granite: '◆',
 };
 
 /** "Deer · +2 food / h" — the whole of what a bounty is, in one line. */
