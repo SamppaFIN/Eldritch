@@ -11,42 +11,33 @@
  * (Phase 3) assert the two agree cell by cell.
  */
 import { latLngToCell } from 'h3-js';
-import { readPlaces, readDwellFor, raiseAltarFor } from './keepStore.js';
-import type { AltarOutcome } from './keepStore.js';
+import { readPlaces, readDwellFor, raiseAltarFor, type AltarOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
-import { EMPTY_POOL } from '../rules/terrain.js';
-import type { ResourcePool } from '../rules/terrain.js';
-import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch } from './pouch.js';
-import type { Collected, Forecast } from './pouch.js';
+import { markUnlockSeen, seenUnlocks } from './unlockStore.js';
+import type { UnlockId } from '../rules/unlock.js';
+import { EMPTY_POOL, type ResourcePool, type ResourceKind } from '../rules/terrain.js';
+import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch, type Collected, type Forecast } from './pouch.js';
 import { wardAt } from './wardStore.js';
-import { closeWalk, submitWalk } from './walkFlow.js';
-import type { WalkDeps } from './walkFlow.js';
+import { closeWalk, submitWalk, type WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
-import { buildOn, demolishOn } from './buildStore.js';
+import { buildOn, demolishOn, type BuildOutcome, type DemolishOutcome } from './buildStore.js';
 import { takeRazed } from './razedStore.js';
 import { cityAtDoor, tradeAt } from './cityStateStore.js';
 import type { CityState } from '../rules/cityState.js';
-import type { ResourceKind } from '../rules/terrain.js';
-import type { BuildOutcome, DemolishOutcome } from './buildStore.js';
-import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools } from './templeStore.js';
-import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from './templeStore.js';
+import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools, type ConsecrateOutcome, type ExpandOutcome, type SchoolOutcome } from './templeStore.js';
 import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
 import { readRevealed, revealAt, type RevealOutcome } from './revealStore.js';
 import { readPaths } from './pathStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
-import { walkedEdges } from '../geo/paths.js';
-import type { WalkedEdge } from '../geo/paths.js';
+import { walkedEdges, type WalkedEdge } from '../geo/paths.js';
 import { neighboursOf } from '../geo/cells.js';
 import { loyaltyFactor, loyaltySourceCells } from '../rules/aura.js';
-import { layRouteAt, readRoutes, removeRouteAt } from './tradeStore.js';
-import type { RouteOutcome } from './tradeStore.js';
+import { layRouteAt, readRoutes, removeRouteAt, type RouteOutcome } from './tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
-import { castSpellAt, readSpells } from './spellStore.js';
-import type { CastOutcome } from './spellStore.js';
-import { activeSpells } from '../rules/spell.js';
-import type { ActiveSpell, SpellId } from '../rules/spell.js';
+import { castSpellAt, readSpells, type CastOutcome } from './spellStore.js';
+import { activeSpells, type ActiveSpell, type SpellId } from '../rules/spell.js';
 import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { LogEntry } from '../rules/log.js';
@@ -68,10 +59,8 @@ import type {
   Terrain,
   TrailPoint,
 } from '../types/index.js';
-import type { KeyValueStore } from './kv.js';
-import { MemoryStore } from './kv.js';
-import { versioned } from './schema.js';
-import type { SchemaOutcome, VersionedStore } from './schema.js';
+import { MemoryStore, type KeyValueStore } from './kv.js';
+import { versioned, type SchemaOutcome, type VersionedStore } from './schema.js';
 import { seedWorldAt } from './seed.js';
 import { K } from './keys.js';
 import { readDefence, writeDefence, type ImportResult, type WagerIdentity } from './wager.js';
@@ -318,6 +307,15 @@ export class MockRepository implements GameRepository {
     const places = (await this.getPlaces()).map((p) => p.h3);
     const sources = loyaltySourceCells(cells.filter((c) => c.ownerId === me), places);
     return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
+  }
+
+  async getUnlocksSeen(): Promise<Set<UnlockId>> {
+    return seenUnlocks(this.store);
+  }
+
+  /** Marks the lesson and pays its wisdom in one step, so the two cannot come apart. */
+  async markUnlockSeen(id: UnlockId, now: number): Promise<boolean> {
+    return markUnlockSeen(this.store, await this.getOwnedCells(now), id, now);
   }
 
   async setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void> {

@@ -213,7 +213,7 @@ export const WORLD_VERSION = 2;
 /** The Codex table's own shape version, separate from `WORLD_VERSION` (BRDC-CODEX-001). */
 export const CODEX_VERSION = 1;
 
-export const APP_VERSION = '0.5.73';
+export const APP_VERSION = '0.5.74';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -390,3 +390,6 @@ export const WALL_GUARD = 35;
  * way would be released by decay, and that is ownership changing hands by message.
  */
 export const WAGER_SPOIL = 150;
+
+/** Cells a founded Hearth hands over: itself and its ring of six (BRDC-TUTOR-001). */
+export const HEARTH_RING = 7;

@@ -184,4 +184,6 @@ export {
   tradeReturn,
 } from './cityState.js';
 export type { CityState, CityStateId, TradeRefusal, TradeResult } from './cityState.js';
+export { UNLOCK_IDS, UNLOCK_REWARD, nextUnlock, unlockedBy, walked } from './unlock.js';
+export type { Reach, UnlockId } from './unlock.js';
 export { localShare } from './share.js';

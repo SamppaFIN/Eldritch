@@ -25,6 +25,7 @@ import type {
   TrailResult,
 } from './domain.js';
 import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
+import type { UnlockId } from '../rules/unlock.js';
 import type { WalkedEdge } from '../geo/paths.js';
 import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
@@ -117,6 +118,14 @@ export interface GameRepository {
   revealCell(h3: H3Index, now: number): Promise<RevealOutcome>;
   /** Cells the player has revealed → the ms they were revealed. */
   getRevealed(): Promise<Record<H3Index, number>>;
+  /** Mechanics already taught (BRDC-TUTOR-001). */
+  getUnlocksSeen(): Promise<Set<UnlockId>>;
+  /**
+   * Mark a lesson read and pay its wisdom. True when this call is the one that paid.
+   *
+   * Idempotent, so a double tap or two open panels cannot pay twice.
+   */
+  markUnlockSeen(id: UnlockId, now: number): Promise<boolean>;
   /** Applies decay at read time, then returns what survives in the viewport. */
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;

@@ -10,6 +10,10 @@
  * live in one place instead of drifting apart across three panels.
  */
 
+import { HEARTH_RING } from '@es3/core';
+
+export { HEARTH_RING };
+
 export interface Progress {
   /** Cells held. A founded Hearth starts at seven — itself and its ring. */
   owned: number;
@@ -27,8 +31,6 @@ export interface Step {
   because: string;
 }
 
-/** The Hearth and its ring, handed over at founding. Anything past this was walked for. */
-export const HEARTH_RING = 7;
 /** PIVOT §1's goal: "expand your home zone to ten cells and build your first building". */
 export const GOAL_CELLS = 10;
 

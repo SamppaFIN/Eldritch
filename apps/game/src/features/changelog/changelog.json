@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.74",
+    "date": "2026-09-11",
+    "notes": [
+      "The game teaches itself, one mechanic at a time. Founding your Hearth explains what the ground pays; walking explains Works; a researched technology explains Rites. Six lessons in all, and each waits until you have stopped walking and the map is clear.",
+      "Reading one pays 10 wisdom. Nothing you own produces wisdom, so it is the one gift that actually moves — and it leaves the first technology within reach instead of only pointing at it.",
+      "Each opening draws itself: the seed of the Flower of Life, circle by circle. It is the same seven-fold shape as the ring your Hearth handed you.",
+      "\"Not now\" sends a lesson away unread and unpaid, and it comes back on your next walk. A lesson you have read never returns."
+    ]
+  },
+  {
     "version": "0.5.73",
     "date": "2026-09-11",
     "notes": [

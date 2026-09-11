@@ -1,0 +1,131 @@
+/* A mechanic opening (BRDC-TUTOR-001).
+
+   Centred and over the map, unlike `.first-look`, which is a hint at the edge. This one
+   is a moment and it only appears when the player has stopped — §12's rule that geometry
+   belongs at moments, not as wallpaper, cuts both ways: if it were on screen while
+   walking it would be wallpaper.
+
+   Not `--z-modal`: it does not trap focus and it does not block the map behind it, so it
+   must not sit on the layer that does. It is HUD chrome with a backdrop.
+
+   The backdrop passes taps through — only the card itself takes them. A full-screen layer
+   that swallows pointer events is a modal however it is styled, and this must never be
+   one: it appears unasked, and the screen under it is the map the game exists to show.
+   Caught by `opening.spec` and `guide.spec`, where it ate a Build click. */
+
+.unlock {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-hud);
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  /* Dims the map without hiding it — you can still see where you are. */
+  background: oklch(0.16 0.04 300 / 0.55);
+  pointer-events: none;
+}
+
+.unlock__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: auto;
+  width: min(24rem, 100%);
+  padding: var(--space-4) var(--space-3) var(--space-3);
+  text-align: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 8px 32px oklch(0.16 0.04 300 / 0.6);
+  animation: es-rise var(--dur-ritual) var(--ease-out) both;
+}
+
+/* Stroke, no fill, drawn on by dash — §12. The circles arrive one after another so the
+   seed assembles rather than appearing, which is the whole reason it is geometry. */
+.unlock__geometry circle {
+  fill: none;
+  stroke: var(--accent-warm);
+  stroke-width: 1;
+  opacity: 0.85;
+  stroke-dasharray: 139;
+  stroke-dashoffset: 139;
+  animation: es-draw var(--dur-ritual) var(--ease-out) forwards;
+}
+
+.unlock__eyebrow {
+  margin: 0;
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-warm);
+}
+
+.unlock__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--text);
+}
+
+.unlock__what,
+.unlock__now {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.unlock__now {
+  color: var(--mystic-cyan);
+}
+
+.unlock__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.unlock__read,
+.unlock__see,
+.unlock__later {
+  min-height: var(--touch-min);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-numeric);
+  font-size: var(--text-body);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast);
+}
+
+.unlock__read {
+  background: var(--cosmic-purple);
+  border: 1px solid var(--accent-warm);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.unlock__see,
+.unlock__later {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: inherit;
+}
+
+.unlock__read:hover,
+.unlock__see:hover,
+.unlock__later:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unlock__card,
+  .unlock__geometry circle {
+    animation-duration: 0.01ms;
+  }
+}

@@ -46,6 +46,7 @@ import { Hud } from '../features/hud/Hud.js';
 import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
+import { UnlockTeacher } from '../features/tutor/UnlockTeacher.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { geoTrouble } from '../features/hud/notices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
@@ -309,6 +310,20 @@ export function MapView({ onLeave }: MapViewProps) {
         owned={territory.owned.length} works={inspect.build.myBuildings.length}
         researched={inspect.build.researched.length} rivalCells={territory.cells.length}
         rivalBearing={territory.rivalBearing}
+      />
+
+      {/* A mechanic opening, taught once, on a clear map when the player has stopped
+          (BRDC-TUTOR-001). A component, so its own state never re-renders this screen —
+          the camera follow lives here and a stray render moves it. */}
+      <UnlockTeacher
+        repository={repository} paceMs={pace} onSee={aside.openHelp}
+        reach={{
+          owned: territory.owned.length,
+          researched: inspect.build.researched.length,
+          rivalCells: territory.cells.length,
+        }}
+        busy={aside.anyOpen || inspect.cell !== null || inspect.sanctum}
+        onPaid={() => void repository?.getResources(clock.now()).then(setResources)}
       />
 
       <MapNotices

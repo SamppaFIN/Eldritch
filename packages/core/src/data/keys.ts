@@ -52,4 +52,6 @@ export const K = {
   starterGiven: 'starter-given',
   /** Works the one-per-cell migration took down, `BuildingId[]`, until they are paid back (BRDC-BUILD-009). */
   razed: 'razed',
+  /** Mechanics already taught, `Record<UnlockId, number>` — id → the ms it was shown (BRDC-TUTOR-001). */
+  unlocksSeen: 'unlocks-seen',
 } as const;
