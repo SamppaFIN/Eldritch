@@ -1,0 +1,98 @@
+/* Importing a recorded walk. The same sheet as the Codex and the ledger. */
+
+.gpx {
+  position: fixed;
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  z-index: var(--z-hud);
+  margin-inline: auto;
+  max-inline-size: 30rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.gpx__bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.gpx__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.gpx__close {
+  flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+  padding-inline: 0;
+}
+
+.gpx__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* A file input styled as a button — the label is the control, the input is hidden. */
+.gpx__file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-4);
+  border: 1px solid color-mix(in oklch, var(--mystic-cyan) 50%, transparent);
+  border-radius: var(--radius-full);
+  color: var(--mystic-cyan);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.gpx__file input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+
+.gpx__file:focus-within {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.gpx__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.gpx__line {
+  margin: 0;
+  color: var(--text);
+}
+
+/* What was thrown out, and why — a track that half-lands in silence reads as broken. */
+.gpx__rejected {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.gpx__fault {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.gpx__again {
+  align-self: flex-start;
+  min-block-size: var(--touch-min);
+}

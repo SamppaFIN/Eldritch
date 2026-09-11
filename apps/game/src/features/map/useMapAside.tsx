@@ -19,6 +19,7 @@ import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
 import { CodexPanel } from '../codex/CodexPanel.js';
 import { LandsPanel } from '../lands/LandsPanel.js';
+import { GpxPanel } from '../gpx/GpxPanel.js';
 
 export interface MapAside {
   node: ReactNode;
@@ -33,6 +34,8 @@ export interface MapAside {
   openCodex: () => void;
   /** The ledger of held ground (BRDC-LANDS-001). */
   openLands: () => void;
+  /** Import a recorded walk (BRDC-GPX-001). */
+  openGpx: () => void;
   /** True while any of these sheets is covering the map (BRDC-HUD-005). */
   anyOpen: boolean;
 }
@@ -45,15 +48,20 @@ export function useMapAside(
   /** Select a cell on the map — a Work page's "show on map" (BRDC-WIKI-004). Held in a
    *  ref so `useSelection` can be declared after this hook without a TDZ. */
   onShowCell: (h3: string) => void,
+  /** Ground changed without a step — an imported walk (BRDC-GPX-001). Redraw the map. */
+  onWorldChanged: () => void = () => {},
 ): MapAside {
   const showCell = useRef(onShowCell);
   showCell.current = onShowCell;
+  const changed = useRef(onWorldChanged);
+  changed.current = onWorldChanged;
   const [help, setHelp] = useState<HelpView | null>(null);
   const [logOpen, setLogOpen] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [characterOpen, setCharacterOpen] = useState(false);
   const [codexOpen, setCodexOpen] = useState(false);
   const [landsOpen, setLandsOpen] = useState(false);
+  const [gpxOpen, setGpxOpen] = useState(false);
   const [meId, setMeId] = useState<string | null>(null);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
 
@@ -130,6 +138,13 @@ export function useMapAside(
         }}
         onClose={() => setLandsOpen(false)}
       />
+      <GpxPanel
+        open={gpxOpen}
+        repository={repository}
+        now={now}
+        afterImport={changed.current}
+        onClose={() => setGpxOpen(false)}
+      />
     </>
   );
 
@@ -141,6 +156,7 @@ export function useMapAside(
     openCharacter: () => setCharacterOpen(true),
     openCodex: () => setCodexOpen(true),
     openLands: () => setLandsOpen(true),
-    anyOpen: help !== null || logOpen || characterOpen || codexOpen || landsOpen,
+    openGpx: () => setGpxOpen(true),
+    anyOpen: help !== null || logOpen || characterOpen || codexOpen || landsOpen || gpxOpen,
   };
 }

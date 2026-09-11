@@ -113,3 +113,5 @@ export {
   parseDrawing,
 } from './mapData.js';
 export type { DrawingFault, DrawingParse, MapDrawing, PaintedCell } from './mapData.js';
+export { GPX_ASSUMED_ACCURACY_M, parseGpx } from './gpx.js';
+export type { GpxFault, GpxParse } from './gpx.js';

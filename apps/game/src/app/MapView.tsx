@@ -131,7 +131,13 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
   const laps = trail.points.length + (territory.lastClaim?.at ?? 0);
-  const aside = useMapAside(repository, clock.now, laps, (h3) => inspect.onCellTap(h3));
+  const aside = useMapAside(
+    repository,
+    clock.now,
+    laps,
+    (h3) => inspect.onCellTap(h3),
+    () => void territory.refresh(),
+  );
 
   // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
   const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
@@ -353,7 +359,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onChange={onSettingsChange}
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
-        onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
+        onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands} onOpenGpx={aside.openGpx}
         onOpenEditor={EDITOR_AVAILABLE ? editor.toggle : undefined}
         onOpenGuide={aside.openGuide}
         repository={repository}

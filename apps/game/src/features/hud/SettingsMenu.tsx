@@ -31,6 +31,8 @@ export interface SettingsMenuProps {
   onOpenCodex: () => void;
   /** Opens the ledger of held ground (BRDC-LANDS-001). */
   onOpenLands: () => void;
+  /** Import a recorded walk (BRDC-GPX-001). */
+  onOpenGpx: () => void;
   /** Dev only: the map editor (BRDC-MAP-EDIT-001). Absent in a player's build. */
   onOpenEditor?: (() => void) | undefined;
   /** Opens the in-game guide's front page (BRDC-WIKI-001). */
@@ -54,6 +56,7 @@ export function SettingsMenu({
   onOpenLog,
   onOpenCodex,
   onOpenLands,
+  onOpenGpx,
   onOpenEditor,
   onOpenGuide,
   repository,
@@ -179,6 +182,9 @@ export function SettingsMenu({
           </button>
           <button type="button" className="settings-menu__action" onClick={() => run(onOpenCodex)}>
             Codex of Dominion
+          </button>
+          <button type="button" className="settings-menu__action" onClick={() => run(onOpenGpx)}>
+            Import a walk
           </button>
           <button
             type="button"

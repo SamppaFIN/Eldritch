@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.71",
+    "date": "2026-09-11",
+    "notes": [
+      "Import a walk you already recorded. ☰ → Import a walk takes a .gpx from a watch or a tracker and walks it into the game exactly as if you had walked it now — the same ground is taken, and the same points are thrown out for being too fast or too close together.",
+      "It tells you what it did: how many points it read, how many it walked, how far, and what it discarded and why. A track that half-lands in silence is the kind of thing you decide is broken.",
+      "A track without timestamps is refused rather than guessed at. Without them there is no way to tell walking from driving, and inventing a time is inventing a speed."
+    ]
+  },
+  {
     "version": "0.5.70",
     "date": "2026-09-11",
     "notes": [
