@@ -369,7 +369,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
       {aside.node}
       {EDITOR_AVAILABLE ? <EditorPanel editor={editor} /> : null}
-      <PouchGain collected={latestGain(collected, discovery.revealGain)} settings={settings} />
+      <PouchGain collected={latestGain(latestGain(collected, discovery.revealGain), aside.landsGain)} settings={settings} />
 
       <SettingsMenu
         settings={settings}

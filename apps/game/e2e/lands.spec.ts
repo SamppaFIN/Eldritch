@@ -138,3 +138,51 @@ test('and an unrevealed hex keeps its find to itself', async ({ page }) => {
   await expect(lands.locator('.lands__bounty')).toHaveCount(0);
   await expect(lands.locator('.lands__tag--new')).toHaveCount(7);
 });
+
+/*
+ * BRDC-LANDS-002. The page's whole opinion is "these want revealing", and until now the
+ * only way to act on it closed the page, so auditing 340 cells meant 340 round trips
+ * through the map. These insist the doing happens where the saying happens.
+ */
+test('reveals a land from the list, and stays open to reveal the next', async ({ page }) => {
+  test.setTimeout(200_000);
+  const lands = await openLands(page);
+  await expect(lands.locator('.lands__row')).toHaveCount(7, { timeout: 20_000 });
+  await expect(lands).toContainText('7 unrevealed');
+
+  // By class, not by name: the row's own button carries the word "unrevealed", which any
+  // name match on "Reveal" collides with.
+  const reveal = lands.locator('.lands__reveal');
+  await expect(reveal).toHaveCount(7);
+
+  await reveal.first().click();
+
+  // The page is still here — this is the line the ticket exists for.
+  await expect(lands).toBeVisible();
+  // One fewer to do, one fewer button, and the row says what it turned up.
+  await expect(lands).toContainText('6 unrevealed', { timeout: 15_000 });
+  await expect(lands.locator('.lands__reveal')).toHaveCount(6);
+  await expect(lands.locator('.lands__found').first()).toBeVisible();
+
+  // ...and the next one goes without navigating anywhere.
+  await lands.locator('.lands__reveal').first().click();
+  await expect(lands).toContainText('5 unrevealed', { timeout: 15_000 });
+  await expect(lands).toBeVisible();
+});
+
+test('a reveal from the ledger pays into the pouch like any other', async ({ page }) => {
+  test.setTimeout(200_000);
+  const lands = await openLands(page);
+  await expect(lands.locator('.lands__row')).toHaveCount(7, { timeout: 20_000 });
+
+  // Reveal every hex the fresh ring holds; a tier that pays nothing is a real outcome, so
+  // this asserts that at least one of the seven said something rather than each of them.
+  for (let i = 0; i < 7; i += 1) {
+    const next = lands.locator('.lands__reveal').first();
+    if ((await next.count()) === 0) break;
+    await next.click();
+    await page.waitForTimeout(400);
+  }
+  await expect(lands).toContainText('0 unrevealed', { timeout: 20_000 });
+  await expect(lands.locator('.lands__found')).not.toHaveCount(0);
+});

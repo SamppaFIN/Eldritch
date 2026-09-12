@@ -61,8 +61,31 @@
   list-style: none;
 }
 
+/* A row is two acts, not one (BRDC-LANDS-002): the ground itself takes you to its card,
+   and Reveal happens here. They sit side by side so the thumb can work down the column of
+   Reveal buttons without the rows moving — the list does not re-sort on a reveal. */
 .lands__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
   border-block-end: 1px solid var(--glass-border);
+}
+
+.lands__reveal {
+  min-block-size: var(--touch-min);
+  min-inline-size: var(--touch-min);
+  padding-inline: var(--space-3);
+  white-space: nowrap;
+}
+
+/* Spans both columns, under the row it belongs to. */
+.lands__found {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 var(--space-1) var(--space-2);
+  color: var(--accent-warm);
+  font-size: var(--text-sm);
 }
 
 /* The whole row is the target: a thumb on a walk should not have to find a link. */

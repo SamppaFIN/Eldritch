@@ -7,7 +7,7 @@
  * renders live here.
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { ActiveSpell, Cell, GameRepository, LogEntry, TechId } from '@es3/core';
+import type { ActiveSpell, Cell, Collected, GameRepository, LogEntry, TechId } from '@es3/core';
 import { HelpPanel } from '../help/HelpPanel.js';
 import type { HelpView } from '../help/HelpPanel.js';
 import type { HelpTopic } from '../help/help.js';
@@ -38,6 +38,8 @@ export interface MapAside {
   openGpx: () => void;
   /** True while any of these sheets is covering the map (BRDC-HUD-005). */
   anyOpen: boolean;
+  /** What a reveal from the ledger paid, for `PouchGain` (BRDC-LANDS-002). */
+  landsGain: Collected | null;
 }
 
 export function useMapAside(
@@ -61,6 +63,8 @@ export function useMapAside(
   const [characterOpen, setCharacterOpen] = useState(false);
   const [codexOpen, setCodexOpen] = useState(false);
   const [landsOpen, setLandsOpen] = useState(false);
+  /** A payout earned on the ledger page, handed to the one toast the map owns. */
+  const [landsGain, setLandsGain] = useState<Collected | null>(null);
   const [gpxOpen, setGpxOpen] = useState(false);
   const [meId, setMeId] = useState<string | null>(null);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
@@ -136,6 +140,7 @@ export function useMapAside(
           setLandsOpen(false);
           showCell.current(h3);
         }}
+        onGain={setLandsGain}
         onClose={() => setLandsOpen(false)}
       />
       <GpxPanel
@@ -157,6 +162,7 @@ export function useMapAside(
     openCodex: () => setCodexOpen(true),
     openLands: () => setLandsOpen(true),
     openGpx: () => setGpxOpen(true),
+    landsGain,
     anyOpen: help !== null || logOpen || characterOpen || codexOpen || landsOpen || gpxOpen,
   };
 }

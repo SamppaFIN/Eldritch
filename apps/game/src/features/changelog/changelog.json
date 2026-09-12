@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.79",
+    "date": "2026-09-12",
+    "notes": [
+      "Your lands can now be revealed from Your lands. Every unrevealed row has a Reveal button, and pressing it keeps the page open — so you work down the list instead of going out to the map and back for each one.",
+      "The row says what it turned up, named: the tier and the resources, not a bare number. The same pouch toast and the same chime as revealing on the map.",
+      "The list does not re-sort under your thumb when a row is revealed. The next one to do stays where you are looking.",
+      "And if a reveal from the ledger turns up a wonder, you get the same moment you would have got standing on it."
+    ]
+  },
+  {
     "version": "0.5.78",
     "date": "2026-09-12",
     "notes": [

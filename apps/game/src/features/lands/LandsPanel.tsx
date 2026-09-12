@@ -12,21 +12,40 @@
  */
 import { useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
-import type { GameRepository, Holding } from '@es3/core';
+import type { Collected, GameRepository, Holding } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { BUILDING_NAME } from '../territory/names.js';
 import { BOUNTY_GLYPH, BOUNTY_NAME } from '../territory/bounty.js';
 import { RESOURCE_COLOUR, RESOURCE_WORD, terrainGlyph } from '../territory/territoryFeatures.js';
 import { useLands } from './useLands.js';
+import type { Revealed } from './useLands.js';
+import { WonderMoment } from '../wonder/WonderMoment.js';
 import './lands-panel.css';
 
 export interface LandsPanelProps {
   open: boolean;
   repository: GameRepository | null;
   now: () => number;
-  /** Show this hex on the map, and close. */
+  /** Show this hex on the map, and close. A different act from revealing it. */
   onShowCell: (h3: string) => void;
+  /** A payout from this page, for the toast and the pling the map already owns. */
+  onGain: (collected: Collected) => void;
   onClose: () => void;
+}
+
+/**
+ * What a reveal turned up, in one line.
+ *
+ * Named resources rather than a bare total: "+12 timber" is a thing that happened to your
+ * realm, "+12" is a number. The tier is said too, because on most ground it is the whole
+ * of what was found and saying nothing there reads as a button that did nothing.
+ */
+function foundLine(r: Revealed): string {
+  const parts = Object.entries(r.bonus)
+    .filter(([, n]) => (n ?? 0) > 0)
+    .map(([k, n]) => `+${n} ${RESOURCE_WORD[k as keyof typeof RESOURCE_WORD] ?? k}`);
+  const tier = r.tier === 'common' ? 'Common ground' : `${r.tier[0]?.toUpperCase()}${r.tier.slice(1)}`;
+  return parts.length > 0 ? `${tier} · ${parts.join(' · ')}` : `${tier} — nothing hidden here.`;
 }
 
 /** "3 h" · "5 d" · "—" for ground that cannot be lost. */
@@ -48,9 +67,23 @@ const GROUND: Readonly<Record<string, string>> = {
   market: 'Market',
 };
 
-export function LandsPanel({ open, repository, now, onShowCell, onClose }: LandsPanelProps) {
+/** The row's hex. A named reader so the reveal handler reads as an action on a land. */
+const h3OfRow = (h: Holding): string => h.h3;
+
+export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose }: LandsPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
-  const { list, summary, loading } = useLands(repository, open, now);
+  const { list, summary, loading, reveal, found, gain, wonder, clearWonder } = useLands(
+    repository,
+    open,
+    now,
+  );
+
+  // One toast and one pling for every payout in the game, wherever it was earned (§14).
+  const lastGain = useRef<number>(0);
+  if (gain && gain.at !== lastGain.current) {
+    lastGain.current = gain.at;
+    onGain(gain);
+  }
   useEscape(open, onClose);
 
   if (!open) return null;
@@ -99,6 +132,22 @@ export function LandsPanel({ open, repository, now, onShowCell, onClose }: Lands
           </span>
         ) : null}
       </button>
+
+      {/* The ledger's whole opinion is "these want revealing", so the doing of it belongs
+          here and not two screens away (BRDC-LANDS-002). Pressing it does not close the
+          page: the next unrevealed hex is the row below. */}
+      {h.revealed ? null : (
+        <RitualButton
+          className="lands__reveal"
+          // Named, because "Reveal" seven times over is useless read aloud — and because
+          // the row's own button says "unrevealed", which a bare name match collides with.
+          aria-label={`Reveal this ${GROUND[h.terrain] ?? h.terrain}`}
+          onClick={() => reveal(h3OfRow(h))}
+        >
+          Reveal
+        </RitualButton>
+      )}
+      {found[h.h3] ? <p className="lands__found">{foundLine(found[h.h3] as Revealed)}</p> : null}
     </li>
   );
 
@@ -127,6 +176,11 @@ export function LandsPanel({ open, repository, now, onShowCell, onClose }: Lands
           <ul className="lands__list">{list.map(row)}</ul>
         </>
       ) : null}
+
+      {/* A ledger reveal reaches any hex you hold, so a wonder can be found from here.
+          The moment is the same one the map shows — finding one in silence because it was
+          the wrong screen would be the worst place in the game to be inconsistent. */}
+      {wonder ? <WonderMoment id={wonder} onClose={clearWonder} /> : null}
     </GlassPanel>
   );
 }
