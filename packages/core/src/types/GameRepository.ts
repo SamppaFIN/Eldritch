@@ -26,6 +26,8 @@ import type {
 } from './domain.js';
 import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
 import type { UnlockId } from '../rules/unlock.js';
+import type { Encounter } from '../rules/encounter.js';
+import type { ChoiceOutcome as EncounterChoiceOutcome } from '../data/encounterStore.js';
 import type { WalkedEdge } from '../geo/paths.js';
 import type { WardResult } from '../rules/ward.js';
 import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
@@ -118,6 +120,16 @@ export interface GameRepository {
   revealCell(h3: H3Index, now: number): Promise<RevealOutcome>;
   /** Cells the player has revealed → the ms they were revealed. */
   getRevealed(): Promise<Record<H3Index, number>>;
+  /**
+   * What a newly claimed hex turned up, or null (BRDC-EVENT-002).
+   *
+   * Called once per step-claim. Null on most of them — that is the design, not a failure.
+   */
+  encounterOnStep(h3: H3Index, now: number): Promise<Encounter | null>;
+  /** The once-a-day roll that needs no walking. Null unless today is the day. */
+  dailyOmen(now: number): Promise<Encounter | null>;
+  /** Take one of an encounter's choices, paying and collecting what it says. */
+  takeEncounterChoice(id: string, choiceIndex: number, now: number): Promise<EncounterChoiceOutcome>;
   /** Mechanics already taught (BRDC-TUTOR-001). */
   getUnlocksSeen(): Promise<Set<UnlockId>>;
   /**

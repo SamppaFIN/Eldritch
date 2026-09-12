@@ -15,6 +15,7 @@ import { readPlaces, readDwellFor, raiseAltarFor, type AltarOutcome } from './ke
 import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import { markUnlockSeen, seenUnlocks } from './unlockStore.js';
+import { dailyOmenFor, encounterOnStepFor, takeEncounterChoiceFor } from './encounterRepo.js';
 import type { UnlockId } from '../rules/unlock.js';
 import { EMPTY_POOL, type ResourcePool, type ResourceKind } from '../rules/terrain.js';
 import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch, type Collected, type Forecast } from './pouch.js';
@@ -309,6 +310,11 @@ export class MockRepository implements GameRepository {
     return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
   }
 
+  /* --- Encounters (BRDC-EVENT-002) --- */
+  encounterOnStep = (h3: H3Index, now: number) => encounterOnStepFor(this.store, this, h3, now);
+  dailyOmen = (now: number) => dailyOmenFor(this.store, this, now);
+  takeEncounterChoice = (id: string, i: number, now: number) =>
+    takeEncounterChoiceFor(this.store, this, id, i, now);
   async getUnlocksSeen(): Promise<Set<UnlockId>> {
     return seenUnlocks(this.store);
   }

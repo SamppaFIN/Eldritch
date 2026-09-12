@@ -31,6 +31,7 @@ import { QuestReveal } from '../features/quest/QuestReveal.js';
 import { useCipher } from '../features/cipher/useCipher.js';
 import { CipherReveal } from '../features/cipher/CipherReveal.js';
 import { AdventureDialog } from '../features/quest/AdventureDialog.js';
+import { EncounterDialog } from '../features/quest/EncounterDialog.js';
 import { useCellTerrain } from '../features/map/useCellTerrain.js';
 import { useStandingCell } from '../features/map/useStandingCell.js';
 import { useMapAside } from '../features/map/useMapAside.js';
@@ -255,6 +256,7 @@ export function MapView({ onLeave }: MapViewProps) {
       {quest.questHex ? (
         <AdventureDialog binding={quest.adventures} onHex={quest.atStageHex} onClose={() => quest.openQuestHex(null)} />
       ) : null}
+      <EncounterDialog encounter={discovery.encounter} standingOn={standingOn} onChoose={discovery.onEncounterChoice} />
 
       {inspect.sanctum ? (
         <HearthPanel
@@ -314,8 +316,6 @@ export function MapView({ onLeave }: MapViewProps) {
         rivalBearing={territory.rivalBearing}
       />
 
-      {/* A mechanic opening, taught once (BRDC-TUTOR-001). A component, not a hook: its
-          state must not re-render this screen, where the camera follow lives. */}
       {discovery.wonderFound ? <WonderMoment id={discovery.wonderFound} onClose={discovery.clearWonder} /> : null}
       <UnlockTeacher
         repository={repository} paceMs={pace} onSee={aside.openHelp}

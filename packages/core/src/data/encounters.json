@@ -1,0 +1,340 @@
+[
+  {
+    "id": "coin-face-worn",
+    "kind": "find",
+    "text": "A coin in the gravel, worn smooth on one side and sharp as new on the other. The sharp side is not a face you know.",
+    "choices": [
+      { "text": "Pocket it", "effect": { "pool": { "gold": 15 } } },
+      { "text": "Put it back the way it lay", "effect": { "xp": 10 } }
+    ]
+  },
+  {
+    "id": "nail-in-bark",
+    "kind": "find",
+    "where": ["forest"],
+    "text": "An iron nail driven into a birch at exactly your height. Then another, ten paces on. Then another.",
+    "choices": [
+      { "text": "Follow the line of them", "effect": { "pool": { "iron": 20 }, "xp": 15 } },
+      { "text": "Turn and walk the other way", "effect": { "xp": 5 } }
+    ]
+  },
+  {
+    "id": "bootprint-fill",
+    "kind": "find",
+    "text": "One bootprint in soft ground, filling slowly with water. Yours are smaller, and there is only the one.",
+    "choices": [
+      { "text": "Measure it against your own", "effect": { "pool": { "wisdom": 12 } } },
+      { "text": "Step over it", "effect": { "xp": 5 } }
+    ]
+  },
+  {
+    "id": "cairn-fresh",
+    "kind": "find",
+    "where": ["hill", "mountain"],
+    "text": "A cairn nobody has weathered yet. The top stone is warm.",
+    "choices": [
+      { "text": "Add a stone", "effect": { "pool": { "stone": -5, "culture": 20 } } },
+      { "text": "Take the warm one", "effect": { "pool": { "stone": 25 }, "xp": -5 } },
+      { "text": "Leave it alone", "effect": { "xp": 8 } }
+    ]
+  },
+  {
+    "id": "net-float",
+    "kind": "find",
+    "where": ["lake", "coast"],
+    "text": "A glass net-float in the reeds, the size of a fist, with something dark suspended inside it that does not move when you turn it.",
+    "choices": [
+      { "text": "Take it home", "effect": { "pool": { "culture": 25 } } },
+      { "text": "Throw it back out", "effect": { "pool": { "food": 15 } } }
+    ]
+  },
+  {
+    "id": "keys-no-door",
+    "kind": "find",
+    "where": ["market", "plain"],
+    "text": "A ring of keys hung on a wall at eye height. Seven of them, and one is much older than the rest.",
+    "choices": [
+      { "text": "Hang them higher, where they will be seen", "effect": { "xp": 12 } },
+      { "text": "Take the old one", "effect": { "pool": { "iron": 10, "wisdom": 15 } } }
+    ]
+  },
+  {
+    "id": "lantern-left-lit",
+    "kind": "find",
+    "text": "A storm lantern burning on a doorstep at midday, and the house behind it shut.",
+    "choices": [
+      { "text": "Blow it out", "effect": { "xp": 15 } },
+      { "text": "Leave it burning", "effect": { "pool": { "mana": 15, "culture": 10 } } }
+    ]
+  },
+  {
+    "id": "surveyor",
+    "kind": "person",
+    "speaker": "A surveyor",
+    "text": "A surveyor is packing up a tripod. The ground is off here, they say, without being asked. Only by a little. Only since Tuesday.",
+    "choices": [
+      { "text": "Ask by how much", "effect": { "pool": { "wisdom": 20 } } },
+      { "text": "Ask what was here on Monday", "effect": { "pool": { "wisdom": 10, "culture": 10 } } },
+      { "text": "Wish them a good evening", "effect": { "xp": 5 } }
+    ]
+  },
+  {
+    "id": "dog-no-owner",
+    "kind": "person",
+    "text": "A dog walks beside you for two hundred metres, matching your pace exactly, and then stops at a line on the pavement you cannot see.",
+    "choices": [
+      { "text": "Step over the line", "effect": { "xp": 20 } },
+      { "text": "Go around it", "effect": { "pool": { "wisdom": 10 } } }
+    ]
+  },
+  {
+    "id": "fisher-early",
+    "kind": "person",
+    "speaker": "A fisher",
+    "where": ["lake", "coast"],
+    "text": "A fisher hauling in far too early. They stopped biting, she says. All of them. At once.",
+    "choices": [
+      { "text": "Ask what they were biting before", "effect": { "pool": { "food": 25 } } },
+      { "text": "Ask what stopped them", "effect": { "pool": { "wisdom": 25 } } }
+    ]
+  },
+  {
+    "id": "child-counting",
+    "kind": "person",
+    "where": ["market", "plain"],
+    "text": "A child counting windows aloud. They are at four hundred and nine, and they are not wrong.",
+    "choices": [
+      { "text": "Count the next one with them", "effect": { "pool": { "culture": 20 } } },
+      { "text": "Ask what happens at the end", "effect": { "pool": { "wisdom": 18 } } }
+    ]
+  },
+  {
+    "id": "forester-marks",
+    "kind": "person",
+    "speaker": "A forester",
+    "where": ["forest"],
+    "text": "A forester marking trees with blue paint. Every tree. Not for felling, he says. For keeping track.",
+    "choices": [
+      { "text": "Ask what moves", "effect": { "pool": { "wisdom": 20, "wood": 10 } } },
+      { "text": "Offer to help", "effect": { "pool": { "wood": 30 }, "xp": 10 } }
+    ]
+  },
+  {
+    "id": "walker-returning",
+    "kind": "person",
+    "text": "Somebody passes going the other way, and nods. Twenty minutes later they pass you again, going the other way, and nod.",
+    "choices": [
+      { "text": "Nod back the second time", "effect": { "xp": 15 } },
+      { "text": "Turn and watch where they go", "effect": { "pool": { "wisdom": 15 } } }
+    ]
+  },
+  {
+    "id": "shepherd-counting-down",
+    "kind": "person",
+    "speaker": "A shepherd",
+    "where": ["plain", "hill"],
+    "text": "A shepherd counting a flock backwards from forty. She reaches nought while three are still walking.",
+    "choices": [
+      { "text": "Tell her there are three left", "effect": { "pool": { "food": 25 }, "xp": 10 } },
+      { "text": "Count them yourself and say nothing", "effect": { "pool": { "wisdom": 20 } } }
+    ]
+  },
+  {
+    "id": "rain-one-street",
+    "kind": "weather",
+    "text": "Rain is falling on this street and not the next one. The line between them is as straight as a wall.",
+    "choices": [
+      { "text": "Walk the dry side", "effect": { "xp": 10 } },
+      { "text": "Walk the wet side", "effect": { "pool": { "food": 15, "wisdom": 10 } } }
+    ]
+  },
+  {
+    "id": "bells-wrong-hour",
+    "kind": "weather",
+    "text": "Bells, somewhere behind the roofs. Thirteen of them, unhurried, and then nothing.",
+    "choices": [
+      { "text": "Come back at the next hour and count again", "effect": { "pool": { "culture": 20 } } },
+      { "text": "Keep walking", "effect": { "xp": 8 } }
+    ]
+  },
+  {
+    "id": "birds-silent",
+    "kind": "weather",
+    "where": ["forest", "plain"],
+    "text": "Every bird stops at once. Not startled, but finished, as though the piece had ended.",
+    "choices": [
+      { "text": "Stand still until they start again", "effect": { "pool": { "mana": 20 } } },
+      { "text": "Make a noise of your own", "effect": { "pool": { "culture": 15 }, "xp": 5 } }
+    ]
+  },
+  {
+    "id": "wind-uphill",
+    "kind": "weather",
+    "where": ["hill", "mountain"],
+    "text": "The wind here goes uphill. It has been going uphill for some time.",
+    "choices": [
+      { "text": "Lean into it", "effect": { "pool": { "mana": 15 }, "xp": 10 } },
+      { "text": "Get below the ridge", "effect": { "pool": { "stone": 15 } } }
+    ]
+  },
+  {
+    "id": "warm-patch",
+    "kind": "weather",
+    "text": "A patch of air as warm as a doorway, out in the open, with no door.",
+    "choices": [
+      { "text": "Stand in it a while", "effect": { "pool": { "mana": 18 } } },
+      { "text": "Walk through and out the other side", "effect": { "xp": 8 } }
+    ]
+  },
+  {
+    "id": "own-footsteps",
+    "kind": "weather",
+    "text": "Your footsteps arrive a half-beat late, as though the street were returning them from somewhere further off.",
+    "choices": [
+      { "text": "Stop walking and listen", "effect": { "pool": { "wisdom": 22 } } },
+      { "text": "Walk faster", "effect": { "xp": 12 } }
+    ]
+  },
+  {
+    "id": "fog-holds-shape",
+    "kind": "weather",
+    "where": ["lake", "coast", "plain"],
+    "text": "Fog comes off the water in a shape, and holds the shape for longer than fog does.",
+    "choices": [
+      { "text": "Walk into it", "effect": { "pool": { "mana": 25 }, "xp": 10 } },
+      { "text": "Watch it from here", "effect": { "pool": { "wisdom": 15 } } }
+    ]
+  },
+  {
+    "id": "street-not-mapped",
+    "kind": "wrong-place",
+    "where": ["market", "plain"],
+    "text": "A street between two buildings you would swear were joined. The sign at the end is blank, and has been repainted blank.",
+    "choices": [
+      { "text": "Walk it to the end", "effect": { "pool": { "wisdom": 30 }, "xp": 20 } },
+      { "text": "Note where it was and move on", "effect": { "pool": { "culture": 12 } } }
+    ]
+  },
+  {
+    "id": "door-in-rock",
+    "kind": "wrong-place",
+    "where": ["hill", "mountain"],
+    "text": "A steel door set into the rock face, painted the colour of the rock, with no handle on this side.",
+    "choices": [
+      { "text": "Knock", "effect": { "pool": { "mana": 25 }, "xp": 15 } },
+      { "text": "Walk on and do not look back", "effect": { "xp": 10 } }
+    ]
+  },
+  {
+    "id": "same-tree-twice",
+    "kind": "wrong-place",
+    "where": ["forest"],
+    "text": "The tree with the split trunk. You passed it eleven minutes ago, and you have not turned.",
+    "choices": [
+      { "text": "Mark it and keep going", "effect": { "pool": { "wisdom": 25 } } },
+      { "text": "Go back the way you came", "effect": { "pool": { "wood": 20 }, "xp": 10 } }
+    ]
+  },
+  {
+    "id": "water-too-still",
+    "kind": "wrong-place",
+    "where": ["lake", "coast"],
+    "text": "The water is flat as a table, and the wind is not. Something is holding it.",
+    "choices": [
+      { "text": "Throw a stone", "effect": { "pool": { "mana": 20 }, "xp": 10 } },
+      { "text": "Back away from the edge", "effect": { "pool": { "wisdom": 15 } } }
+    ]
+  },
+  {
+    "id": "stair-to-nothing",
+    "kind": "wrong-place",
+    "text": "Concrete steps going down into the ground and stopping, four steps in, at a floor.",
+    "choices": [
+      { "text": "Go down and stand on the floor", "effect": { "pool": { "mana": 22, "stone": 10 } } },
+      { "text": "Leave them to it", "effect": { "xp": 8 } }
+    ]
+  },
+  {
+    "id": "your-name-chalk",
+    "kind": "wrong-place",
+    "text": "Your name in chalk on a wall, in a hand you do not know, beside a date that has not happened.",
+    "choices": [
+      { "text": "Rub it out", "effect": { "xp": 20 } },
+      { "text": "Add today's date under it", "effect": { "pool": { "culture": 25, "wisdom": 10 } } },
+      { "text": "Photograph it and go", "effect": { "pool": { "wisdom": 15 } } }
+    ]
+  },
+  {
+    "id": "share-or-keep",
+    "kind": "choice",
+    "speaker": "A baker",
+    "text": "A stall is closing and the last of the bread will be thrown out. The baker offers you the lot, or the price of it in coin.",
+    "choices": [
+      { "text": "Take the bread", "effect": { "pool": { "food": 40 } } },
+      { "text": "Take the coin", "effect": { "pool": { "gold": 30 } } },
+      { "text": "Take neither, and say why", "effect": { "pool": { "culture": 20 }, "xp": 15 } }
+    ]
+  },
+  {
+    "id": "carry-the-stone",
+    "kind": "choice",
+    "where": ["hill", "mountain", "plain"],
+    "text": "A stone the size of a loaf, and a low wall a hundred metres up the path with a gap exactly its size.",
+    "choices": [
+      { "text": "Carry it up", "effect": { "pool": { "culture": 25 }, "xp": 20 } },
+      { "text": "Somebody else will", "effect": { "pool": { "stone": 10 } } }
+    ]
+  },
+  {
+    "id": "lend-the-light",
+    "kind": "choice",
+    "text": "Somebody is looking for a dropped key in the dark, and you have the only light.",
+    "choices": [
+      { "text": "Hold the light and look with them", "effect": { "pool": { "culture": 20, "gold": 10 }, "xp": 15 } },
+      { "text": "Hand it over and walk on", "effect": { "pool": { "culture": 10 } } }
+    ]
+  },
+  {
+    "id": "the-long-way",
+    "kind": "choice",
+    "text": "The path forks. One way is shorter and you have walked it before. The other is longer and you have not.",
+    "choices": [
+      { "text": "The long way", "effect": { "pool": { "wisdom": 25 }, "xp": 20 } },
+      { "text": "The way you know", "effect": { "pool": { "food": 15 }, "xp": 5 } }
+    ]
+  },
+  {
+    "id": "old-map-seller",
+    "kind": "choice",
+    "hint": true,
+    "speaker": "A seller of old maps",
+    "where": ["market", "plain"],
+    "text": "A seller of old maps unrolls one without being asked. You are looking for something, he says. Everyone who walks like that is.",
+    "choices": [
+      { "text": "Pay for what he knows", "effect": { "pool": { "gold": -25, "wisdom": 20 } } },
+      { "text": "Say you are only walking", "effect": { "xp": 10 } }
+    ]
+  },
+  {
+    "id": "pilgrim-returning",
+    "kind": "person",
+    "hint": true,
+    "speaker": "A pilgrim",
+    "text": "Somebody with a pack far too heavy for a day out. I found it, she says, and will not say what. You will know it when the ground changes under you.",
+    "choices": [
+      { "text": "Ask which way she came from", "effect": { "pool": { "wisdom": 25 } } },
+      { "text": "Let her get home", "effect": { "pool": { "culture": 15 } } }
+    ]
+  },
+  {
+    "id": "drowned-bell",
+    "kind": "find",
+    "hint": true,
+    "where": ["lake", "coast"],
+    "text": "The water gives up one note, deep and flat, and takes it back. A fisher on the bank has heard it before, and points without looking.",
+    "choices": [
+      { "text": "Take the bearing he gave", "effect": { "pool": { "wisdom": 30 } } },
+      { "text": "Wait for a second note", "effect": { "pool": { "mana": 20 } } }
+    ]
+  }
+]

@@ -187,6 +187,15 @@ export {
   tradeReturn,
 } from './cityState.js';
 export type { CityState, CityStateId, TradeRefusal, TradeResult } from './cityState.js';
+export {
+  encounterAt,
+  encountersFor,
+  pickEncounter,
+  parseEncounters,
+  rollsDailyOmen,
+  rollsEncounter,
+} from './encounter.js';
+export type { Encounter, EncounterChoice, EncounterKind } from './encounter.js';
 export { WONDERS, WONDER_IDS, WONDER_STARS, wonderFits } from './wonder.js';
 export type { Wonder, WonderId } from './wonder.js';
 export {

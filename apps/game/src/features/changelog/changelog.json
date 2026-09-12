@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.78",
+    "date": "2026-09-12",
+    "notes": [
+      "The walk has things in it now. Step onto ground you have not held and about one hex in seven has something to say — a coin, a surveyor, bells at the wrong hour, a street that is not on any map. Thirty-four of them to start.",
+      "It is capped so a long walk is not a run of popups: six an hour, twenty a day. And being capped does not spend the ground — a hex you walked past while full still has its story tomorrow.",
+      "Once a day something can happen wherever you are, without walking at all.",
+      "A few strangers point at a wonder. They give you a direction and a rough distance and they will not tell you what it is, because knowing which way to walk is the interesting half."
+    ]
+  },
+  {
     "version": "0.5.76",
     "date": "2026-09-12",
     "notes": [

@@ -142,42 +142,10 @@ export const LEVELS = [
 export const MAX_LEVEL = 20;
 export const XP_PER_LEVEL = 100; // v2
 
-/* --- Trail submission ---------------------------------------------------- */
+/* --- Phase 6, parked (v2 GameConfig) -------------------------------------- */
 
-/** Batch window. One write per GPS tick kills the battery. */
-export const TRAIL_BATCH_MS = 10_000;
-/** v2 GameConfig.backgroundGPS: minimum movement to count. */
-export const MIN_DISTANCE_FOR_COUNT_M = 10;
-
-/* --- Discoveries (v2 GameConfig.discovery) — Phase 6, parked here so the
-       numbers are not lost. Not used before Phase 6. ---------------------- */
-
-export const DISCOVERY = {
-  spawnRadiusM: 150,
-  collectRadiusM: 5,
-  maxActive: 10,
-  respawnCooldownMs: 300_000,
-  rarities: {
-    common: { chance: 0.6, xp: 50, glyph: '🌸' },
-    uncommon: { chance: 0.25, xp: 100, glyph: '🌟' },
-    rare: { chance: 0.12, xp: 150, glyph: '🔮' },
-    epic: { chance: 0.03, xp: 200, glyph: '💫' },
-  },
-  types: ['cosmic-fragment', 'sacred-geometry', 'ancient-sigil', 'void-essence'],
-} as const;
-
-/* --- Anchor Stone (v2 TerritorySystem) — Phase 6 ------------------------- */
-
-export const ANCHOR = {
-  expansionRangeM: 50,
-  minExpansionDistanceM: 5,
-  maxExpansionPerMarkerM: 50,
-  borderPointCount: 12,
-  initialRadiusM: 20,
-  cooldownMs: 900_000,
-  maxCarrySteps: 100,
-  stepMarkerInterval: 50,
-} as const;
+// Re-exported, not moved out of reach: `constants.ts` stays the one import path §11 names.
+export { ANCHOR, DISCOVERY } from './phase6Constants.js';
 
 /**
  * The wire format for a challenge carried by hand (BRDC-WAGER-JSON-001).
@@ -213,7 +181,7 @@ export const WORLD_VERSION = 2;
 /** The Codex table's own shape version, separate from `WORLD_VERSION` (BRDC-CODEX-001). */
 export const CODEX_VERSION = 1;
 
-export const APP_VERSION = '0.5.77';
+export const APP_VERSION = '0.5.78';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -240,6 +208,36 @@ export const MAX_CELL_HISTORY = 20;
  * bottom, the same bounded-list rule as `MAX_CELL_HISTORY` and `MAX_PATH_SEGMENTS`.
  */
 export const MAX_LOG_ENTRIES = 200;
+
+/* --- Encounters (BRDC-EVENT-002) ----------------------------------------- */
+
+/**
+ * How often a newly entered hex turns something up, and the ceilings on it.
+ *
+ * Field report: *"En saanut myöskään yhtään random encounteria tai yllätystä, vaikka
+ * kuljin pitkän matkan."* One in seven is an encounter every few minutes of ordinary
+ * walking — often enough to look up for, rare enough to still be a surprise. The caps
+ * count what actually fired, so a quiet hour banks no credit for a loud one.
+ */
+export const ENCOUNTER_CHANCE = 1 / 7;
+export const ENCOUNTER_MAX_PER_HOUR = 6;
+export const ENCOUNTER_MAX_PER_DAY = 20;
+
+/**
+ * The daily roll, which does not need feet.
+ *
+ * Infinite: *"Kerran päivässä ruudulla voi tapahtua jollain prosentilla jotain."* It is
+ * the one that makes a pocketed phone worth carrying, so it is deliberately generous:
+ * missing it for a week would make it folklore rather than a mechanic.
+ */
+export const DAILY_OMEN_CHANCE = 0.35;
+
+/* --- Trail submission ---------------------------------------------------- */
+
+/** Batch window. One write per GPS tick kills the battery. */
+export const TRAIL_BATCH_MS = 10_000;
+/** v2 GameConfig.backgroundGPS: minimum movement to count. */
+export const MIN_DISTANCE_FOR_COUNT_M = 10;
 
 /* --- Buildings (BRDC-BUILD-001) ---------------------------------------- */
 

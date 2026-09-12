@@ -15,6 +15,7 @@ import type {
   Collected,
   GameRepository,
   H3Index,
+  Encounter,
   StepClaimOutcome,
   WonderId,
 } from '@es3/core';
@@ -49,6 +50,10 @@ export interface DiscoveryState {
   wonderFound: WonderId | null;
   /** Dismiss the wonder card. The find itself is already written and permanent. */
   clearWonder: () => void;
+  /** What the last new hex turned up (BRDC-EVENT-002). Null on most steps. */
+  encounter: Encounter | null;
+  /** Answer it by index, or wave it away with null. */
+  onEncounterChoice: (index: number | null) => void;
 }
 
 export function useDiscovery(
@@ -70,8 +75,40 @@ export function useDiscovery(
   /** The wonder this reveal turned up, until it is dismissed. Null almost always. */
   const [wonderFound, setWonderFound] = useState<WonderId | null>(null);
   const clearWonder = useCallback(() => setWonderFound(null), []);
+  /** What the last new hex turned up, until it is answered or waved away. */
+  const [encounter, setEncounter] = useState<Encounter | null>(null);
+
+  /**
+   * Answer it, or wave it away with null. Either way the moment is over: it was logged
+   * when it fired, because it happened whether or not the player picked anything.
+   */
+  const onEncounterChoice = useCallback(
+    (index: number | null) => {
+      const open = encounter;
+      setEncounter(null);
+      if (open && index !== null && repository) {
+        void repository.takeEncounterChoice(open.id, index, now()).then(() => onChanged());
+      }
+    },
+    [encounter, repository, onChanged, now],
+  );
   const claimed = useRef<Set<H3Index>>(new Set());
   const inFlight = useRef<Set<H3Index>>(new Set());
+
+  /*
+   * The once-a-day roll, asked for once per session (BRDC-EVENT-002).
+   *
+   * Infinite: *"Kerran päivässä ruudulla voi tapahtua jollain prosentilla jotain."* It is
+   * the one that does not need feet, so it is asked at boot rather than on a claim. The
+   * store remembers the day, so reopening the app is not a way to re-roll it.
+   */
+  useEffect(() => {
+    if (!repository) return;
+    void repository.dailyOmen(now()).then((found) => {
+      if (found) setEncounter((open) => open ?? found);
+    });
+    // `now` is read on fire; the repository arriving is the real trigger.
+  }, [repository]);
 
   const refreshRevealed = useCallback(() => {
     void repository?.getRevealed().then(setRevealed);
@@ -91,6 +128,9 @@ export function useDiscovery(
       // a render, and territory arriving a tick late breaks the reveal on the hex just
       // taken (BRDC-CLAIM-013, `step-claim.spec.ts:142`).
       if (r.claimed) onClaimed?.(r.outcome, r.claimed);
+      // Somewhere new is the one moment "random encounter" can honestly mean anything
+      // (BRDC-EVENT-002). Null on most steps, and the caps keep a long walk quiet.
+      if (r.claimed) void repository.encounterOnStep(r.claimed, now()).then(setEncounter);
       const found = nextDiscovery(r, claimed.current);
       if (!found) return;
       claimed.current.add(found);
@@ -130,5 +170,5 @@ export function useDiscovery(
     [repository, refreshRevealed, onChanged, now],
   );
 
-  return { discovered, revealed, onReveal, revealGain, wonderFound, clearWonder };
+  return { discovered, revealed, onReveal, revealGain, wonderFound, clearWonder, encounter, onEncounterChoice };
 }

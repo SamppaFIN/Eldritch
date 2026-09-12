@@ -113,6 +113,17 @@ export {
   parseDrawing,
 } from './mapData.js';
 export type { DrawingFault, DrawingParse, MapDrawing, PaintedCell } from './mapData.js';
+export {
+  dailyOmen,
+  encounterById,
+  encounterLibrary,
+  encounterOnStep,
+  recentEncounters,
+  takeEncounterChoice,
+  withinCaps,
+} from './encounterStore.js';
+export { NATION_BBOX, clearNationCache, nationProvinces } from './wonderNation.js';
+export { findWonderAt, readWonderFinds } from './wonderStore.js';
 export { markUnlockSeen, seenUnlocks } from './unlockStore.js';
 export { clearSurvey, recordSurvey, surveySize, surveyedTerrainOf } from './localSurvey.js';
 export { GPX_ASSUMED_ACCURACY_M, parseGpx } from './gpx.js';

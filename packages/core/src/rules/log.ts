@@ -30,6 +30,7 @@ export type LogKind =
   | 'wager'
   | 'reveal'
   | 'wonder'
+  | 'encounter'
   | 'hearth';
 
 export interface LogEntry {

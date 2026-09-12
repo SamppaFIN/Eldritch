@@ -56,4 +56,8 @@ export const K = {
   unlocksSeen: 'unlocks-seen',
   /** Wonders found, `Partial<Record<WonderId, WonderFind>>` — where and when (BRDC-WONDER-001). */
   wonderFinds: 'wonder-finds',
+  /** When each recent encounter fired, `number[]`, trimmed to a day (BRDC-EVENT-002). */
+  encounters: 'encounters',
+  /** The last UTC day the daily omen was rolled, so reopening the app cannot re-roll it. */
+  omenDay: 'omen-day',
 } as const;

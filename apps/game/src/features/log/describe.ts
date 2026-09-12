@@ -99,6 +99,10 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
       const wonder = e.ref ? WONDERS[e.ref as WonderId] : undefined;
       return { text: `Found ${wonder?.name ?? 'a wonder'}`, topic };
     }
+    // The library is content and it changes; the log says something happened and points at
+    // the Guide, rather than trying to keep a second copy of thirty-four stories.
+    case 'encounter':
+      return { text: 'Something happened on the way', topic };
     case 'hearth':
       return { text: 'Founded the Hearth', topic };
   }
