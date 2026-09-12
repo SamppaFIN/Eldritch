@@ -153,7 +153,12 @@ export function terrainGlyph(kind: TerrainKind): { char: string; color: string }
  * the rest of the game (selection, the rival compass); only what reaches the map is
  * narrowed here.
  */
-export function withFogOfWar(all: readonly Cell[], owned: readonly Cell[]): Cell[] {
+export function withFogOfWar(
+  all: readonly Cell[],
+  owned: readonly Cell[],
+  /** A running Scrying lifts the fog where it looks, and only while it runs. */
+  scried: readonly Cell[] = [],
+): Cell[] {
   const byH3 = new Map(all.map((c) => [c.h3, c]));
   const visible = new Set<string>();
   for (const cell of owned) {
@@ -161,6 +166,10 @@ export function withFogOfWar(all: readonly Cell[], owned: readonly Cell[]): Cell
     for (const n of neighboursOf(cell.h3)) visible.add(n);
   }
   for (const cell of all) if (cell.imported) visible.add(cell.h3);
+  // Added here rather than merged into `all`, because this is exactly what the Rite does:
+  // it lifts the fog, it does not create ground. Nothing about it is written anywhere, so
+  // when the spell stops running these simply stop arriving (BRDC-SPELL-002).
+  for (const cell of scried) visible.add(cell.h3);
   return [...visible].map((h3) => byH3.get(h3) ?? emptyCell(h3));
 }
 

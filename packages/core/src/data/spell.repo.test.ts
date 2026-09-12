@@ -201,3 +201,59 @@ describe('the two Rites that reach past your feet (PIVOT-2026-09-09 §7)', () =>
     expect(await repo.getActiveSpells(T0)).toEqual([]);
   });
 });
+
+describe('the two Rites of BRDC-SPELL-002', () => {
+  const TIDE = ['tide-lore'];
+  const GUILD = ['guild-craft'];
+
+  /*
+   * The line the whole ticket turns on: walking and a watchtower reveal for good, magic
+   * shows and forgets. Farsight writes cells; Scrying must not, or the two have merged
+   * and one of them is dead weight.
+   */
+  it('Scrying reports what it sees and writes nothing at all', async () => {
+    const { repo, store, home } = await repoWith({ mana: 500 }, TIDE);
+    const far = cellsWithin(home, 9)[30] as string;
+    const before = (await store.keys('cell:')).length;
+
+    const out = await repo.castSpell('scrying', far, T0);
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+
+    expect((out.reached ?? []).length).toBeGreaterThan(0);
+    // "Writes nothing" is a claim about the store, not about the report: the mock world
+    // seeds neighbours, so some of what a scry sees legitimately exists already. The test
+    // is that the scry added none of it — a first version asserted the reported cells were
+    // absent and failed on a seeded rival, which was the test being wrong, not the Rite.
+    expect((await store.keys('cell:')).length).toBe(before);
+  });
+
+  it('Scrying keeps running, so the ground it showed can go dark again', async () => {
+    const { repo } = await repoWith({ mana: 500 }, TIDE);
+    await repo.castSpell('scrying', cellsWithin(await repo.getHome() as string, 9)[30] as string, T0);
+
+    expect((await repo.getActiveSpells(T0)).some((s) => s.id === 'scrying')).toBe(true);
+    const after = T0 + SPELLS.scrying.durationMs + 1;
+    expect((await repo.getActiveSpells(after)).some((s) => s.id === 'scrying')).toBe(false);
+  });
+
+  it('Aegis buys decay-clock time for every cell of yours in reach, not just one', async () => {
+    const { repo, store, home } = await repoWith({ mana: 500 }, GUILD);
+    const ring = cellsWithin(home, 1).filter((h3) => h3 !== home);
+
+    expect(await repo.castSpell('aegis', home, T0)).toMatchObject({ ok: true });
+    for (const h3 of [home, ...ring]) {
+      const cell = await store.get<{ shelteredMs?: number }>(K.cell(h3));
+      expect(cell?.shelteredMs ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  // Ground it does not hold is none of its business — the same rule Farsight follows.
+  it('Aegis leaves ground you do not hold alone', async () => {
+    const { repo, store, home } = await repoWith({ mana: 500 }, GUILD);
+    const outside = cellsWithin(home, 2).find((h3) => !cellsWithin(home, 1).includes(h3)) as string;
+
+    await repo.castSpell('aegis', home, T0);
+    expect(await store.get(K.cell(outside))).toBeUndefined();
+  });
+});

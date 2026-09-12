@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.76",
+    "date": "2026-09-12",
+    "notes": [
+      "Scrying: look at somewhere you have not walked. It shows the ground for six hours and then forgets it — walking and building reveal for good, magic only shows. How far it sees grows with your Consciousness.",
+      "Aegis: everything you hold within two rings keeps against the Void without a visit. Bulwark protects one hex deeply; this protects many, less. Worth it before a week away.",
+      "Both appear on the Keep’s Rites tab beside the ones you already had, and both count down in the HUD.",
+      "A realm’s banner is drawn in the Codex now instead of having its name spelled across the realm beside it."
+    ]
+  },
+  {
     "version": "0.5.75",
     "date": "2026-09-12",
     "notes": [

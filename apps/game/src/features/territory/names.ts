@@ -35,6 +35,8 @@ export const SPELL_NAME: Readonly<Record<SpellId, string>> = {
   dominion: 'Dominion',
   farsight: 'Farsight',
   quickening: 'Quickening',
+  scrying: 'Scrying',
+  aegis: 'Aegis',
 };
 
 /** `early-farming` → `Early Farming`. Also the fallback for any bare slug. */

@@ -34,7 +34,9 @@ export type SpellId =
   | 'snare'
   | 'dominion'
   | 'farsight'
-  | 'quickening';
+  | 'quickening'
+  | 'scrying'
+  | 'aegis';
 
 /** Where a spell's effect lands, and what `castSpell` has to check. */
 export type SpellScope = 'domain' | 'own-cell' | 'enemy-cell' | 'any-cell' | 'border-cell';
@@ -177,6 +179,66 @@ export const SPELLS: Readonly<Record<SpellId, Spell>> = {
     // walking is the one thing this game must never make comfortable.
     reach: 1,
   },
+
+  /*
+   * --- BRDC-SPELL-002 -------------------------------------------------------
+   *
+   * The ticket asks for three: a far look, a dominion Rite and a block Rite. Two are here.
+   *
+   * **The block Rite is not, and it is not an oversight.** "Slow the work an opponent did
+   * against decay" has to reach a rival's cell, and this device is not allowed to age one:
+   * `projectCell` returns an imported cell untouched on purpose, because ageing somebody
+   * else's ground here would invent a decay its owner never agreed to and eventually
+   * release a cell they still hold. A Wither cast at home would therefore cost mana and do
+   * exactly nothing to any real rival — the version written first did, and `spell.test.ts`'s
+   * own "every home spell does not target an enemy cell" caught it. `snare` already carries
+   * the block into a Wager, which is where it can be adjudicated, and it stays the answer
+   * until Phase 5 puts a server behind it.
+   */
+
+  /*
+   * Scrying: see wide, and forget.
+   *
+   * The ticket was written a week before `farsight` existed and asks for the same verb, so
+   * the two have to be told apart or one of them is dead weight. The line the ticket draws
+   * is the right one and this is it: **walking and a watchtower reveal for good; magic
+   * shows and forgets.** Farsight is short and permanent — two rings, written to the store,
+   * yours from then on. Scrying is wide and temporary — reach grows with Consciousness,
+   * nothing is written, and when the six hours are up the ground goes dark again.
+   *
+   * That makes them worth having both: farsight is how you learn your own neighbourhood,
+   * scrying is how you look at somebody else's before deciding to walk there.
+   *
+   * `reach` is absent on purpose — this one's range is not a constant, it is `scryReach`.
+   */
+  scrying: {
+    school: 'water',
+    via: 'home',
+    scope: 'any-cell',
+    cost: 55,
+    durationMs: 6 * HOUR,
+    tech: 'tide-lore',
+  },
+
+  /*
+   * Aegis: Bulwark, but over ground you cannot stand on.
+   *
+   * The dominion Rite the plan asked for and `BRDC-SPELL-001` deferred. Bulwark buys one
+   * cell time off the decay clock; this buys it for every cell of yours within reach, which
+   * is what "strengthen your own land from a distance" has to mean in a game whose only
+   * currency against the Void is time. Dear, and it should be: it is a week away from home
+   * made survivable.
+   */
+  aegis: {
+    school: 'air',
+    via: 'home',
+    scope: 'own-cell',
+    cost: 90,
+    durationMs: 24 * HOUR,
+    tech: 'guild-craft',
+    reach: 2,
+  },
+
 };
 
 export interface ActiveSpell {
@@ -266,33 +328,4 @@ export function activeSpells(spells: readonly ActiveSpell[], now: number): Activ
 /** Milliseconds left before a spell ends, clamped at zero. */
 export function spellRemaining(spell: ActiveSpell, now: number): number {
   return Math.max(0, SPELLS[spell.id].durationMs - (now - spell.castAt));
-}
-
-/**
- * The decay-clock time a fresh Bulwark grants a cell (BRDC-SPELL-001).
- *
- * Baked into `Cell.shelteredMs` at cast, not applied from the running spell — the hours
- * are bought once and stay off the clock even after the spell's countdown ends.
- */
-export const BULWARK_SHELTER_MS = SPELLS.bulwark.durationMs;
-
-/**
- * The per-hour resource bonus from every running `domain` spell.
- *
- * Folds in beside `buildingBonus` and `manaBonus` in `pouch.ts#perHourBonus`; that is the
- * whole wiring of the research school. `{}` when nothing is running.
- */
-export function domainSpellBonus(
-  spells: readonly ActiveSpell[],
-  now: number,
-): Partial<ResourcePool> {
-  const out: Partial<ResourcePool> = {};
-  for (const s of activeSpells(spells, now)) {
-    const bonus = SPELLS[s.id].domainBonusPerH;
-    if (!bonus || SPELLS[s.id].scope !== 'domain') continue;
-    for (const [k, v] of Object.entries(bonus) as [keyof ResourcePool, number][]) {
-      out[k] = (out[k] ?? 0) + v;
-    }
-  }
-  return out;
 }

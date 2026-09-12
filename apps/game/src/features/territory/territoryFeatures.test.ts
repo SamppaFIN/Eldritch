@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anomalyAt, cellAt, neighboursOf } from '@es3/core';
+import { anomalyAt, cellAt, emptyCell, neighboursOf } from '@es3/core';
 import type { Cell, TerrainKind } from '@es3/core';
 import {
   CONTESTED_BELOW,
@@ -213,6 +213,27 @@ describe('withFogOfWar', () => {
     expect(shownH3.has(H3)).toBe(true);
     for (const n of ring) expect(shownH3.has(n)).toBe(true);
     expect(shownH3.has(far)).toBe(false);
+  });
+
+  /*
+   * BRDC-SPELL-002. Scrying writes nothing to the store, so this seam is the only place it
+   * can be seen at all — without it the Rite costs 55 mana and changes nothing on screen.
+   */
+  it('shows ground a Scrying is looking at, however far from home it is', () => {
+    const owned = [cell(ME, 200, H3)];
+    const far = cellAt({ lat: 60.17, lng: 24.94 });
+
+    expect(withFogOfWar([], owned).some((c) => c.h3 === far)).toBe(false);
+    expect(withFogOfWar([], owned, [emptyCell(far)]).some((c) => c.h3 === far)).toBe(true);
+  });
+
+  it('lets a real cell win over the scried stand-in for the same hex', () => {
+    const owned = [cell(ME, 200, H3)];
+    const rivalGround = cellAt({ lat: 60.17, lng: 24.94 });
+    const all = [cell(RIVAL, 200, rivalGround)];
+
+    const shown = withFogOfWar(all, owned, [emptyCell(rivalGround)]);
+    expect(shown.find((c) => c.h3 === rivalGround)?.ownerId).toBe(RIVAL);
   });
 
   it('synthesises an empty cell for a revealed neighbour with no stored cell', () => {

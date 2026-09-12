@@ -22,10 +22,10 @@ export const TECH_BLURB: Readonly<Record<TechId, string>> = {
   mining: 'Following a seam underground for ore and clean-cut stone.',
   seafaring: 'Boats that hold a course out of sight of land.',
   fortification: 'Ground shaped for defence — a Fortress, and the Bulwark rite.',
-  'guild-craft': 'Craftsmen bound into guilds — the vineyards, and the Dominion rite.',
+  'guild-craft': 'Craftsmen bound into guilds — the vineyards, and the Dominion and Aegis rites.',
   astronomy: 'Reading the turning sky — the calendar, and the Insight rite.',
   smithing: 'Ore worked hot at the forge — iron, and the Forgeheart rite.',
-  'tide-lore': "The moon's pull on water read closely — the Wellspring rite.",
+  'tide-lore': "The moon's pull on water read closely — the Wellspring and Scrying rites.",
   wildcraft: "The forest's own husbandry — the Greenwake rite.",
 };
 
@@ -39,6 +39,8 @@ export const SPELL_BLURB: Readonly<Record<SpellId, string>> = {
   dominion: "Another's people turned to your word. Carried into a Wager.",
   farsight: 'The land two rings out read from where you stand — its ground, without the walk.',
   quickening: 'Unheld ground beside yours wakes at once. Held ground it will not touch.',
+  scrying: 'A far place seen in water. It shows what is there and forgets it in six hours.',
+  aegis: 'Your ground two rings out held against the Void, all of it, without a visit.',
 };
 
 export const BUILDING_BLURB: Readonly<Record<BuildingId, string>> = {

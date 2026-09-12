@@ -139,14 +139,17 @@ export {
   placesWithMana,
 } from './mana.js';
 export type { ExpandRefusal, ExpandResult } from './mana.js';
+export { SPELLS, activeSpells, castSpell, spellRemaining } from './spell.js';
 export {
+  AEGIS_SHELTER_MS,
   BULWARK_SHELTER_MS,
-  SPELLS,
-  activeSpells,
-  castSpell,
+  SCRY_BASE_REACH,
+  SCRY_LEVELS_PER_RING,
+  SCRY_MAX_REACH,
   domainSpellBonus,
-  spellRemaining,
-} from './spell.js';
+  scriedCells,
+  scryReach,
+} from './spellEffects.js';
 export type {
   ActiveSpell,
   CastContext,

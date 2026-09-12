@@ -8,12 +8,14 @@ import { HOME_SPELLS, spellTimeLeft } from './SpellPanel.js';
 describe('HOME_SPELLS', () => {
   it('is exactly the spells that act at home', () => {
     expect([...HOME_SPELLS].sort()).toEqual([
+      'aegis',
       'bulwark',
       'farsight',
       'forgeheart',
       'greenwake',
       'insight',
       'quickening',
+      'scrying',
       'wellspring',
     ]);
     for (const id of HOME_SPELLS) expect(SPELLS[id].via).toBe('home');

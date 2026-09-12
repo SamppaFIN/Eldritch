@@ -8,10 +8,12 @@
  * The stored list is pruned on every cast — `activeSpells` drops the expired ones before
  * the new one is appended, so nothing has to sweep it on a timer.
  */
-import { BULWARK_SHELTER_MS, SPELLS, activeSpells, castSpell } from '../rules/spell.js';
+import { SPELLS, activeSpells, castSpell } from '../rules/spell.js';
+import { AEGIS_SHELTER_MS, BULWARK_SHELTER_MS, scryReach } from '../rules/spellEffects.js';
 import type { ActiveSpell, CastRefusal, SpellId } from '../rules/spell.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
 import { XP_PER_CELL_CLAIMED } from '../rules/constants.js';
+import { levelForXp } from '../rules/level.js';
 import { cellsWithin, neighboursOf } from '../geo/cells.js';
 import { readResearched } from './techStore.js';
 import { awardClaims, settlePouch, writePouch } from './pouch.js';
@@ -68,14 +70,13 @@ export async function castSpellAt(
   await writeLogEntry(store, { at: now, kind: 'spell', ref: id });
 
   // Bulwark buys decay-clock time on the spot: the hours are baked into the cell so they
-  // survive the spell's own countdown ending (BRDC-SPELL-001).
-  if (id === 'bulwark' && target) {
-    const stored = await store.get<Cell>(K.cell(target));
-    if (stored) {
-      await store.set(K.cell(target), {
-        ...stored,
-        shelteredMs: (stored.shelteredMs ?? 0) + BULWARK_SHELTER_MS,
-      });
+  // survive the spell's own countdown ending (BRDC-SPELL-001). Aegis and Wither are the
+  // same move at different signs and breadths (BRDC-SPELL-002).
+  if (target) {
+    if (id === 'bulwark') await shelter(store, [target], BULWARK_SHELTER_MS);
+    if (id === 'aegis') {
+      const mine = new Set(owned.map((c) => c.h3));
+      await shelter(store, cellsWithin(target, reach(id)).filter((h) => mine.has(h)), AEGIS_SHELTER_MS);
     }
   }
 
@@ -85,6 +86,13 @@ export async function castSpellAt(
   if (target && id === 'quickening') {
     const woken = await quicken(store, target, reach(id), profile, newId, owned, now);
     return { ok: true, spell: result.spell, reached: woken };
+  }
+  // Scrying writes nothing. It hands the caller the hexes it can see and they are drawn
+  // from the running spell, so when the six hours are up the ground goes dark again —
+  // which is the one thing separating it from Farsight (BRDC-SPELL-002).
+  if (target && id === 'scrying') {
+    const rings = scryReach(levelForXp(profile.xp));
+    return { ok: true, spell: result.spell, reached: cellsWithin(target, rings) };
   }
   return { ok: true, spell: result.spell };
 }
@@ -98,6 +106,23 @@ export async function castSpellAt(
  * a cell that already exists is left completely alone: it may be held, decaying, or
  * carrying a Work, and none of that is Farsight's business.
  */
+/**
+ * Move a set of cells' decay clocks by `ms`, which may be negative.
+ *
+ * One helper for two Rites: Bulwark on one cell of yours, Aegis on every cell of yours in
+ * reach. It takes a signed amount because `decay.ts` computes
+ * `now - lastVisitedAt - shelteredMs` and a negative one would simply make the clock read
+ * later — kept for the day a block Rite has a server to adjudicate it (BRDC-SPELL-002).
+ * A cell that has never been written is skipped: there is no clock on ground nobody holds.
+ */
+async function shelter(store: KeyValueStore, cells: readonly H3Index[], ms: number): Promise<void> {
+  for (const h3 of cells) {
+    const stored = await store.get<Cell>(K.cell(h3));
+    if (!stored) continue;
+    await store.set(K.cell(h3), { ...stored, shelteredMs: (stored.shelteredMs ?? 0) + ms });
+  }
+}
+
 async function survey(store: KeyValueStore, centre: H3Index, rings: number): Promise<H3Index[]> {
   const reached: H3Index[] = [];
   for (const h3 of cellsWithin(centre, rings)) {

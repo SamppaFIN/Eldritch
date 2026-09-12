@@ -24,7 +24,6 @@ import { HearthPanel } from '../features/territory/HearthPanel.js';
 import { ResearchDialog } from '../features/territory/ResearchDialog.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
-import { withFogOfWar } from '../features/territory/territoryFeatures.js';
 import { useClaimSync } from '../features/territory/useClaimSync.js';
 import { DiscoveryModal } from '../features/territory/DiscoveryModal.js';
 import { useFumingLake } from '../features/quest/useFumingLake.js';
@@ -45,6 +44,7 @@ import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
 import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
+import { useShownCells } from '../features/territory/useShownCells.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { UnlockTeacher } from '../features/tutor/UnlockTeacher.js';
 import { WonderMoment } from '../features/wonder/WonderMoment.js';
@@ -141,8 +141,6 @@ export function MapView({ onLeave }: MapViewProps) {
     () => void territory.refresh(),
   );
 
-  // Fog of war (BRDC-MAP-002): the map draws only owned ground and its ring.
-  const shownCells = useMemo(() => withFogOfWar(territory.cells, territory.owned), [territory.cells, territory.owned]);
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
   const onCellTerrain = useCellTerrain(repository, territory.refresh);
 
@@ -156,6 +154,9 @@ export function MapView({ onLeave }: MapViewProps) {
     onWarded: setResources,
     refreshTerritory: territory.refresh,
   });
+
+  // What the map may draw: fog of war, minus wherever a Scrying is looking.
+  const shownCells = useShownCells({ cells: territory.cells, owned: territory.owned, active: inspect.spell.active, xp: profile?.xp ?? 0, now: clock.now });
 
   const pace = useMemo(() => {
     const pts = trail.points;

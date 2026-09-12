@@ -7,13 +7,12 @@ import type { ResourcePool } from './terrain.js';
 import { TECHS } from './tech.js';
 import type { TechId } from './tech.js';
 import {
-  BULWARK_SHELTER_MS,
   SPELLS,
   activeSpells,
   castSpell,
-  domainSpellBonus,
   spellRemaining,
 } from './spell.js';
+import { BULWARK_SHELTER_MS, domainSpellBonus } from './spellEffects.js';
 import type { ActiveSpell, CastContext, SpellId } from './spell.js';
 import { cellAt, neighboursOf } from '../geo/cells.js';
 import type { Cell } from '../types/domain.js';
