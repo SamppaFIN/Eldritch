@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-REVEAL-001, BRDC-WIKI-001 |
-| **Status** | `done` — 2026-09-11 (v0.5.74) |
+| **Status** | `done` — 2026-09-11 (v0.5.74); kolme kenttävikaa korjattu 2026-09-12 (v0.5.80) |
 | **Valmius** | 100 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §3; priorisoitu 2026-09-06 |
 
@@ -71,6 +71,31 @@ animoituna `stroke-dasharray`illa. Se on kevyt, terävä joka koossa ja jo tyyli
   `map.spec`in "marker sits exactly on the camera centre" meni 2,5 px yli 1 px:n rajan.
   Todennettu ottamalla työ pois (`git stash` → 14/14 puhdas) ja palauttamalla se:
   komponenttina jokainen sen aiheuttama render pysyy omassa alipuussaan. 17/17.
+
+## Kentältä 2026-09-12: kolme vikaa, ja peli jäi jumiin
+
+Infinite: *"nyt peli jää onboardingista jumiin, sanoo että avaa pouch, mutta se on keepin
+alla. ilmoitus ei häviä."*
+
+1. **"Understood" oli kuollut nappi.** `onRead` palasi heti jos `repository` oli null —
+   eli ainoa nappi kortilla, joka peittää kartan, ei tehnyt mitään eikä korttia saanut
+   pois millään. Hylkääminen ei saa koskaan riippua tallennuksen tavoitettavuudesta:
+   **maksu on se osa joka saa epäonnistua**, ja se epäonnistuu hiljaa.
+2. **Oppitunnit ketjuuntuivat välittömästi.** Kävellyt pelaaja täyttää neljä tai viisi
+   kynnystä yhtä aikaa, ja vastaaminen merkitsi yhden luetuksi ja seuraava render tarjosi
+   seuraavan samaan paikkaan samannäköisenä. "Yksi kerrallaan" oli sääntö; **tauko niiden
+   välillä puuttui.** `UNLOCK_QUIET_MS` = 3 min, ja "Not now" pitää saman tauon.
+3. **HUD peitti kortin alimman napin.** Kortti keskitettiin ikkunaan, ei karttaan, joten
+   "Not now" oli footerin alla eikä painettavissa lainkaan. `tutor.spec` nappasi tämän.
+   **Kolmas kerta samalle opille** tässä projektissa: kortti joka ottaa napautuksia ei saa
+   istua siellä minne napautukset on tarkoitettu.
+
+Ja se sanamuoto: *"Open your pouch in the footer"* oli väärin. Footerin pussirivi on
+vilkaisu, ei paikka jonne mennään — ja se **piilotetaan kokonaan** aina kun jokin arkki on
+auki (`hud.css`: `.hud[data-compact] .hud__stats { display: none }`). Teksti nimeää nyt
+Keepin, joka on nappi ja aina paikallaan.
+
+Todennus: desktop `tutor` 6/6, mobile-360 `tutor` + `standards` 14/14, `pnpm test` 1321.
 
 ## Ei tässä
 

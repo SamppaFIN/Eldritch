@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.80",
+    "date": "2026-09-12",
+    "notes": [
+      "The opening lessons could get stuck. Answering one brought the next up in the same place a moment later, so the button looked like it did nothing — there is a real gap between them now, and the screen visibly clears.",
+      "The HUD was covering the card’s bottom button, so \"Not now\" could not be pressed at all. The card sits above the footer now.",
+      "And the first lesson sent you to the pouch \"in the footer\", which is hidden whenever anything else is open. It points at the Keep instead."
+    ]
+  },
+  {
     "version": "0.5.79",
     "date": "2026-09-12",
     "notes": [

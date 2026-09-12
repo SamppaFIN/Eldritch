@@ -71,3 +71,58 @@ test('reading a lesson dismisses it and it does not come back', async ({ page })
   await page.waitForTimeout(4_000);
   await expect(page.getByText('The ground pays')).toHaveCount(0);
 });
+
+/*
+ * The field report of 2026-09-12: "peli jää onboardingista jumiin... ilmoitus ei häviä."
+ *
+ * A player who has walked has several lessons satisfied at once. Answering one marked it
+ * read and the next render put the next one in the same place, looking identical — so
+ * "Understood" appeared to do nothing, over and over. One at a time was the rule; nothing
+ * enforced a gap between them.
+ */
+test('answering a lesson clears the screen, even with more of them waiting', async ({ page }) => {
+  test.setTimeout(200_000);
+  await open(page, HERE);
+
+  // Walk far enough that Works and the Temple are both open as well as resources: this is
+  // the state the report came from, and the state the first version could not leave.
+  const LEG_M = 45;
+  const dLat = (m: number) => m / 111_320;
+  for (let leg = 1; leg <= 4; leg += 1) {
+    await page.context().setGeolocation({ ...HERE, latitude: HERE.latitude + dLat(LEG_M * leg) });
+    await page.waitForTimeout(7_000);
+  }
+
+  const card = page.locator('.unlock__card');
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  await card.getByRole('button', { name: /Understood/ }).click();
+
+  // The screen is clear, and stays clear — not replaced a second later by the next one.
+  await expect(card).toBeHidden();
+  await page.waitForTimeout(4_000);
+  await expect(card).toBeHidden();
+});
+
+test('"Not now" also clears the screen rather than summoning the next', async ({ page }) => {
+  test.setTimeout(200_000);
+  await open(page, HERE);
+
+  const card = page.locator('.unlock__card');
+  await expect(card).toBeVisible({ timeout: 15_000 });
+  await card.getByRole('button', { name: 'Not now' }).click();
+
+  await expect(card).toBeHidden();
+  await page.waitForTimeout(4_000);
+  await expect(card).toBeHidden();
+});
+
+test('the first lesson points at a place that exists', async ({ page }) => {
+  await open(page, HERE);
+  const card = page.locator('.unlock__card');
+  await expect(card).toBeVisible({ timeout: 15_000 });
+
+  // It used to send players to "your pouch in the footer", which is a row that is hidden
+  // whenever a sheet is open. The Keep is a button that is always there.
+  await expect(card).toContainText('Keep');
+  await expect(card).not.toContainText('footer');
+});

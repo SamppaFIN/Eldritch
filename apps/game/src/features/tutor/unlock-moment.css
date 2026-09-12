@@ -20,6 +20,11 @@
   display: grid;
   place-items: center;
   padding: var(--space-3);
+  /* Centred in the map, not in the window: the HUD owns the bottom of the screen and it
+     was covering this card's last button — "Not now" could not be pressed at all
+     (`tutor.spec`, field report 2026-09-12). A card that takes taps must not sit where
+     the taps are meant to land; that is the third time this has bitten. */
+  padding-block-end: calc(var(--hud-height, 8.5rem) + var(--space-3));
   /* Dims the map without hiding it — you can still see where you are. */
   background: oklch(0.16 0.04 300 / 0.55);
   pointer-events: none;

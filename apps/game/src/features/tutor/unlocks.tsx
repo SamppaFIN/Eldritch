@@ -32,7 +32,10 @@ export const UNLOCK_COPY: Readonly<Record<UnlockId, UnlockCopy>> = {
   resources: {
     title: 'The ground pays',
     what: 'Every hex you hold gives what its ground is made of, once when taken and every hour after.',
-    now: 'Open your pouch in the footer to see what is coming in.',
+    // Was "open your pouch in the footer", and the field report was blunt: the pouch is
+    // under the Keep. The footer row is a glance, not a place you go — and it is hidden
+    // entirely whenever a sheet is open (BRDC-HUD-005). Name the button that is always there.
+    now: 'Open the Keep to see what you hold and what is coming in.',
     see: 'awakening',
   },
   building: {
