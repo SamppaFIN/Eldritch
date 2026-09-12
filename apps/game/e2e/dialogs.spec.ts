@@ -178,6 +178,44 @@ test('the Codex opens from the menu, and says so when the world is empty', async
   await expect(codex).toHaveCount(0);
 });
 
+test('the Codex draws a banner, and never spells its id across the name', async ({ page }) => {
+  /*
+   * Field report 2026-09-12, with a screenshot: "nimet menee tuossa taulukossa sekasin."
+   * The rows read `heptagirlgluamey` and `eyeSurreal kingdo` — the banner *id* was being
+   * printed as text into a 1.5rem column and running straight across the realm beside it.
+   * `Banner` has drawn these as SVG since BRDC-BANNER-001; the Codex simply was not asking.
+   */
+  const table = {
+    v: 1,
+    generatedAt: Date.now(),
+    players: 2,
+    metrics: [
+      {
+        id: 'land',
+        ranked: [
+          { id: 'a', name: 'Gluamey', nation: 'Girl Gluamey', banner: 'heptagram', value: 558040 },
+          { id: 'b', name: 'Surreal', nation: 'Surreal kingdom', banner: 'eye', value: 382701 },
+        ],
+      },
+    ],
+  };
+  await page.route('**/demographics', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(table) }),
+  );
+  await openMap(page);
+  await openMenuAction(page, 'Codex of Dominion');
+
+  const codex = page.getByRole('region', { name: 'Codex of Dominion' });
+  await expect(codex).toBeVisible();
+  await codex.getByText('Land', { exact: true }).click();
+
+  await expect(codex).toContainText('Girl Gluamey');
+  // The ids themselves must appear nowhere: they are shapes, not words.
+  await expect(codex).not.toContainText('heptagram');
+  await expect(codex).not.toContainText('eye');
+  await expect(codex.locator('.codex__flag svg').first()).toBeVisible();
+});
+
 test('a Codex it cannot reach does not claim the world is empty', async ({ page }) => {
   /*
    * BRDC-CODEX-002, and the reason it exists. This first shipped collapsing every failure

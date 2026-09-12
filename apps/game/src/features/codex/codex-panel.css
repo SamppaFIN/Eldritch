@@ -167,6 +167,16 @@
   white-space: nowrap;
 }
 
+/* Belt and braces after the 2026-09-12 field report: the column is 1.5rem wide, so
+   whatever lands in it is clipped rather than allowed to run across the name beside it.
+   The SVG banner fits; a stray word no longer escapes. */
+.codex__flag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .codex__reload {
   align-self: flex-start;
   min-block-size: var(--touch-min);

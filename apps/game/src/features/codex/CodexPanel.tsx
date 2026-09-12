@@ -12,6 +12,8 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
+import { Banner } from '../nation/Banner.js';
+import { resolveBannerId } from '../nation/nation.js';
 import { placementIn } from '@es3/core';
 import type { Metric, PlayerId } from '@es3/core';
 import { useCodex } from './useCodex.js';
@@ -84,7 +86,13 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
             <ol className="codex__top es-numeric">
               {metric.ranked.slice(0, TOP).map((r) => (
                 <li key={r.id} className={r.id === me ? 'codex__top-row codex__top-row--me' : 'codex__top-row'}>
-                  <span className="codex__flag" aria-hidden>{r.banner ?? '·'}</span>
+                  {/* The banner is an *id* — 'heptagram', 'eye' — and printing it raw
+                      spilled the word out of a 1.5rem column and across the realm's name
+                      (field report 2026-09-12: "nimet menee tuossa taulukossa sekasin").
+                      `Banner` has drawn these as SVG since BRDC-BANNER-001. */}
+                  <span className="codex__flag" aria-hidden>
+                    {r.banner ? <Banner id={resolveBannerId(r.banner)} size={16} /> : '·'}
+                  </span>
                   <span className="codex__realm">{r.nation ?? r.name}</span>
                   <span>{formatMetric(metric.id, r.value)}</span>
                 </li>
