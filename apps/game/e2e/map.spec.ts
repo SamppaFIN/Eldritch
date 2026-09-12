@@ -73,6 +73,29 @@ async function markerOffset(page: Page): Promise<number> {
   return Math.hypot(cx - (view?.width ?? 0) / 2, cy - (view?.height ?? 0) / 2);
 }
 
+/**
+ * Wait until the camera has actually stopped moving (BRDC-E2E-002).
+ *
+ * Rest is established by the camera not having moved between two reads, not by a duration:
+ * the founding tour flies for several seconds and a fixed wait either races it on a loaded
+ * machine or wastes time on an idle one.
+ *
+ * The measurement that made this necessary: at rest the marker sits 0.2 px off centre, but
+ * one second into the tour it is 83 px off and four seconds in it is 190 px off. A test
+ * that samples once inside that window is testing the machine's mood.
+ */
+async function waitForCameraStill(page: Page, timeoutMs = 25_000) {
+  const started = Date.now();
+  let last = await mapState(page);
+  while (Date.now() - started < timeoutMs) {
+    await page.waitForTimeout(400);
+    const next = await mapState(page);
+    if (next.lng === last.lng && next.lat === last.lat && next.zoom === last.zoom) return;
+    last = next;
+  }
+  throw new Error('the camera never stopped moving');
+}
+
 /** Open the map and wait out the one-time founding tour, which drives the camera itself. */
 async function openMapSettled(page: Page) {
   await openMap(page);
@@ -81,6 +104,9 @@ async function openMapSettled(page: Page) {
   await page.context().setGeolocation({ ...HERE, latitude: HERE.latitude + 0.00001 });
   await page.context().setGeolocation(HERE);
   await expect.poll(() => markerOffset(page), { timeout: 15_000 }).toBeLessThan(6);
+  // Under six pixels is satisfied mid-flight every time the tour's path crosses centre,
+  // so the poll above is a necessary condition and not a sufficient one.
+  await waitForCameraStill(page);
 }
 
 test('renders the map and places the player on it', async ({ page }) => {
@@ -92,7 +118,12 @@ test('renders the map and places the player on it', async ({ page }) => {
 test('the player marker sits exactly on the camera centre', async ({ page }) => {
   // A marker half its own width off true is the kind of thing nobody notices until
   // the territory it anchors is a hexagon out of place.
+  //
+  // The bound stays at one pixel (BRDC-E2E-002). What changed is when it is read: this
+  // used to measure the instant the map opened, while the founding tour was still flying
+  // the camera around, and passed or failed on how busy the machine was.
   await openMap(page);
+  await waitForCameraStill(page);
   const core = await page.locator('.es-player__core').boundingBox();
   const view = page.viewportSize();
 
