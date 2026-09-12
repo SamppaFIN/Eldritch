@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anomalyAt, cellAt, emptyCell, neighboursOf } from '@es3/core';
+import { CITY_STATES, anomalyAt, cellAt, emptyCell, neighboursOf } from '@es3/core';
 import type { Cell, TerrainKind } from '@es3/core';
 import {
   CONTESTED_BELOW,
@@ -12,6 +12,7 @@ import {
   cellToFeature,
   cellsToGeoJson,
   terrainGlyph,
+  CITY_COLOUR,
   withFogOfWar,
 } from './territoryFeatures.js';
 
@@ -329,5 +330,44 @@ describe('awakeningReveal', () => {
       at: 42,
     });
     expect(r).toEqual({ cells: ['a', 'c'], at: 42 });
+  });
+});
+
+/*
+ * BRDC-FX-002. "jos sulla on temppeli, niin se näkyy.. saa olla isompi kun se alkuperäinen
+ * heksa.. tai jos siinä on joku kalastuskylä.. korvaa siis koko heksa näillä."
+ */
+describe('landmarks', () => {
+  const withWork = (id: string): Cell => ({
+    ...cell(ME, 200, H3),
+    buildings: [{ id, at: 0 } as unknown as never],
+  });
+
+  it('gives a village its own mark, whoever else is on the map', () => {
+    // The *owner* id, not the city-state id — `isCityState` matches on `owner`.
+    const village: Cell = { ...cell(CITY_STATES[0]?.owner ?? '', 200, H3) };
+    const p = cellProperties(village, ME);
+    expect(p.landmark).not.toBe('');
+    expect(p.landmarkColor).toBe(CITY_COLOUR);
+  });
+
+  it('promotes a monument out of the small glyph and into its own layer', () => {
+    const p = cellProperties(withWork('monument'), ME);
+    expect(p.landmark).not.toBe('');
+    // Never both: one cell, one mark, or the map draws it twice at two sizes.
+    expect(p.building).toBe('');
+  });
+
+  it('leaves an ordinary Work where it was', () => {
+    const p = cellProperties(withWork('farm'), ME);
+    expect(p.landmark).toBe('');
+    expect(p.building).not.toBe('');
+  });
+
+  // If everything is a landmark the map is a wall of glyphs again, just a bigger one.
+  it('keeps bare ground clear of both', () => {
+    const p = cellProperties(cell(ME, 200, H3), ME);
+    expect(p.landmark).toBe('');
+    expect(p.building).toBe('');
   });
 });

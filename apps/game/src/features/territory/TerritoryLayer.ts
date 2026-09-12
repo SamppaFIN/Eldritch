@@ -26,6 +26,7 @@ export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';
 export const CELL_BUILDING_LAYER = 'cells-building';
+export const CELL_LANDMARK_LAYER = 'cells-landmark';
 export const CELL_FLAG_LAYER = 'cells-flag';
 export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
@@ -267,6 +268,40 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
+   * A landmark: a monument, a lighthouse, a village (BRDC-FX-002).
+   *
+   * Infinite: *"jos sulla on temppeli, niin se näkyy.. saa olla isompi kun se alkuperäinen
+   * heksa.. korvaa siis koko heksa näillä."* So it does — centred with no offset, no halo
+   * to shrink it, and sized to spill past the hex's own edges at walking zoom. A hex is
+   * about eighty pixels across at zoom 17 and the ordinary Work glyph is fifteen; this one
+   * is fifty-four, which is the difference between a speck and a place.
+   *
+   * Above the building layer, because a cell never has both: `cellProperties` blanks
+   * `building` when it sets `landmark`.
+   */
+  map.addLayer({
+    id: CELL_LANDMARK_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['!=', ['get', 'landmark'], ''],
+    layout: {
+      'text-field': ['get', 'landmark'],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 13, 20, 16, 40, 17, 54, 19, 96],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': ['get', 'landmarkColor'],
+      // A thin dark rim rather than a halo: a 2 px halo on a 96 px glyph reads as grime.
+      'text-halo-color': '#0a0612',
+      'text-halo-width': 1,
+      'text-opacity': 0.92,
+    },
+  });
+
+  /*
    * An anomaly on your own ground (BRDC-EVENT-001). Above the terrain glyph and offset
    * up so the two do not sit on each other. `--mystic-cyan`, one colour — the glyph
    * carries the state (`◌` a site, `◐` under study, `✦` a chain), never colour alone.
@@ -313,6 +348,7 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
     CELL_ANOMALY_LAYER,
     CELL_FLAG_LAYER,
     CELL_BUILDING_LAYER,
+    CELL_LANDMARK_LAYER,
     CELL_ICON_LAYER,
     CELL_CONTESTED_LAYER,
     CELL_LINE_LAYER,

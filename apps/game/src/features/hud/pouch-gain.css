@@ -1,53 +1,145 @@
-/* Small "+N" rising off the HUD pouch when the player presses Collect (BRDC-ECON-007). */
+/* What you just got, said loudly (BRDC-FX-002).
 
-.pouch-gain {
+   Was a `--text-sm` line rising thirty-two pixels off the HUD. It fires more often than
+   anything else in the game and it was the quietest thing in it: "kun saat jotain niin
+   kaiken pitää rähähtää."
+
+   Sits in the middle of the map, clear of the footer — the HUD owns the bottom of the
+   screen and covering a burst with it would repeat a mistake this project has already
+   made three times. Nothing here takes taps. */
+
+.gain {
   position: fixed;
-  inset-block-end: calc(var(--hud-height, 12rem) + var(--space-2));
-  inset-inline: 0;
+  inset: 0;
+  inset-block-end: var(--hud-height, 8.5rem);
   z-index: var(--z-hud, 100);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* Stroke, no fill, three rings thrown outward one after another (§12). */
+.gain__wave {
+  position: absolute;
+  inline-size: min(78vw, 26rem);
+  block-size: min(78vw, 26rem);
+  overflow: visible;
+}
+
+.gain__wave polygon {
+  fill: none;
+  stroke-width: 1.2;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  animation: gain-wave 1.1s var(--ease-out, ease-out) forwards;
+}
+
+@keyframes gain-wave {
+  from {
+    transform: scale(0.25);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.gain__chips {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  pointer-events: none;
+  gap: var(--space-2);
+}
+
+/* Chunky, bordered, and in the resource's own colour — the palette already had these,
+   they were just being used at ten pixels. */
+.gain__chip {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 2px solid var(--chip);
+  border-radius: 999px;
+  background: oklch(0.16 0.04 300 / 0.82);
+  box-shadow: 0 0 24px color-mix(in oklch, var(--chip) 55%, transparent);
+  color: var(--chip);
+  opacity: 0;
+  animation: gain-throw 1.5s var(--ease-out, ease-out) forwards;
+}
+
+.gain__n {
+  font-family: var(--font-numeric, monospace);
+  font-size: var(--text-h2);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.gain__what {
+  font-family: var(--font-numeric, monospace);
+  font-size: var(--text-body);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Thrown clear, held, then let go. The stagger is the cascade. */
+@keyframes gain-throw {
+  from {
+    transform: translateY(26px) scale(0.7);
+    opacity: 0;
+  }
+  22% {
+    transform: translateY(0) scale(1.08);
+    opacity: 1;
+  }
+  32% {
+    transform: translateY(0) scale(1);
+  }
+  78% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+}
+
+.gain__since {
+  position: relative;
+  margin-block-start: var(--space-2);
   font-family: var(--font-numeric, monospace);
   font-size: var(--text-sm);
-  font-weight: var(--weight-bold, 700);
-  text-shadow: 0 0 6px var(--void-black), 0 1px 2px var(--void-black);
-  animation: pouch-gain-rise 2.4s var(--ease-out, ease-out) forwards;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  animation: gain-throw 1.5s var(--ease-out, ease-out) forwards;
+  animation-delay: 240ms;
+  opacity: 0;
 }
 
-.pouch-gain__since {
-  font-weight: var(--weight-regular, 400);
-  font-size: calc(var(--text-sm) * 0.85);
-  opacity: 0.7;
-}
-
-@keyframes pouch-gain-rise {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  to {
-    transform: translateY(-32px);
-    opacity: 0;
-  }
-}
-
+/* Reduced motion still gets the whole burst — it just arrives rather than flies. */
 @media (prefers-reduced-motion: reduce) {
-  .pouch-gain {
-    animation: pouch-gain-hold 1.2s steps(1) forwards;
+  .gain__wave polygon {
+    animation: none;
+    opacity: 0.35;
   }
-}
 
-@keyframes pouch-gain-hold {
-  from {
-    opacity: 1;
+  .gain__chip,
+  .gain__since {
+    animation: gain-hold 2.4s steps(1) forwards;
   }
-  to {
-    opacity: 0;
+
+  @keyframes gain-hold {
+    from,
+    90% {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+    }
   }
 }

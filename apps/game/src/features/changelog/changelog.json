@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.81",
+    "date": "2026-09-13",
+    "notes": [
+      "Getting something is an event now. A hexagonal shockwave goes out from the middle of the map and every resource is thrown clear of it as its own chip, one after another, in its own colour and at a size you can read at arm’s length.",
+      "It was the quietest thing in the game and it happens more than anything else — the old version was the smallest type in the whole interface, rising a few pixels and fading.",
+      "Landmarks replace their hex instead of sitting inside it. A monument, a temple grove, a lighthouse, a fortress, a library and any village are now drawn larger than the ground they stand on, so you can see from a street away that something is there.",
+      "Ordinary Works are unchanged. If everything were a landmark the map would be a wall of glyphs again, only bigger."
+    ]
+  },
+  {
     "version": "0.5.80",
     "date": "2026-09-12",
     "notes": [

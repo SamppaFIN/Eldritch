@@ -11,6 +11,7 @@ import {
   anomalyAt,
   blightLevel,
   emptyCell,
+  isCityState,
   neighboursOf,
   terrainOf,
   TERRAIN_TABLE,
@@ -44,6 +45,9 @@ export const OWN_STROKE = '#8b3fb8';
  * hostile" signal reads faster than a rainbow nobody can tell apart outdoors.
  */
 export const ENEMY_FILL = '#5c1a1a';
+
+/** A village's own mark. `--sacred-gold`, because a settlement is the map's landmark. */
+export const CITY_COLOUR = '#ffd700';
 export const ENEMY_STROKE = '#a13b3b';
 /**
  * Seen but not held — a cell revealed only by being next to yours. A neutral pale tone
@@ -77,6 +81,9 @@ export interface CellProperties {
   building: string;
   /** The building glyph's colour, by role. `''` alongside an empty building glyph. */
   buildingColor: string;
+  /** A Work worth seeing from a street away, or a village. Drawn over the hex, not in it. */
+  landmark: string;
+  landmarkColor: string;
   /** Blight, 0..1 (BRDC-BLIGHT-001) — how far the Void has crept in. Rendering only. */
   blight: number;
   /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
@@ -186,6 +193,31 @@ export function anomalyGlyphFor(cell: Cell): string {
   return a.stage !== undefined ? '✦' : '◐';
 }
 
+/**
+ * Works you can see from the next street, and a city state's own ground (BRDC-FX-002).
+ *
+ * Infinite: *"jos sulla on temppeli, niin se näkyy.. saa olla isompi kun se alkuperäinen
+ * heksa.. tai jos siinä on joku kalastuskylä.. korvaa siis koko heksa näillä."*
+ *
+ * Most Works are a 15 px glyph tucked under the terrain mark, which is right for a farm
+ * and wrong for a monument: a hex at walking zoom is about eighty pixels across, so the
+ * thing that ought to be a landmark reads as a speck. These five, plus any village,
+ * *replace* the hex instead — drawn centred and large enough to spill over its edges.
+ *
+ * Five and not fifteen on purpose. If everything is a landmark the map is a wall of
+ * glyphs again, just a bigger one.
+ */
+const LANDMARKS: ReadonlySet<string> = new Set([
+  'monument',
+  'temple-grove',
+  'lighthouse',
+  'fortress',
+  'library',
+]);
+
+/** A village on the map is a place, not a building — one glyph for the whole settlement. */
+const VILLAGE_GLYPH = '⌂';
+
 export function cellProperties(
   cell: Cell,
   me: PlayerId | null,
@@ -202,6 +234,8 @@ export function cellProperties(
   const works = worksOn(cell);
   const newest = works[works.length - 1];
   const bg = newest ? buildingGlyph(newest.id) : null;
+  const village = isCityState(cell.ownerId);
+  const isLandmark = village || (newest !== undefined && LANDMARKS.has(newest.id));
   return {
     strength: cell.strength,
     mine,
@@ -215,8 +249,11 @@ export function cellProperties(
     icon: glyph?.char ?? '',
     iconColor: glyph?.color ?? '',
     anomaly: mine ? anomalyGlyphFor(cell) : '',
-    building: bg?.char ?? '',
+    // A landmark is drawn by its own layer instead, so it is never drawn twice.
+    building: isLandmark ? '' : (bg?.char ?? ''),
     buildingColor: bg?.color ?? '',
+    landmark: village ? VILLAGE_GLYPH : isLandmark ? (bg?.char ?? '') : '',
+    landmarkColor: village ? CITY_COLOUR : (bg?.color ?? ''),
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.
     flag: mine && works.length === 0 ? FLAG_GLYPH : '',
