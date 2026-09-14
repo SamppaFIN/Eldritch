@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.82",
+    "date": "2026-09-14",
+    "notes": [
+      "Importing a walk now ends in the ground it won. It used to say \"38 walked\" and stop, leaving thirty-eight hexes you had never looked at and nothing on screen to do about it.",
+      "Two speeds, and neither is the right one: turn the cards over one at a time, each revealed as you reach it, or do the lot at once and get a line for every hex saying what it held.",
+      "Reveals from here pay into the pouch and ring the same as anywhere else."
+    ]
+  },
+  {
     "version": "0.5.81",
     "date": "2026-09-13",
     "notes": [

@@ -96,3 +96,104 @@
   align-self: flex-start;
   min-block-size: var(--touch-min);
 }
+
+/* The ground a track just won (BRDC-GPX-002).
+
+   An import can land forty hexes and used to say "38 walked" and stop. This is the review
+   that follows: one card at a time, or the lot. */
+
+.gpx__lands {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--glass-border);
+}
+
+.gpx__lands-head {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Both paces offered at once and neither preferred: savouring forty hexes and getting
+   through them are both reasonable, and which is which depends on the walk. */
+.gpx__lands-pace {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.gpx__lands-pace > * {
+  flex: 1 1 9rem;
+  min-block-size: var(--touch-min);
+}
+
+.gpx__lands-list {
+  display: grid;
+  gap: 2px;
+  max-block-size: 40vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gpx__lands-row {
+  display: grid;
+  grid-template-columns: 1.25rem 5.5rem 1fr;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-block: 4px;
+  font-size: var(--text-sm);
+}
+
+.gpx__lands-spoils {
+  color: var(--accent-warm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* One card, big enough to be a moment rather than a row. */
+.gpx__card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: oklch(0.16 0.04 300 / 0.5);
+  text-align: center;
+  animation: es-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.gpx__card-glyph {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.gpx__card-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--text);
+}
+
+.gpx__card-yield {
+  margin: 0;
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.gpx__card-yield--none {
+  color: var(--text-muted);
+}
+
+.gpx__card-found {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--accent-warm);
+}

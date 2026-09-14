@@ -148,6 +148,7 @@ export function useMapAside(
         repository={repository}
         now={now}
         afterImport={changed.current}
+        onGain={setLandsGain}
         onClose={() => setGpxOpen(false)}
       />
     </>

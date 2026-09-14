@@ -7,7 +7,8 @@
  */
 import { useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
-import type { GameRepository, RejectReason } from '@es3/core';
+import { NewLands } from './NewLands.js';
+import type { Collected, GameRepository, RejectReason } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { useGpxImport } from './useGpxImport.js';
 import './gpx-panel.css';
@@ -32,10 +33,12 @@ export interface GpxPanelProps {
   repository: GameRepository | null;
   now: () => number;
   afterImport: () => void;
+  /** A payout from a reveal here, for the one toast the map owns. */
+  onGain: (collected: Collected) => void;
   onClose: () => void;
 }
 
-export function GpxPanel({ open, repository, now, afterImport, onClose }: GpxPanelProps) {
+export function GpxPanel({ open, repository, now, afterImport, onGain, onClose }: GpxPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
   const { state, importFile, reset } = useGpxImport(repository, now, afterImport);
   useEscape(open, onClose);
@@ -89,6 +92,16 @@ export function GpxPanel({ open, repository, now, afterImport, onClose }: GpxPan
               ))}
             </ul>
           ) : null}
+          {/* The ground the track won, gone through at the player's own pace
+              (BRDC-GPX-002). Before this an import said "38 walked" and stopped, leaving
+              thirty-eight unrevealed hexes and nothing to do about them. */}
+          <NewLands
+            hexes={state.result.grown.filter((g) => g.kind === 'claimed').map((g) => g.h3)}
+            repository={repository}
+            now={now}
+            onGain={onGain}
+            afterReveal={afterImport}
+          />
           <RitualButton variant="ghost" className="gpx__again" onClick={reset}>
             Import another
           </RitualButton>

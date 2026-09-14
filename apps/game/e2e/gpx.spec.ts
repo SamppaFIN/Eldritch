@@ -77,3 +77,62 @@ test('a track with no timestamps is refused, and says why', async ({ page }) => 
   await expect(panel).toContainText(/no timestamps/i, { timeout: 15_000 });
   await expect(panel).toContainText(/walking from driving/i);
 });
+
+/*
+ * BRDC-GPX-002. "tee siitä sellainen, että käyttäjä voi halutessaan avata uudet maakortit
+ * yksi kerrallaan tai sitten kaikki kerralla."
+ *
+ * An import can land dozens of hexes. Before this it reported "38 walked" and stopped,
+ * leaving every one of them unrevealed with nothing on screen to do about it.
+ */
+async function importTrack(page: import('@playwright/test').Page, points = 14) {
+  const panel = await openImport(page);
+  await panel.locator('input[type=file]').setInputFiles({
+    name: 'walk.gpx',
+    mimeType: 'application/gpx+xml',
+    buffer: Buffer.from(track(points)),
+  });
+  await expect(panel).toContainText(/\d+ walked/, { timeout: 20_000 });
+  return panel;
+}
+
+test('an import offers both paces through the new ground', async ({ page }) => {
+  test.setTimeout(200_000);
+  const panel = await importTrack(page);
+
+  await expect(panel).toContainText(/new land/, { timeout: 20_000 });
+  await expect(panel.getByRole('button', { name: 'One at a time' })).toBeVisible();
+  await expect(panel.getByRole('button', { name: 'All at once' })).toBeVisible();
+});
+
+test('one at a time turns the cards over, and ends', async ({ page }) => {
+  test.setTimeout(200_000);
+  const panel = await importTrack(page);
+  await expect(panel).toContainText(/new land/, { timeout: 20_000 });
+
+  await panel.getByRole('button', { name: 'One at a time' }).click();
+  // A card of its own, and a count so the player knows how many are left.
+  await expect(panel.locator('.gpx__card')).toBeVisible({ timeout: 15_000 });
+  await expect(panel).toContainText(/1 of \d+/);
+
+  // Walking to the end must reach an end, not a dead screen.
+  for (let i = 0; i < 40; i += 1) {
+    const next = panel.getByRole('button', { name: /Next land|Done/ });
+    if ((await next.count()) === 0) break;
+    await next.click();
+  }
+  await expect(panel).toContainText(/That is all/, { timeout: 15_000 });
+});
+
+test('all at once names every one of them', async ({ page }) => {
+  test.setTimeout(200_000);
+  const panel = await importTrack(page);
+  await expect(panel).toContainText(/new land/, { timeout: 20_000 });
+
+  await panel.getByRole('button', { name: 'All at once' }).click();
+  await expect(panel.locator('.gpx__lands-row').first()).toBeVisible({ timeout: 20_000 });
+  // Every hex gets a line — a tally with rows missing would be worse than no tally.
+  await expect.poll(() => panel.locator('.gpx__lands-spoils').count(), { timeout: 20_000 })
+    .toBeGreaterThan(0);
+  await expect(panel).toContainText(/looked at/);
+});
