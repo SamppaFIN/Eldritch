@@ -14,6 +14,9 @@ import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
 import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
+// The same law the HUD and the Codex read area from (BRDC-KEEP-008) — this used to keep
+// its own copy in hectares, while the HUD said the same land in kilometres.
+import { formatArea } from '../codex/figures.js';
 import { dominionOf } from './dominion.js';
 import { ManaPanel } from './ManaPanel.js';
 import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
@@ -63,10 +66,6 @@ export interface HearthPanelProps {
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
   onClose: () => void;
-}
-
-function area(m2: number): string {
-  return m2 < 10_000 ? `${Math.round(m2)} m²` : `${(m2 / 10_000).toFixed(1)} ha`;
 }
 
 export function HearthPanel({
@@ -141,7 +140,7 @@ export function HearthPanel({
         </div>
         <div>
           <dt>Land</dt>
-          <dd className="es-numeric">{area(d.areaM2)}</dd>
+          <dd className="es-numeric">{formatArea(d.areaM2)}</dd>
         </div>
         <div>
           <dt>Strongest</dt>

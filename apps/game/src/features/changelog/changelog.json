@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.89",
+    "date": "2026-09-15",
+    "notes": [
+      "The Keep no longer promises a privacy split it doesn't keep — your Keep is your Hearth cell, and it says so plainly now.",
+      "Turning sharing off used to answer with an unrelated line about troops. It now just says sharing is off, and where to turn it on.",
+      "Your land showed a different number in the HUD than in the Keep — same ground, two figures. Both read from the same one now."
+    ]
+  },
+  {
     "version": "0.5.88",
     "date": "2026-09-14",
     "notes": [

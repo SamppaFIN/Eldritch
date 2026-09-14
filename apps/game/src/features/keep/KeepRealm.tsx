@@ -77,8 +77,14 @@ export function KeepRealm({
         </p>
       ) : null}
 
+      {/*
+       * BRDC-KEEP-008: this used to promise a privacy split the game does not keep —
+       * "only ever see your Keep, never your Hearth" — reversed by BRDC-CASTLE-001, whose
+       * own `assignCastle` stores the Hearth's own cell as the Keep. Say what is actually
+       * true instead of what the old plan wished were true.
+       */}
       <p className="hearth-panel__line">
-        Other players will only ever see your Keep, never your Hearth.
+        Your Keep is your Hearth cell — whoever sees your realm sees exactly where it stands.
       </p>
       {onPublish ? (
         <p className="hearth-panel__line">
@@ -87,7 +93,9 @@ export function KeepRealm({
             : 'Raise your banner and your realm goes out to the world map. Others see it within the hour.'}
         </p>
       ) : (
-        <p className="hearth-panel__line">Troops to raise come later.</p>
+        <p className="hearth-panel__line">
+          Sharing the world is off, in Settings — turn it on to raise your banner.
+        </p>
       )}
 
       <div className="hearth-panel__actions">

@@ -13,6 +13,9 @@ import { RESOURCE_KINDS, levelState, msToKmh, spellRemaining } from '@es3/core';
 import type { ActiveSpell, PlayerProfile, RejectReason, ResourcePool } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
+// The same law the Codex reads its figures from (BRDC-KEEP-008) — this used to keep its
+// own copy, at a different precision than the Keep's own area line said for the same land.
+import { formatArea, formatDistance } from '../codex/figures.js';
 import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
@@ -79,11 +82,6 @@ function formatHours(hours: number): string {
   return days === 1 ? 'a day' : `${days} days`;
 }
 
-function formatArea(m2: number): string {
-  if (m2 <= 0) return '0 m²';
-  return m2 < 1_000_000 ? `${Math.round(m2)} m²` : `${(m2 / 1_000_000).toFixed(2)} km²`;
-}
-
 type Quality = 'good' | 'weak' | 'rejected' | 'none';
 
 function quality(status: GeoStatus, accuracyM: number | null): Quality {
@@ -122,11 +120,6 @@ function signalLine(
   if (rejection === 'consolidated') return 'Holding still — the line waits';
   if (q === 'weak') return `Signal uncertain · ±${Math.round(accuracyM ?? 0)} m`;
   return `Signal clear · ±${Math.round(accuracyM ?? 0)} m`;
-}
-
-function formatDistance(m: number): string {
-  if (m < 1) return EMPTY;
-  return m < 1_000 ? `${Math.round(m)} m` : `${(m / 1_000).toFixed(2)} km`;
 }
 
 /**
@@ -244,7 +237,9 @@ export function Hud({
           </div>
           <div className="hud__stat">
             <span className="hud__label">Ley-line</span>
-            <span className="hud__value es-numeric">{formatDistance(distanceM)}</span>
+            <span className="hud__value es-numeric">
+              {distanceM < 1 ? EMPTY : formatDistance(distanceM)}
+            </span>
           </div>
           <div className="hud__stat">
             <span className="hud__label">Warded cells</span>
