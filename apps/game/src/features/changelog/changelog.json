@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.93",
+    "date": "2026-09-15",
+    "notes": [
+      "The Codex tells you the gap, not just the placing. Every row now says how far behind the place above you are — or how far ahead, if you lead it — in that measure’s own unit.",
+      "Realms level with you share your place, so the step up is measured to the nearest different figure rather than to the realm beside you."
+    ]
+  },
+  {
     "version": "0.5.92",
     "date": "2026-09-15",
     "notes": [

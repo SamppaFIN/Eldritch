@@ -8,7 +8,7 @@
  * once there is a km² to show; a realm of seven hexes is 11 353 m² and reading that as
  * "0.01 km²" tells them nothing.
  */
-import type { MetricId } from '@es3/core';
+import type { Metric, MetricId } from '@es3/core';
 
 export const METRIC_NAME: Readonly<Record<MetricId, string>> = {
   land: 'Land',
@@ -51,10 +51,36 @@ export function formatMetric(id: MetricId, value: number): string {
   return round(Math.round(value));
 }
 
+/** "3rd" — a placing on its own, for a sentence that already says what it is placing in. */
+export function ordinal(n: number): string {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th';
+  return `${n}${suffix}`;
+}
+
 /** "3rd of 7" — the rank said the way a person reads a placing, not as "rank: 3". */
 export function placeWord(rank: number, of: number): string {
-  const tens = rank % 100;
-  const suffix =
-    tens >= 11 && tens <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][rank % 10] ?? 'th';
-  return `${rank}${suffix} of ${of}`;
+  return `${ordinal(rank)} of ${of}`;
+}
+
+/**
+ * The step to the place above you, or the lead you hold over the place below.
+ *
+ * "3rd of 7" says where you stand, not whether the next rung is one walk away or a
+ * season away — and the player was left doing that subtraction against three reference
+ * figures in their head (BRDC-CODEX-003). Both numbers are already in `ranked`; this is
+ * only the arithmetic, said in the measure's own unit.
+ *
+ * Ties are why the comparisons are strict: realms level with you share your rank, so the
+ * place above is the nearest *distinct* figure, not the next row of the table.
+ * `null` when there is nobody to measure against — a realm alone, or a field all level.
+ */
+export function gapLine(metric: Metric, mineValue: number, rank: number): string | null {
+  const above = metric.ranked.filter((r) => r.value > mineValue).map((r) => r.value);
+  if (above.length > 0) {
+    return `${formatMetric(metric.id, Math.min(...above) - mineValue)} behind ${ordinal(rank - 1)}`;
+  }
+  const below = metric.ranked.filter((r) => r.value < mineValue).map((r) => r.value);
+  if (below.length === 0) return null;
+  return `${formatMetric(metric.id, mineValue - Math.max(...below))} ahead`;
 }

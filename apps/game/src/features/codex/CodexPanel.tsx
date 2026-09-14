@@ -17,7 +17,7 @@ import { resolveBannerId } from '../nation/nation.js';
 import { placementIn } from '@es3/core';
 import type { Metric, PlayerId } from '@es3/core';
 import { useCodex } from './useCodex.js';
-import { METRIC_BLURB, METRIC_NAME, formatMetric, placeWord } from './figures.js';
+import { METRIC_BLURB, METRIC_NAME, formatMetric, gapLine, placeWord } from './figures.js';
 import './codex-panel.css';
 
 export interface CodexPanelProps {
@@ -49,6 +49,7 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
 
   const row = (metric: Metric) => {
     const mine = me ? placementIn(metric, me) : null;
+    const gap = mine ? gapLine(metric, mine.value, mine.rank) : null;
     const showing = expanded === metric.id;
     return (
       <li key={metric.id} className="codex__row">
@@ -62,7 +63,12 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
           <span className="codex__mine es-numeric">
             {mine ? formatMetric(metric.id, mine.value) : '—'}
           </span>
-          <span className="codex__place">{mine ? placeWord(mine.rank, mine.of) : 'not listed'}</span>
+          {/* The placing and the step to the next one, on the line that already exists
+              for it — a rank is a position, the gap is what you can do about it. */}
+          <span className="codex__place">
+            {mine ? placeWord(mine.rank, mine.of) : 'not listed'}
+            {gap ? ` · ${gap}` : ''}
+          </span>
         </button>
 
         <dl className="codex__figures es-numeric">
