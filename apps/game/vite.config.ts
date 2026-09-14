@@ -48,6 +48,28 @@ export default defineConfig({
     maplibreWorker(),
     VitePWA({
       registerType: 'autoUpdate',
+      /*
+       * What the phone must already have before it walks out of range.
+       *
+       * Workbox's default glob is `**\/*.{js,css,html,ico,png,svg}` — which quietly
+       * leaves out the two files MapLibre needs most: `maplibre-gl-worker.mjs` and the
+       * `maplibre-gl-shared.mjs` it imports (emitted under fixed names by the plugin
+       * above, because MapLibre resolves them by URL). Everything else was precached, so
+       * the app shell opened offline and then asked the network for its tile worker.
+       *
+       * Field report, S23 Ultra (BRDC-MOBILE-004): *"desktopilla toimii, mutta kännyllä
+       * ei kartta avaudu"*. That is this file's own documented failure, twice over:
+       * style loads, TileJSON loads, and not one tile is ever requested. A desktop on
+       * office wifi fetches the worker and never notices.
+       *
+       * Fonts go in for the same reason — §9's Phase 1 gate is *walk ten minutes in
+       * airplane mode*, and a game that needs the network to draw its own words has not
+       * passed it. `woff2` only: every browser that can run this build reads it, and
+       * precaching `woff` as well would double the type weight for nobody.
+       */
+      workbox: {
+        globPatterns: ['**/*.{js,mjs,css,html,svg,webmanifest,woff2}'],
+      },
       manifest: {
         name: 'Eldritch Sanctuary',
         short_name: 'Sanctuary',

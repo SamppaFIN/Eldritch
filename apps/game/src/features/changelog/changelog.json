@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.95",
+    "date": "2026-09-15",
+    "notes": [
+      "Fixed: the map would not open on a phone. The app was saved for offline use without the two files MapLibre needs to draw tiles, so the screen loaded and then waited on the network for them — invisible on a desktop connection, fatal on a phone.",
+      "Those files, and every font, are now stored with the rest of the game. Walking out of range no longer costs you the map or the words on it."
+    ]
+  },
+  {
     "version": "0.5.94",
     "date": "2026-09-15",
     "notes": [
