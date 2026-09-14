@@ -87,6 +87,19 @@
   margin: var(--space-1) 0;
 }
 
+/* The one label in the menu (BRDC-NAV-001). It sits over the actions that end or destroy
+   something, so the divider above them reads as a deliberate separation rather than a
+   stray rule — and so the group has a name before a thumb reaches it. */
+.settings-menu__group {
+  flex-shrink: 0;
+  margin: 0;
+  padding-inline: var(--space-2);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .settings-menu__note {
   flex-shrink: 0;
   margin: 0 0 var(--space-1);

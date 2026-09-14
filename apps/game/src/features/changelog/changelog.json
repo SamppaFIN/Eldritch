@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.92",
+    "date": "2026-09-15",
+    "notes": [
+      "The menu separates opening something from ending it. Everything that opens a page sits together; Retreat, Empty the pouch and Delete progress sit below their own line, under a heading.",
+      "\"Empty the pouch\" is marked in red now, like Delete progress. It throws away every resource you hold, and it used to look exactly like the Codex link one row above it."
+    ]
+  },
+  {
     "version": "0.5.91",
     "date": "2026-09-15",
     "notes": [

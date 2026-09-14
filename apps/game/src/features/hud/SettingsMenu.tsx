@@ -204,6 +204,17 @@ export function SettingsMenu({
               v{APP_VERSION}
             </span>
           </button>
+          {/*
+            * Everything above opens something; everything below ends or destroys
+            * something (BRDC-NAV-001). They used to be one undifferentiated column, so
+            * "Empty the pouch" — which throws away every resource — was the same shape,
+            * weight and colour as "Codex of Dominion" one row above it, in a list
+            * scrolled with one thumb while walking. §14: same action, same appearance —
+            * and the corollary, that different kinds of action must not look the same.
+            */}
+          <hr className="settings-menu__rule" />
+          <p className="settings-menu__group">Ending things</p>
+
           <button
             type="button"
             className="settings-menu__action"
@@ -214,7 +225,7 @@ export function SettingsMenu({
           {onResetPouch ? (
             <button
               type="button"
-              className="settings-menu__action"
+              className="settings-menu__action settings-menu__action--danger"
               onClick={() => run(() => setEmptying(true))}
             >
               Empty the pouch
