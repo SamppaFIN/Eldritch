@@ -16,6 +16,7 @@
  * `Image`, outside the document, where neither resolves.
  */
 import type { TerrainKind } from '@es3/core';
+import { rasteriseSvgs } from './spriteRaster.js';
 
 /** Rendered size, device pixels. One tile sits inside one res-11 hex. */
 export const TERRAIN_PX = 64;
@@ -96,27 +97,5 @@ export function terrainSvg(kind: TerrainKind): string {
  * falls back to the glyph layer rather than throwing. Real Chromium resolves.
  */
 export async function rasteriseTerrain(): Promise<Map<string, ImageData> | null> {
-  if (typeof document === 'undefined') return null;
-  const canvas = document.createElement('canvas');
-  canvas.width = TERRAIN_PX;
-  canvas.height = TERRAIN_PX;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const out = new Map<string, ImageData>();
-  await Promise.all(
-    TERRAIN_KINDS.map(async (kind) => {
-      const img = new Image(TERRAIN_PX, TERRAIN_PX);
-      img.src = `data:image/svg+xml;utf8,${encodeURIComponent(terrainSvg(kind))}`;
-      try {
-        await img.decode();
-      } catch {
-        return;
-      }
-      ctx.clearRect(0, 0, TERRAIN_PX, TERRAIN_PX);
-      ctx.drawImage(img, 0, 0, TERRAIN_PX, TERRAIN_PX);
-      out.set(terrainSpriteId(kind), ctx.getImageData(0, 0, TERRAIN_PX, TERRAIN_PX));
-    }),
-  );
-  return out.size > 0 ? out : null;
+  return rasteriseSvgs(TERRAIN_KINDS, terrainSvg, terrainSpriteId, TERRAIN_PX);
 }

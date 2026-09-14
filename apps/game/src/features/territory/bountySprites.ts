@@ -19,6 +19,7 @@
  * by an `Image` outside the document, where neither resolves.
  */
 import type { BountyId } from '@es3/core';
+import { rasteriseSvgs } from './spriteRaster.js';
 
 /** Rendered size, device pixels. Smaller than a terrain tile — this is an accent object
  *  standing on one, not the ground itself. */
@@ -124,27 +125,5 @@ export function bountySvg(id: BountyId): string {
  * "nothing lands" is the same as the pre-existing behaviour.
  */
 export async function rasteriseBounty(): Promise<Map<string, ImageData> | null> {
-  if (typeof document === 'undefined') return null;
-  const canvas = document.createElement('canvas');
-  canvas.width = BOUNTY_PX;
-  canvas.height = BOUNTY_PX;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const out = new Map<string, ImageData>();
-  await Promise.all(
-    BOUNTY_SPRITE_IDS.map(async (id) => {
-      const img = new Image(BOUNTY_PX, BOUNTY_PX);
-      img.src = `data:image/svg+xml;utf8,${encodeURIComponent(bountySvg(id))}`;
-      try {
-        await img.decode();
-      } catch {
-        return;
-      }
-      ctx.clearRect(0, 0, BOUNTY_PX, BOUNTY_PX);
-      ctx.drawImage(img, 0, 0, BOUNTY_PX, BOUNTY_PX);
-      out.set(bountySpriteId(id), ctx.getImageData(0, 0, BOUNTY_PX, BOUNTY_PX));
-    }),
-  );
-  return out.size > 0 ? out : null;
+  return rasteriseSvgs(BOUNTY_SPRITE_IDS, bountySvg, bountySpriteId, BOUNTY_PX);
 }

@@ -10,6 +10,7 @@ import { BANNER_IDS } from './nation.js';
 import type { BannerId, HandDrawnBannerId } from './nation.js';
 import { REALM_MARKS, isRealmMark } from './realmMarks.js';
 import type { MarkInk, RealmMarkId } from './realmMarks.js';
+import { rasteriseSvgs } from '../territory/spriteRaster.js';
 
 /** Rendered size, device pixels. Small — it sits on one res-11 hex. */
 export const BANNER_PX = 40;
@@ -81,27 +82,5 @@ export function bannerSvg(id: BannerId): string {
  * platform with no 2D canvas (a test runner) — the caller no-ops. Real Chromium resolves.
  */
 export async function rasteriseBanners(): Promise<Map<string, ImageData> | null> {
-  if (typeof document === 'undefined') return null;
-  const canvas = document.createElement('canvas');
-  canvas.width = BANNER_PX;
-  canvas.height = BANNER_PX;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const out = new Map<string, ImageData>();
-  await Promise.all(
-    BANNER_IDS.map(async (id) => {
-      const img = new Image(BANNER_PX, BANNER_PX);
-      img.src = `data:image/svg+xml;utf8,${encodeURIComponent(bannerSvg(id))}`;
-      try {
-        await img.decode();
-      } catch {
-        return;
-      }
-      ctx.clearRect(0, 0, BANNER_PX, BANNER_PX);
-      ctx.drawImage(img, 0, 0, BANNER_PX, BANNER_PX);
-      out.set(bannerSpriteId(id), ctx.getImageData(0, 0, BANNER_PX, BANNER_PX));
-    }),
-  );
-  return out.size > 0 ? out : null;
+  return rasteriseSvgs(BANNER_IDS, bannerSvg, bannerSpriteId, BANNER_PX);
 }

@@ -13,6 +13,7 @@
 import type { BuildingId } from '@es3/core';
 import { BUILDING_ROLE } from './buildingGlyphs.js';
 import type { BuildingRole } from './buildingGlyphs.js';
+import { rasteriseSvgs } from './spriteRaster.js';
 
 /** Rendered size of each sprite, device pixels. Small — it sits inside one res-11 hex. */
 export const SPRITE_PX = 44;
@@ -76,28 +77,5 @@ export function spriteSvg(id: BuildingId): string {
  * game, and Playwright — always resolves it.
  */
 export async function rasteriseSprites(): Promise<Map<string, ImageData> | null> {
-  if (typeof document === 'undefined') return null;
-  const canvas = document.createElement('canvas');
-  canvas.width = SPRITE_PX;
-  canvas.height = SPRITE_PX;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const out = new Map<string, ImageData>();
-  const ids = Object.keys(CAP) as BuildingId[];
-  await Promise.all(
-    ids.map(async (id) => {
-      const img = new Image(SPRITE_PX, SPRITE_PX);
-      img.src = `data:image/svg+xml;utf8,${encodeURIComponent(spriteSvg(id))}`;
-      try {
-        await img.decode();
-      } catch {
-        return;
-      }
-      ctx.clearRect(0, 0, SPRITE_PX, SPRITE_PX);
-      ctx.drawImage(img, 0, 0, SPRITE_PX, SPRITE_PX);
-      out.set(spriteId(id), ctx.getImageData(0, 0, SPRITE_PX, SPRITE_PX));
-    }),
-  );
-  return out.size > 0 ? out : null;
+  return rasteriseSvgs(Object.keys(CAP) as BuildingId[], spriteSvg, spriteId, SPRITE_PX);
 }
