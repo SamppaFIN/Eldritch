@@ -39,13 +39,49 @@ test('a banner picked in the Keep reaches the map flag layer', async ({ page }) 
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
   const before = await flagIcon();
 
-  // The flag button opens the picker; 'triquetra' is never the default ('vesica').
+  // The flag button opens the picker; Triquetra is never the default (Vesica). Its own
+  // name, not the raw id — "triquetra" read aloud is nothing, and BRDC-SIGIL-004 gave
+  // every option in this picker a real accessible name for exactly that reason.
   await page.getByRole('button', { name: /^Banner:/ }).click();
   await page
     .getByRole('group', { name: 'Choose a banner' })
-    .getByRole('button', { name: 'triquetra' })
+    .getByRole('button', { name: 'Triquetra' })
     .click();
 
   await expect.poll(flagIcon).toBe('banner-triquetra');
   expect(before).not.toBe('banner-triquetra');
+});
+
+/*
+ * BRDC-SIGIL-004. Twenty of the design document's realm marks, generated rather than
+ * hand-drawn, sit in the same picker as the six originals — this proves one actually
+ * reaches the map, the same as the hand-drawn set above.
+ */
+test('a generated realm mark reaches the map flag layer too', async ({ page }) => {
+  test.setTimeout(60_000);
+  await openMap(page, HERE);
+
+  const flagIcon = () =>
+    page.evaluate(() => {
+      const map = (globalThis as unknown as { __esMap?: { getLayoutProperty: (l: string, p: string) => unknown } })
+        .__esMap;
+      return map?.getLayoutProperty('cells-flag', 'icon-image') ?? null;
+    });
+
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('button', { name: /^Banner:/ }).click();
+
+  const picker = page.getByRole('group', { name: 'Choose a banner' });
+  await expect(picker.getByRole('button')).toHaveCount(24);
+
+  await picker.getByRole('button', { name: "Metatron's Cube" }).click();
+  await expect.poll(flagIcon).toBe('banner-metatrons-cube');
+
+  // Its icon actually made it into the map's atlas, at its own hundred-unit geometry —
+  // not silently missing, not the hand-drawn fallback.
+  const hasImage = await page.evaluate(() => {
+    const map = (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap;
+    return map.hasImage('banner-metatrons-cube');
+  });
+  expect(hasImage).toBe(true);
 });

@@ -6,10 +6,17 @@
  * flag is one of a fixed set of hand-drawn banners.
  */
 import { load, saveNow } from '@es3/core';
+import { REALM_MARKS, REALM_MARK_IDS, isRealmMark } from './realmMarks.js';
+import type { RealmMarkId } from './realmMarks.js';
 
-export type BannerId = 'vesica' | 'heptagram' | 'chevron' | 'pale' | 'eye' | 'triquetra';
+/** The six hand-drawn originals (BRDC-BANNER-001), untouched — a save pointing at one of
+ *  these must keep resolving to the same art it always has. */
+export type HandDrawnBannerId = 'vesica' | 'heptagram' | 'chevron' | 'pale' | 'eye' | 'triquetra';
 
-export const BANNER_IDS: readonly BannerId[] = [
+/** A hand-drawn original or one of the eighteen generated marks (Sigil §04, BRDC-SIGIL-004). */
+export type BannerId = HandDrawnBannerId | RealmMarkId;
+
+const HAND_DRAWN_IDS: readonly HandDrawnBannerId[] = [
   'vesica',
   'heptagram',
   'chevron',
@@ -17,6 +24,8 @@ export const BANNER_IDS: readonly BannerId[] = [
   'eye',
   'triquetra',
 ];
+
+export const BANNER_IDS: readonly BannerId[] = [...HAND_DRAWN_IDS, ...REALM_MARK_IDS];
 
 export interface Nation {
   name: string;
@@ -53,4 +62,10 @@ export function writeNation(next: Nation): Nation {
 /** What to show when the player has not named their nation. */
 export function displayName(n: Nation): string {
   return n.name.trim() || 'The Nameless Reach';
+}
+
+/** A banner's name, said the way a person would — "first-seed" read aloud is nothing,
+ *  and a hand-drawn id already reads as a plain word once capitalised. */
+export function bannerName(id: BannerId): string {
+  return isRealmMark(id) ? REALM_MARKS[id].name : `${id[0]?.toUpperCase()}${id.slice(1)}`;
 }

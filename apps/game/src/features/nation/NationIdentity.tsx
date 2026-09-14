@@ -14,7 +14,7 @@ import type { Cell } from '@es3/core';
 import { Banner } from './Banner.js';
 import { BannerPicker } from './BannerPicker.js';
 import { NationNameField } from './NationNameField.js';
-import { displayName } from './nation.js';
+import { bannerName, displayName } from './nation.js';
 import type { BannerId } from './nation.js';
 import { useNation } from './useNation.js';
 import './nation.css';
@@ -40,7 +40,7 @@ export function NationIdentity({ owned }: { owned: readonly Cell[] }) {
         <button
           type="button"
           className="nation__flag"
-          aria-label={`Banner: ${nation.bannerId}. Change`}
+          aria-label={`Banner: ${bannerName(nation.bannerId)}. Change`}
           aria-expanded={picking}
           onClick={() => setPicking((v) => !v)}
         >

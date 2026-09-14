@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.86",
+    "date": "2026-09-14",
+    "notes": [
+      "Eighteen new banners join the six you already had: Metatron’s Cube, the Golden Spiral, the Ninefold Eye, a Merkaba and more — sacred geometry built from a rule rather than drawn by hand.",
+      "Your existing banner, if you already picked one, has not moved.",
+      "The picker scrolls now that it holds two dozen choices, and every option has a real name a screen reader can say."
+    ]
+  },
+  {
     "version": "0.5.85",
     "date": "2026-09-14",
     "notes": [

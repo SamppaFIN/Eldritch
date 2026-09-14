@@ -6,13 +6,46 @@
  * it does not animate. One `viewBox` of 48, scaled by `size`.
  */
 import type { BannerId } from './nation.js';
+import { REALM_MARKS, isRealmMark } from './realmMarks.js';
+import type { MarkInk, RealmMarkId } from './realmMarks.js';
 
 const GOLD = 'var(--sacred-gold, #ffd700)';
 const CYAN = 'var(--mystic-cyan, #00d4ff)';
 const PURPLE = 'var(--cosmic-purple, #4a1a5c)';
 
+/** A realm mark's ink, resolved to this project's CSS custom properties (with the same
+ *  literal fallback style the three hand-drawn colours above already use). */
+const MARK_INK: Readonly<Record<MarkInk, string>> = {
+  gold: GOLD,
+  cyan: CYAN,
+  green: 'var(--awareness-green, #00ff88)',
+  purple: PURPLE,
+  culture: 'var(--r-culture, #f07bb5)',
+  wisdom: 'var(--r-wisdom, #b07fe0)',
+  iron: 'var(--r-iron, #a9cbdb)',
+  timber: 'var(--r-timber, #5fae6a)',
+  stone: 'var(--r-stone, #a8b2c4)',
+  danger: 'var(--danger, #a63a3a)',
+  muted: 'var(--text-muted, #b8b0c4)',
+};
+
+/** A generated realm mark: circles and a path, one stroke colour, no fill (Sigil §04). */
+function realmMarkShape(id: RealmMarkId) {
+  const mark = REALM_MARKS[id];
+  const stroke = MARK_INK[mark.ink];
+  return (
+    <>
+      {mark.circles.map((c, i) => (
+        <circle key={i} cx={c.x} cy={c.y} r={c.r} stroke={stroke} />
+      ))}
+      {mark.d ? <path d={mark.d} stroke={stroke} /> : null}
+    </>
+  );
+}
+
 /** The paths for one banner. `sw` scales the stroke with the drawing. */
 function shape(id: BannerId) {
+  if (isRealmMark(id)) return realmMarkShape(id);
   switch (id) {
     case 'vesica':
       return (
@@ -68,13 +101,17 @@ export interface BannerProps {
 }
 
 export function Banner({ id, size = 44 }: BannerProps) {
+  // The document's realm marks are built in a 100×100 space (Sigil §04); the six
+  // hand-drawn originals are 48×48. Scaling one set's coordinates into the other's frame
+  // would have meant translating every hand-authored path — the viewBox moves instead.
+  const box = isRealmMark(id) ? 100 : 48;
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 48 48"
+      viewBox={`0 0 ${box} ${box}`}
       fill="none"
-      strokeWidth={2}
+      strokeWidth={box / 24}
       strokeLinecap="round"
       strokeLinejoin="round"
       role="img"

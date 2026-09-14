@@ -5,7 +5,7 @@
  * it opens inline under the flag in the Keep and closes on a pick.
  */
 import { Banner } from './Banner.js';
-import { BANNER_IDS } from './nation.js';
+import { BANNER_IDS, bannerName } from './nation.js';
 import type { BannerId } from './nation.js';
 
 export interface BannerPickerProps {
@@ -22,7 +22,7 @@ export function BannerPicker({ current, onPick }: BannerPickerProps) {
           type="button"
           className={`nation__banner-choice${id === current ? ' nation__banner-choice--on' : ''}`}
           aria-pressed={id === current}
-          aria-label={id}
+          aria-label={bannerName(id)}
           onClick={() => onPick(id)}
         >
           <Banner id={id} size={40} />
