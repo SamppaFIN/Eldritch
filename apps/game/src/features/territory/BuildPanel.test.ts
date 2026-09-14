@@ -3,7 +3,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { BuildRefusal, BuildingId } from '@es3/core';
-import { reason, splitBuildable, titleCase } from './BuildPanel.js';
+import { reason, splitBuildable } from './BuildPanel.js';
+import { titleCase } from './names.js';
 
 describe('titleCase', () => {
   it('turns a tech slug into a label', () => {

@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.90",
+    "date": "2026-09-15",
+    "notes": [
+      "When the Keep's own study runs out, it used to say \"every schoolless technology is known\" — jargon nobody asked for. It now says the rest is temple lore, and what that means: a temple of the right element, awake."
+    ]
+  },
+  {
     "version": "0.5.89",
     "date": "2026-09-15",
     "notes": [

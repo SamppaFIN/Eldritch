@@ -10,7 +10,7 @@ import { MetatronsCube, RitualButton } from '@es3/ui';
 import { shortNote } from './gateNote.js';
 import { TECHS, researchCost, timeToAfford } from '@es3/core';
 import type { ResourcePool, TechId, TechRefusal } from '@es3/core';
-import { titleCase } from './BuildPanel.js';
+import { titleCase } from './names.js';
 import { TECH_BLURB, techUnlocks, techYieldLine } from './catalogue.js';
 import type { ResearchBinding } from './useSelection.js';
 
@@ -110,7 +110,14 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
       ) : null}
 
       {research.options.length === 0 ? (
-        <p className="hearth-panel__line">Every schoolless technology is known.</p>
+        // BRDC-KEEP-008: "Every schoolless technology is known" told a player nothing
+        // about where the other six live — six of thirteen technologies are researched
+        // at a temple of their own element, not here, and this used to just go quiet.
+        // Same words `ManaPanel`'s own refusal already uses, for one law across the Keep.
+        <p className="hearth-panel__line">
+          The Keep's own study is complete. What is left is temple lore — a temple of the
+          right element must be awake first.
+        </p>
       ) : (
         research.options.map((id) => (
           <TechRow

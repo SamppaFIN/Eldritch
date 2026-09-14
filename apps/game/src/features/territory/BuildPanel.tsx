@@ -21,8 +21,6 @@ import { BUILDING_NAME as NAME, titleCase } from './names.js';
 import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
 import './build-panel.css';
 
-export { titleCase };
-
 const costLine = (cost: Readonly<Partial<ResourcePool>>): string =>
   Object.entries(cost)
     .map(([k, v]) => `${v} ${k}`)
