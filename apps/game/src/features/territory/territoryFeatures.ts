@@ -10,6 +10,7 @@ import {
   BLIGHT_EDGE_FACTOR,
   anomalyAt,
   blightLevel,
+  bountyOn,
   emptyCell,
   isCityState,
   neighboursOf,
@@ -86,6 +87,15 @@ export interface CellProperties {
   /** A Work worth seeing from a street away, or a village. Drawn over the hex, not in it. */
   landmark: string;
   landmarkColor: string;
+  /**
+   * What this hex was found to hold, drawn on the map (Sigil §03, BRDC-SIGIL-003).
+   *
+   * `''` unless the cell is both **mine** and **revealed** — the map must never draw
+   * something the reveal mechanic has not paid out yet. `bountyOn` is deterministic and
+   * would happily answer for an unrevealed hex; gating happens here; the whole reason
+   * `revealed` is threaded down to this function.
+   */
+  bounty: string;
   /** Blight, 0..1 (BRDC-BLIGHT-001) — how far the Void has crept in. Rendering only. */
   blight: number;
   /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
@@ -255,12 +265,18 @@ const LANDMARKS: ReadonlySet<string> = new Set([
 /** A village on the map is a place, not a building — one glyph for the whole settlement. */
 const VILLAGE_GLYPH = '⌂';
 
+/** No reveal state — most callers (tests, the editor) have none and must not invent one. */
+const EMPTY_REVEALED: Readonly<Record<H3Index, number>> = {};
+
 export function cellProperties(
   cell: Cell,
   me: PlayerId | null,
   now = 0,
   home: H3Index | null = null,
   isBorder = false,
+  /** Cells this player has revealed. Empty by default — most callers (tests, the
+   *  editor) have no reveal state and must not have to invent one. */
+  revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
 ): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const rival = cell.ownerId !== null && !mine;
@@ -273,6 +289,7 @@ export function cellProperties(
   const bg = newest ? buildingGlyph(newest.id) : null;
   const village = isCityState(cell.ownerId);
   const isLandmark = village || (newest !== undefined && LANDMARKS.has(newest.id));
+  const mineRevealed = mine && revealed[cell.h3] !== undefined;
   return {
     strength: cell.strength,
     mine,
@@ -294,6 +311,7 @@ export function cellProperties(
     buildingColor: bg?.color ?? '',
     landmark: village ? VILLAGE_GLYPH : isLandmark ? (bg?.char ?? '') : '',
     landmarkColor: village ? CITY_COLOUR : (bg?.color ?? ''),
+    bounty: mineRevealed ? (bountyOn(cell) ?? '') : '',
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.
     flag: mine && works.length === 0 ? FLAG_GLYPH : '',
@@ -307,11 +325,12 @@ export function cellToFeature(
   now = 0,
   home: H3Index | null = null,
   isBorder = false,
+  revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
 ): Feature<Polygon, CellProperties> {
   return {
     type: 'Feature',
     id: cell.h3,
-    properties: cellProperties(cell, me, now, home, isBorder),
+    properties: cellProperties(cell, me, now, home, isBorder, revealed),
     geometry: { type: 'Polygon', coordinates: [cellBoundary(cell.h3)] },
   };
 }
@@ -321,6 +340,7 @@ export function cellsToGeoJson(
   me: PlayerId | null,
   now = 0,
   home: H3Index | null = null,
+  revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
 ): FeatureCollection<Polygon, CellProperties> {
   // A border cell is one of mine with at least one neighbour I do not hold — the blight
   // creeps in from there, so it is drawn a little deeper (BRDC-BLIGHT-001).
@@ -329,6 +349,6 @@ export function cellsToGeoJson(
     c.ownerId === me && neighboursOf(c.h3).some((n) => !ownedH3.has(n));
   return {
     type: 'FeatureCollection',
-    features: cells.map((cell) => cellToFeature(cell, me, now, home, isBorder(cell))),
+    features: cells.map((cell) => cellToFeature(cell, me, now, home, isBorder(cell), revealed)),
   };
 }

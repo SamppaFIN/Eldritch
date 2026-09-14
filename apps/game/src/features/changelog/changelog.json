@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.85",
+    "date": "2026-09-14",
+    "notes": [
+      "A revealed find now stands on its own hex — a wheat sheaf, a gem, a fish, a chunk of granite — the same thing you already saw named in the cell card and the ledger, drawn where it actually is.",
+      "It only appears once you have revealed the hex. Nothing changes about finding: this is what happens after, not a new way to see ahead of it."
+    ]
+  },
+  {
     "version": "0.5.84",
     "date": "2026-09-14",
     "notes": [

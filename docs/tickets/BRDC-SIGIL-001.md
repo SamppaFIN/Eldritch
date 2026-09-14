@@ -53,7 +53,7 @@ Dokumentin loput, karkeasti työmäärän mukaan:
 | Osa | Miksi ei nyt |
 |---|---|
 | ~~**Isometrinen maastokirjasto**~~ | ✅ **Tehty `BRDC-SIGIL-002`:ssa** (v0.5.84) — seitsemän maastolaattaa kartalla |
-| **Bonusresurssien spritet** (12) | Sama polku kuin yllä; seuraa sitä |
+| ~~**Bonusresurssien spritet**~~ | ✅ **Tehty `BRDC-SIGIL-003`:ssa** (v0.5.85) — kymmenen ikonia, kartalle paljastuksen jälkeen |
 | **20 valtakuntamerkkiä** | Dokumentti antaa generaattorit (`ring`, `poly`, `chords`, `pairs`) — merkki on ~40 tavua dataa. Halpa *kun* generaattorit on portattu |
 | **20 avataria** | Yksi jaettu `<symbol>`-arkki, `currentColor`. Suoraviivaista mutta paljon |
 | **Seitsemän ruutua** | Jokainen on oma tikettinsä. `BRDC-DETAIL-001`, `-KEEP-008`, `-CHAR-002`, `-NAV-001` ovat jo olemassa ja odottavat juuri tätä |

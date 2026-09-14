@@ -67,6 +67,7 @@ import './map.css';
 /** Stable defaults, so an absent prop does not re-fire the terrain resolver each render. */
 const NO_CELLS: readonly Cell[] = [];
 const noResolve = (_: TerrainUpdate[]): void => {};
+const EMPTY_REVEALED: Readonly<Record<H3Index, number>> = {};
 
 export interface MapCanvasProps {
   /** Where to open the camera. Later fixes move the player, not the map's identity. */
@@ -83,11 +84,9 @@ export interface MapCanvasProps {
   auraCells?: readonly string[];
   /** Trade Routes, drawn as lines between the cells they bind (BRDC-BUILD-004). */
   tradeRoutes?: readonly TradeRoute[];
-  /** Visible territory. */
-  cells?: readonly Cell[];
+  cells?: readonly Cell[]; // visible territory
   playerId?: PlayerId | null;
-  /** Cells the game has worked out are places. */
-  places?: readonly RevealedPlace[];
+  places?: readonly RevealedPlace[]; // cells the game has worked out are places
   /** Adventure landmark ids the map should draw right now (BRDC-QUEST-001). */
   questSites?: readonly string[];
   /** The Keep — the published location, the Hearth cell (BRDC-CASTLE-001). Null before one exists. */
@@ -108,8 +107,7 @@ export interface MapCanvasProps {
    * lives here only because the grid and drag-painting need the map itself.
    */
   editor?: Editor | undefined;
-  /** Called when an Anchor Stone or temple marker is tapped. */
-  onPlaceTap?: (h3: string) => void;
+  onPlaceTap?: (h3: string) => void; // an Anchor Stone or temple marker is tapped
   /** Called when the Keep marker is tapped — opens the nation panel. */
   onCastleTap?: () => void;
   /** Called when the viewport settles, so the caller can query that region. */
@@ -121,6 +119,7 @@ export interface MapCanvasProps {
   /** Draw every Work as its own isometric icon (BRDC-ART-003). Off = the single glyph. */
   buildingIcons?: boolean;
   bannerId?: BannerId | null; // the Keep banner, drawn on held hexes (BRDC-BANNER-001)
+  revealed?: Readonly<Record<H3Index, number>>; // revealed cells (BRDC-SIGIL-003) — gates the bounty layer
   onBasemapChange?: (state: BasemapState) => void;
 }
 
@@ -147,6 +146,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   initialZoom,
   buildingIcons = true,
   bannerId = null,
+  revealed = EMPTY_REVEALED,
   onBasemapChange,
   onCellTap,
   editor,
@@ -231,8 +231,8 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
 
   useEffect(() => {
     if (!map || !ready || !cells) return;
-    setTerritoryData(map, cells, playerId, now, castle, bannerId);
-  }, [map, ready, cells, playerId, now, castle, bannerId]);
+    setTerritoryData(map, cells, playerId, now, castle, bannerId, revealed);
+  }, [map, ready, cells, playerId, now, castle, bannerId, revealed]);
 
   /*
    * Tapping a hexagon. A rendered cell carries its H3 as the feature id; a tap on none

@@ -15,7 +15,8 @@ import type { BannerId } from '../nation/nation.js';
 import { bannerSpriteId, rasteriseBanners } from '../nation/bannerSprites.js';
 export { bannerSpriteId };
 import { TERRAIN_KINDS, rasteriseTerrain, terrainSpriteId } from './terrainSprites.js';
-import { CELL_FLAG_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER } from './layerIds.js';
+import { BOUNTY_SPRITE_IDS, bountySpriteId, rasteriseBounty } from './bountySprites.js';
+import { CELL_BOUNTY_LAYER, CELL_FLAG_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER } from './layerIds.js';
 import { ENEMY_FILL, OWN_FILL } from './territoryFeatures.js';
 
 /**
@@ -51,6 +52,25 @@ export async function addTerrainSprites(map: MapLibreMap): Promise<void> {
   if (map.getLayer(CELL_ICON_LAYER)) map.setLayoutProperty(CELL_ICON_LAYER, 'visibility', 'none');
   if (map.getLayer(CELL_GROUND_LAYER)) {
     map.setLayoutProperty(CELL_GROUND_LAYER, 'visibility', 'visible');
+  }
+}
+
+/**
+ * Draw the ten bounty icons into the atlas (Sigil §03, BRDC-SIGIL-003).
+ *
+ * No fallback to flip away from: unlike terrain, nothing was ever drawn on the map for a
+ * bounty before this, so a platform with no canvas simply keeps showing nothing —
+ * identical to today's behaviour, not a regression from it.
+ */
+export async function addBountySprites(map: MapLibreMap): Promise<void> {
+  if (BOUNTY_SPRITE_IDS.every((id) => map.hasImage(bountySpriteId(id)))) return;
+  const images = await rasteriseBounty();
+  if (!images) return;
+  for (const [id, data] of images) {
+    if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
+  }
+  if (map.getLayer(CELL_BOUNTY_LAYER)) {
+    map.setLayoutProperty(CELL_BOUNTY_LAYER, 'visibility', 'visible');
   }
 }
 

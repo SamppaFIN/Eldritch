@@ -124,10 +124,9 @@ export function MapView({ onLeave }: MapViewProps) {
   });
 
   // Stable primitives, not a fresh `clock` object each render (BRDC-ECON-003 field bug).
-  // `castle` is here because the Hearth is founded *after* the repository exists
-  // (BRDC-ECON-008): the first read saw an empty pouch, the founding stash landed a moment
-  // later, and nothing asked again for a minute — so the HUD showed nothing and the build
-  // menu, which judges affordability from this same copy, refused everything.
+  // `castle` is here because the Hearth founds *after* the repository exists (BRDC-ECON-008):
+  // the first read saw an empty pouch and nothing asked again, so the HUD and the build menu
+  // — which judges affordability from this same copy — both went stale for a minute.
   const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length, castle];
   const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
   const [collected, setCollected] = useState<Collected | null>(null);
@@ -230,6 +229,7 @@ export function MapView({ onLeave }: MapViewProps) {
         initialZoom={openingZoom}
         buildingIcons={settings.buildingIcons}
         bannerId={nation.bannerId}
+        revealed={discovery.revealed}
         onBasemapChange={setBasemap}
         // While the editor is open the map belongs to it: a tap paints and must not also
         // open a cell card (BRDC-MAP-EDIT-002).
