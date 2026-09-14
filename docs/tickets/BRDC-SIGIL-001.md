@@ -56,11 +56,35 @@ Dokumentin loput, karkeasti työmäärän mukaan:
 | ~~**Bonusresurssien spritet**~~ | ✅ **Tehty `BRDC-SIGIL-003`:ssa** (v0.5.85) — kymmenen ikonia, kartalle paljastuksen jälkeen |
 | ~~**Valtakuntamerkit**~~ | ✅ **Tehty `BRDC-SIGIL-004`:ssä** (v0.5.86) — 18 generoitua merkkiä, kääntäjän pakottama täydellisyys |
 | ~~**20 avataria**~~ | ✅ **Tehty `BRDC-SIGIL-005`:ssä** (v0.5.87) — oma kasvo You-ruudulla |
-| **Seitsemän ruutua** | Jokainen on oma tikettinsä. `BRDC-DETAIL-001`, `-KEEP-008`, `-CHAR-002`, `-NAV-001` ovat jo olemassa ja odottavat juuri tätä |
+| ~~**Seitsemän ruutua**~~ | ✅ **Käyty läpi 2026-09-15** (v0.5.88–0.5.93) — ks. taulukko alla |
 | **Refraktiokerros** (L1) | `feTurbulence` + `feDisplacementMap`, yksi GPU-pass per pane. Tätä peliä pelataan puhelimella tunti kerrallaan; se on päätös jonka takana pitää olla akkumittaus |
 
 **Lasibudjetti dokumentista, ei vielä valvottu:** enintään kolme elävää
 `backdrop-filter`-pintaa per ruutu. Kirjattu tähän ettei se unohdu kun ruudut tehdään.
+
+### Seitsemän ruutua — mitä kustakin löytyi (2026-09-15)
+
+Infiniten päätöksellä edettiin suoraan dokumentin mukaan ilman erillistä läpikäyntiä.
+Jokainen ruutu **auditoitiin koodia vasten** ennen koskemista, ja kolmessa tapauksessa
+vanha suunnitelma osoittautui vanhentuneeksi — se on tulos siinä missä korjauskin.
+
+| Ruutu | Tulos |
+|---|---|
+| **Here / soludetail** | `BRDC-DETAIL-001` (v0.5.88) — omistus ja "täällä" omiksi merkeikseen, tuotto väritetty, kaksi kahdentumaa pois, `CellHeader.tsx` suunniteltuna jakona |
+| **Keep** | `BRDC-KEEP-008` (v0.5.89) — kaksi virhettä (valheellinen yksityisyyslupaus, väärään kysymykseen vastaava rivi) + `formatArea` kolmesta yhteen |
+| **Research** | `BRDC-TECH-003` (v0.5.90) — "schoolless"-jargon pois, `titleCase` oikeasta moduulista |
+| **You** | `BRDC-CHAR-002` (v0.5.91) — ruutu on "You", kuten nappi joka sen avaa |
+| **Asetukset / navigointi** | `BRDC-NAV-001` (v0.5.92) — avaaminen ja lopettaminen erotettu, `Empty the pouch` merkitty tuhoavaksi |
+| **Codex** | `BRDC-CODEX-003` (v0.5.93) — väli seuraavaan sijaan, tasapelit mukaan lukien |
+| **Kartan chrome** | **Ei tehtävää.** `BRDC-HUD-004` oli jo korjannut päällekkäin piirtyvät ilmoitukset pinoksi, ja `--dev`-luokalla on sääntö. Vanha RED oli vanhentunut — todennettu tiedostosta, ei oletettu |
+
+**Kartan heksa itse (dokumentin "03 · The Hex")** ei ole yksi seitsemästä ruudusta, ja se
+tarkistettiin erikseen: dokumentin omat neljä *"ilman napautusta"* -faktaa ovat kaikki jo
+kartalla — omistajan veto, bonusresurssi maassa (`BRDC-SIGIL-003`), rakennus, ja temppeli
+/ Anchor Stone (`PlaceMarkers.ts`, halo + nimi). Puuttuvat osat (naapurilaskuri,
+vahvuuskaari, isometriset rakennukset) ovat dokumentin **oman** määrittelyn mukaan
+*"second tier and may be quiet"* — ja kartta on jo kerran siivottu glyfiseinästä
+(v0.5.84). Ei rakennettu; jos kentältä tulee raportti, se on oma tikettinsä.
 
 ## Todennus
 
