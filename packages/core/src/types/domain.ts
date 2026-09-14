@@ -223,6 +223,17 @@ export interface TrailResult {
    * keepalive is worth turning on.
    */
   unobservedMs: number;
+  /**
+   * Distinct hexes this walk stood on and could not take, because they touch nothing
+   * the walker already holds (`growInto`'s `not-adjacent`).
+   *
+   * Surfaced for the same reason `unobservedMs` is (BRDC-GPX-003): the rule is
+   * deliberate — ground must touch ground, or a bad fix founds a colony across town —
+   * but silence about it is indistinguishable from a broken game. An imported track
+   * recorded away from the player's realm takes nothing at all, and before this the
+   * import reported "38 walked" and had no way to say why none of it became theirs.
+   */
+  outOfReach: number;
 }
 
 /**

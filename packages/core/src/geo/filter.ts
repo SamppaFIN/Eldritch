@@ -91,6 +91,7 @@ export function filterTrail(previous: TrailPoint | null, points: readonly TrailP
       grown: [],
       revealed: [],
       unobservedMs: 0,
+      outOfReach: 0,
     },
   };
 }

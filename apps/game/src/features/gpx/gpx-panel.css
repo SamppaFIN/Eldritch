@@ -86,6 +86,15 @@
   font-size: var(--text-sm);
 }
 
+/* Why a track that landed in full still won no ground (BRDC-GPX-003). Warm rather than
+   red: nothing failed, a rule applied — and the rule is the useful part. */
+.gpx__reach {
+  margin: 0;
+  color: var(--accent-warm);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
 .gpx__fault {
   margin: 0;
   color: var(--danger);

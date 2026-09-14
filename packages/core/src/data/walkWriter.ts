@@ -35,7 +35,12 @@ export interface WalkRecord {
   grown: CaptureOutcome[];
   xp: number;
   /** The part of TrailResult that a walk produces. */
-  trail: { grown: CaptureOutcome[]; revealed: RevealedPlace[]; unobservedMs: number };
+  trail: {
+    grown: CaptureOutcome[];
+    revealed: RevealedPlace[];
+    unobservedMs: number;
+    outOfReach: number;
+  };
 }
 
 /**
@@ -88,6 +93,15 @@ export async function recordWalk(
   return {
     grown,
     xp: taken * XP_PER_CELL_CLAIMED,
-    trail: { grown, revealed: plan.revealed, unobservedMs: plan.unobservedMs },
+    trail: {
+      grown,
+      revealed: plan.revealed,
+      unobservedMs: plan.unobservedMs,
+      // Distinct hexes, not points: a track logging every second stands on the same
+      // unreachable hex fifty times, and "50 out of reach" would be a lie about ground.
+      outOfReach: new Set(
+        plan.steps.filter((s) => s.skipped === 'not-adjacent').map((s) => s.h3),
+      ).size,
+    },
   };
 }

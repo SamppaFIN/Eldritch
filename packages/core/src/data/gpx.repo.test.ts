@@ -7,7 +7,7 @@
  * accrues the same way.
  */
 import { describe, expect, it } from 'vitest';
-import { EMPTY_POOL, parseGpx } from '@es3/core';
+import { EMPTY_POOL, cellAt, parseGpx } from '@es3/core';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
@@ -91,5 +91,54 @@ describe('an imported track and a walked one', () => {
       expect(p.lat).toBeCloseTo(points[i]?.lat ?? 0, 9);
       expect(p.t).toBe(points[i]?.t);
     }
+  });
+});
+
+/*
+ * BRDC-GPX-003, reported from the field: *"importista tulleet heksat eivät tulleet mulle."*
+ *
+ * A track recorded away from the realm takes nothing, and that is the adjacency rule
+ * doing its job — ground must touch ground, or a stray fix founds a colony across town
+ * (`growInto`). What was missing was the game *saying* so: the import counted the fixes
+ * it accepted and went quiet about the ground it could not take, which reads as a broken
+ * import rather than as a rule.
+ */
+describe('a track recorded away from the realm', () => {
+  /** The same eight-point walk, two kilometres north of anything the player holds. */
+  const farWalk = (): TrailPoint[] =>
+    walk().map((p) => ({ ...p, lat: p.lat + 0.02 }));
+
+  it('takes no ground, because none of it touches ground already held', async () => {
+    const home = await groundAfter([]);
+    const after = await groundAfter(farWalk());
+    expect(after).toEqual(home);
+  });
+
+  it('reports how many hexes were out of reach rather than going quiet', async () => {
+    const r = await repo();
+    const run = await r.startRun(T0);
+    const result = await r.submitTrail(run, farWalk());
+
+    expect(result.accepted).toBe(8);
+    expect(result.grown.filter((g) => g.kind === 'claimed')).toHaveLength(0);
+    expect(result.outOfReach).toBeGreaterThan(0);
+  });
+
+  it('counts hexes, not fixes — several fixes stand on the same hex', async () => {
+    const points = farWalk();
+    const r = await repo();
+    const run = await r.startRun(T0);
+    const result = await r.submitTrail(run, points);
+
+    expect(result.outOfReach).toBe(new Set(points.map((p) => cellAt(p))).size);
+    // And that is genuinely fewer than the fixes, or the assertion above proves nothing.
+    expect(result.outOfReach).toBeLessThan(points.length);
+  });
+
+  it('is zero on a walk that starts on the player own ground', async () => {
+    const r = await repo();
+    const run = await r.startRun(T0);
+    const result = await r.submitTrail(run, walk());
+    expect(result.outOfReach).toBe(0);
   });
 });

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.94",
+    "date": "2026-09-15",
+    "notes": [
+      "An imported walk now says when it could not take the ground it crossed. Ground has to touch ground you already hold — the same rule your feet follow — so a track recorded away from your realm takes nothing, and the import used to go quiet about it rather than saying so.",
+      "It counts hexes, not fixes: a track logging every second stands on the same hex many times over."
+    ]
+  },
+  {
     "version": "0.5.93",
     "date": "2026-09-15",
     "notes": [

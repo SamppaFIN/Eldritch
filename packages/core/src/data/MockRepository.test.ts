@@ -153,7 +153,7 @@ describe('submitTrail', () => {
   it('survives an empty batch', async () => {
     const id = await repo.startRun(T0);
     const result = await repo.submitTrail(id, []);
-    expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0, grown: [], revealed: [], unobservedMs: 0 });
+    expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0, grown: [], revealed: [], unobservedMs: 0, outOfReach: 0 });
   });
 });
 
