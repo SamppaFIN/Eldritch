@@ -55,7 +55,7 @@ Dokumentin loput, karkeasti työmäärän mukaan:
 | ~~**Isometrinen maastokirjasto**~~ | ✅ **Tehty `BRDC-SIGIL-002`:ssa** (v0.5.84) — seitsemän maastolaattaa kartalla |
 | ~~**Bonusresurssien spritet**~~ | ✅ **Tehty `BRDC-SIGIL-003`:ssa** (v0.5.85) — kymmenen ikonia, kartalle paljastuksen jälkeen |
 | ~~**Valtakuntamerkit**~~ | ✅ **Tehty `BRDC-SIGIL-004`:ssä** (v0.5.86) — 18 generoitua merkkiä, kääntäjän pakottama täydellisyys |
-| **20 avataria** | Yksi jaettu `<symbol>`-arkki, `currentColor`. Suoraviivaista mutta paljon |
+| ~~**20 avataria**~~ | ✅ **Tehty `BRDC-SIGIL-005`:ssä** (v0.5.87) — oma kasvo You-ruudulla |
 | **Seitsemän ruutua** | Jokainen on oma tikettinsä. `BRDC-DETAIL-001`, `-KEEP-008`, `-CHAR-002`, `-NAV-001` ovat jo olemassa ja odottavat juuri tätä |
 | **Refraktiokerros** (L1) | `feTurbulence` + `feDisplacementMap`, yksi GPU-pass per pane. Tätä peliä pelataan puhelimella tunti kerrallaan; se on päätös jonka takana pitää olla akkumittaus |
 

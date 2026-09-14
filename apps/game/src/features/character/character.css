@@ -38,6 +38,60 @@
   padding-inline: 0;
 }
 
+/* Your sigil beside your name (Sigil §04, BRDC-SIGIL-005) — identity first, the same
+   call `NationIdentity` makes for the Keep. */
+.character__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.character__avatar-flag {
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.character__name-wrap {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.character__avatar-picker {
+  /* The panel itself already scrolls (`.character { overflow-y: auto }`) — a second,
+     nested scroll container here trapped a thumb inside twenty tiles instead of the
+     whole sheet, and confused more than one test's own scroll-into-view. */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+}
+
+.character__avatar-choice {
+  display: grid;
+  place-items: center;
+  min-block-size: var(--touch-min);
+  padding: var(--space-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.character__avatar-choice--on {
+  border-color: var(--sacred-gold);
+  outline: 1px solid var(--sacred-gold);
+}
+
+.character__avatar-choice:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
 .character__label {
   color: var(--text-dim);
   font-size: var(--text-sm);

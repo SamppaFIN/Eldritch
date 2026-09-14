@@ -12,6 +12,10 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import type { HelpTopic } from '../help/help.js';
 import { relativeTime } from '../log/describe.js';
 import { Heptagram } from '../cipher/heptagram.js';
+import { Avatar, AVATAR_META } from './Avatar.js';
+import { AvatarPicker } from './AvatarPicker.js';
+import { readAvatarId, writeAvatarId } from './avatarIds.js';
+import type { AvatarId } from './avatarIds.js';
 import { milestoneForLevel, visibleMilestones } from './consciousness.js';
 import { useCharacter } from './useCharacter.js';
 import './character.css';
@@ -74,6 +78,16 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
   const [draft, setDraft] = useState('');
   const ref = useRef<HTMLElement>(null);
 
+  // Local to this screen (BRDC-SIGIL-005) — nothing else in the game reads your sigil,
+  // unlike the nation banner the map also draws, so this needs none of `useNation`'s
+  // cross-component wiring.
+  const [avatar, setAvatar] = useState<AvatarId>(readAvatarId);
+  const [pickingAvatar, setPickingAvatar] = useState(false);
+  const pickAvatar = (id: AvatarId) => {
+    setAvatar(writeAvatarId(id));
+    setPickingAvatar(false);
+  };
+
   // Seed the draft from the stored name — on open, and if the name genuinely changes.
   // Kept off `onClose`, which MapView passes as a fresh arrow every render: with it in the
   // deps this ran on every parent re-render, wiping a half-typed name before blur could
@@ -112,18 +126,33 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
         </RitualButton>
       </div>
 
-      <label className="character__label" htmlFor="character-name">
-        Name
-      </label>
-      <input
-        id="character-name"
-        className="character__name"
-        value={draft}
-        maxLength={24}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === 'Enter' && commit()}
-      />
+      <div className="character__identity">
+        <button
+          type="button"
+          className="character__avatar-flag"
+          aria-label={`Sigil: ${AVATAR_META[avatar].name}. Change`}
+          aria-expanded={pickingAvatar}
+          onClick={() => setPickingAvatar((v) => !v)}
+        >
+          <Avatar id={avatar} size={52} />
+        </button>
+        <div className="character__name-wrap">
+          <label className="character__label" htmlFor="character-name">
+            Name
+          </label>
+          <input
+            id="character-name"
+            className="character__name"
+            value={draft}
+            maxLength={24}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === 'Enter' && commit()}
+          />
+        </div>
+      </div>
+
+      {pickingAvatar ? <AvatarPicker current={avatar} onPick={pickAvatar} /> : null}
 
       <h3 className="character__section">Consciousness</h3>
       <p className="character__level es-numeric">

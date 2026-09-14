@@ -85,3 +85,26 @@ test('a generated realm mark reaches the map flag layer too', async ({ page }) =
   });
   expect(hasImage).toBe(true);
 });
+
+/*
+ * BRDC-SIGIL-005. "Your Sigil" — a personal face, distinct from the nation's banner,
+ * shown only on the You screen. Proved the same way the banner picker above is: opens,
+ * offers every option, reaches the right name on the button, and survives a reopen.
+ */
+test('a sigil picked on the You screen sticks over a reopen', async ({ page }) => {
+  test.setTimeout(60_000);
+  await openMap(page, HERE);
+
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  await page.getByRole('button', { name: /^Sigil:/ }).click();
+
+  const picker = page.getByRole('group', { name: 'Choose a sigil' });
+  await expect(picker.getByRole('button')).toHaveCount(20);
+  await picker.getByRole('button', { name: 'Shoggoth' }).click();
+
+  await expect(page.getByRole('button', { name: /^Sigil: Shoggoth/ })).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  await expect(page.getByRole('button', { name: /^Sigil: Shoggoth/ })).toBeVisible();
+});
