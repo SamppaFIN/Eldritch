@@ -38,11 +38,48 @@
   --danger: oklch(0.65 0.21 25);
   --warning: var(--sacred-gold);
 
-  /* --- Glass (v2) -------------------------------------------------------- */
+  /* --- The resource colour law (Sigil, 2026-09-13) -------------------------
+     One hue per resource, everywhere it is ever named — a number, an icon, a tech
+     effect, a leaderboard row. It is the one rule that makes a dense screen scannable at
+     walking pace, and its corollary is blunt: **a grey resource number is a bug.**
+
+     Not new colours in the sense §13 forbids: gold *is* --sacred-gold and mana *is*
+     --mystic-cyan, and the rest are the scale those two already implied. Naming them is
+     what lets `resourceInk()` be a lookup instead of a decision in nine places. */
+  --r-timber: oklch(0.66 0.13 145);
+  --r-stone: oklch(0.72 0.055 255);
+  --r-iron: oklch(0.82 0.05 225);
+  --r-food: oklch(0.84 0.19 142);
+  --r-gold: oklch(0.86 0.17 92); /* = --sacred-gold */
+  --r-wisdom: oklch(0.70 0.16 305);
+  --r-mana: oklch(0.79 0.14 220); /* = --mystic-cyan */
+  --r-culture: oklch(0.73 0.18 350);
+  --r-token: oklch(0.90 0.15 100);
+
+  /* --- Glass (v2, deepened by Sigil) ---------------------------------------
+     Glass is a *chrome* material and nothing else. Text and numbers render at full
+     opacity above it, never inside a translucent block — that is what keeps contrast in
+     daylight, and it is the rule the pretty version of this most wants to break. */
   --glass-bg: oklch(0.20 0.05 315 / 0.7);
   --glass-border: oklch(1 0 0 / 0.1);
-  --glass-shadow: 0 8px 32px oklch(0 0 0 / 0.37);
-  --glass-blur: 12px;
+  --glass-shadow: 0 18px 48px oklch(0.07 0.03 300 / 0.7);
+  --glass-blur: 22px;
+  --glass-sat: 185%;
+  /* A pane has a body colour, not merely transparency. Deep is for anything that must be
+     read rather than seen through. */
+  --glass-tint: linear-gradient(
+    150deg,
+    oklch(0.42 0.09 315 / 0.5),
+    oklch(0.2 0.05 300 / 0.34) 46%,
+    oklch(0.3 0.07 250 / 0.42)
+  );
+  --glass-tint-deep: oklch(0.22 0.055 308 / 0.74);
+  /* One light source, upper left. A hairline top edge and a soft corner bloom — never a
+     full border highlight, which reads as a sticker rather than as glass. */
+  --glass-spec: oklch(1 0 0 / 0.42);
+  --glass-bloom: radial-gradient(120% 70% at 8% -10%, oklch(1 0 0 / 0.22), transparent 56%);
+  /* Daylight, low battery and prefers-reduced-transparency all land on this one flip. */
+  --plate: oklch(0.175 0.045 305 / 0.94);
 
   /* --- Territory --------------------------------------------------------- */
   --cell-own-fill: oklch(0.324 0.118 315.4 / 0.35);
@@ -190,13 +227,74 @@ svg {
    Utility primitives
    ========================================================================== */
 
+/* True liquid glass (Sigil §02).
+
+   Four layers rather than one `backdrop-filter`: the pane blurs and lifts the saturation
+   of what is behind it, carries a body colour of its own, and catches a specular bloom in
+   its upper-left corner. The content is a *sibling above* all of it at full opacity — the
+   sunlight clause, and the thing that makes this legible outdoors rather than merely
+   pretty indoors.
+
+   The refraction pass the design also specifies (feTurbulence + feDisplacementMap) is
+   deliberately not here: it needs an SVG filter mounted at app root and it costs a GPU
+   pass per pane, and this game is played on a phone for an hour at a time. The other four
+   layers carry the look; that one is a later call with a battery measurement behind it. */
 .es-glass {
-  background: var(--glass-bg);
+  position: relative;
+  isolation: isolate;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-spec);
+  background: var(--glass-tint), var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+/* L4, the corner bloom. A pseudo-element so it sits under the content without the caller
+   having to know it exists. */
+.es-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-bloom);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Anything that must be *read* rather than seen through. Reading beats transparency. */
+.es-glass--deep {
+  background: var(--glass-tint-deep);
+}
+
+/* Direct sun is the one condition glass cannot win, and it is the condition this game is
+   played in. One flip: the blur goes, the tint becomes an opaque plate, and the geometry,
+   type and hues are untouched. It doubles as the low-battery and reduced-transparency
+   answer, which is why it is a token swap and not a second design. */
+[data-daylight] .es-glass,
+[data-daylight] .es-glass--deep {
+  background: var(--plate);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: oklch(1 0 0 / 0.22);
+  box-shadow: 0 10px 28px oklch(0.07 0.03 300 / 0.6);
+}
+
+[data-daylight] .es-glass::before {
+  display: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .es-glass,
+  .es-glass--deep {
+    background: var(--plate);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .es-glass::before {
+    display: none;
+  }
 }
 
 .es-numeric {

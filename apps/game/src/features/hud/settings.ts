@@ -21,6 +21,15 @@ export interface Settings {
    */
   buildingIcons: boolean;
   /**
+   * Trade the glass for an opaque plate (Sigil §02, "daylight mode").
+   *
+   * Direct sun is the one condition a translucent pane cannot win, and this game is
+   * played in it. The flip drops the blur entirely and swaps the tint for `--plate` at
+   * 0.94 alpha — same geometry, same type, same hues, and no GPU cost. It doubles as the
+   * answer for a failing battery.
+   */
+  daylight: boolean;
+  /**
    * Show a rival cell's full detail — strength, decay, where it was seen from
    * (BRDC-WAGER-JSON-007). Off leaves a rival cell as "held by another" and the red
    * ring. On by default: among friends, the point is to see each other's reach.
@@ -43,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   vibration: true,
   loopClosure: false,
   buildingIcons: true,
+  daylight: false,
   revealRivals: true,
   shareWorld: false,
 };
@@ -54,6 +64,7 @@ export function loadSettings(): Settings {
     vibration: stored.vibration ?? DEFAULT_SETTINGS.vibration,
     loopClosure: stored.loopClosure ?? DEFAULT_SETTINGS.loopClosure,
     buildingIcons: stored.buildingIcons ?? DEFAULT_SETTINGS.buildingIcons,
+    daylight: stored.daylight ?? DEFAULT_SETTINGS.daylight,
     revealRivals: stored.revealRivals ?? DEFAULT_SETTINGS.revealRivals,
     shareWorld: stored.shareWorld ?? DEFAULT_SETTINGS.shareWorld,
   };

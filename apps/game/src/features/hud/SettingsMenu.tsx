@@ -114,6 +114,7 @@ export function SettingsMenu({
     ['vibration', 'Vibration'],
     ['loopClosure', 'Claim by closing a loop'],
     ['buildingIcons', 'Building icons on the map'],
+    ['daylight', 'Daylight mode — solid panels, easier in sun'],
     ['revealRivals', "Show a rival cell's full detail"],
     ['shareWorld', 'Share the world — see nearby realms, and let them see yours'],
   ];

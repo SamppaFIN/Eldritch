@@ -172,3 +172,29 @@ test('nothing shifts under the player as the map arrives', async ({ page }) => {
 
   expect(cls, `CLS ${cls.toFixed(3)} across the map transition`).toBeLessThan(0.1);
 });
+
+/*
+ * Sigil §02, the daylight clause. Direct sun is the one condition glass cannot win, and
+ * this game is played in it — so the flip has to be a real switch that reaches every pane,
+ * not a token nobody can turn on.
+ */
+test('daylight mode trades the glass for a solid plate, everywhere at once', async ({ page }) => {
+  await openMap(page);
+
+  // The HUD's own pane: always mounted, always on screen. The first `.es-glass` in the
+  // document is a sheet that has not been opened yet.
+  const pane = page.locator('.hud__panel');
+  await expect(pane).toBeVisible({ timeout: 20_000 });
+  const blurred = await pane.evaluate((el) => getComputedStyle(el).backdropFilter);
+  expect(blurred).toContain('blur');
+
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('switch', { name: /Daylight mode/ }).click();
+  await page.keyboard.press('Escape');
+
+  // One attribute on the root, so a pane that has not mounted yet is already covered.
+  await expect(page.locator('html')).toHaveAttribute('data-daylight', '');
+  await expect
+    .poll(() => pane.evaluate((el) => getComputedStyle(el).backdropFilter), { timeout: 5_000 })
+    .toBe('none');
+});

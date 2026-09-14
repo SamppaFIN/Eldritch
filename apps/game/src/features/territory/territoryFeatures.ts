@@ -101,16 +101,50 @@ export const FLAG_COLOR = '#ffd700';
  * One colour per resource the ground can give. Drives both the map's terrain glyph and
  * the same glyph in `CellPanel`, so a lake reads the same colour in both places.
  */
+/**
+ * The colour law: one hue per resource, everywhere it is ever named (Sigil §01).
+ *
+ * A number, an icon, a tech effect, a leaderboard row — wherever food is named it is food
+ * green. It is the one rule that makes a dense screen scannable at walking pace, and the
+ * corollary is blunt: **a grey resource number is a bug.**
+ *
+ * These read from `tokens.css` rather than repeating hex here, so a palette change lands
+ * once. The old literals were close to these already; the difference is that the token is
+ * now the single definition and this table is the lookup.
+ *
+ * `var()` is fine everywhere the browser resolves it — CSS, inline styles, SVG paint. The
+ * one place it is not is a MapLibre paint expression, which is why `mapResourceColour`
+ * exists below.
+ */
 export const RESOURCE_COLOUR: Readonly<Record<ResourceKind, string>> = {
-  wood: '#7cbf63',
-  stone: '#b8b0a0',
-  iron: '#9aa7b3',
-  food: '#6fcf8f',
-  gold: '#e0b04a',
-  wisdom: '#b98fd6',
+  wood: 'var(--r-timber)',
+  stone: 'var(--r-stone)',
+  iron: 'var(--r-iron)',
+  food: 'var(--r-food)',
+  gold: 'var(--r-gold)',
+  wisdom: 'var(--r-wisdom)',
+  mana: 'var(--r-mana)',
+  culture: 'var(--r-culture)',
+  tokens: 'var(--r-token)',
+};
+
+/**
+ * The same law, resolved, for the map.
+ *
+ * MapLibre parses paint values itself and has never heard of a custom property, so the
+ * hex has to be literal here. Kept beside its `var()` twin and in the same order, because
+ * two colour tables in two files is how the law quietly stops being one.
+ */
+export const MAP_RESOURCE_COLOUR: Readonly<Record<ResourceKind, string>> = {
+  wood: '#5fae6a',
+  stone: '#a8b2c4',
+  iron: '#a9cbdb',
+  food: '#6fdc8c',
+  gold: '#ffd700',
+  wisdom: '#b07fe0',
   mana: '#00d4ff',
-  culture: '#e08fb0',
-  tokens: '#ffd700',
+  culture: '#f07bb5',
+  tokens: '#ffd84d',
 };
 
 /** The word the pouch uses for each resource — "timber", not "wood". */
@@ -146,7 +180,8 @@ export function terrainGlyph(kind: TerrainKind): { char: string; color: string }
   const char = TERRAIN_CHAR[kind];
   if (!char) return null;
   const resource = TERRAIN_TABLE[kind].resource;
-  return { char, color: resource ? RESOURCE_COLOUR[resource] : OWN_STROKE };
+  // The map needs a literal; `terrainGlyph` feeds a MapLibre paint property.
+  return { char, color: resource ? MAP_RESOURCE_COLOUR[resource] : OWN_STROKE };
 }
 
 /**

@@ -13,6 +13,8 @@ import {
   cellsToGeoJson,
   terrainGlyph,
   CITY_COLOUR,
+  MAP_RESOURCE_COLOUR,
+  RESOURCE_COLOUR,
   withFogOfWar,
 } from './territoryFeatures.js';
 
@@ -105,10 +107,19 @@ describe('terrain glyph', () => {
     expect(terrainGlyph('plain')).toBeNull();
   });
 
-  it('forest is a club in the wood colour', () => {
+  // The map cannot read a custom property, so this one asserts the *literal* twin of the
+  // colour law rather than a token (Sigil §01). Asserting the table, not the value: the
+  // point is that a forest glyph is painted in timber, whatever timber turns out to be.
+  it('forest is a club in the timber colour', () => {
     const g = terrainGlyph('forest');
     expect(g?.char).toBe('♣');
-    expect(g?.color).toBe('#7cbf63');
+    expect(g?.color).toBe(MAP_RESOURCE_COLOUR.wood);
+  });
+
+  it('paints from the same law the rest of the game uses', () => {
+    // One key per resource in both tables, or the law has quietly become two laws.
+    expect(Object.keys(MAP_RESOURCE_COLOUR).sort()).toEqual(Object.keys(RESOURCE_COLOUR).sort());
+    for (const v of Object.values(RESOURCE_COLOUR)) expect(v).toMatch(/^var\(--r-/);
   });
 
   it('every terrain kind resolves to a glyph or an explicit null', () => {

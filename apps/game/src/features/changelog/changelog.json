@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.83",
+    "date": "2026-09-14",
+    "notes": [
+      "Panels are proper glass now: they lift the colour of the map behind them, carry a body tint of their own and catch the light in one upper corner. The words on top stay at full strength, which is what keeps them readable outdoors.",
+      "Daylight mode, in Settings. Direct sun is the one thing glass cannot win, so this trades it for a solid panel — same layout, same colours, no blur. It is also the answer when the battery is going.",
+      "Every resource now owns one colour everywhere it is named: in the pouch, on the map, in a tech effect, on a card. A resource written in plain grey is a bug from here on."
+    ]
+  },
+  {
     "version": "0.5.82",
     "date": "2026-09-14",
     "notes": [
