@@ -118,9 +118,11 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
   };
 
   return (
-    <GlassPanel as="section" ref={ref} className="character" aria-label="Character" tabIndex={-1}>
+    // The HUD button that opens this has always said "You" (BRDC-CHAR-001); the panel
+    // itself said "Character" — a name the player never actually pressed (BRDC-CHAR-002).
+    <GlassPanel as="section" ref={ref} className="character" aria-label="You" tabIndex={-1}>
       <div className="character__head">
-        <h2 className="character__title">Character</h2>
+        <h2 className="character__title">You</h2>
         <RitualButton variant="ghost" className="character__close" onClick={onClose} aria-label="Close">
           <span aria-hidden>✕</span>
         </RitualButton>

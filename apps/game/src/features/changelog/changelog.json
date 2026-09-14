@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.91",
+    "date": "2026-09-15",
+    "notes": [
+      "The screen behind the \"You\" button is called You now. It called itself \"Character\" — a name nothing in the game ever showed you."
+    ]
+  },
+  {
     "version": "0.5.90",
     "date": "2026-09-15",
     "notes": [
