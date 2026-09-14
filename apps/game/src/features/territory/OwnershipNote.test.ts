@@ -8,9 +8,26 @@
 import { describe, expect, it } from 'vitest';
 import { localShare } from '@es3/core';
 import type { Cell } from '@es3/core';
+import { isSharedGround } from './OwnershipNote.js';
 
 const T0 = Date.parse('2026-09-06T12:00:00Z');
 const base: Cell = { h3: 'x', ownerId: 'me', strength: 300, lastVisitedAt: T0, visitDays: [] };
+
+// BRDC-DETAIL-001: the ring used to draw on every owned cell, including a plain one held
+// outright — "Yours 100% · Theirs 0%" said nothing `cell-panel__owner`'s own text had not
+// already said. It now shows only where a split is real information.
+describe('isSharedGround', () => {
+  it('is false on a cell held outright, mine or a rival\'s', () => {
+    expect(isSharedGround(base)).toBe(false);
+    expect(isSharedGround({ ...base, ownerId: 'rival' })).toBe(false);
+    expect(isSharedGround({ ...base, ownerId: null })).toBe(false);
+  });
+
+  it('is true only once an imported Wager also claims the cell', () => {
+    const shared: Cell = { ...base, shared: { with: 'rival', mineAtImport: 300, theirsAtImport: 100 } };
+    expect(isSharedGround(shared)).toBe(true);
+  });
+});
 
 /** The same expression `OwnershipNote` uses for its purple arc. */
 const minePct = (cell: Cell, me: string | null): number =>

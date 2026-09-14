@@ -34,6 +34,13 @@
   gap: var(--space-2);
 }
 
+/* Ground name and the who/here tags beneath it — one identity block (BRDC-DETAIL-001). */
+.cell-panel__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .cell-panel__ground {
   color: var(--text);
   font-family: var(--font-display);
@@ -54,12 +61,55 @@
   font-weight: var(--weight-normal);
 }
 
-.cell-panel__yield,
-.cell-panel__owner {
+/* The resource banner beneath the head — colour set inline, per resource (BRDC-DETAIL-001). */
+.cell-panel__yield {
   color: var(--text-dim);
   font-size: var(--text-sm);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Who holds this ground and whether the player is on it, as small marks — not one plain
+   sentence competing with the ground's own name for the same line (BRDC-DETAIL-001). */
+.cell-panel__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.cell-panel__tag {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-2);
+  padding-block: 1px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--text) 14%, transparent);
+  color: var(--text);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Same law as the map: purple is a surface here, never text (tokens.css's own contrast
+   note) — the tint carries "mine", `--text` stays the readable colour. */
+.cell-panel__tag--mine {
+  background: color-mix(in oklch, var(--cosmic-purple) 34%, transparent);
+}
+
+.cell-panel__tag--rival {
+  background: color-mix(in oklch, var(--danger) 22%, transparent);
+  color: var(--danger);
+}
+
+.cell-panel__tag--here {
+  background: color-mix(in oklch, var(--accent) 24%, transparent);
+  color: var(--accent);
+}
+
+.cell-panel__visits {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
 }
 
 /* The cell's ownership history, in a sentence (BRDC-HEX-001). */
@@ -275,12 +325,6 @@
   color: var(--text);
   font-size: var(--text-body);
   font-weight: var(--weight-bold);
-}
-
-.cell-panel__worth-note {
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-  text-wrap: pretty;
 }
 
 /* Why a greyed action is out of reach, said beside it (BRDC-UI-002). A disabled button

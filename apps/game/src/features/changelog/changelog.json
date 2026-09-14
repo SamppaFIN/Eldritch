@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.88",
+    "date": "2026-09-14",
+    "notes": [
+      "The cell card, tidied: who holds the ground and whether you're standing on it now read as small marks under its name, instead of sharing a line with what it yields.",
+      "What a hex yields is coloured now, the same hue as its mark on the map — a resource is never just grey text.",
+      "Two things that used to say the same number twice — the ground's worth, and the split ring on a cell you hold outright — now say it once.",
+      "No new information anywhere here — same content, read faster."
+    ]
+  },
+  {
     "version": "0.5.87",
     "date": "2026-09-14",
     "notes": [

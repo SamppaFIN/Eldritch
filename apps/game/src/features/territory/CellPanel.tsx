@@ -10,21 +10,20 @@ import {
   TEMPLE_THRESHOLD_MS,
   WARD_COST,
   canAfford,
-  cityStateOf,
   shortOf,
   expansionCost,
   revealProgress,
-  terrainForCell,
 } from '@es3/core';
-import type { Cell, PlayerId, ResourcePool, TerrainKind, WardRefusal } from '@es3/core';
+import type { Cell, PlayerId, ResourceKind, ResourcePool, WardRefusal } from '@es3/core';
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BuildPanel } from './BuildPanel.js';
+import { CellHeader } from './CellHeader.js';
 import { CellWorth } from './CellWorth.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
-import { OwnershipNote } from './OwnershipNote.js';
+import { OwnershipNote, isSharedGround } from './OwnershipNote.js';
 import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TempleSchoolPanel } from './TempleSchoolPanel.js';
@@ -38,7 +37,7 @@ import type { BuildBinding, PlaceBinding, ResearchBinding, TradeBinding } from '
 import type { SpellBinding } from './useSpells.js';
 import type { CityBinding } from './useDiplomacy.js';
 import { historyLine } from './cellHistory.js';
-import { terrainGlyph } from './territoryFeatures.js';
+import { RESOURCE_WORD } from './territoryFeatures.js';
 import { shortNote } from './gateNote.js';
 import type { WikiRef } from '../help/wikiPages.js';
 import './cell-panel.css';
@@ -83,38 +82,6 @@ export interface CellPanelProps {
   onClose: () => void;
 }
 
-const GROUND: Readonly<Record<TerrainKind, string>> = {
-  plain: 'Plain ground',
-  forest: 'Old woodland',
-  hill: 'Bare hillside',
-  mountain: 'Broken rock',
-  lake: 'Still water',
-  coast: 'The shoreline',
-  market: 'A place of trade',
-};
-
-/** Where the terrain reading came from (BRDC-TERRAIN-002, -003). */
-const SOURCE_LABEL = { tiles: '(from the map)', seed: '(surveyed)', hash: '(estimated)' } as const;
-
-const YIELD: Readonly<Record<TerrainKind, string>> = {
-  plain: 'yields nothing',
-  forest: 'yields timber',
-  hill: 'yields stone',
-  mountain: 'yields iron',
-  lake: 'yields food',
-  coast: 'yields food',
-  market: 'yields gold',
-};
-
-/** The resource a terrain gives, said the way the pouch says it. */
-const RESOURCE_NAME: Readonly<Record<string, string>> = {
-  food: 'food',
-  wood: 'timber',
-  stone: 'stone',
-  iron: 'iron',
-  gold: 'gold',
-};
-
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REFUSAL: Readonly<Record<WardRefusal, string>> = {
   'not-yours': 'You do not hold this ground. Walk it to take it.',
@@ -128,10 +95,10 @@ const EXPAND_REFUSAL: Readonly<Record<ExpandFail, string>> = {
   'cannot-afford': 'Not enough stone and gold. Hold hills and markets to gather them.',
 };
 
-/** "40 stone · 30 gold" from a cost map. */
+/** "40 stone · 30 gold" from a cost map — the same word table as the Guide (BRDC-DETAIL-001). */
 function costLine(cost: Partial<ResourcePool>): string {
-  return (Object.entries(cost) as [string, number][])
-    .map(([k, v]) => `${v} ${RESOURCE_NAME[k] ?? k}`)
+  return (Object.entries(cost) as [ResourceKind, number][])
+    .map(([k, v]) => `${v} ${RESOURCE_WORD[k]}`)
     .join(' · ');
 }
 
@@ -180,8 +147,6 @@ export function CellPanel({
 
   if (!cell) return null;
 
-  const terrain = terrainForCell(cell);
-  const glyph = terrainGlyph(terrain.kind);
   const mine = cell.ownerId !== null && cell.ownerId === me;
   // A rival's cell shows its full detail only with the setting on (BRDC-WAGER-JSON-007).
   const showDetail = mine || revealRivals;
@@ -210,48 +175,10 @@ export function CellPanel({
       aria-label="Selected cell"
       tabIndex={-1}
     >
-      <div className="cell-panel__head">
-        <div>
-          <p className="cell-panel__ground">
-            {glyph ? (
-              <span
-                className="cell-panel__terrain-icon"
-                style={{ color: glyph.color }}
-                aria-hidden
-              >
-                {glyph.char}{' '}
-              </span>
-            ) : null}
-            {GROUND[terrain.kind]}
-            <span className="cell-panel__source"> {SOURCE_LABEL[terrain.source]}</span>
-          </p>
-          <p className="cell-panel__yield">
-            {here ? 'You are here · ' : ''}
-            {YIELD[terrain.kind]}
-          </p>
-        </div>
-        <RitualButton
-          variant="ghost"
-          className="cell-panel__close"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          <span aria-hidden>✕</span>
-        </RitualButton>
-      </div>
-
-      <p className="cell-panel__owner">
-        {mine
-          ? 'Yours'
-          : cell.ownerId === null
-            ? 'Unclaimed'
-            : (cityStateOf(cell.ownerId)?.name ?? 'Held by another')}
-        {/* Separate arrivals, not fixes — standing still is one (BRDC-HEX-002). */}
-        {cell.visits ? ` · ${cell.visits} ${cell.visits === 1 ? 'visit' : 'visits'}` : ''}
-      </p>
+      <CellHeader cell={cell} mine={mine} here={here} onClose={onClose} />
 
       {cell.importedFrom && showDetail ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
-      {cell.ownerId !== null ? <OwnershipNote cell={cell} me={me} /> : null}
+      {isSharedGround(cell) ? <OwnershipNote cell={cell} me={me} /> : null}
 
       {history ? (
         <p className="cell-panel__history">

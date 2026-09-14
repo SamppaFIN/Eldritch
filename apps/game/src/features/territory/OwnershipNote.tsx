@@ -1,18 +1,29 @@
 /**
- * Who holds this cell, as a ring — on every owned cell now, not only a shared one
- * (BRDC-WAGER-JSON-007).
+ * The ring for a cell an imported Wager also claims (BRDC-WAGER-JSON-007,
+ * narrowed by BRDC-DETAIL-001).
  *
- * A hex you hold outright is a full purple ring, "Yours · 100%". A cell an imported
- * Wager also claims (BRDC-WAGER-JSON-006) stays yours — a text message cannot take
- * ground — but the hourly yield splits, and the ring splits with it: your slice in the
- * purple the map paints your ground, theirs in the fixed rival red. A rival's own cell
- * is a full red ring. No new legend, no new colour.
+ * A cell an imported Wager also claims (BRDC-WAGER-JSON-006) stays yours — a text
+ * message cannot take ground — but the hourly yield splits, and the ring shows the
+ * split: your slice in the purple the map paints your ground, theirs in the fixed
+ * rival red. No new legend, no new colour.
+ *
+ * WAGER-JSON-007 drew this ring on *every* owned cell, including one held outright
+ * ("Yours 100% · Theirs 0%") — flagged as a deliberate choice at the time, and named
+ * again in BRDC-HEX-004 as possible noise for its own ticket. This is that ticket: the
+ * plain-100% case said nothing `cell-panel__owner`'s own "Yours" line had not already
+ * said, one paragraph above it. The ring now shows only where a split is real
+ * information — a cell genuinely shared with a rival.
  *
  * Rendered inside `CellPanel`; styled from `wager.css`, always bundled.
  */
 import { localShare } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { OWN_STROKE, ENEMY_STROKE } from './territoryFeatures.js';
+
+/** Whether this cell has anything the ring would say that the owner line has not. */
+export function isSharedGround(cell: Cell): boolean {
+  return cell.shared !== undefined;
+}
 
 export interface OwnershipNoteProps {
   cell: Cell;
@@ -21,7 +32,7 @@ export interface OwnershipNoteProps {
 }
 
 export function OwnershipNote({ cell, me }: OwnershipNoteProps) {
-  if (cell.ownerId === null) return null;
+  if (!isSharedGround(cell)) return null;
   const mine = cell.ownerId === me;
   const s = cell.shared;
 

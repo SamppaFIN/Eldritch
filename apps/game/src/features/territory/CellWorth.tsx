@@ -4,6 +4,9 @@
  *
  * The yield and the neighbour bonus (invisible everywhere else), then — only for an owned
  * cell whose detail is shown (BRDC-WAGER-JSON-007) — the strength bar and the decay clock.
+ *
+ * BRDC-DETAIL-001: this used to restate the same yield and neighbour numbers a second
+ * time, in prose, directly under the `<dl>` that already said them. One place per number.
  */
 import {
   CLAIM_YIELD,
@@ -16,15 +19,7 @@ import {
   resourceForCell,
 } from '@es3/core';
 import type { Cell } from '@es3/core';
-
-/** The resource a terrain gives, said the way the pouch says it. */
-const RESOURCE_NAME: Readonly<Record<string, string>> = {
-  food: 'food',
-  wood: 'timber',
-  stone: 'stone',
-  iron: 'iron',
-  gold: 'gold',
-};
+import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
 
 /** Hours left, counted from the last visit, not from full strength — the time already
  *  spent decaying has to come off or every glance would claim a fresh two-day grace. */
@@ -56,10 +51,10 @@ export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
         </div>
         <div>
           <dt>Yields</dt>
-          <dd className="es-numeric">
-            {resource
-              ? `${CLAIM_YIELD} ${RESOURCE_NAME[resource]} · ${TRICKLE_PER_HOUR}/h`
-              : 'nothing'}
+          {/* Same colour law as the resource banner above this panel and the map's own
+              glyph — a resource number is never left grey (Sigil §01, BRDC-DETAIL-001). */}
+          <dd className="es-numeric" style={resource ? { color: RESOURCE_COLOUR[resource] } : undefined}>
+            {resource ? `${CLAIM_YIELD} ${RESOURCE_WORD[resource]} · ${TRICKLE_PER_HOUR}/h` : 'nothing'}
           </dd>
         </div>
         <div>
@@ -76,13 +71,6 @@ export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
           </dd>
         </div>
       </dl>
-
-      <p className="cell-panel__worth-note">
-        {resource
-          ? `Taking it pays ${CLAIM_YIELD} ${RESOURCE_NAME[resource]} once, then ${TRICKLE_PER_HOUR} an hour for as long as you hold it.`
-          : 'Plain ground pays nothing on its own.'}{' '}
-        Holding it adds {NEIGHBOUR_BONUS} to every claim you make on the six cells around it.
-      </p>
 
       {cell.ownerId !== null && showDetail ? (
         <>
