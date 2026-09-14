@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.84",
+    "date": "2026-09-14",
+    "notes": [
+      "The ground is drawn now. Every hex carries an isometric tile of what it actually is — trees standing on forest, water you can see the ripples on, rock stacked on the high ground, furrows on the plain, a trading floor under the market.",
+      "It replaces the little letters that were there before: a 15 px symbol inside an 80 px hex was a chart, not a place.",
+      "Buildings and villages still stand on top, because that is what they do: the tile is the ground they are standing on."
+    ]
+  },
+  {
     "version": "0.5.83",
     "date": "2026-09-14",
     "notes": [

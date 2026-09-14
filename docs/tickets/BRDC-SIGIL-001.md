@@ -52,7 +52,7 @@ Dokumentin loput, karkeasti työmäärän mukaan:
 
 | Osa | Miksi ei nyt |
 |---|---|
-| **Isometrinen heksakirjasto** (14 symbolia) | Suurin visuaalinen voitto ja suurin työ. MapLibre tarvitsee kuvia, ei inline-SVG:tä, joten tämä on symbolisheet + `addImage`-polku — oma tikettinsä |
+| ~~**Isometrinen maastokirjasto**~~ | ✅ **Tehty `BRDC-SIGIL-002`:ssa** (v0.5.84) — seitsemän maastolaattaa kartalla |
 | **Bonusresurssien spritet** (12) | Sama polku kuin yllä; seuraa sitä |
 | **20 valtakuntamerkkiä** | Dokumentti antaa generaattorit (`ring`, `poly`, `chords`, `pairs`) — merkki on ~40 tavua dataa. Halpa *kun* generaattorit on portattu |
 | **20 avataria** | Yksi jaettu `<symbol>`-arkki, `currentColor`. Suoraviivaista mutta paljon |

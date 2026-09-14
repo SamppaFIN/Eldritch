@@ -12,73 +12,53 @@ import type { FeatureCollection, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { MAX_STRENGTH } from '@es3/core';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
-import { CONTESTED_STROKE, ENEMY_FILL, OWN_FILL, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
+import { CONTESTED_STROKE, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
-import { bannerSpriteId, rasteriseBanners } from '../nation/bannerSprites.js';
+import {
+  addBannerSprites,
+  addTerrainSprites,
+  bannerSpriteId,
+  setFlagBanner,
+  sharedPatternImage,
+} from './territoryImages.js';
+export { setFlagBanner } from './territoryImages.js';
 
-export const CELL_SOURCE = 'cells';
-export const CELL_FILL_LAYER = 'cells-fill';
-export const CELL_SHARED_LAYER = 'cells-shared';
-export const CELL_BLIGHT_LAYER = 'cells-blight';
-export const CELL_LINE_LAYER = 'cells-line';
-export const CELL_CONTESTED_LAYER = 'cells-contested';
-export const CELL_ICON_LAYER = 'cells-icon';
-export const CELL_BUILDING_LAYER = 'cells-building';
-export const CELL_LANDMARK_LAYER = 'cells-landmark';
-export const CELL_FLAG_LAYER = 'cells-flag';
-export const CELL_ANOMALY_LAYER = 'cells-anomaly';
+// The names live in `layerIds.ts` so `territoryImages.ts` can read them without importing
+// this file back — one id string in two places is how a layer quietly stops being toggled.
+import {
+  CELL_SOURCE,
+  CELL_FILL_LAYER,
+  CELL_SHARED_LAYER,
+  CELL_BLIGHT_LAYER,
+  CELL_LINE_LAYER,
+  CELL_CONTESTED_LAYER,
+  CELL_ICON_LAYER,
+  CELL_GROUND_LAYER,
+  CELL_BUILDING_LAYER,
+  CELL_LANDMARK_LAYER,
+  CELL_FLAG_LAYER,
+  CELL_ANOMALY_LAYER,
+} from './layerIds.js';
+
+export {
+  CELL_SOURCE,
+  CELL_FILL_LAYER,
+  CELL_SHARED_LAYER,
+  CELL_BLIGHT_LAYER,
+  CELL_LINE_LAYER,
+  CELL_CONTESTED_LAYER,
+  CELL_ICON_LAYER,
+  CELL_GROUND_LAYER,
+  CELL_BUILDING_LAYER,
+  CELL_LANDMARK_LAYER,
+  CELL_FLAG_LAYER,
+  CELL_ANOMALY_LAYER,
+} from './layerIds.js';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
 const SHARED_PATTERN = 'cells-shared-pattern';
-
-/**
- * Draw the six banner icons into this map's atlas if they are not there yet
- * (BRDC-BANNER-001 field report). `map.hasImage` is the idempotency check, not a flag —
- * a rebuilt map starts with an empty atlas.
- */
-async function addBannerSprites(map: MapLibreMap): Promise<void> {
-  if (BANNER_IDS.every((id) => map.hasImage(bannerSpriteId(id)))) return;
-  const images = await rasteriseBanners();
-  if (!images) return;
-  for (const [id, data] of images) {
-    if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
-  }
-}
-
-/** Swap the flag layer's icon when the player picks a different banner in the Keep. */
-export function setFlagBanner(map: MapLibreMap, bannerId: BannerId): void {
-  if (map.getLayer(CELL_FLAG_LAYER)) {
-    map.setLayoutProperty(CELL_FLAG_LAYER, 'icon-image', bannerSpriteId(bannerId));
-  }
-}
-
-/**
- * A four-square checkerboard of your own colour and the fixed rival red, for a cell an
- * imported Wager and your own walking both claim (BRDC-WAGER-JSON-005).
- *
- * `fill-pattern` is the only way MapLibre tiles a fill, and it always wants a raster —
- * there is no vector escape hatch here the way §12 prefers for ceremony. One check
- * spells out "part yours, part theirs" with colours the map already teaches, so this
- * needs no third colour and no legend.
- */
-function sharedPatternImage(): { width: number; height: number; data: Uint8ClampedArray } {
-  const size = 16;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return { width: size, height: size, data: new Uint8ClampedArray(size * size * 4) };
-  const half = size / 2;
-  ctx.fillStyle = OWN_FILL;
-  ctx.fillRect(0, 0, half, half);
-  ctx.fillRect(half, half, half, half);
-  ctx.fillStyle = ENEMY_FILL;
-  ctx.fillRect(half, 0, half, half);
-  ctx.fillRect(0, half, half, half);
-  return ctx.getImageData(0, 0, size, size);
-}
 
 /**
  * Below this, individual res-11 cells are smaller than a finger and stop being
@@ -95,6 +75,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
   void addBannerSprites(map);
+  void addTerrainSprites(map);
 
   // Below the trail, which is added later and therefore sits on top: the ley-line is
   // what the player is drawing right now and must never be buried by their own ground.
@@ -196,6 +177,33 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
    * Shown on every visible cell (yours and the revealed ring), so "what is on the
    * next hex over" is answered without walking there. Nothing for plain ground.
    */
+  /*
+   * The ground itself, as an isometric tile (Sigil §03).
+   *
+   * Hidden until `addTerrainSprites` has actually put images in the atlas — a symbol
+   * layer whose `icon-image` names nothing logs a warning per feature per frame, and a
+   * player on a platform with no canvas would get that forever.
+   *
+   * Below everything: a Work stands *on* the ground, and the plinth is what it stands on.
+   */
+  map.addLayer({
+    id: CELL_GROUND_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['!=', ['get', 'ground'], ''],
+    layout: {
+      visibility: 'none',
+      'icon-image': ['concat', 'ground-', ['get', 'ground']],
+      // Sized against the hex rather than against the icon: at zoom 17 a res-11 cell is
+      // about eighty pixels across, and the tile should sit in it, not rattle around.
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.34, 16, 0.75, 17, 1.05, 19, 2.2],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
+    paint: { 'icon-opacity': 0.95 },
+  });
+
   map.addLayer({
     id: CELL_ICON_LAYER,
     type: 'symbol',
@@ -349,6 +357,7 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
     CELL_FLAG_LAYER,
     CELL_BUILDING_LAYER,
     CELL_LANDMARK_LAYER,
+    CELL_GROUND_LAYER,
     CELL_ICON_LAYER,
     CELL_CONTESTED_LAYER,
     CELL_LINE_LAYER,

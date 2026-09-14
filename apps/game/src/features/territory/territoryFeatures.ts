@@ -81,6 +81,8 @@ export interface CellProperties {
   building: string;
   /** The building glyph's colour, by role. `''` alongside an empty building glyph. */
   buildingColor: string;
+  /** The terrain, as the isometric ground tile's name (Sigil §03). */
+  ground: string;
   /** A Work worth seeing from a street away, or a village. Drawn over the hex, not in it. */
   landmark: string;
   landmarkColor: string;
@@ -283,6 +285,9 @@ export function cellProperties(
     // *known*). Anything past that ring is never drawn — that is the fog.
     icon: glyph?.char ?? '',
     iconColor: glyph?.color ?? '',
+    // The isometric tile's name, which is simply the terrain (Sigil §03). Kept beside the
+    // glyph rather than replacing it: no canvas, no tiles, and the glyph layer stands in.
+    ground: terrainOf(cell.h3).kind,
     anomaly: mine ? anomalyGlyphFor(cell) : '',
     // A landmark is drawn by its own layer instead, so it is never drawn twice.
     building: isLandmark ? '' : (bg?.char ?? ''),
