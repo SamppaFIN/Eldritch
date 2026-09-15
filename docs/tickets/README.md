@@ -140,6 +140,7 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | [BRDC-BUILD-001](BRDC-BUILD-001.md) | ✅ Rakennusjärjestelmän ydin ja perusrakennukset | L | ECON-001, TERRAIN-002, TECH-001 |
 | [BRDC-BUILD-002](BRDC-BUILD-002.md) | ✅ Aluekohtaiset parannukset ja päivitysketjut | M | BUILD-001, TERRAIN-002 |
 | [BRDC-BUILD-003](BRDC-BUILD-003.md) | Vaikutusalueen rakennukset ja uskollisuus | M | BUILD-001, HEX-001, DWELL-001 |
+| [BRDC-BUILD-014](BRDC-BUILD-014.md) | ✅ Vanha rakennuskatalogi pois kartalta ja pelaajilta | S | — |
 
 **Mystiikka:**
 

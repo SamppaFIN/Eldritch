@@ -138,9 +138,11 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
     expect(await inner.get(KEY)).toBe(SCHEMA_VERSION);
   });
 
+  // Runs `MIGRATIONS[2]` directly rather than through `versioned().schema()` — that gate
+  // now walks all the way to the live `SCHEMA_VERSION`, and 4 → 5 takes every Work down
+  // regardless of what this step produced. Calling the step isolates what it alone does.
   it('2 → 3 rewrites a cell’s lone building into a one-element list (BRDC-BUILD-007)', async () => {
     const inner = new MemoryStore();
-    await inner.set(KEY, 2);
     await inner.set('cell:r6:8b112492eb03fff', {
       h3: '8b112492eb03fff',
       ownerId: 'me',
@@ -157,16 +159,15 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
       visitDays: [],
     });
 
-    const store = versioned(inner);
-    expect(await store.schema()).toBe('migrated');
+    await MIGRATIONS[2]!(inner);
 
-    const migrated = await store.get<{ building?: unknown; buildings?: { id: string }[] }>(
+    const migrated = await inner.get<{ building?: unknown; buildings?: { id: string }[] }>(
       'cell:r6:8b112492eb03fff',
     );
     expect(migrated?.building).toBeUndefined();
     expect(migrated?.buildings).toEqual([{ id: 'monument', builtAt: T0 }]);
 
-    const bare = await store.get<{ buildings?: unknown }>('cell:r6:8b112492eb07fff');
+    const bare = await inner.get<{ buildings?: unknown }>('cell:r6:8b112492eb07fff');
     expect(bare?.buildings).toBeUndefined();
   });
 
@@ -180,10 +181,14 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
       buildings,
     });
 
-    /** A schema-3 store with a crowded hex, a lone Work and bare ground. */
+    /**
+     * A schema-3 store with a crowded hex, a lone Work and bare ground. Runs `MIGRATIONS[3]`
+     * directly rather than through `versioned().schema()` — that gate now walks all the way
+     * to the live `SCHEMA_VERSION`, and 4 → 5 (below) takes every Work down regardless of
+     * what step 3 chose to keep. Calling the step function isolates what step 3 alone does.
+     */
     async function crowded(): Promise<KeyValueStore> {
       const inner = new MemoryStore();
-      await inner.set(KEY, 3);
       await inner.set(
         'cell:r6:8b112492eb03fff',
         cell('8b112492eb03fff', [
@@ -207,20 +212,19 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
 
     it('leaves the strongest standing and takes the rest down', async () => {
       const inner = await crowded();
-      const store = versioned(inner);
-      expect(await store.schema()).toBe('migrated');
+      await MIGRATIONS[3]!(inner);
 
-      const many = await store.get<{ buildings: { id: string }[] }>('cell:r6:8b112492eb03fff');
+      const many = await inner.get<{ buildings: { id: string }[] }>('cell:r6:8b112492eb03fff');
       expect(many?.buildings.map((w) => w.id)).toEqual(['lumbermill']);
     });
 
     it('does not touch a hex that already held one, or bare ground', async () => {
-      const store = versioned(await crowded());
-      await store.schema();
+      const inner = await crowded();
+      await MIGRATIONS[3]!(inner);
 
-      const one = await store.get<{ buildings: { id: string }[] }>('cell:r6:8b112492eb07fff');
+      const one = await inner.get<{ buildings: { id: string }[] }>('cell:r6:8b112492eb07fff');
       expect(one?.buildings.map((w) => w.id)).toEqual(['mine']);
-      const bare = await store.get<{ buildings?: unknown }>('cell:r6:8b112492eb0ffff');
+      const bare = await inner.get<{ buildings?: unknown }>('cell:r6:8b112492eb0ffff');
       expect(bare?.buildings).toBeUndefined();
     });
 
@@ -228,16 +232,102 @@ describe('versioned() — migration path (BRDC-PERSIST-003)', () => {
     // silently. `razedStore.takeRazed` is what pays it.
     it('writes down every Work it razed, so it can be paid back', async () => {
       const inner = await crowded();
-      await versioned(inner).schema();
+      await MIGRATIONS[3]!(inner);
       expect(await inner.get<string[]>('razed')).toEqual(['sawmill', 'monument']);
     });
 
     it('writes nothing down when it had nothing to take', async () => {
       const inner = new MemoryStore();
-      await inner.set(KEY, 3);
       await inner.set('cell:r6:8b112492eb07fff', cell('8b112492eb07fff', [
         { id: 'mine', builtAt: T0 },
       ]));
+
+      await MIGRATIONS[3]!(inner);
+      expect(await inner.get('razed')).toBeUndefined();
+    });
+  });
+
+  describe('4 → 5 retires the whole pre-Worldseed building catalogue', () => {
+    it('takes down the one Work a hex held, Fortress included, with its siege mark', async () => {
+      const inner = new MemoryStore();
+      await inner.set(KEY, 4);
+      await inner.set('cell:r6:8b112492eb03fff', {
+        h3: '8b112492eb03fff',
+        ownerId: 'me',
+        strength: 300,
+        lastVisitedAt: T0,
+        visitDays: [],
+        buildings: [{ id: 'fortress', builtAt: T0 }],
+        breachedOn: '2026-09-15',
+      });
+
+      const store = versioned(inner);
+      expect(await store.schema()).toBe('migrated');
+
+      const cell = await store.get<{ buildings?: unknown; breachedOn?: unknown; ownerId: string }>(
+        'cell:r6:8b112492eb03fff',
+      );
+      expect(cell?.buildings).toBeUndefined();
+      expect(cell?.breachedOn).toBeUndefined();
+      // Everything else about the cell is untouched.
+      expect(cell?.ownerId).toBe('me');
+    });
+
+    it('leaves bare ground and the Temple place alone', async () => {
+      const inner = new MemoryStore();
+      await inner.set(KEY, 4);
+      await inner.set('cell:r6:8b112492eb07fff', {
+        h3: '8b112492eb07fff',
+        ownerId: 'me',
+        strength: 120,
+        lastVisitedAt: T0,
+        visitDays: [],
+      });
+      // The Temple is a place (templeStore.ts), never a BuildingId — nothing here to touch.
+      await inner.set('temple', { level: 2 });
+
+      await versioned(inner).schema();
+
+      const bare = await inner.get<{ buildings?: unknown }>('cell:r6:8b112492eb07fff');
+      expect(bare?.buildings).toBeUndefined();
+      expect(await inner.get('temple')).toEqual({ level: 2 });
+    });
+
+    it('writes every razed Work down so it is paid back, appending to a step-3 debt', async () => {
+      const inner = new MemoryStore();
+      await inner.set(KEY, 3);
+      await inner.set('cell:r6:8b112492eb03fff', {
+        h3: '8b112492eb03fff',
+        ownerId: 'me',
+        strength: 300,
+        lastVisitedAt: T0,
+        visitDays: [],
+        buildings: [
+          { id: 'sawmill', builtAt: T0 },
+          { id: 'lumbermill', builtAt: T0 + 1 },
+          { id: 'monument', builtAt: T0 + 2 },
+        ],
+      });
+
+      // A store two versions behind composes both steps: 3 → 4 razes down to one Work
+      // first, then 4 → 5 razes what is left standing — every one of the three ends up
+      // in the same `razed` list however step 3 picked its survivor.
+      expect(await versioned(inner).schema()).toBe('migrated');
+      const razed = await inner.get<string[]>('razed');
+      expect(new Set(razed)).toEqual(new Set(['sawmill', 'lumbermill', 'monument']));
+      expect(razed).toHaveLength(3);
+    });
+
+    it('writes nothing down when there was nothing left to take', async () => {
+      const inner = new MemoryStore();
+      await inner.set(KEY, 4);
+      await inner.set('cell:r6:8b112492eb07fff', {
+        h3: '8b112492eb07fff',
+        ownerId: 'me',
+        strength: 120,
+        lastVisitedAt: T0,
+        visitDays: [],
+      });
 
       expect(await versioned(inner).schema()).toBe('migrated');
       expect(await inner.get('razed')).toBeUndefined();

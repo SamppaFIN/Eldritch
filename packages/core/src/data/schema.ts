@@ -45,8 +45,15 @@ export const SCHEMA_KEY = 'schema:version';
  * 3 → 4: PIVOT-2026-09-09 §6 put the list back down to one. This is the first migration
  * that takes something away, so it does not do it quietly: what it removes is written to
  * `K.razed` and paid back in full at the next open (`razedStore.ts`).
+ *
+ * 4 → 5: the Worldseed integration retires the whole pre-existing building catalogue —
+ * Infinite, 2026-09-16: *"poistetaan vanhat rakennukset kartalta ja pelaajilta"* — so every
+ * `Cell.buildings` entry comes down, Fortress included, and any `breachedOn` siege mark
+ * with it (meaningless without the Fortress it describes). The Temple is untouched: it is
+ * a `templeStore.ts` place, never a `BuildingId`, so it was never in `buildings` to begin
+ * with. Same ledger as 3 → 4: what comes down goes to `K.razed` and is paid back in full.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** A cell as schema 2 stored it: at most one building, under a singular key. */
 interface CellV2 {
@@ -57,6 +64,12 @@ interface CellV2 {
 /** A cell as schema 3 stored it: as many Works on one hex as the cap of the day allowed. */
 interface CellV3 {
   buildings?: CellBuilding[];
+}
+
+/** A cell as schema 4 stored it: at most one Work, and a Fortress's own siege mark. */
+interface CellV4 {
+  buildings?: CellBuilding[];
+  breachedOn?: string;
 }
 
 /**
@@ -92,6 +105,26 @@ export const MIGRATIONS: Readonly<
       if (!keep) continue;
       razed.push(...raze.map((w) => w.id));
       await inner.set(key, { ...cell, buildings: [keep] });
+    }
+    if (razed.length > 0) await inner.set(K.razed, razed);
+  },
+  /**
+   * The whole pre-Worldseed catalogue comes down — every `buildings` entry, Fortress
+   * included, and the `breachedOn` siege mark it leaves meaningless. Appended, not
+   * overwritten: a store jumping 3 → 5 in one boot already queued step 3's razed list
+   * under the same key, and this step's own losses join it rather than replace it.
+   */
+  4: async (inner) => {
+    const razed = (await inner.get<BuildingId[]>(K.razed)) ?? [];
+    for (const key of await inner.keys('cell:')) {
+      const cell = await inner.get<CellV4>(key);
+      const works = cell?.buildings ?? [];
+      if (works.length === 0 && cell?.breachedOn === undefined) continue;
+      razed.push(...works.map((w) => w.id as BuildingId));
+      const bare = { ...cell };
+      delete bare.buildings;
+      delete bare.breachedOn;
+      await inner.set(key, bare);
     }
     if (razed.length > 0) await inner.set(K.razed, razed);
   },

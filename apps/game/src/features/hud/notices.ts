@@ -59,7 +59,7 @@ export interface NoticeConditions {
  */
 export function razedLine(count: number): string {
   const works = count === 1 ? 'One Work' : `${count} Works`;
-  return `A hex holds one Work now. ${works} came down, and every stone of it is back in your pouch.`;
+  return `The building system changed. ${works} came down, and every stone of it is back in your pouch.`;
 }
 
 /**
