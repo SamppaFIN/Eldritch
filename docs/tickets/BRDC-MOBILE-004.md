@@ -5,7 +5,7 @@
 | **Alue** | `apps/game/vite.config.ts` (VitePWA / workbox) |
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | XS (korjaus) · L (se mitä se paljastaa) |
-| **Status** | `done` — korjaus 2026-09-15 (v0.5.95); **odottaa kenttävahvistusta S23 Ultralla** |
+| **Status** | `done` — korjaus ja kenttävahvistus 2026-09-15 (v0.5.95) |
 | **Lähde** | Infinite 2026-09-15: *"nyt kännykässä s23u kaatuu… desktopilla toimii, mutta kännyllä ei kartta avaudu… lataudu siis."* |
 
 ## 🔴 RED
@@ -41,9 +41,9 @@ tulos on täsmälleen se hiljainen vika jonka *tämä sama tiedosto dokumentoi k
 - [x] `woff2` ilman `woff`ia: jokainen selain joka pystyy ajamaan tämän buildin lukee
       woff2:n, ja molempien esilataus tuplaisi fonttipainon tyhjästä
 - [x] Portti: `lint:lines`, `tsc -b`, 1371 vitest, `pnpm build`
-- [ ] **Kenttävahvistus S23 Ultralla.** Vanha service worker istuu puhelimessa yhä;
-      `registerType: 'autoUpdate'` vaihtaa sen seuraavalla latauksella, mutta sovellus on
-      suljettava kokonaan (ei vain taustalle) ja avattava uudelleen — mahdollisesti kahdesti
+- [x] **Kenttävahvistus S23 Ultralla — Infinite, 2026-09-15: *"korjaus auttoi, nyt toimi"*.**
+      Tämä oli syy, ei arvaus joka sattui olemaan lähellä. Vanha service worker vaihtui
+      `autoUpdate`illa sovelluksen uudelleenavauksessa
 
 ## Mitä tämä paljastaa, ja mikä on isompi asia kuin itse korjaus
 
