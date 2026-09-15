@@ -20,6 +20,7 @@ import { GlassPanel, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BuildPanel } from './BuildPanel.js';
 import { CellHeader } from './CellHeader.js';
+import { CellIncome } from './CellIncome.js';
 import { CellWorth } from './CellWorth.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
@@ -162,6 +163,17 @@ export function CellPanel({
       tabIndex={-1}
     >
       <CellHeader cell={cell} mine={mine} here={here} onClose={onClose} />
+
+      {/* What the hex is worth, before the notes about who held it and when — the
+          first question standing on a hex is what it pays (BRDC-DETAIL-002). */}
+      {mine ? (
+        <CellIncome
+          cell={cell}
+          revealed={revealed ?? {}}
+          researched={build?.researched ?? []}
+          now={now}
+        />
+      ) : null}
 
       {cell.importedFrom && showDetail ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
       {isSharedGround(cell) ? <OwnershipNote cell={cell} me={me} /> : null}
