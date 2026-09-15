@@ -16,7 +16,7 @@
 
 .es-modal::backdrop {
   background: oklch(0.05 0.02 300 / 0.72);
-  backdrop-filter: blur(3px);
+  backdrop-filter: var(--glass-filter);
 }
 
 .es-modal__panel {

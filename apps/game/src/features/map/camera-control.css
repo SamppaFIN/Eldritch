@@ -13,8 +13,8 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
   color: var(--text-dim);
   cursor: pointer;
   z-index: var(--z-hud);

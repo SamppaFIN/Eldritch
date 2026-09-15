@@ -65,6 +65,8 @@
   --glass-shadow: 0 18px 48px oklch(0.07 0.03 300 / 0.7);
   --glass-blur: 22px;
   --glass-sat: 185%;
+  /* Every blurring surface reads this, so daylight is one flip rather than nine rules. */
+  --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   /* A pane has a body colour, not merely transparency. Deep is for anything that must be
      read rather than seen through. */
   --glass-tint: linear-gradient(
@@ -239,6 +241,16 @@ svg {
    deliberately not here: it needs an SVG filter mounted at app root and it costs a GPU
    pass per pane, and this game is played on a phone for an hour at a time. The other four
    layers carry the look; that one is a later call with a battery measurement behind it. */
+/* The one flip (Sigil handoff: "[data-daylight] drops L1 and L2 … the same flip serves
+   low battery and prefers-reduced-transparency").
+
+   It is a *property*, not a rule on `.es-glass`, because eight other surfaces blur too —
+   the HUD, the map notices, the camera control, the first look, the unlock and wonder
+   moments, and the modal's backdrop. Scoped to the class, daylight mode left every one of
+   them blurring in direct sun, which is the one condition this mode exists for. Every
+   consumer reads `--glass-filter`, so the flip reaches all of them at once and resolves
+   to `none` rather than `blur(0)` — a zero blur still costs a compositing layer, and the
+   handoff budgets this by GPU, not by looks. */
 .es-glass {
   position: relative;
   isolation: isolate;
@@ -246,8 +258,8 @@ svg {
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-spec);
   background: var(--glass-tint), var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
 }
 
 /* L4, the corner bloom. A pseudo-element so it sits under the content without the caller
@@ -271,11 +283,13 @@ svg {
    played in. One flip: the blur goes, the tint becomes an opaque plate, and the geometry,
    type and hues are untouched. It doubles as the low-battery and reduced-transparency
    answer, which is why it is a token swap and not a second design. */
+[data-daylight] {
+  --glass-filter: none;
+}
+
 [data-daylight] .es-glass,
 [data-daylight] .es-glass--deep {
   background: var(--plate);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   border-color: oklch(1 0 0 / 0.22);
   box-shadow: 0 10px 28px oklch(0.07 0.03 300 / 0.6);
 }
@@ -285,6 +299,10 @@ svg {
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-filter: none;
+  }
+
   .es-glass,
   .es-glass--deep {
     background: var(--plate);

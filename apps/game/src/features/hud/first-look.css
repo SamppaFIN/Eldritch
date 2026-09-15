@@ -37,7 +37,7 @@
   border: 1px solid color-mix(in oklch, var(--accent-warm) 40%, transparent);
   border-radius: var(--radius-md);
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: var(--glass-filter);
   text-align: center;
   cursor: pointer;
 }

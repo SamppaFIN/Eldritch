@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.1",
+    "date": "2026-09-15",
+    "notes": [
+      "Daylight mode now actually turns the glass off. It only ever reached the panels — the HUD footer, the camera button, the map notices, the claim burst and every modal kept blurring at full strength, in the one condition the mode exists for.",
+      "It is one switch now rather than a rule per surface, so anything added later follows it without being told."
+    ]
+  },
+  {
     "version": "0.6.0",
     "date": "2026-09-15",
     "notes": [

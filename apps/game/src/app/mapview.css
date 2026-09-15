@@ -46,7 +46,7 @@
   border: 1px solid color-mix(in oklch, var(--warning) 45%, transparent);
   border-radius: var(--radius-md);
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: var(--glass-filter);
   color: var(--text);
   font-family: var(--font-body);
   font-size: var(--text-sm);

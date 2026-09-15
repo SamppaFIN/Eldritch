@@ -33,7 +33,7 @@
   border: 1px solid color-mix(in oklch, var(--accent-warm) 40%, transparent);
   border-radius: var(--radius-lg);
   background: color-mix(in oklch, var(--bg) 88%, transparent);
-  backdrop-filter: blur(12px);
+  backdrop-filter: var(--glass-filter);
   box-shadow: 0 0 60px color-mix(in oklch, var(--accent-warm) 18%, transparent);
   color: inherit;
   text-align: center;

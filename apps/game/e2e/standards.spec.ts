@@ -197,4 +197,20 @@ test('daylight mode trades the glass for a solid plate, everywhere at once', asy
   await expect
     .poll(() => pane.evaluate((el) => getComputedStyle(el).backdropFilter), { timeout: 5_000 })
     .toBe('none');
+
+  /*
+   * And a surface that is *not* a GlassPane (BRDC-SIGIL-006).
+   *
+   * The assertion above passed for a year while daylight mode was half-broken, because
+   * `.hud__panel` is an `.es-glass` and the flip was a rule scoped to that class. Eight
+   * other surfaces wrote their own `backdrop-filter` — the camera control, the map
+   * notices, the claim burst, the modal backdrop — and every one of them kept blurring in
+   * direct sun, which is the single condition this mode exists for. The handoff asks for
+   * a token flip; this is the assertion that tells the difference between the two.
+   */
+  const control = page.locator('.camera-control');
+  await expect(control).toBeVisible();
+  await expect
+    .poll(() => control.evaluate((el) => getComputedStyle(el).backdropFilter), { timeout: 5_000 })
+    .toBe('none');
 });
