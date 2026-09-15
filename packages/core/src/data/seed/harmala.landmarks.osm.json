@@ -1,0 +1,185 @@
+{
+  "fetchedAt": "2026-09-15T22:12:03.378Z",
+  "elements": [
+    {
+      "osmId": "node/1398554146",
+      "at": [
+        61.474179,
+        23.739102
+      ],
+      "tags": {
+        "tourism": "picnic_site"
+      }
+    },
+    {
+      "osmId": "node/2257466259",
+      "at": [
+        61.471998,
+        23.738798
+      ],
+      "tags": {
+        "information": "office",
+        "name": "Vastaanotto",
+        "opening_hours": "Mo-Su 09:00-20:00",
+        "tourism": "information"
+      }
+    },
+    {
+      "osmId": "node/2880202605",
+      "at": [
+        61.472971,
+        23.732424
+      ],
+      "tags": {
+        "source": "gps",
+        "tourism": "viewpoint"
+      }
+    },
+    {
+      "osmId": "node/2880202613",
+      "at": [
+        61.473084,
+        23.732318
+      ],
+      "tags": {
+        "source": "gps",
+        "tourism": "viewpoint"
+      }
+    },
+    {
+      "osmId": "node/6581307145",
+      "at": [
+        61.471984,
+        23.73879
+      ],
+      "tags": {
+        "addr:city": "Tampere",
+        "addr:housenumber": "8",
+        "addr:postcode": "33900",
+        "addr:street": "Leirintäkatu",
+        "internet_access": "yes",
+        "internet_access:fee": "no",
+        "name": "Tampere Camping Härmälä",
+        "operator": "Suomi Camping Oy",
+        "power_supply": "no",
+        "sanitary_dump_station": "no",
+        "tourism": "caravan_site",
+        "website": "https://www.suomicamping.fi/harmala"
+      }
+    },
+    {
+      "osmId": "node/9487963785",
+      "at": [
+        61.472883,
+        23.726047
+      ],
+      "tags": {
+        "artwork_type": "sculpture",
+        "tourism": "artwork"
+      }
+    },
+    {
+      "osmId": "way/96706277",
+      "at": [
+        61.472668,
+        23.738744
+      ],
+      "tags": {
+        "name": "Härmälän leirintäalue",
+        "name:en": "Tampere Camping Härmälä",
+        "name:fi": "Härmälän leirintäalue",
+        "name:sv": "Härmäläs campingplats",
+        "source": "city plan",
+        "tourism": "camp_site"
+      }
+    },
+    {
+      "osmId": "way/96725547",
+      "at": [
+        61.472023,
+        23.738601
+      ],
+      "tags": {
+        "addr:city": "Tampere",
+        "addr:housenumber": "8",
+        "addr:postcode": "33900",
+        "addr:street": "Leirintäkatu",
+        "building": "yes",
+        "email": "harmala@suomicamping.fi",
+        "fee": "yes",
+        "internet_access": "wlan",
+        "internet_access:fee": "no",
+        "name": "Harmala",
+        "phone": "+358207199777",
+        "tourism": "camp_site",
+        "website": "https://harmalacamping.fi/"
+      }
+    },
+    {
+      "osmId": "way/132956190",
+      "at": [
+        61.472581,
+        23.725844
+      ],
+      "tags": {
+        "building": "yes",
+        "historic": "aircraft",
+        "name": "Viima VI-1",
+        "source": "survey",
+        "tourism": "attraction"
+      }
+    },
+    {
+      "osmId": "way/140160123",
+      "at": [
+        61.462283,
+        23.7567
+      ],
+      "tags": {
+        "historic": "ruins",
+        "note": "kivijalan rauniot",
+        "source": "survey"
+      }
+    },
+    {
+      "osmId": "way/140160125",
+      "at": [
+        61.462118,
+        23.756384
+      ],
+      "tags": {
+        "historic": "ruins",
+        "note": "kivijalan rauniot",
+        "source": "survey"
+      }
+    },
+    {
+      "osmId": "way/193335373",
+      "at": [
+        61.465202,
+        23.745923
+      ],
+      "tags": {
+        "building": "yes",
+        "historic": "yes",
+        "source": "Bing aerial imagery"
+      }
+    },
+    {
+      "osmId": "way/193548188",
+      "at": [
+        61.467841,
+        23.750912
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Härmälän kirkko",
+        "religion": "christian",
+        "source": "Bing aerial imagery",
+        "wikidata": "Q15980260",
+        "wikipedia": "fi:Härmälän kirkko"
+      }
+    }
+  ]
+}

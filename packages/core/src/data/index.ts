@@ -6,6 +6,8 @@ export { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
 export type { SchemaOutcome } from './schema.js';
 export { registerWorldseed, registrationDelta } from './worldseedRegister.js';
 export type { BoxTuple, LatLngTuple, WorldseedDoc } from './worldseedRegister.js';
+export { matchLandmark, seedLandmarks } from './landmarkSeed.js';
+export type { LandmarkSeed, OsmElement, WrittenLandmark } from './landmarkSeed.js';
 export { SEED_NEIGHBOURS, seedCells } from './seed.js';
 export type { SeedNeighbour } from './seed.js';
 export { cellsToLoad, planClaim } from './claiming.js';
