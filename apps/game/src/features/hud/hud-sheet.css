@@ -95,3 +95,42 @@
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
+
+/* --- The handle that folds the sheet away ---------------------------------
+   The document draws a 42×4 bar; a 4px line is not a tap target, so the bar sits inside
+   a full-width control with real height. Folded, the panel is just this strip and the
+   map gets the rest — which is the point (field report: it was taking half the screen). */
+.hud__handle {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  min-block-size: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.hud__handle-bar {
+  inline-size: 42px;
+  block-size: 4px;
+  border-radius: 4px;
+  background: oklch(1 0 0 / 0.28);
+  transition: background var(--dur) var(--ease);
+}
+
+.hud__handle:hover .hud__handle-bar,
+.hud__handle:focus-visible .hud__handle-bar {
+  background: oklch(1 0 0 / 0.5);
+}
+
+.hud__handle:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Folded: no vertical padding to leave behind an empty band. */
+.hud__panel[data-folded] {
+  padding-block: 0;
+}

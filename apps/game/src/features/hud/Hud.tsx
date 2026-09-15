@@ -21,6 +21,7 @@ import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
 import { Vigil, vigilLine } from './Vigil.js';
 import { HudNav } from './HudNav.js';
+import { useHudFold } from './useHudFold.js';
 import { HudClaim } from './HudClaim.js';
 import { useClaimFeedback } from './useClaimFeedback.js';
 import type { Settings } from './settings.js';
@@ -169,6 +170,8 @@ export function Hud({
   onHelp,
   onOpenLog,
 }: HudProps) {
+  const { shown, fold: foldSheet } = useHudFold();
+
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
 
@@ -202,7 +205,21 @@ export function Hud({
     <div className="hud" data-compact={compact || undefined} ref={hudRef}>
       {/* Outside the panel on purpose — it is a notice, and it must not grow the HUD. */}
       <HudClaim lastClaim={lastClaim} onOpenLog={onOpenLog} />
-      <GlassPanel as="section" className="hud__panel" aria-label="Status">
+      <GlassPanel as="section" className="hud__panel" aria-label="Status" data-folded={!shown || undefined}>
+        {/* The document's handle, made a real control: 44px of tap target around a 4px
+            line, and it says which way it goes rather than relying on the shape. */}
+        <button
+          type="button"
+          className="hud__handle"
+          aria-expanded={shown}
+          aria-label={shown ? 'Hide the status panel' : 'Show the status panel'}
+          onClick={foldSheet}
+        >
+          <span className="hud__handle-bar" aria-hidden />
+        </button>
+
+        {!shown ? null : (
+        <>
 
         {fading > 0 ? (
           <p className="hud__note hud__note--warn" role="status">
@@ -355,6 +372,8 @@ export function Hud({
             <Vigil keepAlive={keepAlive} />
           </div>
         </div>
+        </>
+        )}
       </GlassPanel>
 
       {/* Its own glass bar, the way the document draws it (Sigil screen 02). */}

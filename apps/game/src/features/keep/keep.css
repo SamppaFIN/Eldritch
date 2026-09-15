@@ -42,10 +42,6 @@
   text-transform: capitalize;
 }
 
-.keep-res-amt {
-  color: var(--text);
-  text-align: end;
-}
 
 .keep-res-rate {
   min-inline-size: 4.5em;

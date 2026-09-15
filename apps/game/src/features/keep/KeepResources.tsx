@@ -54,7 +54,8 @@ export function KeepResources({
   onPouch,
 }: KeepResourcesProps) {
   const [lastCollect, setLastCollect] = useState(() => load<number>('last-collect', 0));
-  const rows = shownResources(resources, perHour);
+  // Only what is coming in — holdings live in the walking sheet's chips now.
+  const earning = shownResources(resources, perHour).filter((k) => (perHour[k] ?? 0) > 0);
   const canCollect = now - lastCollect >= COLLECT_COOLDOWN_MS;
 
   const collect = () => {
@@ -68,9 +69,18 @@ export function KeepResources({
     <section className="keep-section" aria-label="Resources">
       <h3 className="keep-section__head">Resources</h3>
 
-      {rows.length > 0 ? (
+      {/*
+        * What each resource *earns*, not what you hold.
+        *
+        * The amounts moved out (Infinite, 2026-09-15: "voit myös poistaa nuo
+        * resurssimäärät keep välilehdeltä.. nyt ne näkyy paneelissa"). The walking sheet
+        * carries the pouch as chips now, and a number shown twice on two screens is the
+        * thing this whole pass has been removing. The hourly rate is not in the sheet and
+        * is the question the Keep is actually for: which ground is paying you.
+        */}
+      {earning.length > 0 ? (
         <ul className="keep-res-list">
-          {rows.map((k) => (
+          {earning.map((k) => (
             <li key={k} className="keep-res-row">
               <span
                 className="keep-res-pip"
@@ -78,16 +88,11 @@ export function KeepResources({
                 aria-hidden
               />
               <span className="keep-res-name">{RESOURCE_WORD[k]}</span>
-              <span className="keep-res-amt es-numeric">{resources?.[k] ?? 0}</span>
-              <span className="keep-res-rate es-numeric">
-                {(perHour[k] ?? 0) > 0 ? `+${perHour[k]}/h` : ''}
-              </span>
+              <span className="keep-res-rate es-numeric">+{perHour[k]}/h</span>
             </li>
           ))}
         </ul>
-      ) : (
-        <p className="hearth-panel__line">Your pouch is empty.</p>
-      )}
+      ) : null}
 
       <p className="hearth-panel__line">
         {rate > 0

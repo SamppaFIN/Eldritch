@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.7",
+    "date": "2026-09-15",
+    "notes": [
+      "The status panel folds away. Tap the handle at the top of it and the map gets the room back — measured on a phone, it drops from 42% of the screen to 13%. It stays folded until you bring it back, including after a reload.",
+      "The Keep no longer repeats your resource amounts, since the panel now carries them. It shows what each resource earns an hour instead — which is the question the Keep is for."
+    ]
+  },
+  {
     "version": "0.6.6",
     "date": "2026-09-15",
     "notes": [
