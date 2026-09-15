@@ -21,9 +21,21 @@ async function openMap(page: Page) {
 }
 
 /** Open the ☰ menu and click one of its rows. */
+/**
+ * Open the menu and press something in it.
+ *
+ * Since the Sigil redesign (screen 01) the sheet shows three groups and a destination
+ * grid, and everything rare or destructive sits behind one **Advanced** row — the
+ * document's own call: "History and GPX import are rare, so they drop behind Advanced".
+ * So this opens Advanced when the target is not on the face of the sheet.
+ */
 async function openMenuAction(page: Page, label: string) {
   await page.getByRole('button', { name: 'Menu' }).click();
-  await page.getByRole('button', { name: label }).click();
+  const target = page.getByRole('button', { name: label });
+  if (!(await target.isVisible().catch(() => false))) {
+    await page.getByRole('button', { name: /^Advanced/ }).click();
+  }
+  await target.click();
 }
 
 test('withdrawing asks first', async ({ page }) => {
@@ -153,6 +165,9 @@ test('the menu control is a real button with a real name, and reaches Delete pro
   await expect(menu).toBeFocused();
 
   await menu.click();
+  // Destructive actions sit behind Advanced since the Sigil redesign (screen 01), so the
+  // pane above fits one screen. Still reachable, still thumb-sized — that is the assertion.
+  await page.getByRole('button', { name: /^Advanced/ }).click();
   const del = page.getByRole('button', { name: 'Delete progress' });
   await expect(del).toBeVisible();
   const delBox = await del.boundingBox();
@@ -167,7 +182,7 @@ test('the Codex opens from the menu, and says so when the world is empty', async
    */
   await page.route('**/demographics', (route) => route.fulfill({ status: 204 }));
   await openMap(page);
-  await openMenuAction(page, 'Codex of Dominion');
+  await openMenuAction(page, 'Codex Where you stand');
 
   const codex = page.getByRole('region', { name: 'Codex of Dominion' });
   await expect(codex).toBeVisible();
@@ -203,7 +218,7 @@ test('the Codex draws a banner, and never spells its id across the name', async 
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(table) }),
   );
   await openMap(page);
-  await openMenuAction(page, 'Codex of Dominion');
+  await openMenuAction(page, 'Codex Where you stand');
 
   const codex = page.getByRole('region', { name: 'Codex of Dominion' });
   await expect(codex).toBeVisible();
@@ -225,7 +240,7 @@ test('a Codex it cannot reach does not claim the world is empty', async ({ page 
    */
   await page.route('**/demographics', (route) => route.fulfill({ status: 404 }));
   await openMap(page);
-  await openMenuAction(page, 'Codex of Dominion');
+  await openMenuAction(page, 'Codex Where you stand');
 
   const codex = page.getByRole('region', { name: 'Codex of Dominion' });
   await expect(codex).toContainText(/could not be reached/i, { timeout: 10_000 });
@@ -295,7 +310,7 @@ test('the Codex shows where you stand, not just who won', async ({ page }) => {
   await page.route('**/demographics', (route) =>
     route.fulfill({ contentType: 'application/json', body: JSON.stringify(cannedCodex(me)) }),
   );
-  await openMenuAction(page, 'Codex of Dominion');
+  await openMenuAction(page, 'Codex Where you stand');
 
   const codex = page.getByRole('region', { name: 'Codex of Dominion' });
   await expect(codex).toContainText('3 realms measured');

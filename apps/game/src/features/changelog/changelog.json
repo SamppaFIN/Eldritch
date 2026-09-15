@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.4",
+    "date": "2026-09-15",
+    "notes": [
+      "Settings is redrawn to the design: three named groups with real switches you can read at arm’s length, and your destinations — Guide, Your lands, Codex, The Wager — as a two-up grid instead of a list of identical rows.",
+      "Everything rare or destructive moved behind one Advanced row, so the settings themselves fit a screen without scrolling."
+    ]
+  },
+  {
     "version": "0.6.3",
     "date": "2026-09-15",
     "notes": [

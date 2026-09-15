@@ -1,14 +1,22 @@
 /**
- * The one menu the map has: sound, vibration, and the two ways to leave.
+ * Settings, drawn to the Sigil document's screen 01.
  *
- * Retreat and Delete used to sit in the bottom bar next to Here and Vigil, which put a
- * destructive action one mis-tap from the control you press every few seconds while
- * walking. They move up here, behind a deliberate open; the walking bar keeps only what
- * a walking thumb needs. Both still route through the existing confirmation dialogs
- * (`SanctumDialogs`) — this menu only relocates the trigger.
+ * The document replaced this screen rather than tidied it, and said why in its own note:
+ * *"Eleven scrolling rows became three named groups and a 2-up destination grid. Only the
+ * loop toggle keeps its helper text — the one setting that changes how the game is played.
+ * History and GPX import are rare, so they drop behind Advanced, and the whole pane fits
+ * one screen with nothing to scroll."*
  *
- * Not a modal: the player may be moving, and a focus trap is the wrong shape for
- * something you flick open and shut. ESC and a tap outside close it.
+ * So: a sheet, not a dropdown. Named groups with real pill switches instead of a column of
+ * identical rows reading "On"/"Off". Destinations as a 2-up grid of cards, each with a
+ * word about what it is. Everything rare or destructive behind one **Advanced** row.
+ *
+ * Nothing was removed — every action the old menu reached is still reachable, and both
+ * confirmation dialogs (`SanctumDialogs`, `PouchResetDialog`) are untouched. This moves
+ * where things sit, which is the whole of what the screen needed.
+ *
+ * Not a modal: the player may be moving, and a focus trap is the wrong shape for something
+ * flicked open and shut. ESC and a tap outside close it.
  */
 import { useEffect, useRef, useState } from 'react';
 import { APP_VERSION } from '@es3/core';
@@ -33,6 +41,8 @@ export interface SettingsMenuProps {
   onOpenLands: () => void;
   /** Import a recorded walk (BRDC-GPX-001). */
   onOpenGpx: () => void;
+  /** The Wager — a destination in the document's grid, not only a Keep button. */
+  onWager?: (() => void) | undefined;
   /** Dev only: the map editor (BRDC-MAP-EDIT-001). Absent in a player's build. */
   onOpenEditor?: (() => void) | undefined;
   /** Opens the in-game guide's front page (BRDC-WIKI-001). */
@@ -48,6 +58,20 @@ export interface SettingsMenuProps {
   visible?: boolean;
 }
 
+/** The document's groups. Only the loop toggle earns a note — it changes how the game plays. */
+const WALKING: [keyof Settings, string][] = [
+  ['sound', 'Sound'],
+  ['vibration', 'Vibration'],
+  ['loopClosure', 'Claim by closing a loop'],
+];
+
+const MAP: [keyof Settings, string][] = [
+  ['buildingIcons', 'Building icons'],
+  ['revealRivals', 'Rival cell detail'],
+  ['daylight', 'Daylight mode'],
+  ['shareWorld', 'Share your realm'],
+];
+
 export function SettingsMenu({
   settings,
   onChange,
@@ -57,6 +81,7 @@ export function SettingsMenu({
   onOpenCodex,
   onOpenLands,
   onOpenGpx,
+  onWager,
   onOpenEditor,
   onOpenGuide,
   repository,
@@ -66,6 +91,7 @@ export function SettingsMenu({
   visible = true,
 }: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
+  const [advanced, setAdvanced] = useState(false);
   const [changelog, setChangelog] = useState(false);
   const [report, setReport] = useState(false);
   const [emptying, setEmptying] = useState(false);
@@ -109,155 +135,195 @@ export function SettingsMenu({
   if (!visible) return overlays;
 
   const toggle = (key: keyof Settings) => onChange({ ...settings, [key]: !settings[key] });
-  const SWITCHES: [keyof Settings, string][] = [
-    ['sound', 'Sound'],
-    ['vibration', 'Vibration'],
-    ['loopClosure', 'Claim by closing a loop'],
-    ['buildingIcons', 'Building icons on the map'],
-    ['daylight', 'Daylight mode — solid panels, easier in sun'],
-    ['revealRivals', "Show a rival cell's full detail"],
-    ['shareWorld', 'Share the world — see nearby realms, and let them see yours'],
-  ];
+
   const run = (action: () => void) => {
     /*
-     * Move focus to the ☰ button before the panel unmounts.
+     * Move focus to the ☰ button before the sheet unmounts.
      *
      * The clicked row is about to leave the DOM in the same render that opens the
-     * confirmation Modal, and a focused element that is removed drops focus to
-     * <body> — before Modal's own effect ever runs. Modal captures
-     * document.activeElement to give focus back to it on close; with nothing
-     * meaningful focused at that moment, closing the confirmation dropped a
-     * keyboard user at the top of the document instead of back at the menu.
+     * confirmation Modal, and a focused element that is removed drops focus to <body> —
+     * before Modal's own effect ever runs. Modal captures document.activeElement to give
+     * focus back on close; with nothing meaningful focused, closing the confirmation
+     * dropped a keyboard user at the top of the document instead of back at the menu.
      */
     rootRef.current?.querySelector<HTMLButtonElement>('.settings-menu__button')?.focus();
     setOpen(false);
     action();
   };
 
+  /** A row with a real pill switch, the way the document draws it. */
+  const row = ([key, label]: [keyof Settings, string]) => (
+    <button
+      key={key}
+      type="button"
+      role="switch"
+      aria-checked={settings[key]}
+      className="settings__row"
+      onClick={() => toggle(key)}
+    >
+      <span className="settings__row-label">{label}</span>
+      <span className="settings__pill" aria-hidden>
+        <span className="settings__knob" />
+      </span>
+    </button>
+  );
+
+  /** One destination card: what it is, and a word about why you would open it. */
+  const link = (name: string, sub: string, go: () => void, ink?: string) => (
+    <button type="button" className="settings__link" onClick={() => run(go)}>
+      <span className="settings__link-name" style={ink ? { color: ink } : undefined}>
+        {name}
+      </span>
+      <span className="settings__link-sub">{sub}</span>
+    </button>
+  );
+
   return (
     <>
       {overlays}
       <div className="settings-menu" ref={rootRef}>
-      <RitualButton
-        variant="ghost"
-        className="settings-menu__button"
-        aria-expanded={open}
-        aria-haspopup="true"
-        aria-label="Menu"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span aria-hidden>☰</span>
-      </RitualButton>
+        <RitualButton
+          variant="ghost"
+          className="settings-menu__button"
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="Menu"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span aria-hidden>☰</span>
+        </RitualButton>
 
-      {open ? (
-        <GlassPanel as="div" className="settings-menu__panel" role="dialog" aria-label="Menu">
-          {SWITCHES.map(([key, label]) => (
+        {open ? (
+          <GlassPanel as="div" className="settings" role="dialog" aria-label="Settings">
+            <div className="settings__head">
+              {advanced ? (
+                <button
+                  type="button"
+                  className="settings__close"
+                  aria-label="Back to settings"
+                  onClick={() => setAdvanced(false)}
+                >
+                  <span aria-hidden>‹</span>
+                </button>
+              ) : null}
+              <h2 className="settings__title">{advanced ? 'Advanced' : 'Settings'}</h2>
+              <button
+                type="button"
+                className="settings__close"
+                aria-label="Close"
+                onClick={() => setOpen(false)}
+              >
+                <span aria-hidden>✕</span>
+              </button>
+            </div>
+
+            {advanced ? null : (
+              <>
+            <div className="settings__group">
+              <p className="settings__group-label">Walking</p>
+              <div className="settings__rows">{WALKING.map(row)}</div>
+              {/* The one setting that changes how the game is played keeps its sentence. */}
+              <p className="settings__note">
+                Off: you take ground by stepping into a hex beside yours.
+              </p>
+            </div>
+
+            <div className="settings__group">
+              <p className="settings__group-label">The map</p>
+              <div className="settings__rows">{MAP.map(row)}</div>
+            </div>
+
+            <div className="settings__group">
+              <p className="settings__group-label">Go to</p>
+              <div className="settings__grid">
+                {link('Guide', 'How it plays', onOpenGuide)}
+                {link('Your lands', 'The ground you hold', onOpenLands)}
+                {link('Codex', 'Where you stand', onOpenCodex, 'var(--sacred-gold)')}
+                {onWager ? link('The Wager', 'Challenge a friend', onWager, 'var(--r-token)') : null}
+              </div>
+            </div>
+
+            {/* Rare and destructive both live behind one row, so the pane above it fits a
+                screen. The document drops History and import here; Retreat, the pouch and
+                Delete progress belong with them rather than a mis-tap from a destination. */}
             <button
-              key={key}
               type="button"
-              role="switch"
-              aria-checked={settings[key]}
-              className="settings-menu__switch"
-              onClick={() => toggle(key)}
+              className="settings__advanced"
+              aria-expanded={advanced}
+              onClick={() => setAdvanced((v) => !v)}
             >
-              <span>{label}</span>
-              <span className="settings-menu__state" aria-hidden>
-                {settings[key] ? 'On' : 'Off'}
+              <span>Advanced · history · import a walk</span>
+              <span className="settings__chevron" aria-hidden>
+                ›
               </span>
             </button>
-          ))}
-          <p className="settings-menu__note">
-            With loop claiming off, you take ground by walking into a hex beside yours.
-          </p>
+              </>
+            )}
 
-          <hr className="settings-menu__rule" />
-
-          <button type="button" className="settings-menu__action" onClick={() => run(onOpenGuide)}>
-            Guide
-          </button>
-          <button type="button" className="settings-menu__action" onClick={() => run(onOpenLog)}>
-            History
-          </button>
-          <button type="button" className="settings-menu__action" onClick={() => run(onOpenLands)}>
-            Your lands
-          </button>
-          <button type="button" className="settings-menu__action" onClick={() => run(onOpenCodex)}>
-            Codex of Dominion
-          </button>
-          <button type="button" className="settings-menu__action" onClick={() => run(onOpenGpx)}>
-            Import a walk
-          </button>
-          <button
-            type="button"
-            className="settings-menu__action"
-            onClick={() => run(() => setReport(true))}
-          >
-            Report a bug or improvement
-          </button>
-          <button
-            type="button"
-            className="settings-menu__action"
-            onClick={() => run(() => setChangelog(true))}
-          >
-            <span>What&rsquo;s new</span>
-            <span className="settings-menu__state" aria-hidden>
-              v{APP_VERSION}
-            </span>
-          </button>
-          {/*
-            * Everything above opens something; everything below ends or destroys
-            * something (BRDC-NAV-001). They used to be one undifferentiated column, so
-            * "Empty the pouch" — which throws away every resource — was the same shape,
-            * weight and colour as "Codex of Dominion" one row above it, in a list
-            * scrolled with one thumb while walking. §14: same action, same appearance —
-            * and the corollary, that different kinds of action must not look the same.
-            */}
-          <hr className="settings-menu__rule" />
-          <p className="settings-menu__group">Ending things</p>
-
-          <button
-            type="button"
-            className="settings-menu__action"
-            onClick={() => run(onRetreat)}
-          >
-            Retreat from the map
-          </button>
-          {onResetPouch ? (
-            <button
-              type="button"
-              className="settings-menu__action settings-menu__action--danger"
-              onClick={() => run(() => setEmptying(true))}
-            >
-              Empty the pouch
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="settings-menu__action settings-menu__action--danger"
-            onClick={() => run(onDeleteProgress)}
-          >
-            Delete progress
-          </button>
-          {import.meta.env.DEV && onOpenEditor ? (
-            <button
-              type="button"
-              className="settings-menu__action settings-menu__action--dev"
-              onClick={() => run(onOpenEditor)}
-            >
-              Map editor
-            </button>
-          ) : null}
-          {import.meta.env.DEV && onDebugGrant ? (
-            <button
-              type="button"
-              className="settings-menu__action settings-menu__action--dev"
-              onClick={() => run(onDebugGrant)}
-            >
-              Debug · +200 every resource
-            </button>
-          ) : null}
-        </GlassPanel>
-      ) : null}
+            {advanced ? (
+              <div className="settings__rows">
+                <button type="button" className="settings__action" onClick={() => run(onOpenLog)}>
+                  History
+                </button>
+                <button type="button" className="settings__action" onClick={() => run(onOpenGpx)}>
+                  Import a walk
+                </button>
+                <button
+                  type="button"
+                  className="settings__action"
+                  onClick={() => run(() => setReport(true))}
+                >
+                  Report a bug or improvement
+                </button>
+                <button
+                  type="button"
+                  className="settings__action"
+                  onClick={() => run(() => setChangelog(true))}
+                >
+                  <span>What&rsquo;s new</span>
+                  <span className="settings__version es-numeric">v{APP_VERSION}</span>
+                </button>
+                <button type="button" className="settings__action" onClick={() => run(onRetreat)}>
+                  Retreat from the map
+                </button>
+                {onResetPouch ? (
+                  <button
+                    type="button"
+                    className="settings__action settings__action--danger"
+                    onClick={() => run(() => setEmptying(true))}
+                  >
+                    Empty the pouch
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="settings__action settings__action--danger"
+                  onClick={() => run(onDeleteProgress)}
+                >
+                  Delete progress
+                </button>
+                {import.meta.env.DEV && onOpenEditor ? (
+                  <button
+                    type="button"
+                    className="settings__action settings__action--dev"
+                    onClick={() => run(onOpenEditor)}
+                  >
+                    Map editor
+                  </button>
+                ) : null}
+                {import.meta.env.DEV && onDebugGrant ? (
+                  <button
+                    type="button"
+                    className="settings__action settings__action--dev"
+                    onClick={() => run(onDebugGrant)}
+                  >
+                    Debug · +200 every resource
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </GlassPanel>
+        ) : null}
       </div>
     </>
   );

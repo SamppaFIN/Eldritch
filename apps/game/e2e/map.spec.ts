@@ -297,6 +297,8 @@ test('the menu reaches Retreat, thumb-sized and focusable, and it asks first', a
   await expect(menu).toBeFocused();
   await menu.click();
 
+  // Behind Advanced since the Sigil redesign (screen 01) — the pane above it fits a screen.
+  await page.getByRole('button', { name: /^Advanced/ }).click();
   await page.getByRole('button', { name: 'Retreat from the map' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();

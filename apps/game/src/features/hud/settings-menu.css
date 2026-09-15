@@ -1,4 +1,4 @@
-/* The hamburger and its panel — top-left, above the HUD, clear of the notch. */
+/* The hamburger, and the Settings sheet it opens (Sigil screen 01). */
 .settings-menu {
   position: fixed;
   inset-block-start: max(var(--space-3), env(safe-area-inset-top));
@@ -14,41 +14,91 @@
   line-height: 1;
 }
 
-.settings-menu__panel {
-  position: absolute;
-  inset-block-start: calc(100% + var(--space-2));
-  inset-inline-start: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-inline-size: 14rem;
-  /* Override .es-panel's page-panel padding and cent­ring — this is a dropdown. */
-  padding: var(--space-2);
-  align-items: stretch;
-  /* A menu is read, not glanced at — give it a near-opaque ground so the map and HUD
-     behind it do not bleed through the labels (.es-glass alone is 0.7 alpha). */
-  background: color-mix(in oklch, var(--void-black) 88%, var(--cosmic-purple));
-  /* The switches and the two exits together outrun a short screen. Cap it well inside
-     the viewport and scroll, the way the cell and guide panels do. */
-  max-block-size: 70vh;
-  max-block-size: 70dvh;
+/* A sheet rather than a dropdown. The document draws this full-width at 360 px with
+   nothing to scroll — three named groups, a destination grid, and one Advanced row. */
+.settings {
+  position: fixed;
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  margin-inline: auto;
+  max-inline-size: 26rem;
+  max-block-size: calc(100dvh - var(--hud-height, 12rem) - var(--space-6));
   overflow-y: auto;
   overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  animation: es-panel-in 0.2s var(--ease-out) both;
 }
 
-.settings-menu__switch,
-.settings-menu__action {
+.settings__head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
-  /* The panel scrolls when it runs long; rows keep their natural height. Without this,
-     flexbox shrinks every row to min-block-size and multi-line labels spill over their
-     neighbours. */
-  flex-shrink: 0;
+}
+
+.settings__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+}
+
+/* A round close, the way the mockup draws it. */
+.settings__close {
+  flex: none;
+  inline-size: var(--touch-min);
+  block-size: var(--touch-min);
+  display: grid;
+  place-items: center;
+  border: 1px solid oklch(1 0 0 / 0.2);
+  border-radius: var(--radius-full);
+  background: oklch(1 0 0 / 0.07);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.settings__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Orbitron, wide-tracked, small — the document's section voice. */
+.settings__group-label {
+  margin: 0;
+  padding-inline-start: 2px;
+  color: var(--text-dim);
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* One card holding the rows, hairline dividers between them. */
+.settings__rows {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid oklch(1 0 0 / 0.08);
+  border-radius: var(--radius-md);
+  background: oklch(0 0 0 / 0.26);
+  overflow: hidden;
+}
+
+.settings__row,
+.settings__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   min-block-size: var(--touch-min);
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-block-end: 1px solid oklch(1 0 0 / 0.07);
   background: transparent;
   color: var(--text);
   font-family: var(--font-body);
@@ -57,61 +107,131 @@
   cursor: pointer;
 }
 
-.settings-menu__switch {
-  justify-content: space-between;
+.settings__row:last-child,
+.settings__action:last-child {
+  border-block-end: 0;
 }
 
-.settings-menu__switch[aria-checked='true'] .settings-menu__state {
-  color: var(--awareness-green);
+.settings__row-label {
+  flex: 1;
 }
 
-.settings-menu__switch[aria-checked='false'] .settings-menu__state {
-  color: var(--text-dim);
+/* The pill. Green and knob-right when on, neutral and knob-left when off — a shape that
+   reads at arm's length, which "On"/"Off" in body type does not. */
+.settings__pill {
+  position: relative;
+  flex: none;
+  inline-size: 44px;
+  block-size: 26px;
+  border: 1px solid oklch(1 0 0 / 0.18);
+  border-radius: var(--radius-full);
+  background: oklch(1 0 0 / 0.1);
+  transition: background var(--dur) var(--ease);
 }
 
-.settings-menu__action--danger {
-  color: var(--danger);
+.settings__knob {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+  background: oklch(0.62 0.01 300);
+  transition: inset-inline-start var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
-.settings-menu__action--dev {
-  color: var(--awareness-green);
-  font-family: var(--font-numeric, monospace);
-  font-size: var(--text-sm);
+.settings__row[aria-checked='true'] .settings__pill {
+  border-color: oklch(0.87 0.21 156 / 0.6);
+  background: oklch(0.87 0.21 156 / 0.28);
 }
 
-.settings-menu__rule {
-  inline-size: 100%;
-  flex-shrink: 0;
-  border: none;
-  border-block-start: 1px solid var(--glass-border);
-  margin: var(--space-1) 0;
+.settings__row[aria-checked='true'] .settings__knob {
+  inset-inline-start: 20px;
+  background: var(--awareness-green);
 }
 
-/* The one label in the menu (BRDC-NAV-001). It sits over the actions that end or destroy
-   something, so the divider above them reads as a deliberate separation rather than a
-   stray rule — and so the group has a name before a thumb reaches it. */
-.settings-menu__group {
-  flex-shrink: 0;
+.settings__note {
   margin: 0;
-  padding-inline: var(--space-2);
-  color: var(--text-dim);
-  font-size: var(--text-sm);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.settings-menu__note {
-  flex-shrink: 0;
-  margin: 0 0 var(--space-1);
   padding-inline: var(--space-1);
   color: var(--text-dim);
   font-size: var(--text-sm);
   text-wrap: pretty;
 }
 
+/* Destinations, two up. A name and a word about why you would open it. */
+.settings__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.settings__link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-block-size: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid oklch(1 0 0 / 0.08);
+  border-radius: var(--radius-md);
+  background: oklch(0 0 0 / 0.26);
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+}
+
+.settings__link-name {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+
+.settings__link-sub {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+/* Everything rare or destructive, behind one row. */
+.settings__advanced {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-1);
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.settings__chevron {
+  font-size: var(--text-h3);
+  line-height: 1;
+}
+
+.settings__version {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.settings__action--danger {
+  color: var(--danger);
+}
+
+.settings__action--dev {
+  color: var(--awareness-green);
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+}
+
 .settings-menu__button:focus-visible,
-.settings-menu__switch:focus-visible,
-.settings-menu__action:focus-visible {
+.settings__close:focus-visible,
+.settings__row:focus-visible,
+.settings__link:focus-visible,
+.settings__advanced:focus-visible,
+.settings__action:focus-visible {
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
