@@ -233,14 +233,17 @@ export function setTerritoryData(
   bannerId: BannerId | null = null,
   /** Cells this player has revealed (BRDC-SIGIL-003) — gates the bounty layer. */
   revealed: Readonly<Record<H3Index, number>> = {},
+  /** The Temple and the Anchor (BRDC-SIGIL-006): no banner on the hex they stand on. */
+  places: readonly { h3: H3Index }[] = [],
 ): void {
+  const placeCells = new Set(places.map((p) => p.h3));
   const source = map.getSource(CELL_SOURCE);
   (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
-    cellsToGeoJson(cells, me, now, home, revealed),
+    cellsToGeoJson(cells, me, now, home, revealed, placeCells),
   );
   const marks = map.getSource(CELL_MARK_SOURCE);
   (marks as { setData?: (d: FeatureCollection<Point, CellProperties>) => void })?.setData?.(
-    cellMarksToGeoJson(cells, me, now, home, revealed),
+    cellMarksToGeoJson(cells, me, now, home, revealed, placeCells),
   );
   if (bannerId) setFlagBanner(map, bannerId);
 }

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.23",
+    "date": "2026-09-15",
+    "notes": [
+      "Temples and your Anchor Stone now stand on the map as structures — a columned temple with a gold spark, and a green-cored crystal for the Anchor — instead of a coloured dot.",
+      "Your banner no longer flies on a hex that holds a Temple or the Anchor Stone."
+    ]
+  },
+  {
     "version": "0.6.22",
     "date": "2026-09-15",
     "notes": [

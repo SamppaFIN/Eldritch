@@ -111,10 +111,11 @@ export function cellMarksToGeoJson(
   now = 0,
   home: H3Index | null = null,
   revealed: Readonly<Record<H3Index, number>> = {},
+  places?: ReadonlySet<H3Index>,
 ): FeatureCollection<Point, CellProperties> {
   // Built from the polygons so the dedupe and the neighbour counting happen once, in
   // one place. Indexing `cells` here would desync the moment that dedupe drops one.
-  const polygons = cellsToGeoJson(cells, me, now, home, revealed);
+  const polygons = cellsToGeoJson(cells, me, now, home, revealed, places);
   return {
     type: 'FeatureCollection',
     features: polygons.features.map((f) => {
@@ -142,11 +143,12 @@ export function cellToFeature(
   home: H3Index | null = null,
   isBorder = false,
   revealed: Readonly<Record<H3Index, number>> = {},
+  placeHere = false,
 ): Feature<Polygon, CellProperties> {
   return {
     type: 'Feature',
     id: cell.h3,
-    properties: cellProperties(cell, me, now, home, isBorder, revealed),
+    properties: cellProperties(cell, me, now, home, isBorder, revealed, placeHere),
     geometry: { type: 'Polygon', coordinates: [cellBoundary(cell.h3)] },
   };
 }
@@ -157,6 +159,8 @@ export function cellsToGeoJson(
   now = 0,
   home: H3Index | null = null,
   revealed: Readonly<Record<H3Index, number>> = {},
+  /** Hexes a Temple or the Anchor stands on — no banner there (BRDC-SIGIL-006). */
+  places?: ReadonlySet<H3Index>,
 ): FeatureCollection<Polygon, CellProperties> {
   // A border cell is one of mine with at least one neighbour I do not hold — the blight
   // creeps in from there, so it is drawn a little deeper (BRDC-BLIGHT-001).
@@ -178,7 +182,9 @@ export function cellsToGeoJson(
   return {
     type: 'FeatureCollection',
     features: unique.map((cell) => {
-      const feature = cellToFeature(cell, me, now, home, isBorder(cell), revealed);
+      const feature = cellToFeature(
+        cell, me, now, home, isBorder(cell), revealed, places?.has(cell.h3) ?? false,
+      );
       // Counted here rather than in `cellProperties`, which sees one cell and cannot know
       // what else you hold. `ownedH3` is already built above for the border test.
       const neighbours =

@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `territory/cellMarks.ts`, `territoryMarks.ts`, `TerritoryLayer.ts`, `strengthArcs.ts`, `BuildingIconLayer.ts`, `CastleMarker.ts`, `PlaceMarkers.ts`, `QuestMarkers.ts`, `core/geo/strengthArc.ts`, sprite-rasterit |
 | **Vaihe** | 3 — Sivilisaatio |
-| **Status** | `done` (v0.6.20, v0.6.21) — osittaiset kohdat merkitty `[~]`, lippu odottaa päätöstä |
+| **Status** | `done` (v0.6.20–0.6.23) — osittaiset kohdat merkitty `[~]`, lippu odottaa päätöstä |
 | **Lähde** | Infinite 2026-09-15, kuvakaappaukset puhelimesta ja dev-serveriltä, vertailu Sigil §03:een |
 
 ## 🔴 RED
@@ -26,6 +26,10 @@ silti kaukana halutusta."*
    kaari ohut ja **vasemmalla kyljellä** eikä pohjan V:ssä, oma reunaviiva raidoitettu.
 6. **Questin merkki liikkuu yhä.** v0.6.13 kiinnitti säännöt (`siteCell`), mutta kartta piirsi
    yhä `questSiteAt`illa — merkki liukui Hearthin mukana, ja napautus avasi eri heksan.
+7. **Temppelillä ei ole kuvaa.** Infinite: *"ei ole isometristä temppelin kuvaa.."* Temppeli ja
+   Ankkurikivi olivat kultainen tai vihreä piste ja nimi, kun jokainen Työ seisoi
+   isometrisenä. §03 piirtää ne heksan rakennelmana. Lisäksi lippu piirtyi niiden heksalle —
+   myös Keepin omalle heksalle, koska Ankkurikivi on Hearth-solu (`placesWithHome`).
 
 ## 🟢 GREEN
 
@@ -49,6 +53,10 @@ silti kaukana halutusta."*
       questin nimelle (sama slotti) — päällekkäisyys poissa, mutta yksi nimi piiloon
 - [x] **Questin merkki kiinnitetyn heksan keskellä** — `QuestMarkers.test.ts`. Vanha rivi takaisin
       → testi kaatuu: merkki piirtyi Helsinkiin (`[24.94, 60.17]`) kiinnitetyn Tampereen heksan sijaan
+- [x] **Temppeli ja Ankkurikivi isometrisinä rakennelmina** (`placeSprites.ts`): pohja-ankkuroitu
+      keskelle, Työn kokoinen; kultainen kipinä ja vihreä ydin §03:n mukaan; piste vain varalla
+      kunnes kuvat ovat atlaksessa; nimi väistyy katon tieltä
+- [x] Ei lippua paikan heksalla (`cellsToGeoJson(…, places)`) — `cellMarks.test.ts`
 - [~] Teardown poistaa jokaisen tason molemmilta solulähteiltä — koodattu, mikään testi ei aja
 - [x] Sprite-latailijat eivät koske poistettuun karttaan (`watchRemoval`, v0.6.21). Infiniten
       konsolissa `reading 'getImage'` kaatumisen jälkeen; `mapLife.test.ts`, ja Infiniten oma
@@ -64,6 +72,13 @@ through it"*). Lippu suurennettiin Infiniten pyynnöstä (*"pelaajan logot… su
 Vaihtoehdot: pois heksalta · pieni kulmassa · pysyy suurena.
 
 ## Ei tässä
+
+- **Avoin havainto (2026-09-15):** tuoreessa istunnossa kartan `places` jäi tyhjäksi — ei edes
+  Ankkurikiveä — vaikka `home` on tallessa, ja myös sivun uudelleenlatauksen jälkeen. `MapView`
+  lukee paikat vain `trail.ready`- ja `trail.revealed`-muutoksilla, eli uudella pelaajalla ennen
+  Hearthin perustamista. Uudelleenlatauksen tyhjyyttä se ei selitä — syy selvittämättä. Temppelin
+  ja Ankkurin kuva todennettiin syöttämällä paikat suoraan lähteeseen; Infiniten omassa
+  istunnossa paikat latautuvat. Keepin oman pisteen ja Ankkurin pohjan päällekkäisyyttä ei nähty
 
 - DOM-kerrosten päällekkäisyys (vihje ja ilmoitus paneelin otsikon päällä) — `BRDC-MAP-005`
 - Opastusdialogin nappi HUD:n alla — `BRDC-TUTOR-004`

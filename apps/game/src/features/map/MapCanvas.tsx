@@ -230,9 +230,9 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
 
   useEffect(() => {
     if (!map || !ready || !cells) return;
-    setTerritoryData(map, cells, playerId, now, castle, bannerId, revealed);
+    setTerritoryData(map, cells, playerId, now, castle, bannerId, revealed, places);
     setArcData(map, cells, playerId, now);
-  }, [map, ready, cells, playerId, now, castle, bannerId, revealed]);
+  }, [map, ready, cells, playerId, now, castle, bannerId, revealed, places]);
 
   /*
    * Tapping a hexagon. A rendered cell carries its H3 as the feature id; a tap on none

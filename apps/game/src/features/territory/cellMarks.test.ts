@@ -48,3 +48,20 @@ describe('cellsToGeoJson', () => {
     expect(features[0]?.properties.strength).toBe(360);
   });
 });
+
+describe('the banner and the places (BRDC-SIGIL-006)', () => {
+  /*
+   * A Temple or the Anchor Stone is the hex's structure. A banner in the same centre slot
+   * would be the collision the slot table exists to prevent — and on the Keep's own hex,
+   * where the Anchor stands, it was drawn every time.
+   */
+  it('leaves the banner off a hex a place stands on', () => {
+    const { features } = cellsToGeoJson([cell(ME, 200)], ME, 0, null, {}, new Set([H3]));
+    expect(features[0]?.properties.flag).toBe('');
+  });
+
+  it('still flies it on your other empty ground', () => {
+    const { features } = cellsToGeoJson([cell(ME, 200)], ME, 0, null, {}, new Set());
+    expect(features[0]?.properties.flag).not.toBe('');
+  });
+});

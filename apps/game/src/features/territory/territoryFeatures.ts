@@ -311,6 +311,8 @@ export function cellProperties(
   /** Cells this player has revealed. Empty by default — most callers (tests, the
    *  editor) have no reveal state and must not have to invent one. */
   revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
+  /** A Temple or the Anchor Stone stands here (BRDC-SIGIL-006) — it is the structure. */
+  placeHere = false,
 ): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const rival = cell.ownerId !== null && !mine;
@@ -351,7 +353,9 @@ export function cellProperties(
     bountyColor: bountyInk(mineRevealed ? bountyOn(cell) : null),
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.
-    flag: mine && works.length === 0 ? FLAG_GLYPH : '',
+    // Nor where a Temple or the Anchor stands: a place is the hex's structure, and a
+    // banner in the same centre slot is the collision the slot table exists to prevent.
+    flag: mine && works.length === 0 && !placeHere ? FLAG_GLYPH : '',
     shared: cell.shared !== undefined,
   };
 }
