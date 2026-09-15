@@ -12,6 +12,7 @@
  */
 import { useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
+import { MAX_STRENGTH } from '@es3/core';
 import type { Collected, GameRepository, Holding } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { BUILDING_NAME } from '../territory/names.js';
@@ -21,6 +22,8 @@ import { useLands } from './useLands.js';
 import type { Revealed } from './useLands.js';
 import { WonderMoment } from '../wonder/WonderMoment.js';
 import './lands-panel.css';
+import { TERRAIN_NAME } from '../territory/names.js';
+import type { TerrainKind } from '@es3/core';
 
 export interface LandsPanelProps {
   open: boolean;
@@ -48,7 +51,7 @@ function foundLine(r: Revealed): string {
   return parts.length > 0 ? `${tier} · ${parts.join(' · ')}` : `${tier} — nothing hidden here.`;
 }
 
-/** "3 h" · "5 d" · "—" for ground that cannot be lost. */
+/** "3 h" · "5 d" · "safe" for ground that cannot be lost. */
 function untilLost(hours: number | null): string {
   if (hours === null) return 'safe';
   return hours < 48 ? `${hours} h` : `${Math.round(hours / 24)} d`;
@@ -57,15 +60,6 @@ function untilLost(hours: number | null): string {
 /** `terrainGlyph` hands back a char and a colour; the list wants both. */
 const glyph = (kind: string) => terrainGlyph(kind as Parameters<typeof terrainGlyph>[0]);
 
-const GROUND: Readonly<Record<string, string>> = {
-  plain: 'Plain',
-  forest: 'Forest',
-  hill: 'Hill',
-  mountain: 'Mountain',
-  lake: 'Lake',
-  coast: 'Coast',
-  market: 'Market',
-};
 
 /** The row's hex. A named reader so the reveal handler reads as an action on a land. */
 const h3OfRow = (h: Holding): string => h.h3;
@@ -95,7 +89,7 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
           <span className="lands__glyph" style={{ color: glyph(h.terrain)?.color }} aria-hidden>
             {glyph(h.terrain)?.char ?? '·'}
           </span>
-          {GROUND[h.terrain] ?? h.terrain}
+          {TERRAIN_NAME[h.terrain as TerrainKind] ?? h.terrain}
           {h.home ? <span className="lands__tag lands__tag--home">Hearth</span> : null}
           {h.revealed ? null : <span className="lands__tag lands__tag--new">unrevealed</span>}
         </span>
@@ -113,8 +107,17 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
           ) : (
             <span className="lands__res lands__res--none">no yield</span>
           )}
-          <span title="strength">{h.strength}</span>
-          <span title="days walked">{h.days} d walked</span>
+          {/*
+            * Out of MAX_STRENGTH, not bare (BRDC-LANDS-003). This was `340` with
+            * `title="strength"` on it — and a title is a hover, which a phone does not
+            * have. `gateNote.ts` says so in its own docstring: on a touchscreen there is
+            * no hover to explain anything. The ratio needs no label; it is the same
+            * shape the cell card shows, and it says what the number is out of.
+            */}
+          <span>
+            {h.strength}/{MAX_STRENGTH}
+          </span>
+          <span>{h.days} d walked</span>
           <span className={h.hoursLeft !== null && h.hoursLeft <= 24 ? 'lands__fading' : undefined}>
             {untilLost(h.hoursLeft)}
           </span>
@@ -141,7 +144,7 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
           className="lands__reveal"
           // Named, because "Reveal" seven times over is useless read aloud — and because
           // the row's own button says "unrevealed", which a bare name match collides with.
-          aria-label={`Reveal this ${GROUND[h.terrain] ?? h.terrain}`}
+          aria-label={`Reveal this ${TERRAIN_NAME[h.terrain as TerrainKind] ?? h.terrain}`}
           onClick={() => reveal(h3OfRow(h))}
         >
           Reveal

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.96",
+    "date": "2026-09-15",
+    "notes": [
+      "A hex is called the same thing everywhere now. Four separate lists of terrain names had grown up in the code, and two of them had already drifted — the same hillside was written two ways on two screens.",
+      "In Your lands, a hex’s strength says what it is out of. It was a bare number whose only explanation was a hover, which a phone does not have."
+    ]
+  },
+  {
     "version": "0.5.95",
     "date": "2026-09-15",
     "notes": [

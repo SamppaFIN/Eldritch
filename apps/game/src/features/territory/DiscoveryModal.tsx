@@ -9,19 +9,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal, RitualButton, HexMandala } from '@es3/ui';
 import { revealOf, terrainForCell } from '@es3/core';
-import type { Cell, H3Index, TerrainKind } from '@es3/core';
+import type { Cell, H3Index } from '@es3/core';
 import type { Discovery } from './useDiscovery.js';
 import './discovery-modal.css';
+import { GROUND_NAME } from './names.js';
 
-const GROUND: Readonly<Record<TerrainKind, string>> = {
-  plain: 'Plain ground',
-  forest: 'Old woodland',
-  hill: 'A bare hillside',
-  mountain: 'Broken rock',
-  lake: 'Still water',
-  coast: 'The shoreline',
-  market: 'A place of trade',
-};
 
 const TIER: Readonly<Record<ReturnType<typeof revealOf>, string>> = {
   common: 'Common ground.',
@@ -91,7 +83,7 @@ export function DiscoveryModal({
         <HexMandala size={110} animate={1400} />
       </span>
 
-      <p className="discovery__ground">{cell ? GROUND[terrainForCell(cell).kind] : 'New ground'}</p>
+      <p className="discovery__ground">{cell ? GROUND_NAME[terrainForCell(cell).kind] : 'New ground'}</p>
 
       {learning ? (
         <p className="discovery__hint">

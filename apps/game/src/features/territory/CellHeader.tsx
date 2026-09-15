@@ -13,16 +13,8 @@ import { cityStateOf, terrainForCell } from '@es3/core';
 import type { Cell, TerrainKind } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { terrainGlyph } from './territoryFeatures.js';
+import { GROUND_NAME } from './names.js';
 
-const GROUND: Readonly<Record<TerrainKind, string>> = {
-  plain: 'Plain ground',
-  forest: 'Old woodland',
-  hill: 'Bare hillside',
-  mountain: 'Broken rock',
-  lake: 'Still water',
-  coast: 'The shoreline',
-  market: 'A place of trade',
-};
 
 /** Where the terrain reading came from (BRDC-TERRAIN-002, -003). */
 const SOURCE_LABEL = { tiles: '(from the map)', seed: '(surveyed)', hash: '(estimated)' } as const;
@@ -64,7 +56,7 @@ export function CellHeader({ cell, mine, here, onClose }: CellHeaderProps) {
                 {glyph.char}{' '}
               </span>
             ) : null}
-            {GROUND[terrain.kind]}
+            {GROUND_NAME[terrain.kind]}
             <span className="cell-panel__source"> {SOURCE_LABEL[terrain.source]}</span>
           </p>
           {/* Who holds it and whether the player is standing on it — the line most worth

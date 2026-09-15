@@ -22,6 +22,8 @@ import { RitualButton } from '@es3/ui';
 import { RESOURCE_KINDS, TERRAIN_TABLE, terrainOf } from '@es3/core';
 import type { Collected, GameRepository, H3Index, ResourceKind, ResourcePool } from '@es3/core';
 import { RESOURCE_COLOUR, RESOURCE_WORD, terrainGlyph } from '../territory/territoryFeatures.js';
+import { TERRAIN_NAME } from '../territory/names.js';
+import type { TerrainKind } from '@es3/core';
 
 export interface NewLandsProps {
   /** The hexes the track took. Empty means the walk claimed nothing, which is not failure. */
@@ -40,15 +42,6 @@ interface Found {
   bonus: Partial<ResourcePool>;
 }
 
-const GROUND: Readonly<Record<string, string>> = {
-  plain: 'Plain',
-  forest: 'Forest',
-  hill: 'Hill',
-  mountain: 'Mountain',
-  lake: 'Lake',
-  coast: 'Coast',
-  market: 'Market',
-};
 
 /** "+12 timber · +3 gold", or the tier alone when the ground held nothing. */
 function spoils(found: Found): string {
@@ -145,7 +138,7 @@ export function NewLands({ hexes, repository, now, onGain, afterReveal }: NewLan
                 <span style={{ color: g?.color }} aria-hidden>
                   {g?.char ?? '·'}
                 </span>
-                <span>{GROUND[kind] ?? kind}</span>
+                <span>{TERRAIN_NAME[kind as TerrainKind] ?? kind}</span>
                 <span className="gpx__lands-spoils">{f ? spoils(f) : '…'}</span>
               </li>
             );
@@ -179,7 +172,7 @@ export function NewLands({ hexes, repository, now, onGain, afterReveal }: NewLan
         <span className="gpx__card-glyph" style={{ color: g?.color }} aria-hidden>
           {g?.char ?? '·'}
         </span>
-        <h3 className="gpx__card-name">{GROUND[kind] ?? kind}</h3>
+        <h3 className="gpx__card-name">{TERRAIN_NAME[kind as TerrainKind] ?? kind}</h3>
         {resource ? (
           <p className="gpx__card-yield" style={{ color: RESOURCE_COLOUR[resource] }}>
             {RESOURCE_WORD[resource]}
