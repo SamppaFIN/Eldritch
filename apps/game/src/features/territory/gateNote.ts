@@ -14,6 +14,25 @@
 import { RESOURCE_WORD } from './territoryFeatures.js';
 import type { ExpandRefusal, ResourceKind, ResourcePool } from '@es3/core';
 
+/**
+ * "40 timber · 30 gold" — what a thing costs, in the words the pouch uses.
+ *
+ * There were four of these (BRDC-BUILD-011), and they disagreed twice over. Two printed
+ * the raw resource key, so a building row read *"40 wood"* while the Ward button on the
+ * same cell card read *"10 timber"* — one resource, two names, one screen. Three joined
+ * with " · " and one with ", ". A fifth copy of the word table lived in
+ * `ConsecratePanel` besides.
+ *
+ * It belongs here for the same reason `missingPhrase` does: this file is where the game
+ * says what an action costs and why it is out of reach, and it already reads the one
+ * word table (`RESOURCE_WORD`).
+ */
+export function costLine(cost: Partial<ResourcePool>): string {
+  return (Object.entries(cost) as [ResourceKind, number][])
+    .map(([k, v]) => `${v} ${RESOURCE_WORD[k]}`)
+    .join(' · ');
+}
+
 /** "60 stone and 20 gold" — what is still missing, as a phrase. */
 export function missingPhrase(short: Partial<ResourcePool>): string {
   const parts = (Object.entries(short) as [ResourceKind, number][]).map(

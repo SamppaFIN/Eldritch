@@ -18,13 +18,10 @@ import {
 import type { BuildRefusal, BuildingId, Cell, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
+import { costLine } from './gateNote.js';
 import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
 import './build-panel.css';
 
-const costLine = (cost: Readonly<Partial<ResourcePool>>): string =>
-  Object.entries(cost)
-    .map(([k, v]) => `${v} ${k}`)
-    .join(', ');
 
 /** Why a building is refused, in a phrase — the locked case names its technology (TECH-001 GREEN 8). */
 export function reason(refused: BuildRefusal, id: BuildingId): string {

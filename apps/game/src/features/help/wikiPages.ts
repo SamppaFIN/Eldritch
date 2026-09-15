@@ -21,6 +21,7 @@ import {
 } from '@es3/core';
 import type { ActiveSpell, BuildingId, Cell, SpellId, TechId } from '@es3/core';
 import { BUILDING_NAME, SPELL_NAME, titleCase } from '../territory/names.js';
+import { costLine } from '../territory/gateNote.js';
 import {
   BUILDING_BLURB,
   SPELL_BLURB,
@@ -78,10 +79,6 @@ export function refTitle(ref: WikiRef): string {
   return HELP[ref]?.title ?? ref;
 }
 
-const costLine = (cost: Readonly<Record<string, number>>): string =>
-  Object.entries(cost)
-    .map(([k, v]) => `${v} ${k}`)
-    .join(' · ');
 
 function workPage(id: BuildingId, ctx: WikiContext): WikiPage {
   const b = BUILDINGS[id];

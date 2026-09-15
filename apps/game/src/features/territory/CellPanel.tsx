@@ -14,7 +14,7 @@ import {
   expansionCost,
   revealProgress,
 } from '@es3/core';
-import type { Cell, PlayerId, ResourceKind, ResourcePool, WardRefusal } from '@es3/core';
+import type { Cell, PlayerId, ResourcePool, WardRefusal } from '@es3/core';
 import { useEffect, useRef } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
@@ -37,8 +37,7 @@ import type { BuildBinding, PlaceBinding, ResearchBinding, TradeBinding } from '
 import type { SpellBinding } from './useSpells.js';
 import type { CityBinding } from './useDiplomacy.js';
 import { historyLine } from './cellHistory.js';
-import { RESOURCE_WORD } from './territoryFeatures.js';
-import { EXPAND_REFUSAL, shortNote } from './gateNote.js';
+import { EXPAND_REFUSAL, costLine, shortNote } from './gateNote.js';
 import type { WikiRef } from '../help/wikiPages.js';
 import './cell-panel.css';
 
@@ -88,12 +87,6 @@ const REFUSAL: Readonly<Record<WardRefusal, string>> = {
 };
 
 
-/** "40 stone · 30 gold" from a cost map — the same word table as the Guide (BRDC-DETAIL-001). */
-function costLine(cost: Partial<ResourcePool>): string {
-  return (Object.entries(cost) as [ResourceKind, number][])
-    .map(([k, v]) => `${v} ${RESOURCE_WORD[k]}`)
-    .join(' · ');
-}
 
 /** Minutes, said the way someone standing in the rain would say them. */
 function spent(ms: number): string {

@@ -13,19 +13,9 @@
 import { TEMPLE_THRESHOLD_MS, canAfford, consecrateCost, shortOf } from '@es3/core';
 import type { Cell, ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
-import { shortNote } from './gateNote.js';
+import { costLine, shortNote } from './gateNote.js';
 
-const NAME: Readonly<Record<string, string>> = {
-  wood: 'timber',
-  stone: 'stone',
-  iron: 'iron',
-  food: 'food',
-  gold: 'gold',
-};
 
-/** "120 stone · 80 gold" from a cost map. */
-const costLine = (cost: Partial<ResourcePool>): string =>
-  (Object.entries(cost) as [string, number][]).map(([k, v]) => `${v} ${NAME[k] ?? k}`).join(' · ');
 
 export interface ConsecratePanelProps {
   cell: Cell;

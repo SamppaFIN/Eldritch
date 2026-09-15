@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.0",
+    "date": "2026-09-15",
+    "notes": [
+      "A price is written the same way everywhere. A building row used to say \"40 wood\" while the Ward button on the same card said \"10 timber\" — same resource, two names, one screen. The Guide had the raw version too, so it could never quite agree with the game it documents."
+    ]
+  },
+  {
     "version": "0.5.99",
     "date": "2026-09-15",
     "notes": [
