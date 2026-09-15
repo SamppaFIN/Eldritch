@@ -23,3 +23,4 @@ export {
 } from './cells.js';
 export { bankEdges, prunePaths, tierOf, trailEdges, walkedEdges } from './paths.js';
 export type { PathSegment, PathTier, WalkedEdge } from './paths.js';
+export * from './strengthArc.js';

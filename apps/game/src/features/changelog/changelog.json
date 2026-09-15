@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.8",
+    "date": "2026-09-15",
+    "notes": [
+      "Every hex you hold now wears its strength as an arc along its lower edges — green when healthy, gold under 200, red once the Void has a claim on it. You can read it at the edge of your vision without stopping to look."
+    ]
+  },
+  {
     "version": "0.6.7",
     "date": "2026-09-15",
     "notes": [

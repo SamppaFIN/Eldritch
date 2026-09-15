@@ -30,10 +30,12 @@ import { ensureAuraLayers, removeAuraLayers, setAuraData } from './AuraLayer.js'
 import { ensureTradeLayer, removeTradeLayer, setTradeData } from './TradeLayer.js';
 import {
   CELL_FILL_LAYER,
+  CELL_GROUND_LAYER,
   ensureTerritoryLayers,
   removeTerritoryLayers,
   setTerritoryData,
 } from '../territory/TerritoryLayer.js';
+import { ensureArcLayer, setArcData } from '../territory/strengthArcs.js';
 import { useBuildingIcons } from './useBuildingIcons.js';
 import {
   PLACE_CORE_LAYER,
@@ -44,12 +46,7 @@ import {
 } from '../territory/PlaceMarkers.js';
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, ensureCastleLayer, removeCastleLayer, setCastleData } from '../territory/CastleMarker.js';
 import { ensureAwakeningLayers, removeAwakeningLayers } from '../territory/AwakeningLayer.js';
-import {
-  QUEST_MARK_LAYER,
-  ensureQuestLayers,
-  removeQuestLayers,
-  setQuestData,
-} from '../territory/QuestMarkers.js';
+import { QUEST_MARK_LAYER, ensureQuestLayers, removeQuestLayers, setQuestData } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
 import { useHearthTour } from './useHearthTour.js';
 import { useCameraFollow } from './useCameraFollow.js';
@@ -203,6 +200,8 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   useEffect(() => {
     if (!map || !ready) return;
     ensureTerritoryLayers(map);
+    // The strength arc rides under the marks, so a temple's nimbus is never behind it.
+    ensureArcLayer(map, CELL_GROUND_LAYER);
     ensurePathLayers(map);
     ensureAuraLayers(map);
     ensureTradeLayer(map);
@@ -232,6 +231,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   useEffect(() => {
     if (!map || !ready || !cells) return;
     setTerritoryData(map, cells, playerId, now, castle, bannerId, revealed);
+    setArcData(map, cells, playerId, now);
   }, [map, ready, cells, playerId, now, castle, bannerId, revealed]);
 
   /*
