@@ -170,6 +170,33 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | [BRDC-TUTOR-001](BRDC-TUTOR-001.md) | Asteittainen opetus | M | BUILD-001, REVEAL-001, WIKI-001 |
 | [BRDC-ACHIEVE-001](BRDC-ACHIEVE-001.md) | Saavutukset ja ilmoitukset | S | HEX-001, WONDER-001 |
 
+**Worldseed-integraatio (2026-09-16):** Infiniten päivitetyt design-dokumentit
+(`Eldritch-pelin uusi design systeemi/handoff/`) tuovat Härmälänrannan siemendatan,
+7 maastolajia, 28 bonusresurssia, kaksi uutta rakennusta ja yhdeksän paikallista ihmettä.
+Järjestys: SEED-000 (päätökset) → SEED-001 (kohdistus) → SEED-002/003 (maamerkit,
+jako) → SEED-004 (HexSeed) → loput rinnakkain.
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-SEED-000](BRDC-SEED-000.md) | Päätökset: Worldseed pelin siemeneksi | — | — |
+| [BRDC-SEED-001](BRDC-SEED-001.md) | Worldseedin koordinaattien kohdistus | S | SEED-000 |
+| [BRDC-SEED-002](BRDC-SEED-002.md) | Maamerkit ja pisteet OpenStreetMapista | M | SEED-001 |
+| [BRDC-SEED-003](BRDC-SEED-003.md) | Vyöhykkeiden jako heksoiksi | L | SEED-001, TERRAIN-005 |
+| [BRDC-SEED-004](BRDC-SEED-004.md) | HexSeed: Härmälänrannan heksojen esiarvot | M | SEED-001–003 |
+| [BRDC-TERRAIN-005](BRDC-TERRAIN-005.md) | Seitsemän maastolajia Worldseedin mukaan | L | SEED-000 |
+| [BRDC-RES-001](BRDC-RES-001.md) | 28 bonusresurssia, alueittain | M–L | TERRAIN-005, SEED-003 |
+| [BRDC-RES-002](BRDC-RES-002.md) | Resurssien ja rakennelmien kuvat | M | RES-001, TERRAIN-005 |
+| [BRDC-LANDMARK-001](BRDC-LANDMARK-001.md) | Maamerkit: kartta kertoo mitä tässä on | M | SEED-002, SEED-001 |
+| [BRDC-TAVERN-001](BRDC-TAVERN-001.md) | Taverna ja tehtävätaulu | M | TERRAIN-005, QUEST-006, RES-001 |
+| [BRDC-BUILD-013](BRDC-BUILD-013.md) | Forge ja Watchtower | M | TERRAIN-005, BUILD-012 |
+| [BRDC-WONDER-002](BRDC-WONDER-002.md) | Härmälän yhdeksän ihmettä | L | SEED-003, TERRAIN-005, LANDMARK-001 |
+| [BRDC-QUEST-006](BRDC-QUEST-006.md) | Seikkailu heksan parametrina | M | SEED-004 (pikakorjaus ei vaadi) |
+| [BRDC-CARD-001](BRDC-CARD-001.md) | HERE-kortti mallin mukaan | M | SEED-004 |
+| [BRDC-CARD-002](BRDC-CARD-002.md) | KEEP mallin mukaan | M | — |
+| [BRDC-CARD-003](BRDC-CARD-003.md) | RESEARCH mallin mukaan | M | — |
+| [BRDC-CARD-004](BRDC-CARD-004.md) | YOU mallin mukaan | S–M | — |
+| [BRDC-CARD-005](BRDC-CARD-005.md) | CODEX mallin mukaan | S–M | — |
+
 **Portti V3:** ⬜ rakenna saha kotimetsään, tutki teknologia, löydä ihme, ja **selitä
 kaikki kolme pelistä käsin** ilman että kukaan lukee koodia.
 
