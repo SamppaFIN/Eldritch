@@ -26,6 +26,7 @@ import { useClaimFeedback } from './useClaimFeedback.js';
 import type { Settings } from './settings.js';
 import type { HelpTopic } from '../help/help.js';
 import './hud.css';
+import './hud-sheet.css';
 
 export interface HudProps {
   /**
@@ -229,60 +230,62 @@ export function Hud({
           </button>
         ) : null}
 
-        {/* One grid: two columns on a phone, four where there is width for them.
-            Stacking these as separate rows cost the map a tenth of the screen on a
-            wide, short window for no reason other than markup. */}
-        <div className="hud__stats">
-          <div className="hud__stat">
+        {/*
+          * Two figures, not four (Sigil screen 02).
+          *
+          * The document gives the sheet one line: who you are on the left, how much ground
+          * you hold on the right. Ley-line moved into the signal line, which is already the
+          * sentence about how the walk is going — four stats in a grid was a dashboard, and
+          * a dashboard is read rather than glanced at.
+          */}
+        <div className="hud__figures">
+          <div className="hud__figure">
             <span className="hud__label">Consciousness</span>
-            <span className="hud__value es-numeric">
+            <span className="hud__value hud__value--level">
               {level.level} · {level.name}
             </span>
           </div>
-          <div className="hud__stat">
-            <span className="hud__label">Ley-line</span>
-            <span className="hud__value es-numeric">
-              {distanceM < 1 ? EMPTY : formatDistance(distanceM)}
-            </span>
-          </div>
-          <div className="hud__stat">
-            <span className="hud__label">Warded cells</span>
-            <span className="hud__value es-numeric">
+          <div className="hud__figure hud__figure--end">
+            <span className="hud__label">Warded</span>
+            <span className="hud__value hud__value--warded es-numeric">
               {ownedCells > 0 ? ownedCells : EMPTY}
               {ownedCells > 0 ? (
                 <span className="hud__sub"> · {formatArea(ownedAreaM2)}</span>
               ) : null}
             </span>
           </div>
-          {/* The pouch sits in the grid, not its own row: that row cost 4% of the screen
-              against a tested 30% budget. Collect (BRDC-ECON-007) flows in the same line
-              as the pips — a compact tap, not a walking action — so it adds no height. */}
-          <div className="hud__stat">
-            <span className="hud__label">Pouch</span>
-            <span className="hud__value es-numeric hud__value--pouch">
-              {resources && RESOURCE_KINDS.some((k) => resources[k] > 0) ? (
-                <span className="hud__pouch">
-                  {RESOURCE_KINDS.filter((k) => resources[k] > 0).map((k) => (
-                    <span key={k} className="hud__res" title={k}>
-                      <span
-                        className="hud__pip"
-                        style={{ background: RESOURCE_COLOUR[k] }}
-                        aria-hidden
-                      />
-                      {resources[k]}
-                    </span>
-                  ))}
-                </span>
-              ) : (
-                EMPTY
-              )}
-              {onCollect ? (
-                <button type="button" className="hud__collect" onClick={onCollect}>collect</button>
-              ) : null}
-            </span>
-          </div>
         </div>
 
+        {/* The pouch as chips: a dot in the resource's own colour and the number beside it.
+            The colour law makes this scannable at walking pace (Sigil §01). */}
+        {resources && RESOURCE_KINDS.some((k) => resources[k] > 0) ? (
+          <div className="hud__pouch hud__value--pouch">
+            {RESOURCE_KINDS.filter((k) => resources[k] > 0).map((k) => (
+              <span key={k} className="hud__chip" style={{ color: RESOURCE_COLOUR[k] }}>
+                <span className="hud__pip" style={{ background: RESOURCE_COLOUR[k] }} aria-hidden />
+                {resources[k]}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {/*
+          * Collect, and only Collect.
+          *
+          * The document's sheet pairs it with a HERE button while also drawing HERE in the
+          * nav bar below. Built as drawn, that is two controls with one name on one screen
+          * — ambiguous to a screen reader and a strict-mode violation in the tests, which
+          * is the same complaint said twice. Here is a destination, so it lives in the nav
+          * with the other destinations, and Collect takes the width it was already the
+          * primary of.
+          */}
+        {onCollect ? (
+          <div className="hud__do">
+            <button type="button" className="hud__collect" onClick={onCollect}>
+              Collect
+            </button>
+          </div>
+        ) : null}
 
         <div
           className="hud__xp"
@@ -317,6 +320,12 @@ export function Hud({
               {signalLine(status, q, accuracyM, lastRejection)}
               {speedMs != null && q !== 'none' ? (
                 <span className="hud__speed es-numeric"> · {msToKmh(speedMs).toFixed(1)} km/h</span>
+              ) : null}
+              {/* The ley-line's length. It left the figures when the document cut the sheet
+                  to two, and it belongs here: this line is already the sentence about how
+                  the walk is going, and distance walked is part of that answer. */}
+              {distanceM >= 1 ? (
+                <span className="hud__speed es-numeric"> · {formatDistance(distanceM)}</span>
               ) : null}
               {/* Vigil answers the same question as the signal — how well is the game
                   seeing you — so it says so in the same breath rather than in a row of

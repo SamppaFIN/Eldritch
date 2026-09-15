@@ -69,7 +69,7 @@ async function advance(page: Page, days: number) {
   await page.waitForTimeout(2_500);
 }
 
-const warded = (page: Page) => page.locator('.hud__value').nth(2);
+const warded = (page: Page) => page.locator('.hud__value--warded');
 
 test('ground fades and is eventually reclaimed', async ({ page }) => {
   test.setTimeout(240_000);

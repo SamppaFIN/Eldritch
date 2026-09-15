@@ -71,7 +71,7 @@ test('walking a block claims the ground inside it', async ({ page }) => {
   // The HUD is the player's evidence that anything happened at all.
   await expect(page.locator('.hud__claim')).toContainText(/awakened/i, { timeout: 30_000 });
 
-  const warded = page.locator('.hud__value').nth(2);
+  const warded = page.locator('.hud__value--warded');
   await expect(warded).not.toHaveText(/^0/);
 
   // And the hexagons are actually drawn, not merely counted.
@@ -123,7 +123,7 @@ test('the claim survives whatever the batch timing does', async ({ page }) => {
       async () => {
         const [disk, warded] = await Promise.all([
           readDisk(),
-          page.locator('.hud__value').nth(2).innerText().then((t) => Number.parseInt(t, 10)),
+          page.locator('.hud__value--warded').innerText().then((t) => Number.parseInt(t, 10)),
         ]);
         return disk.owned === warded;
       },
@@ -170,7 +170,7 @@ test('a walk that encloses nothing claims no interior', async ({ page }) => {
    * 180-metre loop would enclose is dozens. The bound is what separates "walked over"
    * from "claimed inside".
    */
-  const warded = Number.parseInt(await page.locator('.hud__value').nth(2).innerText(), 10);
+  const warded = Number.parseInt(await page.locator('.hud__value--warded').innerText(), 10);
   expect(warded).toBeLessThan(20);
 });
 
@@ -205,14 +205,14 @@ test('claimed ground survives a reload', async ({ page }) => {
   await openMap(page);
   await walkBlock(page);
 
-  const before = await page.locator('.hud__value').nth(2).innerText();
+  const before = await page.locator('.hud__value--warded').innerText();
   expect(Number.parseInt(before, 10)).toBeGreaterThan(0);
 
   await page.reload();
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
   await expect
-    .poll(async () => Number.parseInt(await page.locator('.hud__value').nth(2).innerText(), 10), {
+    .poll(async () => Number.parseInt(await page.locator('.hud__value--warded').innerText(), 10), {
       timeout: 30_000,
     })
     .toBeGreaterThan(0);

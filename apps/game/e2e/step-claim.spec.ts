@@ -42,11 +42,10 @@ async function walkTo(page: Page, leg: number) {
 
 const newGround = (page: Page) => page.getByRole('heading', { name: 'New ground' });
 
-/** `.hud__value` index 2 is "Warded cells" — "8 · 12974 m²", or "—" before the first. */
+/** The warded figure — "8 · 1.3 ha", or "—" before the first claim. */
 function wardedCount(page: Page) {
   return page
-    .locator('.hud__value')
-    .nth(2)
+    .locator('.hud__value--warded')
     .innerText()
     .then((t) => Number.parseInt(t, 10) || 0);
 }

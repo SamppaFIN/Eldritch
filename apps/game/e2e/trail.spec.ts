@@ -149,8 +149,10 @@ test('distance accumulates and is shown', async ({ page }) => {
   await openMap(page);
   await walk(page, 4);
 
+  // The ley-line's length reads in the signal line since the Sigil redesign cut the
+  // sheet's figures to two — same fact, said in the sentence about how the walk is going.
   await expect
-    .poll(async () => (await page.locator('.hud__value').nth(1).innerText()).trim(), {
+    .poll(async () => (await page.locator('.hud__signal').innerText()).trim(), {
       timeout: 45_000,
     })
     .toMatch(/\d+\s*m|\d+\.\d+\s*km/);

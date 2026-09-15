@@ -187,7 +187,7 @@ test('ground both a Wager and your own walking claim shows shared, and lands at 
   expect(shared.patternLoaded).toBe(true);
 
   // And it is still yours — a shared cell is not a loss, so the count does not drop.
-  await expect(receiver.locator('.hud__value').nth(2)).toContainText(/^[5-7] ·/);
+  await expect(receiver.locator('.hud__value--warded')).toContainText(/^[5-7] ·/);
 
   await receiverCtx.close();
 });

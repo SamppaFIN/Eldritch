@@ -1,0 +1,97 @@
+/* The walking sheet, drawn to Sigil screen 02 — figures, pouch chips, the two actions.
+   Split from hud.css when it crossed four hundred lines; same surface, its own file. */
+/* --- The walking sheet's figures (Sigil screen 02) ------------------------
+   Two, on one line: who you are, and how much ground you hold. */
+.hud__figures {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.hud__figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.hud__figure--end {
+  text-align: end;
+}
+
+/* Cinzel for the name you are called by, Orbitron for the count. */
+.hud__value--level {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+}
+
+.hud__value--warded {
+  font-family: var(--font-numeric);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+}
+
+/* The pouch as chips — a dot in the resource's colour, then the number. */
+.hud__pouch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.hud__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px var(--space-2);
+  border: 1px solid oklch(1 0 0 / 0.1);
+  border-radius: var(--radius-full);
+  background: oklch(0 0 0 / 0.3);
+  font-family: var(--font-numeric);
+  font-size: var(--text-sm);
+}
+
+.hud__pip {
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* The two walking actions. Collect is the primary and looks it; Here is beside it. */
+.hud__do {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.hud__collect,
+.hud__here {
+  min-block-size: var(--touch-min);
+  border-radius: var(--radius-md);
+  font-family: var(--font-numeric);
+  font-size: var(--text-body);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.hud__collect {
+  flex: 1;
+  border: 0;
+  background: linear-gradient(160deg, oklch(0.87 0.21 156 / 0.9), oklch(0.72 0.17 158 / 0.9));
+  color: oklch(0.14 0.05 160);
+  font-weight: var(--weight-semibold);
+}
+
+.hud__here {
+  inline-size: 100px;
+  border: 1px solid oklch(1 0 0 / 0.14);
+  background: oklch(0 0 0 / 0.3);
+  color: var(--text-muted);
+}
+
+.hud__collect:focus-visible,
+.hud__here:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

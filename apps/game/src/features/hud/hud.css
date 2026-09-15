@@ -35,30 +35,8 @@
   text-align: left;
 }
 
-/*
- * Two columns, at every width. There is no four-column layout and there cannot be.
- *
- * The panel is capped at 30rem however wide the screen is, so a quarter column is at
- * most 6rem — and the widest *value* here ("12 · 400 m²", or three resource counts) needs
- * about nine. Chasing this with breakpoints produced a row of stats 88px tall on desktop
- * and pushed the HUD past the 30% of the screen it is allowed. The labels were never the
- * constraint; the numbers were.
- */
-.hud__stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-1) var(--space-4);
-}
 
-.hud__stat {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
 
-.hud__stat:nth-child(even) {
-  text-align: right;
-}
 
 
 .hud__label {
@@ -310,30 +288,7 @@
 
 /* --- The pouch --------------------------------------------------------- */
 
-.hud__pouch {
-  display: inline-flex;
-  align-items: center;
-  /*
-   * Any of the nine resources can be in the pouch now (BRDC-ECON-003), so it wraps
-   * rather than scrambling into one line. Usually three or four are non-zero, but a
-   * fresh sanctuary's starter grant (BRDC-ECON-003) is all nine at once, every time —
-   * the one case that is guaranteed, not occasional — and at the previous size that
-   * wrapped to three rows and carried the whole HUD 1.7 points over its measured 30%
-   * budget (BRDC-E2E-001). Smaller and tighter fits five a row, so nine is two rows
-   * even in that worst case.
-   */
-  flex-wrap: wrap;
-  gap: 0.05em 0.2em;
-  font-size: 0.56em;
-}
 
-/* One resource: its pip and its count, kept together when the row wraps. */
-.hud__res {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  white-space: nowrap;
-}
 
 /* The same colour the map uses for a cell's yield, so the pip in the HUD and the pip on
    the hexagon are recognisably the same thing (colour set inline from RESOURCE_COLOUR). */
@@ -361,22 +316,7 @@
   gap: var(--space-1) var(--space-2);
 }
 
-.hud__collect {
-  min-block-size: 1.6rem;
-  padding-inline: var(--space-2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm, 0.25rem);
-  background: color-mix(in oklch, var(--cosmic-purple) 32%, transparent);
-  color: var(--text);
-  font: inherit;
-  font-size: calc(var(--text-sm) * 0.92);
-  white-space: nowrap;
-  cursor: pointer;
-}
 
-.hud__collect:hover {
-  background: color-mix(in oklch, var(--cosmic-purple) 46%, transparent);
-}
 
 /* A sheet is covering the map, so the HUD drops to the walking bar (BRDC-HUD-005).
    Hidden in CSS rather than unmounted: the panel keeps its identity, the measured

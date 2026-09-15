@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.6",
+    "date": "2026-09-15",
+    "notes": [
+      "The walking sheet is redrawn: two figures instead of four — who you are, and how much ground you hold — with the pouch below them as coloured chips you can read at a glance.",
+      "Collect is a real button now rather than a word tucked into the pouch line, and the ley-line’s length moved into the signal sentence, which was already about how the walk is going."
+    ]
+  },
+  {
     "version": "0.6.5",
     "date": "2026-09-15",
     "notes": [
