@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.18",
+    "date": "2026-09-15",
+    "notes": [
+      "Finds and wonders now say their grade in colour, on Diablo's ladder — dim grey common, magic blue, rare amber, legendary orange. Every wonder used to wear the same gold, so five stars and two stars looked alike.",
+      "The grade is always spelled out beside its colour, and it never touches a number: figures still belong to their resource, and nothing on the map changed."
+    ]
+  },
+  {
     "version": "0.6.17",
     "date": "2026-09-15",
     "notes": [

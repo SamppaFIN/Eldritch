@@ -71,8 +71,17 @@
 
 .wonder__stars {
   margin: 0;
-  color: var(--accent-warm);
+  /* Grade, not decoration (BRDC-ART-005) — every wonder used to wear --accent-warm,
+     so five stars and two stars were the same colour. */
+  color: var(--rarity-common);
   letter-spacing: 0.2em;
+}
+
+.wonder__stars--uncommon { color: var(--rarity-uncommon); }
+.wonder__stars--rare { color: var(--rarity-rare); }
+.wonder__stars--legendary {
+  color: var(--rarity-legendary);
+  text-shadow: 0 0 0.8rem oklch(0.685 0.209 38.2 / 0.5);
 }
 
 .wonder__lore {

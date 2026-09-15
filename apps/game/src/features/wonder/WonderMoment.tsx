@@ -86,7 +86,13 @@ export function WonderMoment({ id, onClose }: WonderMomentProps) {
         <h2 className="wonder__title" id="wonder-title">
           {wonder.name}
         </h2>
-        <p className="wonder__stars" aria-label={`${wonder.rarity} wonder`}>
+        {/* Tinted by grade (BRDC-ART-005). The star count already says the tier; this
+            makes a legendary find stop looking like an ordinary one at a glance, which
+            it never did — every wonder wore the same gold. */}
+        <p
+          className={`wonder__stars wonder__stars--${wonder.rarity}`}
+          aria-label={`${wonder.rarity} wonder`}
+        >
           {WONDER_STARS[wonder.rarity]}
         </p>
         <p className="wonder__lore">{wonder.lore}</p>

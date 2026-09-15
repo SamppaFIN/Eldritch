@@ -13,8 +13,7 @@
   text-align: center;
 }
 
-.discovery__hint,
-.discovery__tier {
+.discovery__hint {
   margin-block-start: var(--space-1);
   color: var(--text-dim);
   font-size: var(--text-sm);

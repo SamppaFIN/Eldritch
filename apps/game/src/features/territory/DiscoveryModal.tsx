@@ -7,7 +7,7 @@
  * twenty-five metres and this must never be in the way of the next one.
  */
 import { useEffect, useRef, useState } from 'react';
-import { Modal, RitualButton, HexMandala } from '@es3/ui';
+import { Modal, Rarity, RitualButton, HexMandala } from '@es3/ui';
 import { revealOf, terrainForCell } from '@es3/core';
 import type { Cell, H3Index } from '@es3/core';
 import type { Discovery } from './useDiscovery.js';
@@ -15,10 +15,17 @@ import './discovery-modal.css';
 import { GROUND_NAME } from './names.js';
 
 
+/*
+ * What each grade means, said in words beside its colour (BRDC-ART-005).
+ *
+ * These lost their tier adjectives when the grade moved into `Rarity`'s own eyebrow —
+ * "Rare · A rare site" reads as a stutter. Each one now spends its sentence on what the
+ * grade *gets you* instead, which is the part the tier word never said.
+ */
 const TIER: Readonly<Record<ReturnType<typeof revealOf>, string>> = {
-  common: 'Common ground.',
-  uncommon: 'An uncommon find.',
-  rare: 'A rare site — something waits here.',
+  common: 'Ordinary ground, and it still pays.',
+  uncommon: 'Worth more than the ground around it.',
+  rare: 'Something waits here.',
   legendary: 'A place of power. Something waits here.',
 };
 
@@ -92,7 +99,7 @@ export function DiscoveryModal({
       ) : null}
 
       {isRevealed ? (
-        <p className="discovery__tier">{TIER[revealOf(shown.h3)]}</p>
+        <Rarity tier={revealOf(shown.h3)} note={TIER[revealOf(shown.h3)]} />
       ) : (
         <RitualButton
           className="discovery__reveal"

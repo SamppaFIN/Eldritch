@@ -6,5 +6,7 @@ export { GlassPanel, RitualButton } from './components/GlassPanel.js';
 export type { GlassPanelProps, RitualButtonProps } from './components/GlassPanel.js';
 export { EmptyState } from './components/EmptyState.js';
 export type { EmptyStateProps } from './components/EmptyState.js';
+export { Rarity, RARITY_COLOUR } from './components/Rarity.js';
+export type { RarityProps, RarityTier } from './components/Rarity.js';
 export { Modal } from './components/Modal.js';
 export type { ModalProps } from './components/Modal.js';

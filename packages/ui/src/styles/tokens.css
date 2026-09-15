@@ -36,6 +36,37 @@
   --accent-warm: var(--sacred-gold);
   --success: var(--awareness-green);
   --danger: oklch(0.65 0.21 25);
+
+  /* --- Rarity (BRDC-ART-005) ---------------------------------------------
+     Diablo's ladder, because it is the one grading vocabulary every player can
+     already read: dim grey, magic blue, rare gold, legendary orange.
+
+     Two laws had to be reconciled. §13 says colour means *resource*, everywhere,
+     and that law is what keeps a dense card readable at walking pace. So rarity
+     is a SEPARATE CHANNEL, never the same one: it colours the eyebrow and the rail
+     of a graded thing, and it never touches a figure, a resource word, or a map
+     mark. Nothing on the map changes — the map stays resource-only.
+
+     The hues are picked off the resource table rather than from Diablo directly.
+     Measured against it: rare's natural yellow sits 20/441 from the `tokens`
+     resource — indistinguishable — and a rare reveal literally pays tokens, so
+     the two would have appeared side by side meaning different things. Rare is
+     amber instead, 76 clear of tokens, and legendary is pushed hot to keep 79
+     from rare. Contrast on --bg: 5.96 · 6.34 · 8.60 · 6.50, all past the 4.5 AA
+     floor. Legendary is the weakest neighbour at 61 from --danger, which never
+     co-occurs with a rarity eyebrow.
+
+     Colour never carries this alone (§14): every use sits on a word — the tier
+     sentence, or the wonder's stars.
+
+     These four must stay in step with `RARITY_COLOUR` in components/Rarity.tsx, which
+     is the copy `rarityPalette.test.ts` measures against the resource palette. Same
+     arrangement the map already has for resources (RESOURCE_COLOUR / MAP_RESOURCE_COLOUR):
+     the token serves CSS, the table serves anything that has to reason about the hue. */
+  --rarity-common: oklch(0.642 0.023 298.0); /* #8e8a99 */
+  --rarity-uncommon: oklch(0.662 0.179 264.6); /* #5b8cff */
+  --rarity-rare: oklch(0.741 0.141 80.3); /* #d9a02b */
+  --rarity-legendary: oklch(0.685 0.209 38.2); /* #ff5c1f */
   --warning: var(--sacred-gold);
 
   /* --- The resource colour law (Sigil, 2026-09-13) -------------------------
@@ -542,4 +573,58 @@ svg {
 .es-empty__cta:focus-visible {
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
+}
+
+
+/* =============================================================================
+   Rarity (BRDC-ART-005)
+
+   One shape for "this thing has a grade", wherever a grade exists. A rail and an
+   eyebrow, tinted by --es-rarity, which the consumer sets from the tier.
+
+   Deliberately not a background wash: a tinted panel would put the rarity hue
+   behind resource figures, and the whole point of the split is that those two
+   colour languages never share a surface.
+   ========================================================================== */
+.es-rarity {
+  --es-rarity: var(--rarity-common);
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.35rem 0 0.35rem 0.7rem;
+  border-inline-start: 2px solid var(--es-rarity);
+  color: var(--text-muted);
+}
+
+.es-rarity--common { --es-rarity: var(--rarity-common); }
+.es-rarity--uncommon { --es-rarity: var(--rarity-uncommon); }
+.es-rarity--rare { --es-rarity: var(--rarity-rare); }
+.es-rarity--legendary { --es-rarity: var(--rarity-legendary); }
+
+/* The grade itself. Small caps rather than a badge: it is a label on the thing,
+   not a chip to be tapped, and nothing here is interactive. */
+.es-rarity__grade {
+  flex: none;
+  color: var(--es-rarity);
+  font-family: var(--font-display, inherit);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.es-rarity__note {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Legendary gets the one flourish in the ladder — it is the tier a player sees a
+   handful of times ever, and the moment should not look like the other three. */
+.es-rarity--legendary .es-rarity__grade {
+  text-shadow: 0 0 0.7rem oklch(0.685 0.209 38.2 / 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .es-rarity--legendary .es-rarity__grade { text-shadow: none; }
 }
