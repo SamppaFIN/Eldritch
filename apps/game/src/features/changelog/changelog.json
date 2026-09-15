@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.16",
+    "date": "2026-09-15",
+    "notes": [
+      "Zoom out and a find no longer turns to mush. Below the zoom where its icon is legible, it collapses into a small disc at the corner of the hex, coloured by what the find pays — so a gem field still reads as a gem field from across the map."
+    ]
+  },
+  {
     "version": "0.6.15",
     "date": "2026-09-15",
     "notes": [

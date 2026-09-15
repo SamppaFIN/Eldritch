@@ -11,6 +11,7 @@ import {
   anomalyAt,
   blightLevel,
   bountyOn,
+  bountyYield,
   emptyCell,
   isCityState,
   neighboursOf,
@@ -18,7 +19,15 @@ import {
   TERRAIN_TABLE,
 } from '@es3/core';
 import { cellBoundary, worksOn } from '@es3/core';
-import type { Cell, CaptureOutcome, H3Index, PlayerId, ResourceKind, TerrainKind } from '@es3/core';
+import type {
+  BountyId,
+  Cell,
+  CaptureOutcome,
+  H3Index,
+  PlayerId,
+  ResourceKind,
+  TerrainKind,
+} from '@es3/core';
 import { buildingGlyph } from './buildingGlyphs.js';
 
 /**
@@ -96,6 +105,13 @@ export interface CellProperties {
    * `revealed` is threaded down to this function.
    */
   bounty: string;
+
+  /**
+   * The find's own hue, for the badge that stands in when the sprite is too small to
+   * read (Sigil §03). Its resource's colour — gems gold, deer green — so the badge and
+   * the income line in the panel agree by eye.
+   */
+  bountyColor: string;
   /** Blight, 0..1 (BRDC-BLIGHT-001) — how far the Void has crept in. Rendering only. */
   blight: number;
   /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
@@ -200,6 +216,19 @@ export function terrainGlyph(kind: TerrainKind): { char: string; color: string }
   const resource = TERRAIN_TABLE[kind].resource;
   // The map needs a literal; `terrainGlyph` feeds a MapLibre paint property.
   return { char, color: resource ? MAP_RESOURCE_COLOUR[resource] : OWN_STROKE };
+}
+
+/**
+ * A find's hue: the colour of the resource it pays. `''` where there is no find.
+ *
+ * Read out of `bountyYield` rather than the `BOUNTIES` table, which core does not export —
+ * and the indirection earns its keep, because a badge tinted by what the find *pays*
+ * cannot drift from the table the way a second hard-coded mapping would.
+ */
+export function bountyInk(id: BountyId | null): string {
+  if (!id) return '';
+  const [resource] = Object.keys(bountyYield(id)) as ResourceKind[];
+  return resource ? MAP_RESOURCE_COLOUR[resource] : '';
 }
 
 /**
@@ -320,6 +349,7 @@ export function cellProperties(
     landmark: village ? VILLAGE_GLYPH : isLandmark ? (bg?.char ?? '') : '',
     landmarkColor: village ? CITY_COLOUR : (bg?.color ?? ''),
     bounty: mineRevealed ? (bountyOn(cell) ?? '') : '',
+    bountyColor: bountyInk(mineRevealed ? bountyOn(cell) : null),
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.
     flag: mine && works.length === 0 ? FLAG_GLYPH : '',

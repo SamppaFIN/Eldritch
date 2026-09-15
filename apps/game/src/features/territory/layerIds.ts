@@ -17,6 +17,7 @@ export const CELL_ICON_LAYER = 'cells-icon';
 export const CELL_GROUND_LAYER = 'cells-ground';
 export const CELL_BUILDING_LAYER = 'cells-building';
 export const CELL_BOUNTY_LAYER = 'cells-bounty';
+export const CELL_BOUNTY_BADGE_LAYER = 'cells-bounty-badge';
 export const CELL_LANDMARK_LAYER = 'cells-landmark';
 export const CELL_FLAG_LAYER = 'cells-flag';
 export const CELL_NEIGHBOUR_DISC_LAYER = 'cells-neighbour-disc';

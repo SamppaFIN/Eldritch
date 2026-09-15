@@ -15,6 +15,7 @@ import {
   CELL_ICON_LAYER,
   CELL_BUILDING_LAYER,
   CELL_BOUNTY_LAYER,
+  CELL_BOUNTY_BADGE_LAYER,
   CELL_LANDMARK_LAYER,
   CELL_FLAG_LAYER,
   CELL_ANOMALY_LAYER,
@@ -33,6 +34,15 @@ import { OWN_STROKE } from './territoryFeatures.js';
  * glance; this one is thirteen near-identical `addLayer` calls and reads best as a
  * block of its own.
  */
+/**
+ * Where the find's sprite becomes legible, and so where the badge beneath it stops.
+ *
+ * The sprite is 40 px of drawn detail; the document collapses it below 14 px, which is
+ * `icon-size` 0.35. The ramp hits that at about zoom 13.5, so 14 is the first whole zoom
+ * at which the art is worth drawing — 0.4 × 40 = 16 px.
+ */
+const BOUNTY_SPRITE_MINZOOM = 14;
+
 export function addMarkLayers(map: MapLibreMap): void {
   /*
    * What this ground is made of.
@@ -144,12 +154,13 @@ export function addMarkLayers(map: MapLibreMap): void {
     id: CELL_BOUNTY_LAYER,
     type: 'symbol',
     source: CELL_SOURCE,
-    minzoom: CELL_DETAIL_MINZOOM,
+    // 14, not the usual detail floor: below this the badge layer draws instead (Sigil §03).
+    minzoom: BOUNTY_SPRITE_MINZOOM,
     filter: ['!=', ['get', 'bounty'], ''],
     layout: {
       visibility: 'none',
       'icon-image': ['concat', 'bounty-', ['get', 'bounty']],
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 16, 0.6, 17, 0.85, 19, 1.5],
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 14, 0.4, 16, 0.6, 17, 0.85, 19, 1.5],
       /* Lower-left, so the centre belongs to whatever stands on the hex (Sigil §03: "It
          stands at the lower-left while the structure holds the centre"). It sat upper-left
          where the neighbour badge now goes, which put two marks in one corner. */
@@ -158,6 +169,41 @@ export function addMarkLayers(map: MapLibreMap): void {
       'icon-ignore-placement': true,
     },
     paint: { 'icon-opacity': 0.95 },
+  });
+
+  /*
+   * The same find, collapsed to a badge (Sigil §03).
+   *
+   * The document: *"Below 14px it collapses into a disc badge at the upper-right vertex,
+   * same symbol, same hue."* The sprite is 40 px of drawn detail, so `icon-size` 0.35 is
+   * the 14 px line — which the ramp above crosses at about zoom 13.5. The sprite's floor
+   * is therefore raised to zoom 14 (0.4 → 16 px) and this owns 13 → 14 beneath it. The
+   * two bands touch and never overlap: one mark per find, always.
+   *
+   * A disc and no symbol, which is a stated departure. At zoom 13 a res-11 hex is about
+   * five pixels across and at 14 about eleven; "same symbol" at that size is four pixels
+   * of mush — smaller than the sprite it replaced, which defeats the rule's own purpose.
+   * The hue survives, and it is the find's resource colour, so the badge agrees with the
+   * figure the panel prints. Colour is not carrying this alone: the mark's presence is
+   * the information, and the panel names the find in words.
+   */
+  map.addLayer({
+    id: CELL_BOUNTY_BADGE_LAYER,
+    type: 'circle',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    maxzoom: 14,
+    filter: ['!=', ['get', 'bounty'], ''],
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 2.5, 14, 4],
+      'circle-color': ['get', 'bountyColor'],
+      'circle-opacity': 0.9,
+      // A dark rim, so a gold find still reads against bright ground.
+      'circle-stroke-color': '#0a0612',
+      'circle-stroke-width': 1,
+      // Upper-right vertex. Screen pixels, y down — and small, because the hex is too.
+      'circle-translate': [5, -5],
+    },
   });
 
   /*
