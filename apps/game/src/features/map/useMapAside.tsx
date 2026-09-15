@@ -38,6 +38,8 @@ export interface MapAside {
   openGpx: () => void;
   /** True while any of these sheets is covering the map (BRDC-HUD-005). */
   anyOpen: boolean;
+  /** Close every aside — the MAP nav item's action (Sigil screen 02). */
+  closeAll: () => void;
   /** What a reveal from the ledger paid, for `PouchGain` (BRDC-LANDS-002). */
   landsGain: Collected | null;
 }
@@ -165,5 +167,14 @@ export function useMapAside(
     openGpx: () => setGpxOpen(true),
     landsGain,
     anyOpen: help !== null || logOpen || characterOpen || codexOpen || landsOpen || gpxOpen,
+    /** Back to the map — what the document's MAP nav item does (Sigil screen 02). */
+    closeAll: () => {
+      setHelp(null);
+      setLogOpen(false);
+      setCharacterOpen(false);
+      setCodexOpen(false);
+      setLandsOpen(false);
+      setGpxOpen(false);
+    },
   };
 }

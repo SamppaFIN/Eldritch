@@ -1,0 +1,65 @@
+/* =============================================================================
+   The nav bar (Sigil screen 02)
+   ========================================================================== */
+
+/* Its own glass surface under the walking sheet. Five equal columns, because the
+   document draws destinations as a set you scan rather than a row you read. */
+.hud-nav {
+  /* `.hud` is pointer-events: none so the map stays draggable around it; every
+     interactive child turns them back on. Without this the canvas takes the taps. */
+  pointer-events: auto;
+  inline-size: min(100%, 30rem);
+  margin-inline: auto;
+  margin-block-start: var(--space-1);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  block-size: 58px;
+  border: 1px solid var(--glass-edge, oklch(1 0 0 / 0.16));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(150deg, oklch(0.38 0.08 315 / 0.5), oklch(0.19 0.05 300 / 0.5));
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-spec);
+}
+
+.hud-nav__item {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 3px;
+  min-block-size: var(--touch-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.hud-nav__item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Where you are, in the accent — the one coloured thing in the bar. */
+.hud-nav__item--on {
+  color: var(--mystic-cyan);
+}
+
+.hud-nav__glyph {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.hud-nav__label {
+  font-family: var(--font-numeric);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hud-nav__item:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}

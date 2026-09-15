@@ -360,7 +360,7 @@ export function MapView({ onLeave }: MapViewProps) {
         settings={settings}
         waypoint={quest.waypoint}
         onWaypointSeen={quest.onWaypointSeen}
-        onOpenCharacter={aside.openCharacter}
+        onOpenCharacter={aside.openCharacter} onShowMap={aside.closeAll}
         onOpenResearch={inspect.openResearch}
         onOpenKeep={castle ? inspect.onCastleTap : undefined}
         onHelp={aside.openHelp}

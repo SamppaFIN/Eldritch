@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.5",
+    "date": "2026-09-15",
+    "notes": [
+      "The footer has a proper nav bar: Map, Here, Keep, Research, You — a glyph over a label, five even columns, and the one you are on lit in cyan.",
+      "Map is new. Every screen could be opened from the footer and only the Escape key got you back, which is fine at a desk and poor on a phone. Tapping Map closes whatever is over the map."
+    ]
+  },
+  {
     "version": "0.6.4",
     "date": "2026-09-15",
     "notes": [

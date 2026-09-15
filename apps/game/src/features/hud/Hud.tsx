@@ -11,7 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { RESOURCE_KINDS, levelState, msToKmh, spellRemaining } from '@es3/core';
 import type { ActiveSpell, PlayerProfile, RejectReason, ResourcePool } from '@es3/core';
-import { GlassPanel, RitualButton } from '@es3/ui';
+import { GlassPanel } from '@es3/ui';
 import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 // The same law the Codex reads its figures from (BRDC-KEEP-008) — this used to keep its
 // own copy, at a different precision than the Keep's own area line said for the same land.
@@ -20,6 +20,7 @@ import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
 import { Vigil, vigilLine } from './Vigil.js';
+import { HudNav } from './HudNav.js';
 import { HudClaim } from './HudClaim.js';
 import { useClaimFeedback } from './useClaimFeedback.js';
 import type { Settings } from './settings.js';
@@ -65,6 +66,8 @@ export interface HudProps {
   waypoint?: string | null;
   onWaypointSeen?: () => void;
   onOpenCharacter?: () => void;
+  /** Back to the map from the nav bar, when a sheet is covering it (Sigil screen 02). */
+  onShowMap?: (() => void) | undefined;
   /** Opens the Keep — buildings and mana — from anywhere, not just its marker (BRDC-KEEP-003). */
   onOpenKeep?: (() => void) | undefined;
   onOpenResearch?: () => void;
@@ -159,6 +162,7 @@ export function Hud({
   waypoint = null,
   onWaypointSeen,
   onOpenCharacter,
+  onShowMap,
   onOpenKeep,
   onOpenResearch,
   onHelp,
@@ -336,32 +340,23 @@ export function Hud({
             </span>
           </p>
 
-          {/* Walking bar: only what a walking thumb needs (BRDC-HUD-003). */}
+          {/* Vigil is a setting about recording, not a destination — it stays with the
+              readout it belongs to, and navigation moved to its own bar below. */}
           <div className="hud__actions">
             <Vigil keepAlive={keepAlive} />
-            {standing && onInspectHere ? (
-              <RitualButton variant="ghost" className="hud__here" onClick={onInspectHere}>
-                <span aria-hidden>⬢</span> Here
-              </RitualButton>
-            ) : null}
-            {onOpenKeep ? (
-              <RitualButton variant="ghost" className="hud__here" onClick={onOpenKeep}>
-                <span aria-hidden>⌂</span> Keep
-              </RitualButton>
-            ) : null}
-            {onOpenResearch ? (
-              <RitualButton variant="ghost" className="hud__here" onClick={onOpenResearch}>
-                <span aria-hidden>✷</span> Research
-              </RitualButton>
-            ) : null}
-            {onOpenCharacter ? (
-              <RitualButton variant="ghost" className="hud__here" onClick={onOpenCharacter}>
-                <span aria-hidden>◇</span> You
-              </RitualButton>
-            ) : null}
           </div>
         </div>
       </GlassPanel>
+
+      {/* Its own glass bar, the way the document draws it (Sigil screen 02). */}
+      <HudNav
+        covered={compact}
+        onShowMap={onShowMap}
+        onInspectHere={standing ? onInspectHere : undefined}
+        onOpenKeep={onOpenKeep}
+        onOpenResearch={onOpenResearch}
+        onOpenCharacter={onOpenCharacter}
+      />
     </div>
   );
 }
