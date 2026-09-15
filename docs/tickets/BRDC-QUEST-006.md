@@ -39,9 +39,10 @@ Uuden ketjun *"What Sleeps at the Shore"* koordinaatit ovat Infiniten mukaan suu
 
 ## Päätös Infiniteltä
 
-- **D12** (`BRDC-SEED-000`): alueen ulkopuolella seikkailu ankkuroidaan Keepiin kuten nyt?
-  (Suositus: kyllä — muuten muualla asuva ei voi pelata sitä)
-- Elävätkö Fuming Lake ja What Sleeps at the Shore rinnakkain?
+- **D8** (`BRDC-SEED-000`): alueen ulkopuolella seikkailu ankkuroidaan Keepiin kuten nyt?
+  **Vastattu: kyllä, toistaiseksi.** Infinite: myöhemmin eri alueille tulee omat
+  questimekaniikat — ei vielä tikettiä, uusi tarve kirjattu tähän kunnes se saa numeron
+- Elävätkö Fuming Lake ja What Sleeps at the Shore rinnakkain? — auki
 
 ## Ei tässä
 

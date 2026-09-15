@@ -33,10 +33,10 @@ leave a message."* — **Infinite on päättänyt poistaa Wagerin** (`BRDC-WAGER
 
 ## Päätös Infiniteltä
 
-- **Wager-osuus pois** (respawn, viestit) — suositus: kyllä, `BRDC-WAGER-008`
+- **D7** (`BRDC-SEED-000`): Wager-osuus pois (respawn, viestit)? **Vastattu: kyllä**, `BRDC-WAGER-008`:n mukaisesti
 - **"Listed here and nowhere else"** vs. Fuming Lake, joka alkaa patsaalta: listataanko molemmat
-  taululla, ja voiko ketjun yhä aloittaa paikan päällä?
-- Hinta
+  taululla, ja voiko ketjun yhä aloittaa paikan päällä? — auki
+- Hinta — auki
 
 ## Ei tässä
 
