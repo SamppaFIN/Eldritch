@@ -64,7 +64,23 @@ paljon, mahdollisia syitä on kaksi, ja ne johtavat eri korjauksiin:
 - **Sääntö ei oikeasti laukea.** → se on bugi, ei ominaisuuspyyntö, ja se on tätä
   halvempi korjata
 
-**Tämä kannattaa mitata ennen kuin isompaa rakennetaan.**
+**Mitattu 2026-09-15 — vastaus on jälkimmäinen ei, ensimmäinen kyllä.**
+
+`capture.ts:154` ajaa `delete reinforced.shared;` haarassa *"already ours, uusi päivä"*.
+Sääntö siis **toimii**: kävele jaettu heksa uutena päivänä ja jako katoaa.
+
+Vika oli siinä ettei sitä kerrottu siellä missä jakoja syntyy. `OwnershipNote` sanoo sen
+solukortilla (*"Walk it on a new day to take it all back"*) — mutta **Wager-dialogi**,
+joka on se hetki jolloin pelaaja saa kymmenen jaettua heksaa kerralla ja katsoo lukua
+*"ja 12 jaat nyt"*, ei sanonut mitään siitä mitä asialle voi tehdä.
+
+Korjattu `BRDC-WAGER-002`:ssa (v0.5.99): rivi sanoo nyt *"— walk one on a new day and it
+is wholly yours again."*
+
+**Tämä muuttaa tämän tiketin luonteen.** Jos jaetut heksat katoavat kävelemällä ja pelaaja
+nyt tietää sen, päivittäinen omistuslaskenta ei ehkä ratkaise *mitään ongelmaa* — se
+ratkaisi oireen jonka aiheutti puuttuva lause. Kannattaa katsoa kentällä ennen kuin
+käyntilaskuria ja arbitraatiota rakennetaan.
 
 ## Kysymykset Infiniteltä
 

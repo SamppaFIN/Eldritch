@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.5.99",
+    "date": "2026-09-15",
+    "notes": [
+      "Accepting a Wager now tells you what shared ground is for: walk one of those hexes on a new day and it is wholly yours again. The rule always worked — the screen where you meet a dozen shares at once never mentioned it."
+    ]
+  },
+  {
     "version": "0.5.98",
     "date": "2026-09-15",
     "notes": [

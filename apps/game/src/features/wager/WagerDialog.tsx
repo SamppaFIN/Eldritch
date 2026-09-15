@@ -1,7 +1,7 @@
 /**
  * The Wager, carried by hand.
  *
- * There is no server until Phase 3, so multiplayer is a block of text. You copy your
+ * There is no server until Phase 5, so multiplayer is a block of text. You copy your
  * sanctuary, send it through whatever app you already use, and your friend's game reads
  * it back as a rival holding real ground — and where their ground overlaps yours, the
  * cell is shared. Since BRDC-WAGER-JSON-006 there is no duel: accepting a Wager is
@@ -162,7 +162,7 @@ export function WagerDialog({ open, repository, onClose, onImported }: WagerDial
             {landed.name}&rsquo;s ground is on your map — {landed.imported}{' '}
             {landed.imported === 1 ? 'cell' : 'cells'}
             {landed.shared > 0
-              ? `, and ${landed.shared} you now share.`
+              ? `, and ${landed.shared} you now share — walk one on a new day and it is wholly yours again.`
               : '. Walk it to take it.'}{' '}
             You can accept it again any time to refresh their reach.
           </p>
