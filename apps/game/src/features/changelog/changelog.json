@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.10",
+    "date": "2026-09-15",
+    "notes": [
+      "A hex you hold now shows how many of its six neighbours are yours, in a small disc at its upper left — the bonus that makes the next claim there easier, finally visible.",
+      "And its strength reads as a figure beneath the arc, so the same fact is available whether you glance or look."
+    ]
+  },
+  {
     "version": "0.6.9",
     "date": "2026-09-15",
     "notes": [

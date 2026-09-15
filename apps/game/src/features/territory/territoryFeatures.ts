@@ -102,6 +102,12 @@ export interface CellProperties {
   flag: string;
   /** Both you and an imported Wager claim this cell (BRDC-WAGER-JSON-005) — `cell.shared`. */
   shared: boolean;
+  /**
+   * How many of the six neighbours you already hold, on your own ground (Sigil §03's
+   * "neighbour count"). It is the `NEIGHBOUR_BONUS` made visible: the number that decides
+   * how much easier the next claim around here will be. Zero on anyone else's cell.
+   */
+  neighbours: number;
 }
 
 /** The map flag glyph and its colour (BRDC-BANNER-001). Geometric Shapes block, so it
@@ -293,6 +299,8 @@ export function cellProperties(
   return {
     strength: cell.strength,
     mine,
+    // Filled in by `cellsToGeoJson`, which is the only caller that knows the whole realm.
+    neighbours: 0,
     contested: cell.ownerId !== null && cell.strength < CONTESTED_BELOW,
     // Three tiers: mine, a rival's, or seen-but-unclaimed. Strength drives opacity in
     // the paint expression, so a fresh reveal (strength 0) is naturally faint.
@@ -349,6 +357,13 @@ export function cellsToGeoJson(
     c.ownerId === me && neighboursOf(c.h3).some((n) => !ownedH3.has(n));
   return {
     type: 'FeatureCollection',
-    features: cells.map((cell) => cellToFeature(cell, me, now, home, isBorder(cell), revealed)),
+    features: cells.map((cell) => {
+      const feature = cellToFeature(cell, me, now, home, isBorder(cell), revealed);
+      // Counted here rather than in `cellProperties`, which sees one cell and cannot know
+      // what else you hold. `ownedH3` is already built above for the border test.
+      const neighbours =
+        cell.ownerId === me ? neighboursOf(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
+      return { ...feature, properties: { ...feature.properties, neighbours } };
+    }),
   };
 }

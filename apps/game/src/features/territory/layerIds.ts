@@ -19,6 +19,9 @@ export const CELL_BUILDING_LAYER = 'cells-building';
 export const CELL_BOUNTY_LAYER = 'cells-bounty';
 export const CELL_LANDMARK_LAYER = 'cells-landmark';
 export const CELL_FLAG_LAYER = 'cells-flag';
+export const CELL_NEIGHBOUR_DISC_LAYER = 'cells-neighbour-disc';
+export const CELL_NEIGHBOUR_LAYER = 'cells-neighbour';
+export const CELL_STRENGTH_LAYER = 'cells-strength';
 export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
 /**

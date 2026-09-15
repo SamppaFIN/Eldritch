@@ -18,8 +18,12 @@ import {
   CELL_LANDMARK_LAYER,
   CELL_FLAG_LAYER,
   CELL_ANOMALY_LAYER,
+  CELL_NEIGHBOUR_DISC_LAYER,
+  CELL_NEIGHBOUR_LAYER,
+  CELL_STRENGTH_LAYER,
 } from './layerIds.js';
 import { bannerSpriteId } from './territoryImages.js';
+import { OWN_STROKE } from './territoryFeatures.js';
 
 /**
  * The symbol layers — every mark that stands on a cell rather than filling it: the
@@ -215,6 +219,79 @@ export function addMarkLayers(map: MapLibreMap): void {
    * up so the two do not sit on each other. `--mystic-cyan`, one colour — the glyph
    * carries the state (`◌` a site, `◐` under study, `✦` a chain), never colour alone.
    */
+  /*
+   * The neighbour count, upper-left (Sigil §03).
+   *
+   * `NEIGHBOUR_BONUS` made visible: how many of the six around this hex you already hold,
+   * and so how much easier the next claim here will be. A disc rather than bare text,
+   * because a lone digit on a map reads as part of the basemap.
+   *
+   * Two layers for one badge — MapLibre draws a circle and a label in separate layers —
+   * translated by the same pixels so they stay a single mark. From zoom 16, where a hex
+   * is finally wide enough to hold something in its corner.
+   */
+  map.addLayer({
+    id: CELL_NEIGHBOUR_DISC_LAYER,
+    type: 'circle',
+    source: CELL_SOURCE,
+    minzoom: 16,
+    filter: ['all', ['get', 'mine'], ['>', ['get', 'neighbours'], 0]],
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 16, 7, 19, 11],
+      'circle-color': '#0a0612',
+      'circle-opacity': 0.72,
+      'circle-stroke-color': OWN_STROKE,
+      'circle-stroke-width': 1.2,
+      'circle-translate': ['interpolate', ['linear'], ['zoom'], 16, ['literal', [-20, -16]], 19, ['literal', [-64, -52]]],
+    },
+  });
+
+  map.addLayer({
+    id: CELL_NEIGHBOUR_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: 16,
+    filter: ['all', ['get', 'mine'], ['>', ['get', 'neighbours'], 0]],
+    layout: {
+      'text-field': ['to-string', ['get', 'neighbours']],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 9, 19, 13],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#cdc7d6',
+      'text-translate': ['interpolate', ['linear'], ['zoom'], 16, ['literal', [-20, -16]], 19, ['literal', [-64, -52]]],
+    },
+  });
+
+  /*
+   * The strength figure, under the arc it belongs to (Sigil §03, "strength · tier 2").
+   *
+   * The arc is the thing you read without looking; this is the thing you read when you do.
+   * Colour and length never carry a fact alone (§14), and this is the other channel.
+   */
+  map.addLayer({
+    id: CELL_STRENGTH_LAYER,
+    type: 'symbol',
+    source: CELL_SOURCE,
+    minzoom: 16,
+    filter: ['get', 'mine'],
+    layout: {
+      'text-field': ['to-string', ['round', ['get', 'strength']]],
+      'text-font': ['Noto Sans Regular'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 10, 19, 15],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#f4f1f7',
+      'text-halo-color': '#0a0612',
+      'text-halo-width': 1.4,
+      'text-translate': ['interpolate', ['linear'], ['zoom'], 16, ['literal', [0, 22]], 19, ['literal', [0, 74]]],
+    },
+  });
+
   map.addLayer({
     id: CELL_ANOMALY_LAYER,
     type: 'symbol',
