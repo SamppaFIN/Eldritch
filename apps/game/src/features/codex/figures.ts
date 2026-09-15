@@ -34,9 +34,23 @@ export const METRIC_BLURB: Readonly<Record<MetricId, string>> = {
 const round = (n: number, places = 0): string =>
   n.toLocaleString('en-GB', { maximumFractionDigits: places });
 
-/** m² under a square kilometre, km² above it. */
+/**
+ * m² under a hectare, hectares under a square kilometre, km² above that.
+ *
+ * Three bands because the Sigil document gives all three, and a realm crosses two of them
+ * in its first week: one cell is `1 622 m²` (its `hereStats`), a seven-cell realm is
+ * `1.1 ha` (its `keepStats`), and the leaders are in km².
+ *
+ * BRDC-KEEP-008 merged three copies of this and picked two bands, which made the HUD and
+ * the Keep agree on a figure that was wrong at the scale a player actually lives at —
+ * 11 353 m² is a number you count, not a size you feel. The document had said hectares
+ * all along; the spec was in a chat log rather than the repo, which is why it took until
+ * the file landed here to notice.
+ */
 export function formatArea(m2: number): string {
-  return m2 < 1_000_000 ? `${round(Math.round(m2))} m²` : `${round(m2 / 1_000_000, 2)} km²`;
+  if (m2 < 10_000) return `${round(Math.round(m2))} m²`;
+  if (m2 < 1_000_000) return `${round(m2 / 10_000, 1)} ha`;
+  return `${round(m2 / 1_000_000, 2)} km²`;
 }
 
 /** m under a kilometre, km above it. */

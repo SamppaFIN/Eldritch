@@ -16,12 +16,23 @@ import {
 
 describe('formatArea', () => {
   /*
-   * The reason for the switch rather than one unit: a realm of seven hexes is 11 353 m²,
-   * and "0.01 km²" tells a new player nothing at all about what they hold.
+   * Three bands, and the Sigil document supplies a figure for each: one cell is
+   * `1 622 m²`, a seven-cell realm is `1.1 ha`, the leaders are in km². Two bands put
+   * a whole first week of play into five-digit metres — a number you count rather than
+   * a size you feel (BRDC-SIGIL-006).
    */
-  it('stays in m² until there is a square kilometre to show', () => {
-    expect(formatArea(11_353)).toBe('11,353 m²');
-    expect(formatArea(999_999)).toContain('m²');
+  it('counts a single cell in metres', () => {
+    expect(formatArea(1_622)).toBe('1,622 m²');
+    expect(formatArea(9_999)).toContain('m²');
+  });
+
+  it('turns a realm into hectares, the way the Keep shows it', () => {
+    // Seven cells, the Hearth ring — the document's own keepStats figure.
+    expect(formatArea(11_353)).toBe('1.1 ha');
+    expect(formatArea(999_999)).toContain('ha');
+  });
+
+  it('reaches square kilometres for a realm that earns them', () => {
     expect(formatArea(2_500_000)).toBe('2.5 km²');
   });
 });

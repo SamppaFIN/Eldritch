@@ -300,8 +300,10 @@ test('the Codex shows where you stand, not just who won', async ({ page }) => {
   const codex = page.getByRole('region', { name: 'Codex of Dominion' });
   await expect(codex).toContainText('3 realms measured');
 
-  // Your own land in m² rather than "0.01 km²", and the best of the three in km².
-  await expect(codex).toContainText('11,353 m²');
+  // Your own realm in hectares rather than five digits of metres or "0.01 km²" — the
+  // Sigil document's own figure for a seven-cell realm (BRDC-SIGIL-006). The best of the
+  // three is large enough to have earned km².
+  await expect(codex).toContainText('1.1 ha');
   await expect(codex).toContainText('2.5 km²');
   // Ley-line in metres, footfall in days — each measure in the unit a walker reads.
   await expect(codex).toContainText('840 m');

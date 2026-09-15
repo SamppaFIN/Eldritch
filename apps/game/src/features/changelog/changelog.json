@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.2",
+    "date": "2026-09-15",
+    "notes": [
+      "Your land reads in hectares once you hold more than a few hexes. A seven-hex realm is 1.1 ha, not 11,353 m² — a size you can feel rather than a number you count. Single cells stay in metres and large realms still reach km²."
+    ]
+  },
+  {
     "version": "0.6.1",
     "date": "2026-09-15",
     "notes": [
