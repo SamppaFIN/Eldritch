@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.97",
+    "date": "2026-09-15",
+    "notes": [
+      "Walking and importing are much faster on a phone. Recording a walk read and wrote its hexes one at a time, waiting for the screen between each one — on a phone that cost seconds per hex. It does them in one batch now.",
+      "Measured on the 360px profile: reading thirteen hexes went from 7.8 seconds to 10 milliseconds, and writing them from 6.6 seconds to 26."
+    ]
+  },
+  {
     "version": "0.5.96",
     "date": "2026-09-15",
     "notes": [

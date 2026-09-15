@@ -55,11 +55,22 @@ export async function recordWalk(
   accepted: readonly TrailPoint[],
   walker: Walker,
 ): Promise<WalkRecord> {
+  /*
+   * One batch, not one round-trip per cell (BRDC-GPX-004).
+   *
+   * This was a `for … await store.get` loop. Thirteen cells, and on a phone-sized
+   * viewport it cost 7.8 s — about 600 ms per read, measured. Nothing is slow about the
+   * data; what is slow is waiting for the main thread thirteen times while MapLibre is
+   * drawing at 2.75× device pixels. `Promise.all` collapses thirteen scheduling waits
+   * into one. Order does not matter here: these only populate `known` before planning.
+   */
   const known = new Map<H3Index, Cell>();
-  for (const h3 of walkNeighbourhood(accepted)) {
-    const stored = await store.get<Cell>(K.cell(h3));
-    if (stored) known.set(h3, stored);
-  }
+  const ids = walkNeighbourhood(accepted);
+  const loaded = await Promise.all(ids.map((h3) => store.get<Cell>(K.cell(h3))));
+  ids.forEach((h3, i) => {
+    const cell = loaded[i];
+    if (cell) known.set(h3, cell);
+  });
 
   const plan = planWalk(accepted, {
     attacker: { id: walker.id, level: walker.level },
@@ -69,9 +80,18 @@ export async function recordWalk(
     hasTerritory: walker.hasTerritory,
   });
 
-  for (const step of plan.steps) {
-    if (step.cell) await store.set(K.cell(step.cell.h3), step.cell);
-  }
+  /*
+   * The same, and one bug fewer.
+   *
+   * A walk that crosses a cell twice produced two steps for it, and the loop wrote both
+   * — the second correctly overwriting the first, because it ran in order. Writing them
+   * in parallel would have made that order a coin toss, so this keeps only the *last*
+   * state per hex (a Map, insertion-ordered, later `set` wins) and writes those once.
+   * Fewer writes, no ordering hazard, and the same result the loop was reaching for.
+   */
+  const finalCells = new Map<H3Index, Cell>();
+  for (const step of plan.steps) if (step.cell) finalCells.set(step.cell.h3, step.cell);
+  await Promise.all([...finalCells].map(([h3, cell]) => store.set(K.cell(h3), cell)));
   await store.set(K.dwell, plan.dwell);
 
   // The same batch wears the walked-path layer: every res-12 segment this trace crossed
