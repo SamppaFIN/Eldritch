@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.17",
+    "date": "2026-09-15",
+    "notes": [
+      "Walking is lighter on the phone. Every batch of steps used to read your whole territory from storage twice over; it now reads it once, which matters most on a big realm and while an import is still running."
+    ]
+  },
+  {
     "version": "0.6.16",
     "date": "2026-09-15",
     "notes": [

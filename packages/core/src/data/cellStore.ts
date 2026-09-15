@@ -16,7 +16,7 @@ import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
-import type { BBox, Cell, H3Index, PlayerId, Terrain } from '../types/domain.js';
+import type { BBox, Cell, H3Index, Terrain } from '../types/domain.js';
 
 export const CELL_PREFIX = 'cell:';
 
@@ -32,11 +32,6 @@ export async function allCells(store: KeyValueStore): Promise<Cell[]> {
   const keys = await store.keys(CELL_PREFIX);
   const values = await store.getMany<Cell>(keys);
   return values.filter((cell): cell is Cell => cell !== undefined);
-}
-
-/** Does this player hold anything at all? The seed exception in growth.ts turns on this. */
-export async function hasGround(store: KeyValueStore, playerId: PlayerId): Promise<boolean> {
-  return (await allCells(store)).some((cell) => cell.ownerId === playerId);
 }
 
 /**

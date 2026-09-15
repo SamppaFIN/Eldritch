@@ -10,7 +10,6 @@
 import { filterTrail } from '../geo/filter.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { sweepDecay } from '../rules/decay.js';
-import { hasGround } from './cellStore.js';
 import { awardClaims } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { recordWalk } from './walkWriter.js';
@@ -55,15 +54,33 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
   await d.seed(accepted[0] as TrailPoint);
 
   const profile = await d.getProfile();
+  const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
+
+  /*
+   * One read of the player's ground, used twice (BRDC-GPX-004).
+   *
+   * This ran two separate full scans of the cell store per batch: `hasGround`, to decide
+   * whether growth may seed, and `getOwnedCells`, to settle the pouch. Each one reads and
+   * parses every stored cell, and a live trail submits while an import is still running,
+   * so the phone paid for four. `getOwnedCells` already answers both questions.
+   *
+   * Reading it *before* the walk is recorded is deliberate, not merely convenient: the
+   * settle pays the hourly trickle for ground held over the interval, and cells taken by
+   * this very batch were not held for any of it. The seed test is also better for it —
+   * `getOwnedCells` ages its cells first, so a player whose last hex rotted away this
+   * morning now correctly reads as landless, where `hasGround` would have found the
+   * unswept row and refused them a seed.
+   */
+  const owned = await d.getOwnedCells(lastT);
+
   const walked = await recordWalk(d.store, accepted, {
     id: profile.id,
     level: profile.level,
-    hasTerritory: await hasGround(d.store, profile.id),
+    hasTerritory: owned.length > 0,
   });
 
   if (walked.xp > 0) await d.addXp(walked.xp);
-  const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
-  await awardClaims(d.store, await d.getOwnedCells(lastT), walked.grown, lastT);
+  await awardClaims(d.store, owned, walked.grown, lastT);
 
   return { ...result, ...walked.trail };
 }
