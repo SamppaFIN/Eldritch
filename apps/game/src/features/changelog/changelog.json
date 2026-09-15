@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.22",
+    "date": "2026-09-15",
+    "notes": [
+      "Under the hood: the rules for fortified ground are in, but not yet switched on in play. When they are, a Fortress and your hexes beside it can be worn down but never taken, and never fade — and only a siege on two separate days brings the Fortress itself down."
+    ]
+  },
+  {
     "version": "0.6.21",
     "date": "2026-09-15",
     "notes": [

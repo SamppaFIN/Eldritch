@@ -187,6 +187,12 @@ export interface Cell {
    */
   shelteredMs?: number;
   /**
+   * The UTC day a Fortress on this hex was first broken to its floor (BRDC-BUILD-012).
+   * A second break-through on a later day brings the Fortress down; walking the hex back
+   * to base strength heals it. Absent means intact — additive, no migration.
+   */
+  breachedOn?: string;
+  /**
    * An anomaly the player is dealing with on this cell (BRDC-EVENT-001). Absent until
    * they start investigating. `startedAt` drives the progress clock; `stage` is the
    * event chain's position once one has opened; `done` marks it finished. Additive, no
@@ -258,7 +264,8 @@ export type CaptureOutcomeKind =
   | 'reinforced' // already ours, strength up
   | 'unchanged' // already ours, already visited today
   | 'damaged' // enemy cell, strength down but held
-  | 'taken'; // enemy cell, strength hit 0, ownership flipped
+  | 'taken' // enemy cell, strength hit 0, ownership flipped
+  | 'razed'; // a Fortress brought down; the ground stays its owner's at 1 (BRDC-BUILD-012)
 
 export interface CaptureOutcome {
   h3: H3Index;

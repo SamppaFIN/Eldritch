@@ -47,12 +47,19 @@ export function projectCell(
   now: number,
   loyalty = 1,
   home: H3Index | null = null,
+  /** A Fortress of its owner stands over it (BRDC-BUILD-012) — the caller knows, the cell does not. */
+  underFortress = false,
 ): Cell | null {
   if (cell.ownerId === null) return cell;
 
   // The Hearth cannot be lost (BRDC-HEARTH-002). It is the cell the player agreed to
   // start from; the Void does not get to take it back, however long they stay away.
   if (home && cell.h3 === home) return cell;
+
+  // Ground under a Fortress does not decay (BRDC-BUILD-012). Infinite chose this knowing
+  // what it costs: a siege becomes the only way it is ever lost, so `resolveCapture` has to
+  // let one bring the Fortress down.
+  if (underFortress) return cell;
 
   // A cell from world.json is someone else's ground, refreshed by cron. This device
   // never witnesses its visits, so ageing it here would invent a decay nobody agreed to
@@ -90,8 +97,15 @@ export function projectCell(
  * depth. Strength is deliberately not in it: "how long since a visit" is the whole
  * signal, and a single visit clears it (it resets `lastVisitedAt`).
  */
-export function blightLevel(cell: Cell, now: number, home: H3Index | null = null): number {
-  if (cell.ownerId === null || cell.imported || (home && cell.h3 === home)) return 0;
+export function blightLevel(
+  cell: Cell,
+  now: number,
+  home: H3Index | null = null,
+  underFortress = false,
+): number {
+  if (cell.ownerId === null || cell.imported || underFortress || (home && cell.h3 === home)) {
+    return 0;
+  }
   const hours = Math.max(0, now - cell.lastVisitedAt - (cell.shelteredMs ?? 0)) / 3_600_000;
   const past = hours - DECAY_GRACE_HOURS;
   if (past <= 0) return 0;
@@ -146,13 +160,15 @@ export function sweepDecay(
   now: number,
   loyalty?: (cell: Cell) => number,
   home: H3Index | null = null,
+  /** Which of these stand under a Fortress (BRDC-BUILD-012). Answering needs their neighbours. */
+  isUnderFortress?: (cell: Cell) => boolean,
 ): DecaySweep {
   const kept: Cell[] = [];
   const weakened: string[] = [];
   const released: string[] = [];
 
   for (const cell of cells) {
-    const after = projectCell(cell, now, loyalty?.(cell) ?? 1, home);
+    const after = projectCell(cell, now, loyalty?.(cell) ?? 1, home, isUnderFortress?.(cell) ?? false);
     if (after === null) {
       released.push(cell.h3);
       continue;

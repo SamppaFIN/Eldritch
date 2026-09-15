@@ -17,6 +17,7 @@
 import { resolveCapture } from '../rules/capture.js';
 import { projectCell } from '../rules/decay.js';
 import { emptyCell } from '../rules/capture.js';
+import { BUILDINGS, hasWork } from '../rules/build.js';
 import type { Cell } from '../types/domain.js';
 
 const ATTACKER = 'besieger';
@@ -36,6 +37,8 @@ export interface SiegeSetup {
   defence?: number;
   /** Does the holder walk their own ground between the attacker's visits? */
   defenderHolds?: boolean;
+  /** A Fortress stands on the cell (BRDC-BUILD-012): it holds at 1 until brought down. */
+  fortress?: boolean;
 }
 
 export interface SiegeResult {
@@ -45,6 +48,8 @@ export interface SiegeResult {
   perWalk: number;
   /** Strength after each attacking walk, for reading what the siege felt like. */
   trace: number[];
+  /** The walk that brought the Fortress down, or null if none stood or none fell. */
+  razedOn: number | null;
 }
 
 /**
@@ -60,8 +65,9 @@ export function walksToTake(setup: SiegeSetup, cap = 40): SiegeResult {
     attackerLevel,
     attackerNeighbours,
     anchored = false,
-    defence = 0,
+    defence,
     defenderHolds = false,
+    fortress = false,
   } = setup;
 
   let cell: Cell = {
@@ -70,6 +76,7 @@ export function walksToTake(setup: SiegeSetup, cap = 40): SiegeResult {
     strength: defenderStrength,
     lastVisitedAt: 0,
     visitDays: [],
+    ...(fortress ? { buildings: [{ id: 'fortress' as const, builtAt: 0 }] } : {}),
   };
 
   const attacker = {
@@ -81,6 +88,7 @@ export function walksToTake(setup: SiegeSetup, cap = 40): SiegeResult {
 
   const trace: number[] = [];
   let perWalk = 0;
+  let razedOn: number | null = null;
 
   for (let day = 1; day <= cap; day += 1) {
     const now = day * DAY_MS;
@@ -94,13 +102,16 @@ export function walksToTake(setup: SiegeSetup, cap = 40): SiegeResult {
       cell = resolveCapture(cell, { id: DEFENDER, level: attackerLevel }, now).cell;
     } else {
       // Nobody has been here, so the cell is ageing. The real rule, not a subtraction.
-      const aged = projectCell(cell, now, 1, null);
-      if (aged === null) return { walks: day, perWalk, trace };
+      const aged = projectCell(cell, now, 1, null, hasWork(cell, 'fortress'));
+      if (aged === null) return { walks: day, perWalk, trace, razedOn };
       cell = aged;
     }
 
     const before = cell.strength;
-    const { cell: after, outcome } = resolveCapture(cell, attacker, now, defence);
+    // Its own Fortress blunts the blow and holds the floor — until it is brought down.
+    const standing = hasWork(cell, 'fortress');
+    const blunt = defence ?? (standing ? (BUILDINGS.fortress.aura?.amount ?? 0) : 0);
+    const { cell: after, outcome } = resolveCapture(cell, attacker, now, blunt, null, standing);
     cell = after;
     // Only a blow that lands on a standing cell measures anything: on the walk that
     // flips it, `strengthAfter` is the attacker's own fresh BASE_STRENGTH, and
@@ -108,8 +119,9 @@ export function walksToTake(setup: SiegeSetup, cap = 40): SiegeResult {
     if (outcome.kind === 'damaged') perWalk = before - outcome.strengthAfter;
     trace.push(outcome.strengthAfter);
 
-    if (outcome.kind === 'taken') return { walks: day, perWalk, trace };
+    if (outcome.kind === 'razed') razedOn = day;
+    if (outcome.kind === 'taken') return { walks: day, perWalk, trace, razedOn };
   }
 
-  return { walks: null, perWalk, trace };
+  return { walks: null, perWalk, trace, razedOn };
 }

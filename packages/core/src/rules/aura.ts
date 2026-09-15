@@ -124,3 +124,26 @@ export function defenceAura(
   }
   return Math.min(DEFENCE_AURA_CAP, total);
 }
+
+/**
+ * Whether `h3` is held under a Fortress (BRDC-BUILD-012).
+ *
+ * Infinite: *"jos rakennat fortifiikaation niin sen haluan, että sitä resurssia ei voi toinen
+ * vallata"* — and, asked, that the protection reaches the neighbouring hexes too. So a held
+ * hex is fortified when a Fortress of *its own owner* stands on it or within the Fortress
+ * radius. A rival's Fortress next door protects nothing of yours.
+ *
+ * `known` must hold the hex and everything within that radius. A caller that loaded less
+ * reads an edge hex as unprotected — which, on a decay path, means releasing ground the
+ * rules promised to keep.
+ */
+export function fortified(known: ReadonlyMap<H3Index, Cell>, h3: H3Index): boolean {
+  const ownerId = known.get(h3)?.ownerId;
+  const radius = BUILDINGS.fortress.aura?.radius;
+  if (!ownerId || radius === undefined) return false;
+  for (const src of cellsWithin(h3, radius)) {
+    const cell = known.get(src);
+    if (cell?.ownerId === ownerId && hasWork(cell, 'fortress')) return true;
+  }
+  return false;
+}

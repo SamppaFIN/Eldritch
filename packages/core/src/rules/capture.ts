@@ -27,6 +27,7 @@ import {
 } from './constants.js';
 import { previousDay, utcDay } from './day.js';
 import { appendChange } from './history.js';
+import { hasWork } from './build.js';
 
 export interface Attacker {
   id: PlayerId;
@@ -82,6 +83,12 @@ export function resolveCapture(
    * combat will, and the guard costs nothing now.
    */
   defenderHome: H3Index | null = null,
+  /**
+   * A Fortress of the defender's stands on this hex or beside it (BRDC-BUILD-012): the hex
+   * holds at 1 like a Hearth, and only a Fortress standing *on* it can be brought down.
+   * The caller decides, with `fortified`, because only the caller has the neighbours.
+   */
+  holds = false,
 ): CaptureResult {
   const strengthBefore = cell.strength;
   const previousOwner = cell.ownerId;
@@ -152,6 +159,9 @@ export function resolveCapture(
     };
     // A fresh day's walk over contested ground reclaims the whole yield (BRDC-WAGER-JSON-002).
     delete reinforced.shared;
+    // A breached Fortress heals once it is walked back to base strength (BRDC-BUILD-012).
+    // Below that it is still a breach: a day's patch does not undo a siege.
+    if (strengthAfter >= BASE_STRENGTH) delete reinforced.breachedOn;
 
     return {
       cell: reinforced,
@@ -171,15 +181,41 @@ export function resolveCapture(
   // besieger with a neighbour bonus, just over more walks.
   const damage = Math.max(0, attackPower(attacker) - Math.max(0, defence));
   // The Hearth holds at 1 rather than falling: two or three walks can wear it down to
-  // nothing, and it still never changes hands.
-  const floor = defenderHome !== null && cell.h3 === defenderHome ? 1 : 0;
+  // nothing, and it still never changes hands. Ground under a Fortress holds the same way.
+  const floor = holds || (defenderHome !== null && cell.h3 === defenderHome) ? 1 : 0;
   const remaining = Math.max(floor, strengthBefore - damage);
+
+  /*
+   * Bringing a Fortress down (BRDC-BUILD-012).
+   *
+   * Infinite chose that a Fortress can fall to a siege and that its ground never decays —
+   * which makes this the only way one ever falls, so it has to be reachable, and it must
+   * not be quick. A blow that would break through the floor marks the Fortress breached
+   * (`breachedOn`). A blow that breaks through again on a *later* day brings it down: one
+   * walk cannot, however many laps. What is left is the owner's ground at 1 with nothing
+   * standing over it, and the next siege takes it like any other hex.
+   */
+  const breaksThrough =
+    holds && damage > 0 && strengthBefore - damage <= 0 && hasWork(cell, 'fortress');
+  if (breaksThrough && cell.breachedOn !== undefined && cell.breachedOn < today) {
+    const standing = (cell.buildings ?? []).filter((w) => w.id !== 'fortress');
+    const razed: Cell = { ...cell, strength: 1 };
+    delete razed.breachedOn;
+    if (standing.length > 0) razed.buildings = standing;
+    else delete razed.buildings;
+    return {
+      cell: razed,
+      outcome: { h3: cell.h3, kind: 'razed', strengthBefore, strengthAfter: 1, previousOwner },
+    };
+  }
 
   if (remaining > 0) {
     return {
       // lastVisitedAt is NOT advanced: the defender was not here, the attacker was.
       // Advancing it would make an attack protect the cell from decay.
-      cell: { ...cell, strength: remaining },
+      cell: breaksThrough
+        ? { ...cell, strength: remaining, breachedOn: cell.breachedOn ?? today }
+        : { ...cell, strength: remaining },
       outcome: {
         h3: cell.h3,
         kind: 'damaged',

@@ -41,8 +41,10 @@ export function holdingOf(
   cell: Cell,
   revealed: Readonly<Record<H3Index, number>>,
   home: H3Index | null,
+  /** A Fortress of its owner stands over it, so it cannot be lost to the Void (BRDC-BUILD-012). */
+  underFortress = false,
 ): Holding {
-  const safe = cell.imported === true || cell.h3 === home;
+  const safe = cell.imported === true || cell.h3 === home || underFortress;
   return {
     h3: cell.h3,
     terrain: terrainForCell(cell).kind,

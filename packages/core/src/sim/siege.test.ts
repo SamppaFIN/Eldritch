@@ -71,3 +71,40 @@ describe('taking an established home block', () => {
     expect(warded.walks).toBeGreaterThan(bare.walks as number);
   });
 });
+
+describe('bringing down a Fortress (BRDC-BUILD-012)', () => {
+  /*
+   * Its ground never decays, so a siege is the only way a Fortress ever falls. These make
+   * sure that way exists — and that it is a siege, not a single walk.
+   */
+  const FORTIFIED = {
+    defenderStrength: MAX_STRENGTH,
+    attackerLevel: 5,
+    attackerNeighbours: 6,
+    fortress: true,
+  };
+
+  it('falls, even when its owner walks it every day', () => {
+    const r = walksToTake({ ...FORTIFIED, defenderHolds: true });
+    expect(r.razedOn).not.toBeNull();
+    expect(r.walks).not.toBeNull();
+  });
+
+  it('takes more than one walk to bring down, and the ground falls only after it', () => {
+    const r = walksToTake({ ...FORTIFIED, defenderHolds: true });
+    expect(r.razedOn as number).toBeGreaterThan(1);
+    expect(r.walks as number).toBeGreaterThan(r.razedOn as number);
+  });
+
+  it('costs more walks than the same block unfortified', () => {
+    const bare = walksToTake({ ...FORTIFIED, fortress: false, defenderHolds: true });
+    const fort = walksToTake({ ...FORTIFIED, defenderHolds: true });
+    expect(fort.walks as number).toBeGreaterThan(bare.walks as number);
+  });
+
+  it('an abandoned Fortress does not rot, but a patient siege still brings it down', () => {
+    const r = walksToTake({ ...FORTIFIED, defenderHolds: false });
+    expect(r.razedOn).not.toBeNull();
+    expect(r.walks).not.toBeNull();
+  });
+});
