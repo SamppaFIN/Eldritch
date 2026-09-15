@@ -1,0 +1,98 @@
+/* The two blocks at the top of a cell card: what is on the hex, and what it pays
+   (BRDC-DETAIL-002). Split from cell-panel.css when it crossed four hundred lines —
+   the ticket's own GREEN asks for a planned split rather than an emergency one. */
+/* --- What this hex pays (BRDC-DETAIL-002) ---------------------------------
+   The answer first, the working under it. */
+.cell-income {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+}
+
+.cell-income__total {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+}
+
+.cell-income__unit {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.cell-income__parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cell-income__part {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cell-income__from {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.cell-income__figure {
+  font-size: var(--text-sm);
+}
+
+/* --- What is on this hex (BRDC-DETAIL-002) --------------------------------
+   Mark, name, and what it does — the same glyph the map draws, so the card and the
+   map agree by eye rather than by reading. */
+.cell-on {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cell-on__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.cell-on__mark {
+  flex: none;
+  inline-size: 1.5rem;
+  font-size: var(--text-h3);
+  line-height: 1.1;
+  text-align: center;
+}
+
+.cell-on__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.cell-on__name {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+}
+
+.cell-on__note {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.cell-on__effect {
+  font-size: var(--text-sm);
+}

@@ -14,6 +14,7 @@
  */
 import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
 import { cellIncome } from './income.js';
+import './cell-detail.css';
 import type { Cell, H3Index, ResourceKind, TechId } from '@es3/core';
 
 export interface CellIncomeProps {

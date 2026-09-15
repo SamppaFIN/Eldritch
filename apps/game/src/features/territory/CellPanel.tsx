@@ -21,6 +21,7 @@ import { useEscape } from '../hud/useEscape.js';
 import { BuildPanel } from './BuildPanel.js';
 import { CellHeader } from './CellHeader.js';
 import { CellIncome } from './CellIncome.js';
+import { CellOn } from './CellOn.js';
 import { CellWorth } from './CellWorth.js';
 import { ConsecratePanel } from './ConsecratePanel.js';
 import { ImportedNote } from './ImportedNote.js';
@@ -164,8 +165,15 @@ export function CellPanel({
     >
       <CellHeader cell={cell} mine={mine} here={here} onClose={onClose} />
 
-      {/* What the hex is worth, before the notes about who held it and when — the
-          first question standing on a hex is what it pays (BRDC-DETAIL-002). */}
+      {/* What stands here, then what it pays, then who held it and when — the order a
+          player standing on the hex actually asks in (BRDC-DETAIL-002). */}
+      <CellOn
+        cell={cell}
+        revealed={revealed?.[cell.h3] !== undefined}
+        place={{ kind: place.kind, rank: place.rank }}
+      />
+
+
       {mine ? (
         <CellIncome
           cell={cell}

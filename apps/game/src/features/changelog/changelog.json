@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.14",
+    "date": "2026-09-15",
+    "notes": [
+      "A hex card opens with what is actually on the hex — the Temple or Anchor Stone, the find, the Work — each with the same mark the map draws for it, so the card and the map agree at a glance.",
+      "A Work now says what it is as well as what it pays. Its description was written long ago and had never been shown anywhere you would look for it."
+    ]
+  },
+  {
     "version": "0.6.13",
     "date": "2026-09-15",
     "notes": [
