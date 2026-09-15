@@ -17,6 +17,7 @@ import {
   hoursUntilReleased,
   isCityState,
   resourceForCell,
+  worksOn,
 } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
@@ -42,6 +43,9 @@ export interface CellWorthProps {
 
 export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
   const resource = resourceForCell(cell);
+  // A Fortress on this very hex protects it (BRDC-BUILD-012). Neighbours it protects
+  // cannot be told apart from here: this panel is handed one cell.
+  const standsFortress = worksOn(cell).some((w) => w.id === 'fortress');
   return (
     <>
       <dl className="cell-panel__worth">
@@ -88,6 +92,12 @@ export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
               never rots is a lie with a number on it (BRDC-DIPLO-001, BRDC-LANDS-001). */}
           {isCityState(cell.ownerId) ? (
             <p className="cell-panel__decay">Held for good — the Void has no claim here.</p>
+          ) : standsFortress ? (
+            <p className="cell-panel__decay">
+              {cell.breachedOn
+                ? 'Its Fortress is breached. Broken through again on another day, it falls.'
+                : 'Its Fortress holds it: worn down, never taken, and the Void has no claim.'}
+            </p>
           ) : (
             <p className="cell-panel__decay">{remaining(hoursLeft(cell, now))}</p>
           )}

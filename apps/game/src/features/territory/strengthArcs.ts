@@ -12,7 +12,7 @@
  * Own ground only. A rival's strength is their business, and drawing arcs on ground the
  * player cannot act on is the "wall of glyphs" the map has already been cleaned of once.
  */
-import { MAX_STRENGTH, hoursUntilReleased, isCityState, strengthArc } from '@es3/core';
+import { MAX_STRENGTH, fortified, hoursUntilReleased, isCityState, strengthArc } from '@es3/core';
 import type { Cell } from '@es3/core';
 import type { FeatureCollection, LineString } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
@@ -30,9 +30,10 @@ const LOW = '#ffd700'; /* --sacred-gold, under 200 */
 const DECAYING = '#e05252'; /* --danger, inside the decay window */
 
 /** Green healthy, gold under 200, red once the Void has a claim on it. */
-export function arcInk(cell: Cell, now: number): string {
-  // Ground that cannot be lost is never a warning — a city state has no decay clock.
-  if (!isCityState(cell.ownerId) && hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000 <= 24) {
+export function arcInk(cell: Cell, now: number, underFortress = false): string {
+  // Ground that cannot be lost is never a warning — a city state has no decay clock, and
+  // ground under a Fortress does not decay at all (BRDC-BUILD-012).
+  if (!underFortress && !isCityState(cell.ownerId) && hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000 <= 24) {
     return DECAYING;
   }
   return cell.strength < 200 ? LOW : HEALTHY;
@@ -44,6 +45,7 @@ export function arcsToGeoJson(
   now: number,
 ): FeatureCollection<LineString> {
   const features = [];
+  const byH3 = new Map(cells.map((c) => [c.h3, c]));
   for (const cell of cells) {
     if (me === null || cell.ownerId !== me) continue;
     const line = strengthArc(cell.h3, cell.strength / MAX_STRENGTH);
@@ -51,7 +53,7 @@ export function arcsToGeoJson(
     features.push({
       type: 'Feature' as const,
       id: cell.h3,
-      properties: { ink: arcInk(cell, now) },
+      properties: { ink: arcInk(cell, now, fortified(byH3, cell.h3)) },
       geometry: { type: 'LineString' as const, coordinates: line },
     });
   }

@@ -48,7 +48,14 @@ export {
   worksOn,
 } from './build.js';
 export type { Building, BuildingId, BuildCheck, BuildContext, BuildRefusal } from './build.js';
-export { defenceAura, loyaltyFactor, loyaltySourceCells, resourceAura } from './aura.js';
+export {
+  FORTRESS_REACH,
+  defenceAura,
+  fortified,
+  loyaltyFactor,
+  loyaltySourceCells,
+  resourceAura,
+} from './aura.js';
 export type { AuraKind } from './aura.js';
 export { canLayRoute, routeCost, routeGoldBonus, routeRefund, sameLink } from './trade.js';
 export type { RouteCheck, RouteRefusal, TradeRoute } from './trade.js';

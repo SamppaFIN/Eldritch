@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `rules/capture.ts`, `rules/build.ts`, `rules/aura.ts` |
 | **Effort** | M |
-| **Status** | `in progress` — Infiniten päätökset 2026-09-15 kirjattu alle |
+| **Status** | `done` (v0.6.22–0.6.25) — yksi `[~]`: naapuriheksan solukortti, ks. C |
 | **Lähde** | Infinite 2026-09-15: *"jos rakennat fortifiikaation niin sen haluan, että sitä resurssia ei voi toinen vallata."* |
 
 ## 🔴 RED
@@ -97,9 +97,13 @@ Infiniten dev-serveri: jokainen muuttunut moduuli tarjoiltu, lataus + kävely 0 
 
 ### C — käyttöliittymä ei saa valehdella
 
-- [ ] *"The Void takes it in N days"* (`CellWorth`), punainen kaari (`arcInk`), blight,
-      Your lands -jäljellä olevat tunnit (`dominion`, `useTerritory`) → ei rappiota linnoitetulle
-- [ ] `'razed'` näkyy pelaajalle — Linnoituksen kaataminen on tapahtuma, ei hiljainen luku
+- [~] Punainen kaari (`arcInk`), blight, realmin "at risk" (`dominion`), HUD:n "fading" (`useTerritory`),
+      Your lands (`holdingOf`) → ei rappiota linnoitetulle — `fortifyUi.test.ts`, jokaisella kontrolli.
+      **Jäi:** solukortin *"The Void takes it in N days"* (`CellWorth`) kertoo suojan vain Linnoituksen
+      omalla heksalla (ja murtuman). `CellPanel` saa yhden solun eikä naapureita, ja `MapView` on
+      399/400 riviä — naapuriheksan kortti valehtelee vielä
+- [x] `'razed'` näkyy pelaajalle: HUD-rivin alussa *"a Fortress brought down"*, kellonääni ja
+      värinä kuten vallatessa, palkintohetki (`isRewardClaim`)
 
 ### Ei muutu
 

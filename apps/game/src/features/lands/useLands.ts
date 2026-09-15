@@ -10,7 +10,7 @@
  * working down the list would move the next row out from under it.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { holdingOf, sortHoldings, summarise } from '@es3/core';
+import { fortified, holdingOf, sortHoldings, summarise } from '@es3/core';
 import type { Collected, GameRepository, Holding, HoldingsSummary, WonderId } from '@es3/core';
 
 /** What one reveal turned up, for the row that asked. */
@@ -62,7 +62,9 @@ export function useLands(repository: GameRepository | null, open: boolean, now: 
         repository.getHome(),
       ]);
       if (!alive) return;
-      setList(sortHoldings(cells.map((c) => holdingOf(c, revealed, home))));
+      // Your own cells are the whole reach of your own Fortresses (BRDC-BUILD-012).
+      const byH3 = new Map(cells.map((c) => [c.h3, c]));
+      setList(sortHoldings(cells.map((c) => holdingOf(c, revealed, home, fortified(byH3, c.h3)))));
       setLoading(false);
     })();
     return () => {

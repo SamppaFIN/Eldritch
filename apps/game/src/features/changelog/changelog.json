@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.6.25",
+    "date": "2026-09-16",
+    "notes": [
+      "Fortified ground stops warning you. No red strength arc, no stain of the Void, never counted at risk in your realm or as fading in the status panel, and Your lands lists it as ground that cannot be lost.",
+      "Bringing a Fortress down is announced: it leads the claim line, with the same chime and buzz as taking ground.",
+      "Still to fix: the card of a hex beside your Fortress may count down to the Void. Only the Fortress hex itself says it is held."
+    ]
+  },
+  {
     "version": "0.6.24",
     "date": "2026-09-15",
     "notes": [

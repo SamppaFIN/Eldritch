@@ -28,7 +28,7 @@
  * between two stops is wrong everywhere between them (at zoom 17 it put a slot 145 px out
  * on a hex whose real radius there is 87).
  */
-import { cellBoundary, cellCentre, neighboursOf } from '@es3/core';
+import { cellBoundary, cellCentre, fortified, neighboursOf } from '@es3/core';
 import { cellProperties } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
@@ -177,6 +177,7 @@ export function cellsToGeoJson(
    */
   const unique = [...new Map(cells.map((c) => [c.h3, c])).values()];
   const ownedH3 = new Set(unique.filter((c) => c.ownerId === me).map((c) => c.h3));
+  const byH3 = new Map(unique.map((c) => [c.h3, c]));
   const isBorder = (c: Cell): boolean =>
     c.ownerId === me && neighboursOf(c.h3).some((n) => !ownedH3.has(n));
   return {
@@ -189,7 +190,10 @@ export function cellsToGeoJson(
       // what else you hold. `ownedH3` is already built above for the border test.
       const neighbours =
         cell.ownerId === me ? neighboursOf(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
-      return { ...feature, properties: { ...feature.properties, neighbours } };
+      // Ground under a Fortress does not decay, so the Void's stain has no business on it
+      // (BRDC-BUILD-012). Decided here, because only this sees the neighbours.
+      const blight = fortified(byH3, cell.h3) ? 0 : feature.properties.blight;
+      return { ...feature, properties: { ...feature.properties, neighbours, blight } };
     }),
   };
 }

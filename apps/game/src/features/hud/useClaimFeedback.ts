@@ -22,7 +22,8 @@ export function useClaimFeedback(lastClaim: ClaimEvent | null, settings: Setting
     announced.current = lastClaim.at;
 
     const kinds = lastClaim.outcomes.map((o) => o.kind);
-    const took = kinds.includes('taken');
+    // Bringing a Fortress down sounds like taking ground from a rival (BRDC-BUILD-012).
+    const took = kinds.includes('taken') || kinds.includes('razed');
     const claimed = kinds.includes('claimed');
     if (!took && !claimed) return;
 

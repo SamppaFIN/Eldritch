@@ -31,7 +31,7 @@ export function gainsLine(gains: ResourceGains): string {
     .join(' · ');
 }
 
-/** True when the loop took at least one new cell — a reinforce alone is not a reward moment. */
+/** True when a claim took new ground or brought a Fortress down — a reinforce alone is not a reward moment. */
 export function isRewardClaim(outcomes: readonly CaptureOutcome[]): boolean {
-  return outcomes.some((o) => o.kind === 'claimed' || o.kind === 'taken');
+  return outcomes.some((o) => o.kind === 'claimed' || o.kind === 'taken' || o.kind === 'razed');
 }

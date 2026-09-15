@@ -14,6 +14,7 @@ import {
   RESOURCE_KINDS,
   TRICKLE_PER_HOUR,
   cellAreaM2,
+  fortified,
   hoursUntilReleased,
   resourceOf,
 } from '@es3/core';
@@ -51,6 +52,8 @@ const AT_RISK_HOURS = 24;
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
 export function dominionOf(owned: readonly Cell[], now: number): Dominion {
+  // Your own Fortresses only protect your own hexes, so this set answers for itself.
+  const byH3 = new Map(owned.map((c) => [c.h3, c]));
   const producing = { ...NONE };
   let resting = 0;
   let areaM2 = 0;
@@ -68,6 +71,10 @@ export function dominionOf(owned: readonly Cell[], now: number): Dominion {
       if (now - cell.lastVisitedAt <= DORMANT_AFTER_MS) producing[resource] += 1;
       else resting += 1;
     }
+
+    // Ground under a Fortress cannot be lost to the Void (BRDC-BUILD-012): never at risk,
+    // never the first loss.
+    if (fortified(byH3, cell.h3)) continue;
 
     // Hours left is measured from the last visit, not from full strength: the span a
     // strength buys has to have the time already spent decaying taken off it.

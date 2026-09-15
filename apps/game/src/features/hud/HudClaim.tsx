@@ -28,7 +28,10 @@ export function claimLine(claim: ClaimEvent): string {
   const corrupted = count('taken');
   const reinforced = count('reinforced');
   const damaged = count('damaged');
+  const razed = count('razed');
 
+  // The one siege that ends something, so it leads the line (BRDC-BUILD-012).
+  if (razed) parts.push(razed === 1 ? 'a Fortress brought down' : `${razed} Fortresses brought down`);
   if (awakened) parts.push(`${awakened} awakened`);
   if (corrupted) parts.push(`${corrupted} corrupted`);
   if (reinforced) parts.push(`${reinforced} reinforced`);

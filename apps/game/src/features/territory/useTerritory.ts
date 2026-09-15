@@ -7,7 +7,7 @@
  * moment it is supposed to feel good.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { bearing, cellAreaM2, cellBoundary, hoursUntilReleased, totalAreaM2 } from '@es3/core';
+import { bearing, cellAreaM2, cellBoundary, fortified, hoursUntilReleased, totalAreaM2 } from '@es3/core';
 import type { BBox, CaptureOutcome, Cell, GameRepository, RunId } from '@es3/core';
 
 export interface ClaimEvent {
@@ -192,8 +192,10 @@ export function useTerritory({
   let fadingInHours: number | null = null;
   let fading = 0;
 
+  const ownedByH3 = new Map(owned.map((c) => [c.h3, c]));
   for (const cell of owned) {
     if (cell.h3 === home) continue; // the Hearth cannot fade (BRDC-HEARTH-002)
+    if (fortified(ownedByH3, cell.h3)) continue; // nor can ground under a Fortress (BRDC-BUILD-012)
     const elapsed = (at - cell.lastVisitedAt) / 3_600_000;
     const remaining = hoursUntilReleased(cell.strength) - elapsed;
     if (remaining <= FADING_WARNING_HOURS) {
