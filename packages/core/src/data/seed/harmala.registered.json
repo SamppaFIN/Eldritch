@@ -1,0 +1,668 @@
+{
+  "$schema": "./worldseed.ts",
+  "area": "harmala-rantaperkio",
+  "displayName": "Härmälä & Rantaperkiö, Tampere",
+  "rngSeed": "harmala-2026-09-15",
+  "grid": {
+    "circumradiusM": 25,
+    "orientation": "pointy",
+    "origin": [
+      61.471613,
+      23.730288
+    ]
+  },
+  "bbox": [
+    61.461113,
+    23.715788,
+    61.477113,
+    23.757788
+  ],
+  "_note": "Layer B — the authored layer. Zone polygons below are TRANSCRIBED from the author's annotated Google Maps reference (pen colours: blue=water, grey=plain, yellow=trade, green=forest, red=settlement). They are OVERRIDES: they win over the OSM classifier inside their bounds. Where two overrides overlap, the higher `priority` wins; ties go to the later entry. Everything outside them is classified from OSM alone. Bounds are [south, west, north, east] and were projected from the reference image — verify each against OSM before shipping.",
+  "_deposits": "Bonus resources are allocated PER AREA, never per hex. See ZONE / depositCount / allocate in worldseed.ts: contiguous same-terrain clusters are split into areas of 7–55 hexes, each area gets 1–3 deposits, and each deposit sits on ONE hex. Roughly 5% of hexes carry a deposit. A hex with `resources: []` is correct.",
+  "zoneOverrides": [
+    {
+      "terrain": "water",
+      "name": "Pyhäjärvi",
+      "kind": "bboxNorthOf",
+      "shoreline": [
+        [
+          61.473313,
+          23.721488
+        ],
+        [
+          61.473013,
+          23.725988
+        ],
+        [
+          61.472413,
+          23.728888
+        ],
+        [
+          61.471713,
+          23.730288
+        ],
+        [
+          61.470813,
+          23.732488
+        ],
+        [
+          61.470213,
+          23.737088
+        ],
+        [
+          61.470113,
+          23.740888
+        ],
+        [
+          61.470813,
+          23.743888
+        ],
+        [
+          61.472213,
+          23.746888
+        ],
+        [
+          61.473613,
+          23.749288
+        ]
+      ],
+      "flags": [
+        "deepWater"
+      ],
+      "note": "Everything north of this line is water. Deep-water flag beyond 250 m from shore."
+    },
+    {
+      "terrain": "water",
+      "name": "Vähäjärvi",
+      "bounds": [
+        61.464013,
+        23.733088,
+        61.464813,
+        23.735488
+      ],
+      "flags": []
+    },
+    {
+      "terrain": "forest",
+      "name": "Härmälänsaaren ulkoilupuisto",
+      "bounds": [
+        61.472613,
+        23.726088,
+        61.474813,
+        23.730288
+      ],
+      "flags": [
+        "island",
+        "oldGrowth",
+        "shoreline"
+      ]
+    },
+    {
+      "terrain": "forest",
+      "name": "Härmälän uimaranta",
+      "bounds": [
+        61.472313,
+        23.721488,
+        61.473513,
+        23.725888
+      ],
+      "flags": [
+        "shoreline"
+      ]
+    },
+    {
+      "terrain": "forest",
+      "name": "Pereen toimintapuisto",
+      "bounds": [
+        61.468313,
+        23.720188,
+        61.472213,
+        23.722488
+      ],
+      "flags": []
+    },
+    {
+      "terrain": "forest",
+      "name": "Camping Härmälä & Rantaperkiön uimaranta",
+      "bounds": [
+        61.469113,
+        23.733688,
+        61.470913,
+        23.736888
+      ],
+      "flags": [
+        "shoreline"
+      ]
+    },
+    {
+      "terrain": "forest",
+      "name": "Rantaperkiön metsä",
+      "bounds": [
+        61.471213,
+        23.743988,
+        61.473713,
+        23.748288
+      ],
+      "flags": [
+        "oldGrowth"
+      ]
+    },
+    {
+      "terrain": "forest",
+      "name": "Vähäjärvenpuisto",
+      "bounds": [
+        61.464313,
+        23.728388,
+        61.465613,
+        23.737288
+      ],
+      "priority": 1,
+      "flags": []
+    },
+    {
+      "terrain": "marsh",
+      "name": "Vähäjärven suo",
+      "bounds": [
+        61.463913,
+        23.731088,
+        61.465313,
+        23.736688
+      ],
+      "priority": 2,
+      "flags": [
+        "shoreline"
+      ],
+      "note": "The wet ring around Vähäjärvi. Overlaps the Vähäjärvenpuisto forest override and wins on priority — the park is forest at its edges and bog at its centre. Carries peat, bog iron and will-o'-wisps, and hosts the Sunken Bell wonder."
+    },
+    {
+      "terrain": "trade",
+      "name": "Härmälänrannan liikealue",
+      "bounds": [
+        61.468613,
+        23.722288,
+        61.472313,
+        23.726088
+      ],
+      "flags": [
+        "roadDensity"
+      ]
+    },
+    {
+      "terrain": "trade",
+      "name": "Härmälänranta keskusta",
+      "bounds": [
+        61.468313,
+        23.726988,
+        61.472013,
+        23.730288
+      ],
+      "flags": [
+        "roadDensity"
+      ]
+    },
+    {
+      "terrain": "trade",
+      "name": "Nuolialantien varsi",
+      "bounds": [
+        61.465713,
+        23.731788,
+        61.468613,
+        23.733088
+      ],
+      "flags": [
+        "roadDensity"
+      ]
+    },
+    {
+      "terrain": "trade",
+      "name": "Kenkätie–Saapastie",
+      "bounds": [
+        61.464213,
+        23.719788,
+        61.468613,
+        23.726888
+      ],
+      "flags": [
+        "roadDensity"
+      ]
+    },
+    {
+      "terrain": "settlement",
+      "name": "Härmälänrannan kerrostalot",
+      "bounds": [
+        61.469413,
+        23.727688,
+        61.471013,
+        23.730488
+      ],
+      "flags": [
+        "shoreline"
+      ]
+    },
+    {
+      "terrain": "settlement",
+      "name": "Nuolialantien asutus",
+      "bounds": [
+        61.468313,
+        23.732888,
+        61.469113,
+        23.736288
+      ],
+      "flags": []
+    },
+    {
+      "terrain": "settlement",
+      "name": "Rantaperkiön asutus",
+      "bounds": [
+        61.470713,
+        23.741288,
+        61.471613,
+        23.743888
+      ],
+      "flags": []
+    },
+    {
+      "terrain": "plain",
+      "name": "Härmälänrannan tie",
+      "bounds": [
+        61.468613,
+        23.731588,
+        61.471313,
+        23.732488
+      ],
+      "flags": []
+    },
+    {
+      "terrain": "plain",
+      "name": "Härmälän rantapuisto",
+      "bounds": [
+        61.469113,
+        23.737188,
+        61.470613,
+        23.740988
+      ],
+      "flags": [
+        "shoreline",
+        "skyOpenness"
+      ]
+    }
+  ],
+  "leyLines": [
+    {
+      "id": "ley-shore",
+      "name": "The Shore Line",
+      "path": [
+        [
+          61.473313,
+          23.721688
+        ],
+        [
+          61.472413,
+          23.727288
+        ],
+        [
+          61.471413,
+          23.731288
+        ],
+        [
+          61.470213,
+          23.737288
+        ],
+        [
+          61.470813,
+          23.744288
+        ]
+      ]
+    },
+    {
+      "id": "ley-spine",
+      "name": "The Nuolialantie Spine",
+      "path": [
+        [
+          61.467613,
+          23.720288
+        ],
+        [
+          61.467813,
+          23.729288
+        ],
+        [
+          61.468213,
+          23.738288
+        ],
+        [
+          61.468813,
+          23.747288
+        ]
+      ]
+    },
+    {
+      "id": "ley-island",
+      "name": "The Island Reach",
+      "path": [
+        [
+          61.474613,
+          23.728288
+        ],
+        [
+          61.473013,
+          23.727288
+        ],
+        [
+          61.470413,
+          23.726788
+        ],
+        [
+          61.466613,
+          23.726288
+        ]
+      ]
+    }
+  ],
+  "landmarks": [
+    {
+      "name": "Statue of the Boy",
+      "nameFi": "Pojan patsas",
+      "at": [
+        61.472913,
+        23.725988
+      ],
+      "kind": "memorial",
+      "lore": "Raised for a child who went into the water and did not come out. The plaque gives no name, which is how you know one was removed."
+    },
+    {
+      "name": "Villa Härmälänranta",
+      "at": [
+        61.472113,
+        23.729288
+      ],
+      "kind": "historic",
+      "lore": "A guest house that has burned twice and been rebuilt to the same plan both times."
+    },
+    {
+      "name": "Härmälän kirkko",
+      "at": [
+        61.466213,
+        23.742288
+      ],
+      "kind": "place_of_worship",
+      "lore": "Concrete, 1950s, and the only building in the district whose foundations nobody will discuss."
+    },
+    {
+      "name": "Härmälän veneenlaskupaikka",
+      "at": [
+        61.473913,
+        23.729888
+      ],
+      "kind": "slipway",
+      "lore": "Boats go in here. The count going out has been wrong three times this decade."
+    },
+    {
+      "name": "Härmälän Pumptrack",
+      "at": [
+        61.466613,
+        23.730488
+      ],
+      "kind": "sport",
+      "lore": "Dirt shaped into waves by teenagers. It happens to match a pattern on the observatory wall."
+    },
+    {
+      "name": "Rantaperkiön tekonurmikenttä",
+      "at": [
+        61.471213,
+        23.742488
+      ],
+      "kind": "pitch",
+      "lore": "Green that stays green through February. Nothing grows through it, which is the point."
+    }
+  ],
+  "anchorStone": {
+    "at": [
+      61.471713,
+      23.728788
+    ],
+    "note": "The Keep. Player's first cell in the current build — kept where it is."
+  },
+  "wonders": [
+    {
+      "id": "drowned_spire",
+      "at": [
+        61.477113,
+        23.736788
+      ],
+      "note": "Deepest surveyed water in the bbox, 900 m off Härmälänsaari."
+    },
+    {
+      "id": "eye_of_the_lake",
+      "at": [
+        61.474613,
+        23.728288
+      ],
+      "note": "Härmälänsaari — the only island in range."
+    },
+    {
+      "id": "great_sauna",
+      "at": [
+        61.472213,
+        23.729088
+      ],
+      "note": "Shore settlement beside Villa Härmälänranta."
+    },
+    {
+      "id": "ley_observatory",
+      "at": [
+        61.470413,
+        23.726988
+      ],
+      "note": "Shore Line × Island Reach crossing, on the Pereen rise."
+    },
+    {
+      "id": "whispering_grove",
+      "at": [
+        61.472413,
+        23.746088
+      ],
+      "note": "Rantaperkiön metsä. Moved here when Vähäjärvenpuisto became marsh — this is the remaining old-growth forest in the bbox."
+    },
+    {
+      "id": "sunken_bell",
+      "at": [
+        61.464613,
+        23.733888
+      ],
+      "note": "Vähäjärven suo — the only marsh area in the bbox, so the predicate resolves here uncontested."
+    },
+    {
+      "id": "iron_bell",
+      "at": [
+        61.468613,
+        23.723488
+      ],
+      "note": "Härmälänranta industrial edge, highest road density."
+    },
+    {
+      "id": "the_boy_who_waits",
+      "at": [
+        61.472913,
+        23.725988
+      ],
+      "note": "Must sit ON the Statue of the Boy landmark."
+    },
+    {
+      "id": "ten_thousand_steps",
+      "at": [
+        61.467413,
+        23.739088
+      ],
+      "note": "Highest relief in the bbox. ⚠ Härmälä is flat — confirm against a DEM or move this wonder out of the area."
+    }
+  ],
+  "questChains": [
+    {
+      "id": "what_sleeps_at_the_shore",
+      "name": "What Sleeps at the Shore",
+      "nameFi": "Se mikä nukkuu rannassa",
+      "board": "tavern",
+      "note": "Node coordinates transcribed from the author's third reference image: numerals 1–5 are nodes, X marks are item caches.",
+      "nodes": [
+        {
+          "node": 1,
+          "at": [
+            61.471713,
+            23.728788
+          ],
+          "name": "The Wet Footprints",
+          "task": "Walk the shore path between the Keep and the villa. Three sets of prints leave the water and none return.",
+          "gives": {
+            "wisdom": 15
+          }
+        },
+        {
+          "node": 2,
+          "at": [
+            61.472313,
+            23.728288
+          ],
+          "name": "The Innkeeper's Ledger",
+          "task": "Reach Villa Härmälänranta and read the guest book for the nights nobody signed out.",
+          "needs": [
+            "ledger_page"
+          ],
+          "gives": {
+            "wisdom": 25,
+            "culture": 10
+          }
+        },
+        {
+          "node": 3,
+          "at": [
+            61.470713,
+            23.730888
+          ],
+          "name": "The Boy's Errand",
+          "task": "Take the statue's request inland, to the block that was built over the old beach.",
+          "needs": [
+            "tarred_rope"
+          ],
+          "gives": {
+            "culture": 30
+          }
+        },
+        {
+          "node": 4,
+          "at": [
+            61.473913,
+            23.729688
+          ],
+          "name": "The Borrowed Boat",
+          "task": "The slipway. Take what is already untied.",
+          "needs": [
+            "bell_key"
+          ],
+          "gives": {
+            "mana": 40
+          }
+        },
+        {
+          "node": 5,
+          "at": [
+            61.474713,
+            23.727888
+          ],
+          "name": "The Eye Opens",
+          "task": "Cross to Härmälänsaari and stand where the island watches the shore. Unlocks the Eye of Pyhäjärvi wonder site.",
+          "gives": {
+            "mana": 80,
+            "wisdom": 50
+          },
+          "unlocks": [
+            "wonder:eye_of_the_lake"
+          ]
+        }
+      ],
+      "items": [
+        {
+          "id": "bell_key",
+          "at": [
+            61.473013,
+            23.725988
+          ],
+          "name": "Brass Diving-Bell Key",
+          "nameFi": "Messinkinen sukelluskellon avain",
+          "found": "Buried at Härmälän uimaranta, two metres from the statue's shadow at noon."
+        },
+        {
+          "id": "ledger_page",
+          "at": [
+            61.471413,
+            23.731388
+          ],
+          "name": "Waterlogged Ledger Page",
+          "nameFi": "Vettynyt kirjanpitosivu",
+          "found": "In the shallows east of the villa. Legible only while wet."
+        },
+        {
+          "id": "tarred_rope",
+          "at": [
+            61.470413,
+            23.726988
+          ],
+          "name": "Coil of Tarred Rope",
+          "nameFi": "Tervattu köysikiepp",
+          "found": "On the Pereen rise, under the observatory site. Still smells fresh."
+        }
+      ]
+    }
+  ],
+  "expectedCounts": {
+    "_note": "Assertions the seeder must satisfy or fail loudly. Guards against a silent Overpass timeout producing an all-plain world.",
+    "totalHexes": [
+      2400,
+      3400
+    ],
+    "byTerrain": {
+      "water": [
+        0.22,
+        0.38
+      ],
+      "forest": [
+        0.12,
+        0.24
+      ],
+      "plain": [
+        0.12,
+        0.28
+      ],
+      "trade": [
+        0.08,
+        0.2
+      ],
+      "settlement": [
+        0.08,
+        0.2
+      ],
+      "marsh": [
+        0.01,
+        0.05
+      ],
+      "hill": [
+        0,
+        0.04
+      ]
+    },
+    "depositDensity": [
+      0.03,
+      0.12
+    ],
+    "depositsPerArea": [
+      1,
+      3
+    ],
+    "areasWithZeroDeposits": 0,
+    "landmarks": [
+      6,
+      40
+    ],
+    "wonders": 9
+  }
+}
