@@ -80,6 +80,36 @@ export function anchorQuestSites(home: LatLng | null): void {
   anchor = home;
 }
 
+/**
+ * The hex each site was pinned to, once it has been (BRDC-QUEST-005).
+ *
+ * Field report: the tale's places moved while the map stayed put. They were never stored
+ * — `siteCell` *recomputed* them from the anchor on every call, and the anchor is the
+ * castle's centre, which is re-assigned whenever the Hearth is. Re-anchor and every site
+ * slides; a site sitting near a hex boundary can slide a whole hex on a few metres.
+ *
+ * So the derivation runs once and the answer is kept. A pinned tale cannot drift, which
+ * is the point: a place the player walked to has to still be there tomorrow.
+ */
+let pinnedCells: Partial<Record<QuestSiteId, H3Index>> = {};
+
+/** Restore pins from storage. Empty means "not pinned yet", not "pinned to nothing". */
+export function pinQuestCells(cells: Partial<Record<QuestSiteId, H3Index>>): void {
+  pinnedCells = { ...cells };
+}
+
+/** Every site's hex as it stands now — what a first boot writes down and pins to. */
+export function resolveQuestCells(): Record<QuestSiteId, H3Index> {
+  return Object.fromEntries(
+    QUEST_SITE_IDS.map((id) => [id, pinnedCells[id] ?? cellAt(questSiteAt(id))]),
+  ) as Record<QuestSiteId, H3Index>;
+}
+
+/** Whether the tale has been fixed to the map yet. */
+export function questCellsPinned(): boolean {
+  return QUEST_SITE_IDS.every((id) => pinnedCells[id] !== undefined);
+}
+
 /** Where a site stands — at the anchor if there is one, in Härmälä if there is not. */
 export function questSiteAt(id: QuestSiteId): LatLng {
   if (!anchor) return QUEST_SITES[id];
@@ -87,9 +117,14 @@ export function questSiteAt(id: QuestSiteId): LatLng {
   return metres === 0 ? anchor : destination(anchor, deg, metres);
 }
 
-/** The ownership cell a quest site falls in. */
+/**
+ * The ownership cell a quest site falls in.
+ *
+ * The pin wins whenever there is one. Without it this falls back to the derivation, which
+ * is what a brand-new game does for the one boot before its pins are written.
+ */
 export function siteCell(id: QuestSiteId): H3Index {
-  return cellAt(questSiteAt(id));
+  return pinnedCells[id] ?? cellAt(questSiteAt(id));
 }
 
 /**

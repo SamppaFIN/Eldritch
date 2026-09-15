@@ -31,7 +31,10 @@ export {
   STAGE_SITE,
   secretSiteAt,
   anchorQuestSites,
+  pinQuestCells,
+  questCellsPinned,
   questSiteAt,
+  resolveQuestCells,
   siteCell,
   visibleQuestSites,
 } from './questSites.js';

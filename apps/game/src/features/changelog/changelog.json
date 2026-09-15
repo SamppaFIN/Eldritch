@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.13",
+    "date": "2026-09-15",
+    "notes": [
+      "Fixed: the Fuming Lake had been drifting around the map. Its places were worked out afresh on every read from your Keep, and your Keep moves whenever your Hearth does, so the whole tale slid with it. They are pinned to real hexes now and stay there.",
+      "That also fixes advancing the tale where you should not be able to: the check was right all along, but it was comparing against a place that kept moving."
+    ]
+  },
+  {
     "version": "0.6.12",
     "date": "2026-09-15",
     "notes": [

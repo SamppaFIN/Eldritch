@@ -13,8 +13,15 @@
  * and a stash to go with it.
  */
 import { useEffect, useState } from 'react';
-import { anchorQuestSites, cellCentre, load } from '@es3/core';
-import type { GameRepository, H3Index, PlayerProfile } from '@es3/core';
+import {
+  anchorQuestSites,
+  cellCentre,
+  load,
+  pinQuestCells,
+  resolveQuestCells,
+  saveNow,
+} from '@es3/core';
+import type { GameRepository, H3Index, PlayerProfile, QuestSiteId } from '@es3/core';
 import { createRepository } from '../../data/createRepository.js';
 import type { NoticeConditions } from '../hud/notices.js';
 
@@ -79,6 +86,29 @@ export function useBoot(now: () => number, clock: unknown): Boot {
    */
   useEffect(() => {
     anchorQuestSites(castle ? cellCentre(castle) : null);
+    if (!castle) return;
+
+    /*
+     * Pin the tale to actual hexes, once (BRDC-QUEST-005).
+     *
+     * Field report: "quest pisteet onkin kartalla eri paikoissa… kartta on pysynyt
+     * paikallaan. Mutta eri quest paikat on nyt siirtyneet." They were never written
+     * down — every read recomputed them from the castle's centre, and the castle is
+     * re-assigned whenever the Hearth is, so the whole tale slid with it. A site near a
+     * hex boundary needs only a few metres to land in a different hex entirely.
+     *
+     * Written to the same small-facts store `last-collect` uses; seven h3 strings is not
+     * IndexedDB's business. Once written they are never recomputed, so the statue stays
+     * where the player walked to it.
+     */
+    const stored = load<Partial<Record<QuestSiteId, H3Index>>>('quest-cells', {});
+    if (Object.keys(stored).length > 0) {
+      pinQuestCells(stored);
+      return;
+    }
+    const cells = resolveQuestCells();
+    pinQuestCells(cells);
+    saveNow('quest-cells', cells);
   }, [castle]);
 
   return { repository, alerts, profile, setProfile, castle };
