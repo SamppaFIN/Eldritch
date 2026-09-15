@@ -11,7 +11,7 @@
  * HUD and scrolling inside.
  */
 import { useRef } from 'react';
-import { GlassPanel, RitualButton } from '@es3/ui';
+import { EmptyState, FlowerOfLife, GlassPanel, RitualButton } from '@es3/ui';
 import { MAX_STRENGTH } from '@es3/core';
 import type { Collected, GameRepository, Holding } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
@@ -166,7 +166,13 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
       {loading && list.length === 0 ? <p className="lands__note">Counting your ground…</p> : null}
 
       {!loading && list.length === 0 ? (
-        <p className="lands__note">You hold nothing yet. Walk into the hex beside you.</p>
+        <EmptyState
+          mark={<FlowerOfLife size={56} />}
+          ink="var(--awareness-green)"
+          title="No ground yet"
+          body="Walk into the hex beside you and it is yours. The first one costs nothing."
+          action={{ label: 'Back to the map', onClick: onClose }}
+        />
       ) : null}
 
       {list.length > 0 ? (

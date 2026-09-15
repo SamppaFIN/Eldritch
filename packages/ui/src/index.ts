@@ -4,5 +4,7 @@ export { Starfield } from './components/Starfield.js';
 export type { StarfieldProps } from './components/Starfield.js';
 export { GlassPanel, RitualButton } from './components/GlassPanel.js';
 export type { GlassPanelProps, RitualButtonProps } from './components/GlassPanel.js';
+export { EmptyState } from './components/EmptyState.js';
+export type { EmptyStateProps } from './components/EmptyState.js';
 export { Modal } from './components/Modal.js';
 export type { ModalProps } from './components/Modal.js';

@@ -489,3 +489,57 @@ svg {
 .es-sigil--breathing {
   animation: es-breathe 6s var(--ease) infinite;
 }
+
+/* =============================================================================
+   Empty states (Sigil handoff: "Every zero is an empty state")
+   ========================================================================== */
+
+/* Mark, one sentence, one verb. Centred and given room, because a zero is a place the
+   player has arrived at rather than a gap in a list — the document's whole point is that
+   it is the best chance the game gets to teach the rule that would fill it. */
+.es-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.es-empty__mark {
+  color: var(--accent);
+  opacity: 0.9;
+}
+
+.es-empty__title {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+}
+
+.es-empty__body {
+  max-inline-size: 28rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+}
+
+/* One verb. Sized for a thumb like every other primary action (§14 ch.4). */
+.es-empty__cta {
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.es-empty__cta:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

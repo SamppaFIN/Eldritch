@@ -11,7 +11,7 @@
  * closes, capped above the HUD and scrolling inside.
  */
 import { useEffect, useRef, useState } from 'react';
-import { GlassPanel, RitualButton } from '@es3/ui';
+import { EmptyState, GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { Banner } from '../nation/Banner.js';
 import { resolveBannerId } from '../nation/nation.js';
 import { placementIn } from '@es3/core';
@@ -47,6 +47,12 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
 
   if (!open) return null;
 
+  // Ranked in nothing at all — one state above the table instead of seven dashes in it.
+  const listed =
+    me !== null &&
+    state.status === 'ready' &&
+    state.table.metrics.some((m) => placementIn(m, me) !== null);
+
   const row = (metric: Metric) => {
     const mine = me ? placementIn(metric, me) : null;
     const gap = mine ? gapLine(metric, mine.value, mine.rank) : null;
@@ -60,15 +66,25 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
           onClick={() => setExpanded(showing ? null : metric.id)}
         >
           <span className="codex__name">{METRIC_NAME[metric.id]}</span>
-          <span className="codex__mine es-numeric">
-            {mine ? formatMetric(metric.id, mine.value) : '—'}
-          </span>
-          {/* The placing and the step to the next one, on the line that already exists
-              for it — a rank is a position, the gap is what you can do about it. */}
-          <span className="codex__place">
-            {mine ? placeWord(mine.rank, mine.of) : 'not listed'}
-            {gap ? ` · ${gap}` : ''}
-          </span>
+          {/*
+            * Nothing at all rather than "—" and "not listed" on every row (Sigil handoff:
+            * "No dimmed rows, no 'none', no 'not listed'"). An unranked realm used to get
+            * that pair seven times over, once per measure, saying the same nothing each
+            * time. It is said once now, above the table, as a state with a way out of it —
+            * and the best, average and worst stay where they are, because a realm that is
+            * not in the reckoning still wants to see what the reckoning looks like.
+            */}
+          {mine ? (
+            <>
+              <span className="codex__mine es-numeric">{formatMetric(metric.id, mine.value)}</span>
+              {/* The placing and the step to the next one, on the line that already exists
+                  for it — a rank is a position, the gap is what you can do about it. */}
+              <span className="codex__place">
+                {placeWord(mine.rank, mine.of)}
+                {gap ? ` · ${gap}` : ''}
+              </span>
+            </>
+          ) : null}
         </button>
 
         <dl className="codex__figures es-numeric">
@@ -146,6 +162,14 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
             {state.table.players} {state.table.players === 1 ? 'realm' : 'realms'} measured. Tap a
             row for what it means and who leads it.
           </p>
+          {listed ? null : (
+            <EmptyState
+              mark={<MetatronsCube size={56} />}
+              ink="var(--r-culture)"
+              title="Not in the reckoning yet"
+              body="Your realm is not among the measured ones. Raise your banner from the menu and it joins the Codex within the hour."
+            />
+          )}
           <ul className="codex__list">{state.table.metrics.map(row)}</ul>
           <RitualButton variant="ghost" className="codex__reload" onClick={reload}>
             Read again

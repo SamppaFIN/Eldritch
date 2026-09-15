@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { MAX_TEMPLE_EXPANSION, expansionCost, shortOf } from '@es3/core';
 import type { GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
-import { RitualButton } from '@es3/ui';
+import { EmptyState, RitualButton, VesicaDivider } from '@es3/ui';
 import { EXPAND_REFUSAL, shortNote } from '../territory/gateNote.js';
 import type { ExpandFail } from '../territory/gateNote.js';
 
@@ -56,9 +56,14 @@ export function KeepTemples({ places, pool, repository, now, onPouch }: KeepTemp
 
   if (temples.length === 0) {
     return (
-      <p className="hearth-panel__line hearth-panel__tabbody">
-        No temples yet — dwell an hour and a half in one cell to raise one.
-      </p>
+      <div className="hearth-panel__tabbody">
+        <EmptyState
+          mark={<VesicaDivider size={56} />}
+          ink="var(--sacred-gold)"
+          title="No Temples"
+          body="Stay an hour and a half in one cell and a Temple reveals itself there. You do not build it."
+        />
+      </div>
     );
   }
 
