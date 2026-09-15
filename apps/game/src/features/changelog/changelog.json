@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.12",
+    "date": "2026-09-15",
+    "notes": [
+      "A hex card now says what the hex pays an hour — the total first, then the working beneath it: the ground, whatever was found there, the Work standing on it, and your research, each in its own colour.",
+      "It only counts what the hex itself earns. Auras, places, Rites and trade routes belong to the whole realm, and splitting them between hexes would be a number you could not check."
+    ]
+  },
+  {
     "version": "0.6.11",
     "date": "2026-09-15",
     "notes": [
