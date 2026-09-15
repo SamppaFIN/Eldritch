@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.19",
+    "date": "2026-09-15",
+    "notes": [
+      "Under the hood: the siege numbers have finally been run rather than assumed. Taking an established block takes three walks when your own land already wraps it, six when it does not — and an Anchor Stone currently takes anything in two, whoever you are."
+    ]
+  },
+  {
     "version": "0.6.18",
     "date": "2026-09-15",
     "notes": [
