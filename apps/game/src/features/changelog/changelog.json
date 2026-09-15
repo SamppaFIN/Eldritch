@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.11",
+    "date": "2026-09-15",
+    "notes": [
+      "A Temple glows gold now and the Anchor Stone green — they were the other way round, which spent the map’s rarest colour on the commoner thing and gave temples the same cyan as mana.",
+      "A find sits at the lower left of its hex instead of the upper left, leaving the middle to whatever is built there and the corner to the neighbour count."
+    ]
+  },
+  {
     "version": "0.6.10",
     "date": "2026-09-15",
     "notes": [

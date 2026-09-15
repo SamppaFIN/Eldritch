@@ -16,9 +16,17 @@ export const PLACE_HALO_LAYER = 'places-halo';
 export const PLACE_CORE_LAYER = 'places-core';
 export const PLACE_LABEL_LAYER = 'places-label';
 
-/** --sacred-gold for the Anchor, --mystic-cyan for temples. */
-const ANCHOR = '#ffd700';
-const TEMPLE = '#00d4ff';
+/*
+ * Sigil §03: "Temple & Anchor — gold nimbus. The only two objects allowed a glow. Temple
+ * carries a sacred-gold spark, the Anchor Stone an awareness-green core. If it glows, it
+ * is sacred."
+ *
+ * These were the other way round — gold on the Anchor, cyan on temples — which also put
+ * a temple in the same hue the map already spends on mana and on the current nav item.
+ * Gold is the rarer colour and the temple is the rarer thing.
+ */
+const ANCHOR = '#00ff88'; /* --awareness-green */
+const TEMPLE = '#ffd700'; /* --sacred-gold */
 
 /** Centre of a cell, from its own boundary. Good enough for a marker. */
 function centreOf(h3: string): [number, number] {

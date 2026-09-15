@@ -150,7 +150,10 @@ export function addMarkLayers(map: MapLibreMap): void {
       visibility: 'none',
       'icon-image': ['concat', 'bounty-', ['get', 'bounty']],
       'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 16, 0.6, 17, 0.85, 19, 1.5],
-      'icon-offset': [-15, -14],
+      /* Lower-left, so the centre belongs to whatever stands on the hex (Sigil §03: "It
+         stands at the lower-left while the structure holds the centre"). It sat upper-left
+         where the neighbour badge now goes, which put two marks in one corner. */
+      'icon-offset': [-15, 16],
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },
