@@ -3,6 +3,7 @@ import { cellAt, loadDrawings, newDrawing, paint } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { MAP_RESOURCE_COLOUR, cellProperties } from './territoryFeatures.js';
 import { addMarkLayers } from './territoryMarks.js';
+import { BOUNTY_PX } from './bountySprites.js';
 import { CELL_BOUNTY_BADGE_LAYER, CELL_BOUNTY_LAYER } from './layerIds.js';
 
 interface FakeLayer {
@@ -109,11 +110,13 @@ describe('the collapsed bounty badge', () => {
     const sprite = map.layers.find((l) => l.id === CELL_BOUNTY_LAYER);
 
     // The badge stops where the sprite starts: one mark per find, at every zoom.
-    expect(badge?.maxzoom).toBe(14);
-    expect(sprite?.minzoom).toBe(14);
+    expect(badge?.maxzoom).toBeDefined();
+    expect(badge?.maxzoom).toBe(sprite?.minzoom);
 
-    // And the sprite's first size is the document's 14 px floor: 40 px of art × 0.4.
-    const ramp = sprite?.layout?.['icon-size'] as unknown[];
-    expect(ramp.slice(3, 5)).toEqual([14, 0.4]);
+    // And the sprite's first size clears the document's 14 px floor *on screen*. Sprites
+    // are registered at pixelRatio 2, so an icon-size of 1 is BOUNTY_PX / 2 px — the
+    // divisor the first version of this rule forgot, which made "16 px" really 8.
+    const ramp = sprite?.layout?.['icon-size'] as number[];
+    expect(((ramp[4] as number) * BOUNTY_PX) / 2).toBeGreaterThanOrEqual(14);
   });
 });

@@ -7,10 +7,20 @@
  * stops being the layer somebody meant to toggle.
  */
 export const CELL_SOURCE = 'cells';
+/**
+ * The marks' own source: one Point per cell (BRDC-SIGIL-006).
+ *
+ * Separate from `cells` because a polygon wider than a 512 px tile gets its label placed
+ * once per tile it is clipped into, and at zoom 20 a res-11 hex is wider than a tile.
+ * Points cannot be clipped, so the marks are drawn once. See `cellMarks.ts`.
+ */
+export const CELL_MARK_SOURCE = 'cell-marks';
 export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_SHARED_LAYER = 'cells-shared';
 export const CELL_BLIGHT_LAYER = 'cells-blight';
 export const CELL_RIVAL_LINE_LAYER = 'cells-rival-line';
+/** Your stroke, drawn above rival dashes so a shared edge reads as yours (BRDC-SIGIL-006). */
+export const CELL_OWN_LINE_LAYER = 'cells-own-line';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';

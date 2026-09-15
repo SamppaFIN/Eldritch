@@ -8,10 +8,11 @@
  * Every decision — who gets which colour, when a cell counts as contested — lives in
  * territoryFeatures.ts, where it can be tested without a browser.
  */
-import type { FeatureCollection, Polygon } from 'geojson';
+import type { FeatureCollection, Point, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
-import { CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL, cellsToGeoJson } from './territoryFeatures.js';
+import { CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territoryFeatures.js';
+import { cellMarksToGeoJson, cellsToGeoJson } from './cellMarks.js';
 import type { CellProperties } from './territoryFeatures.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
@@ -27,12 +28,14 @@ export { setFlagBanner } from './territoryImages.js';
 // The names live in `layerIds.ts` so `territoryImages.ts` can read them without importing
 // this file back — one id string in two places is how a layer quietly stops being toggled.
 import {
+  CELL_MARK_SOURCE,
   CELL_SOURCE,
   CELL_FILL_LAYER,
   CELL_SHARED_LAYER,
   CELL_BLIGHT_LAYER,
   CELL_LINE_LAYER,
   CELL_RIVAL_LINE_LAYER,
+  CELL_OWN_LINE_LAYER,
   CELL_CONTESTED_LAYER,
   CELL_ICON_LAYER,
   CELL_GROUND_LAYER,
@@ -73,6 +76,9 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   if (map.getSource(CELL_SOURCE)) return;
 
   map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
+  // The marks ride their own point source, so a hexagon wider than a tile cannot have
+  // its glyphs placed twice (BRDC-SIGIL-006).
+  map.addSource(CELL_MARK_SOURCE, { type: 'geojson', data: cellMarksToGeoJson([], null) });
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
   /*
    * Terrain no longer covers the hex (Sigil §03: "Terrain never fills the hex; it tints
@@ -177,6 +183,25 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
+   * Your owner stroke, solid, on top (Sigil §03: "Yours: … solid 3.5px stroke. Rival:
+   * one fixed pale red, dashed."). Every hex draws its whole outline, so an edge you
+   * share with a rival carries both strokes — and with the dashes drawn last, your own
+   * border read as red-striped. This layer is the same purple, laid after them.
+   */
+  map.addLayer({
+    id: CELL_OWN_LINE_LAYER,
+    type: 'line',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['get', 'mine'],
+    paint: {
+      'line-color': OWN_STROKE,
+      'line-width': 3.5,
+      'line-opacity': 0.95,
+    },
+  });
+
+  /*
    * Contested cells get a second stroke rather than only a different colour.
    *
    * Colour alone must never carry meaning (AI-Koulu ch.4), and this is the one piece of
@@ -213,6 +238,10 @@ export function setTerritoryData(
   (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
     cellsToGeoJson(cells, me, now, home, revealed),
   );
+  const marks = map.getSource(CELL_MARK_SOURCE);
+  (marks as { setData?: (d: FeatureCollection<Point, CellProperties>) => void })?.setData?.(
+    cellMarksToGeoJson(cells, me, now, home, revealed),
+  );
   if (bannerId) setFlagBanner(map, bannerId);
 }
 
@@ -233,7 +262,15 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
   ]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
+  // Every layer still reading either cell source. The hand-kept list above had fallen
+  // several layers behind, and removeSource throws while any layer still reads it.
+  for (const layer of map.getStyle()?.layers ?? []) {
+    if ('source' in layer && (layer.source === CELL_SOURCE || layer.source === CELL_MARK_SOURCE)) {
+      map.removeLayer(layer.id);
+    }
+  }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);
+  if (map.getSource(CELL_MARK_SOURCE)) map.removeSource(CELL_MARK_SOURCE);
   if (map.hasImage(SHARED_PATTERN)) map.removeImage(SHARED_PATTERN);
   for (const id of BANNER_IDS) {
     if (map.hasImage(bannerSpriteId(id))) map.removeImage(bannerSpriteId(id));

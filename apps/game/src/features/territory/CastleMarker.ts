@@ -13,6 +13,7 @@ import type { FeatureCollection, Point } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { cellBoundary } from '@es3/core';
 import type { H3Index } from '@es3/core';
+import { beneathMarks, slotTranslate } from './cellMarks.js';
 
 export const CASTLE_SOURCE = 'castle';
 export const CASTLE_HALO_LAYER = 'castle-halo';
@@ -90,19 +91,19 @@ export function ensureCastleLayer(map: MapLibreMap): void {
       'text-font': ['Noto Sans Regular'],
       'text-size': 11,
       'text-letter-spacing': 0.16,
-      // Below the core, and clear of the building glyph that sits at [0, 1.1] on this
-      // same cell (BRDC-ART-002) — at 1.6 the label buried a monument on the Keep.
-      'text-offset': [0, 2.6],
-      'text-anchor': 'top',
+      'text-anchor': 'bottom',
       'text-allow-overlap': false,
     },
     paint: {
+      // The north slot (BRDC-SIGIL-006). South belongs to the strength figure, which §03
+      // draws at the bottom of the hex; a fixed em offset had met it near zoom 16.
+      'text-translate': slotTranslate('north'),
       'text-color': KEEP_COLOR,
       'text-halo-color': '#0a0612',
       'text-halo-width': 2,
       'text-opacity': 0.9,
     },
-  });
+  }, beneathMarks(map));
 }
 
 export function setCastleData(map: MapLibreMap, castle: H3Index | null): void {

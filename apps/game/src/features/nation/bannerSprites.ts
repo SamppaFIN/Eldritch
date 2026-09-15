@@ -13,7 +13,7 @@ import type { MarkInk, RealmMarkId } from './realmMarks.js';
 import { rasteriseSvgs } from '../territory/spriteRaster.js';
 
 /** Rendered size, device pixels. Small — it sits on one res-11 hex. */
-export const BANNER_PX = 40;
+export const BANNER_PX = 128;
 
 /** id → the `map.addImage` name. */
 export const bannerSpriteId = (id: BannerId): string => `banner-${id}`;

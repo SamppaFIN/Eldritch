@@ -9,7 +9,7 @@
  */
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import {
-  CELL_SOURCE,
+  CELL_MARK_SOURCE,
   CELL_DETAIL_MINZOOM,
   CELL_GROUND_LAYER,
   CELL_ICON_LAYER,
@@ -23,8 +23,8 @@ import {
   CELL_NEIGHBOUR_LAYER,
   CELL_STRENGTH_LAYER,
 } from './layerIds.js';
+import { slotTranslate } from './cellMarks.js';
 import { bannerSpriteId } from './territoryImages.js';
-import { OWN_STROKE } from './territoryFeatures.js';
 
 /**
  * The symbol layers — every mark that stands on a cell rather than filling it: the
@@ -37,11 +37,12 @@ import { OWN_STROKE } from './territoryFeatures.js';
 /**
  * Where the find's sprite becomes legible, and so where the badge beneath it stops.
  *
- * The sprite is 40 px of drawn detail; the document collapses it below 14 px, which is
- * `icon-size` 0.35. The ramp hits that at about zoom 13.5, so 14 is the first whole zoom
- * at which the art is worth drawing — 0.4 × 40 = 16 px.
+ * The document collapses the find below 14 px. The sprite is registered at pixelRatio 2,
+ * so on screen it is BOUNTY_PX × size ÷ 2. Two earlier versions got this wrong: the first
+ * ignored the ÷ 2 (its "16 px" was 8), the second sized against a hex table half its real
+ * size. Against the measured hex, 30% of its width reaches 14 px at zoom 15.
  */
-const BOUNTY_SPRITE_MINZOOM = 14;
+const BOUNTY_SPRITE_MINZOOM = 15;
 
 export function addMarkLayers(map: MapLibreMap): void {
   /*
@@ -66,7 +67,7 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_GROUND_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'ground'], ''],
     layout: {
@@ -84,7 +85,7 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_ICON_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'icon'], ''],
     layout: {
@@ -121,7 +122,7 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_BUILDING_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'building'], ''],
     layout: {
@@ -153,36 +154,38 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_BOUNTY_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     // 14, not the usual detail floor: below this the badge layer draws instead (Sigil §03).
     minzoom: BOUNTY_SPRITE_MINZOOM,
     filter: ['!=', ['get', 'bounty'], ''],
     layout: {
       visibility: 'none',
       'icon-image': ['concat', 'bounty-', ['get', 'bounty']],
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 14, 0.4, 16, 0.6, 17, 0.85, 19, 1.5],
+      // 64 × size on screen: 14 px at the floor, then 26 / 52 / 104 px — 30% of the hex —
+      // capped at twice the raster's native size.
+      'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 15, 0.22, 16, 0.41, 17, 0.81, 18, 1.63, 19, 2],
       /* Lower-left, so the centre belongs to whatever stands on the hex (Sigil §03: "It
          stands at the lower-left while the structure holds the centre"). It sat upper-left
          where the neighbour badge now goes, which put two marks in one corner. */
-      'icon-offset': [-15, 16],
+
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },
-    paint: { 'icon-opacity': 0.95 },
+    // Lower-left from the slot table, in screen pixels, so it tracks the hex at every zoom.
+    paint: { 'icon-opacity': 0.95, 'icon-translate': slotTranslate('southWest') },
   });
 
   /*
    * The same find, collapsed to a badge (Sigil §03).
    *
    * The document: *"Below 14px it collapses into a disc badge at the upper-right vertex,
-   * same symbol, same hue."* The sprite is 40 px of drawn detail, so `icon-size` 0.35 is
-   * the 14 px line — which the ramp above crosses at about zoom 13.5. The sprite's floor
-   * is therefore raised to zoom 14 (0.4 → 16 px) and this owns 13 → 14 beneath it. The
-   * two bands touch and never overlap: one mark per find, always.
+   * same symbol, same hue."* The sprite clears 14 px on screen at zoom 15 (see
+   * `BOUNTY_SPRITE_MINZOOM`), so this owns 13 → 15 beneath it. The two bands touch and
+   * never overlap: one mark per find, always.
    *
    * A disc and no symbol, which is a stated departure. At zoom 13 a res-11 hex is about
-   * five pixels across and at 14 about eleven; "same symbol" at that size is four pixels
-   * of mush — smaller than the sprite it replaced, which defeats the rule's own purpose.
+   * eleven pixels across and at 15 about forty; a symbol inside a disc that size is a few
+   * pixels of mush — smaller than the sprite it replaces, which defeats the rule itself.
    * The hue survives, and it is the find's resource colour, so the badge agrees with the
    * figure the panel prints. Colour is not carrying this alone: the mark's presence is
    * the information, and the panel names the find in words.
@@ -190,19 +193,19 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_BOUNTY_BADGE_LAYER,
     type: 'circle',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
-    maxzoom: 14,
+    maxzoom: BOUNTY_SPRITE_MINZOOM,
     filter: ['!=', ['get', 'bounty'], ''],
     paint: {
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 2.5, 14, 4],
+      'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 13, 2.5, 15, 5],
       'circle-color': ['get', 'bountyColor'],
       'circle-opacity': 0.9,
       // A dark rim, so a gold find still reads against bright ground.
       'circle-stroke-color': '#0a0612',
       'circle-stroke-width': 1,
       // Upper-right vertex. Screen pixels, y down — and small, because the hex is too.
-      'circle-translate': [5, -5],
+      'circle-translate': slotTranslate('northEast'),
     },
   });
 
@@ -216,13 +219,19 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_FLAG_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'flag'], ''],
     layout: {
       'icon-image': bannerSpriteId('vesica'),
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.28, 17, 0.5, 19, 0.7],
-      'icon-offset': [0, 16],
+      /*
+       * Your banner stands where a Work would — the two never share a cell — so it takes
+       * the same bottom anchor on the hex centre. 35% of the measured hex: 64 × size on
+       * screen, 30 / 61 / 122 px at zoom 16 / 17 / 18, capped at twice native. It was 8%
+       * of the hex at zoom 19.
+       */
+      'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 13, 0.06, 16, 0.47, 17, 0.95, 18, 1.9, 19, 2],
+      'icon-anchor': 'bottom',
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },
@@ -244,7 +253,7 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_LANDMARK_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'landmark'], ''],
     layout: {
@@ -282,35 +291,37 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_NEIGHBOUR_DISC_LAYER,
     type: 'circle',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: 16,
     filter: ['all', ['get', 'mine'], ['>', ['get', 'neighbours'], 0]],
     paint: {
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 16, 7, 19, 11],
+      // §03: a dark disc with a faint rim, not a purple ring — the figure inside carries
+      // the colour, and the owner stroke is the only purple line on the hex.
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 16, 9, 17, 11, 19, 16],
       'circle-color': '#0a0612',
-      'circle-opacity': 0.72,
-      'circle-stroke-color': OWN_STROKE,
-      'circle-stroke-width': 1.2,
-      'circle-translate': ['interpolate', ['linear'], ['zoom'], 16, ['literal', [-20, -16]], 19, ['literal', [-64, -52]]],
+      'circle-opacity': 0.9,
+      'circle-stroke-color': '#3a3346',
+      'circle-stroke-width': 1,
+      'circle-translate': slotTranslate('northWest'),
     },
   });
 
   map.addLayer({
     id: CELL_NEIGHBOUR_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: 16,
     filter: ['all', ['get', 'mine'], ['>', ['get', 'neighbours'], 0]],
     layout: {
       'text-field': ['to-string', ['get', 'neighbours']],
       'text-font': ['Noto Sans Regular'],
-      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 9, 19, 13],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 10, 17, 12, 19, 17],
       'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'text-ignore-placement': false,
     },
     paint: {
-      'text-color': '#cdc7d6',
-      'text-translate': ['interpolate', ['linear'], ['zoom'], 16, ['literal', [-20, -16]], 19, ['literal', [-64, -52]]],
+      'text-color': '#00ff88', // --awareness-green, as §03 draws it
+      'text-translate': slotTranslate('northWest'),
     },
   });
 
@@ -323,28 +334,30 @@ export function addMarkLayers(map: MapLibreMap): void {
   map.addLayer({
     id: CELL_STRENGTH_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: 16,
     filter: ['get', 'mine'],
     layout: {
       'text-field': ['to-string', ['round', ['get', 'strength']]],
       'text-font': ['Noto Sans Regular'],
-      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 10, 19, 15],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 11, 17, 14, 19, 20],
       'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'text-ignore-placement': false,
     },
     paint: {
       'text-color': '#f4f1f7',
       'text-halo-color': '#0a0612',
-      'text-halo-width': 1.4,
-      'text-translate': ['interpolate', ['linear'], ['zoom'], 16, ['literal', [0, 22]], 19, ['literal', [0, 74]]],
+      'text-halo-width': 1.8,
+      // Bottom centre, where §03 draws "340" — just inside the arc it reads out. Place
+      // names moved to the north slot so this one is never shared ("THE 100 KEEP").
+      'text-translate': slotTranslate('south'),
     },
   });
 
   map.addLayer({
     id: CELL_ANOMALY_LAYER,
     type: 'symbol',
-    source: CELL_SOURCE,
+    source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'anomaly'], ''],
     layout: {

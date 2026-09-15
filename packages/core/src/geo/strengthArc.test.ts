@@ -6,7 +6,7 @@
  * from a fixed start, and a full arc is the whole run.
  */
 import { describe, expect, it } from 'vitest';
-import { cellAt } from './cells.js';
+import { cellAt, cellBoundary } from './cells.js';
 import { lowerEdges, strengthArc } from './strengthArc.js';
 
 const HERE = cellAt({ lat: 61.4729, lng: 23.7259 });
@@ -64,5 +64,32 @@ describe('strengthArc', () => {
   it('clamps rather than trusting its caller', () => {
     expect(length(strengthArc(HERE, 4) ?? [])).toBeCloseTo(length(lowerEdges(HERE)), 5);
     expect(strengthArc(HERE, -1)).toBeNull();
+  });
+});
+
+describe('the arc sits on the bottom of the hex (Sigil §03)', () => {
+  /*
+   * BRDC-SIGIL-006. §03 draws the arc as the "V" at the bottom: lower-left vertex, bottom
+   * vertex, lower-right. The first rule took the three edges with the lowest midpoints;
+   * on a pointy-top hex a vertical side ties with them, and a cell at 100 drew as a sliver
+   * up its left flank instead of along the bottom.
+   */
+  it('passes through the lowest vertex of the whole cell', () => {
+    const lowest = Math.min(...cellBoundary(HERE).map((p) => p[1] as number));
+    expect((lowerEdges(HERE)[1] as number[])[1]).toBe(lowest);
+  });
+
+  it('starts at the neighbour of that vertex which lies to the west', () => {
+    const run = lowerEdges(HERE);
+    expect((run[0] as number[])[0]).toBeLessThan((run[1] as number[])[0] as number);
+    expect((run[2] as number[])[0]).toBeGreaterThan((run[1] as number[])[0] as number);
+  });
+
+  it('puts a weak cell on the bottom edge rather than a side', () => {
+    // A fifth of the run is well inside its first edge, which ends at the lowest vertex.
+    const arc = strengthArc(HERE, 0.2) ?? [];
+    const lowest = Math.min(...cellBoundary(HERE).map((p) => p[1] as number));
+    const mid = (Math.max(...cellBoundary(HERE).map((p) => p[1] as number)) + lowest) / 2;
+    for (const p of arc) expect(p[1] as number).toBeLessThan(mid);
   });
 });

@@ -16,7 +16,7 @@ import type { BuildingRole } from './buildingGlyphs.js';
 import { rasteriseSvgs } from './spriteRaster.js';
 
 /** Rendered size of each sprite, device pixels. Small — it sits inside one res-11 hex. */
-export const SPRITE_PX = 44;
+export const SPRITE_PX = 192;
 
 /** id → the map-image name, stable so `hasImage` short-circuits a re-add. */
 export const spriteId = (id: BuildingId): string => `work-${id}`;

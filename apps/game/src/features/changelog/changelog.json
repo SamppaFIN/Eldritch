@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.6.20",
+    "date": "2026-09-15",
+    "notes": [
+      "Fixed: zoomed in, the figures on a hex could appear twice, and empty rings sat on the corners of every hex you hold. Each mark is now drawn once, in its own place.",
+      "The hex follows its design: strength reads at the bottom, the count of your neighbours sits in a dark disc at the upper left, and the strength arc runs along the bottom edges instead of up one side.",
+      "Banners, finds and buildings are sized to the hex, so they grow as you zoom in instead of staying specks.",
+      "Place names step aside for the numbers instead of printing over them. Zoomed out they hide, and come back as you zoom in.",
+      "Fixed: a quest marker could drift away from its site whenever your Hearth moved, and tapping it opened a different hex. It now stays on the hex the tale is pinned to."
+    ]
+  },
+  {
     "version": "0.6.19",
     "date": "2026-09-15",
     "notes": [
@@ -180,7 +191,8 @@
     "date": "2026-09-15",
     "notes": [
       "A hex is called the same thing everywhere now. Four separate lists of terrain names had grown up in the code, and two of them had already drifted — the same hillside was written two ways on two screens.",
-      "In Your lands, a hex’s strength says what it is out of. It was a bare number whose only explanation was a hover, which a phone does not have."
+      "In Your lands, a hex’s strength says what it is out of. It was a bare number whose only explanation was a hover, which a phone does not have.",
+      "Fixed: a map picture could come out blank, or wearing the picture of the one beside it. Every banner, tile, find and building was being painted on one shared canvas at the same moment, and they could overwrite each other mid-draw. They now take turns."
     ]
   },
   {

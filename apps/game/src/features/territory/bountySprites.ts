@@ -23,7 +23,7 @@ import { rasteriseSvgs } from './spriteRaster.js';
 
 /** Rendered size, device pixels. Smaller than a terrain tile — this is an accent object
  *  standing on one, not the ground itself. */
-export const BOUNTY_PX = 40;
+export const BOUNTY_PX = 128;
 
 /** id → the `map.addImage` name, stable so `hasImage` short-circuits a re-add. */
 export const bountySpriteId = (id: BountyId): string => `bounty-${id}`;

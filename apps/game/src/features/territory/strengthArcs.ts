@@ -73,8 +73,11 @@ export function ensureArcLayer(map: MapLibreMap, beneath?: string): void {
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': ['get', 'ink'],
-        // Thick enough to read at the edge of vision, which is the whole brief.
-        'line-width': ['interpolate', ['linear'], ['zoom'], 15, 2.5, 18, 5],
+        // Thick enough to read at the edge of vision, which is the whole brief — and in
+        // proportion to the hex, which doubles each zoom (radius measured in cellMarks.ts).
+        // §03 draws it at about a twelfth of the radius; floored for walking zoom, capped
+        // before it becomes a band.
+        'line-width': ['interpolate', ['exponential', 2], ['zoom'], 15, 2.5, 16, 3.5, 17, 7, 18, 12],
         'line-opacity': 0.95,
       },
     },

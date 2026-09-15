@@ -9,14 +9,13 @@ import {
   anomalyGlyphFor,
   awakeningReveal,
   cellProperties,
-  cellToFeature,
-  cellsToGeoJson,
   terrainGlyph,
   CITY_COLOUR,
   MAP_RESOURCE_COLOUR,
   RESOURCE_COLOUR,
   withFogOfWar,
 } from './territoryFeatures.js';
+import { cellToFeature } from './cellMarks.js';
 
 const ME = 'me';
 const RIVAL = 'the-pale-warden';
@@ -309,20 +308,6 @@ describe('geometry', () => {
 
   it('uses the cell index as the feature id', () => {
     expect(cellToFeature(cell(ME, 100), ME).id).toBe(H3);
-  });
-});
-
-describe('cellsToGeoJson', () => {
-  it('maps a set', () => {
-    const collection = cellsToGeoJson([cell(ME, 100), cell(RIVAL, 200)], ME);
-    expect(collection.type).toBe('FeatureCollection');
-    expect(collection.features).toHaveLength(2);
-    expect(collection.features[0]?.properties.mine).toBe(true);
-    expect(collection.features[1]?.properties.mine).toBe(false);
-  });
-
-  it('handles an empty set', () => {
-    expect(cellsToGeoJson([], ME)).toEqual({ type: 'FeatureCollection', features: [] });
   });
 });
 

@@ -5,7 +5,6 @@
  * colour, when a cell counts as contested, which properties the paint expressions read —
  * and decisions deserve tests. What is left in TerritoryLayer is MapLibre plumbing.
  */
-import type { Feature, FeatureCollection, Polygon } from 'geojson';
 import {
   BLIGHT_EDGE_FACTOR,
   anomalyAt,
@@ -18,7 +17,7 @@ import {
   terrainOf,
   TERRAIN_TABLE,
 } from '@es3/core';
-import { cellBoundary, worksOn } from '@es3/core';
+import { worksOn } from '@es3/core';
 import type {
   BountyId,
   Cell,
@@ -354,46 +353,5 @@ export function cellProperties(
     // Your flag on ground you hold — but not where a building already carries the mark.
     flag: mine && works.length === 0 ? FLAG_GLYPH : '',
     shared: cell.shared !== undefined,
-  };
-}
-
-export function cellToFeature(
-  cell: Cell,
-  me: PlayerId | null,
-  now = 0,
-  home: H3Index | null = null,
-  isBorder = false,
-  revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
-): Feature<Polygon, CellProperties> {
-  return {
-    type: 'Feature',
-    id: cell.h3,
-    properties: cellProperties(cell, me, now, home, isBorder, revealed),
-    geometry: { type: 'Polygon', coordinates: [cellBoundary(cell.h3)] },
-  };
-}
-
-export function cellsToGeoJson(
-  cells: readonly Cell[],
-  me: PlayerId | null,
-  now = 0,
-  home: H3Index | null = null,
-  revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
-): FeatureCollection<Polygon, CellProperties> {
-  // A border cell is one of mine with at least one neighbour I do not hold — the blight
-  // creeps in from there, so it is drawn a little deeper (BRDC-BLIGHT-001).
-  const ownedH3 = new Set(cells.filter((c) => c.ownerId === me).map((c) => c.h3));
-  const isBorder = (c: Cell): boolean =>
-    c.ownerId === me && neighboursOf(c.h3).some((n) => !ownedH3.has(n));
-  return {
-    type: 'FeatureCollection',
-    features: cells.map((cell) => {
-      const feature = cellToFeature(cell, me, now, home, isBorder(cell), revealed);
-      // Counted here rather than in `cellProperties`, which sees one cell and cannot know
-      // what else you hold. `ownedH3` is already built above for the border test.
-      const neighbours =
-        cell.ownerId === me ? neighboursOf(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
-      return { ...feature, properties: { ...feature.properties, neighbours } };
-    }),
   };
 }

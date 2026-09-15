@@ -100,18 +100,31 @@ export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): voi
     layout: {
       visibility: visible ? 'visible' : 'none',
       'icon-image': ['get', 'sprite'],
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.32, 17, 0.62, 19, 0.9],
+      /*
+       * The structure is the hex's one object (Sigil §03: "One object per cell,
+       * bottom-anchored on the hex centre"), so it is sized against the hex, not by eye:
+       * about 55% of its width. Registered at pixelRatio 2, so on screen it is
+       * SPRITE_PX × size ÷ 2 — 96 × size. The hex is 87 / 174 / 348 px wide at zoom
+       * 16 / 17 / 18 (measured, see `cellMarks.ts`), giving 48 / 96 / 192 px.
+       *
+       * Exponential, base 2, because the hex doubles every zoom. Capped at 2.0 — twice the
+       * raster's native size — so zoom 19 grows the hex around a crisp building instead of
+       * blowing the building up into blur. The old ramp ignored the ÷ 2 and drew a Work at
+       * 6% of the hex at zoom 19, which is the "much bigger" in the field report.
+       */
+      'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 13, 0.0625, 16, 0.5, 17, 1, 18, 2],
+      'icon-anchor': 'bottom',
       // Fan the cluster: one Work centres, two split, three spread. Units are ems of the
       // icon, so this scales with `icon-size`.
       'icon-offset': [
         'case',
         ['==', ['get', 'count'], 1],
-        ['literal', [0, -6]],
+        ['literal', [0, 0]],
         ['==', ['get', 'slot'], 0],
-        ['literal', [-14, -2]],
+        ['literal', [-28, 0]],
         ['==', ['get', 'slot'], 1],
-        ['literal', [14, -2]],
-        ['literal', [0, -18]],
+        ['literal', [28, 0]],
+        ['literal', [0, -36]],
       ],
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,

@@ -20,10 +20,6 @@ import type { H3Index } from '../types/domain.js';
 /** Metres per degree of latitude, near enough for ordering and interpolation. */
 const M_PER_DEG = 111_320;
 
-function midLat(a: readonly [number, number], b: readonly [number, number]): number {
-  return (a[1] + b[1]) / 2;
-}
-
 /** Flat-earth length of a segment in metres — the cell is 45 m across, so this is exact enough. */
 function span(a: readonly [number, number], b: readonly [number, number]): number {
   const dLat = (b[1] - a[1]) * M_PER_DEG;
@@ -32,39 +28,29 @@ function span(a: readonly [number, number], b: readonly [number, number]): numbe
 }
 
 /**
- * The hexagon's lower three edges, as four points, ordered clockwise on screen.
+ * The hexagon's lower three edges, as four points, ordered west to east.
  *
- * "Lower" is decided by each edge's midpoint latitude rather than by vertex order, because
- * h3 does not promise where a boundary starts. The three lowest are always contiguous on a
- * convex hexagon, so the run they form is the bottom of the shape.
+ * Built around the cell's lowest vertex, so the run is the "V" at the bottom of the hex.
+ * Sigil §03 draws it that way: from the lower-left vertex down to the bottom one, up to the
+ * lower-right, and on up the right side — so a weak cell's arc still sits on the bottom.
+ * The first version took the three edges with the lowest *midpoints*; on a pointy-top hex
+ * the vertical side ties with the bottom edges, the side won, and a cell at 100 drew as a
+ * sliver climbing its left flank (BRDC-SIGIL-006).
+ *
+ * "Lowest" is decided by latitude rather than by vertex order, because h3 does not promise
+ * where a boundary starts.
  */
 export function lowerEdges(h3: H3Index): Array<[number, number]> {
   const ring = cellBoundary(h3);
   const n = ring.length;
+  const at = (i: number): [number, number] => ring[((i % n) + n) % n] as [number, number];
 
-  // Score each edge by how low it sits, then take the best contiguous run of three.
-  let bestStart = 0;
-  let bestScore = Infinity;
-  for (let i = 0; i < n; i += 1) {
-    let score = 0;
-    for (let k = 0; k < 3; k += 1) {
-      const a = ring[(i + k) % n] as [number, number];
-      const b = ring[(i + k + 1) % n] as [number, number];
-      score += midLat(a, b);
-    }
-    if (score < bestScore) {
-      bestScore = score;
-      bestStart = i;
-    }
-  }
+  let low = 0;
+  for (let i = 1; i < n; i += 1) if (at(i)[1] < at(low)[1]) low = i;
 
-  const run: Array<[number, number]> = [];
-  for (let k = 0; k <= 3; k += 1) run.push(ring[(bestStart + k) % n] as [number, number]);
-
-  // Clockwise on screen means left to right along the bottom: west end first.
-  const first = run[0] as [number, number];
-  const last = run[run.length - 1] as [number, number];
-  return first[0] <= last[0] ? run : run.reverse();
+  // Walk from whichever neighbour of the lowest vertex lies west, through it, and east.
+  const step = at(low - 1)[0] <= at(low + 1)[0] ? 1 : -1;
+  return [at(low - step), at(low), at(low + step), at(low + 2 * step)];
 }
 
 /**
