@@ -10,6 +10,7 @@ export const CELL_SOURCE = 'cells';
 export const CELL_FILL_LAYER = 'cells-fill';
 export const CELL_SHARED_LAYER = 'cells-shared';
 export const CELL_BLIGHT_LAYER = 'cells-blight';
+export const CELL_RIVAL_LINE_LAYER = 'cells-rival-line';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';

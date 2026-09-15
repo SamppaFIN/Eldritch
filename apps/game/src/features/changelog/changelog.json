@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.9",
+    "date": "2026-09-15",
+    "notes": [
+      "The map is legible again. Terrain no longer covers the hexes you hold — you can see the streets through your own ground, which is rather the point of claiming it. What the ground is still reads on the cell card.",
+      "Borders carry their meaning instead: yours solid and thick, a rival’s dashed, ground you merely border a hairline. Strength is the arc along the bottom, so the fill no longer fades with it."
+    ]
+  },
+  {
     "version": "0.6.8",
     "date": "2026-09-15",
     "notes": [

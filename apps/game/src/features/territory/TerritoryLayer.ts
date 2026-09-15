@@ -10,16 +10,14 @@
  */
 import type { FeatureCollection, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { MAX_STRENGTH } from '@es3/core';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
-import { CONTESTED_STROKE, OWN_STROKE, cellsToGeoJson } from './territoryFeatures.js';
+import { CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL, cellsToGeoJson } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
 import {
   addBannerSprites,
   addBountySprites,
-  addTerrainSprites,
   bannerSpriteId,
   setFlagBanner,
   sharedPatternImage,
@@ -34,6 +32,7 @@ import {
   CELL_SHARED_LAYER,
   CELL_BLIGHT_LAYER,
   CELL_LINE_LAYER,
+  CELL_RIVAL_LINE_LAYER,
   CELL_CONTESTED_LAYER,
   CELL_ICON_LAYER,
   CELL_GROUND_LAYER,
@@ -75,8 +74,16 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
 
   map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
+  /*
+   * Terrain no longer covers the hex (Sigil §03: "Terrain never fills the hex; it tints
+   * the iso plinth under whatever stands there. Empty ground keeps the map visible
+   * through it — that is the point of claiming it").
+   *
+   * `addTerrainSprites` is what made the ground layer visible, so not calling it leaves
+   * it at its own `visibility: 'none'` — one line to put back if the field disagrees. It
+   * also spares seven image decodes at map open, which the phone will not miss.
+   */
   void addBannerSprites(map);
-  void addTerrainSprites(map);
   void addBountySprites(map);
 
   // Below the trail, which is added later and therefore sits on top: the ley-line is
@@ -88,24 +95,20 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     paint: {
       'fill-color': ['get', 'color'],
       /*
-       * Strength as opacity, with a floor that makes a fresh claim feel like one.
+       * Flat, per state, the way the document draws it: yours .32, a rival's .22, ground
+       * you only border .04.
        *
-       * A linear ramp from zero put a just-claimed cell (strength 100 of 500) at 0.17
-       * on near-black, which is almost nothing to look at — a poor reward for the one
-       * moment the game exists to deliver. The curve now rises fast to base strength
-       * and then more slowly, so a new claim is unmistakable and a maxed one is richer
-       * still without the map turning into a solid block of purple.
+       * It used to ramp with strength, which was the right call when nothing else said
+       * how well a cell was held. The arc along the lower edges says it now, and better —
+       * so the fill goes back to answering one question, which is whose ground this is.
        */
       'fill-opacity': [
-        'interpolate',
-        ['linear'],
-        ['get', 'strength'],
-        0,
-        0.1,
-        100,
+        'case',
+        ['get', 'mine'],
         0.32,
-        MAX_STRENGTH,
-        0.5,
+        ['==', ['get', 'color'], REVEAL_FILL],
+        0.04,
+        0.22,
       ],
     },
   });
@@ -143,9 +146,33 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     source: CELL_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
     paint: {
+      /* 3px where the ground is someone's, 1.4 where it is merely seen (Sigil hexStates).
+         The old 1.4/0.8 was a hairline at arm's length in daylight. */
       'line-color': ['case', ['get', 'mine'], OWN_STROKE, ['get', 'color']],
-      'line-width': ['case', ['get', 'mine'], 1.4, 0.8],
+      'line-width': ['case', ['==', ['get', 'color'], REVEAL_FILL], 1.4, 3],
       'line-opacity': 0.9,
+    },
+  });
+
+  /*
+   * A rival's border is dashed — "hostile at a glance" (Sigil hexStates).
+   *
+   * Its own layer because `line-dasharray` is not a data-driven property in MapLibre: one
+   * dash pattern per layer, so "dashed only for rivals" has to be a filtered layer rather
+   * than a case expression. Same width and colour as the solid stroke below it; the dash
+   * is the only difference, and it is the whole point.
+   */
+  map.addLayer({
+    id: CELL_RIVAL_LINE_LAYER,
+    type: 'line',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['all', ['!', ['get', 'mine']], ['!=', ['get', 'color'], REVEAL_FILL]],
+    paint: {
+      'line-color': ['get', 'color'],
+      'line-width': 3,
+      'line-dasharray': [9, 5],
+      'line-opacity': 0.95,
     },
   });
 

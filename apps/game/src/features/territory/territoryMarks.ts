@@ -74,6 +74,16 @@ export function addMarkLayers(map: MapLibreMap): void {
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'icon'], ''],
     layout: {
+      /*
+       * Off (Sigil §03: "Terrain never fills the hex").
+       *
+       * This letter was the terrain's first home, then the iso tiles replaced it and hid
+       * it — so when the tiles stopped covering the hex, the letter came straight back.
+       * The document's hex has no terrain mark at all: the ground is read on the cell
+       * card, and what the map shows is whose it is, what stands on it, and what is
+       * special about it. Left defined rather than deleted, like the tiles.
+       */
+      visibility: 'none',
       'text-field': ['get', 'icon'],
       'text-font': ['Noto Sans Regular'],
       'text-size': ['interpolate', ['linear'], ['zoom'], 13, 9, 17, 14, 19, 18],
