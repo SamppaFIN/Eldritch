@@ -15,6 +15,7 @@ import { CELL_BUILDING_LAYER, CELL_DETAIL_MINZOOM } from './TerritoryLayer.js';
 import { buildingIconFeatures } from './buildingIconFeatures.js';
 import type { BuildingIconProps } from './buildingIconFeatures.js';
 import { SPRITE_PX, rasteriseSprites, spriteId } from './buildingSprites.js';
+import { watchRemoval } from '../map/mapLife.js';
 import { BUILDING_ROLE } from './buildingGlyphs.js';
 import type { BuildingId } from '@es3/core';
 
@@ -37,8 +38,10 @@ const EMPTY: FeatureCollection<Point, BuildingIconProps> = {
 async function addSprites(map: MapLibreMap): Promise<void> {
   const ids = Object.keys(BUILDING_ROLE) as BuildingId[];
   if (ids.every((id) => map.hasImage(spriteId(id)))) return;
+  const life = watchRemoval(map);
   const images = await rasteriseSprites();
-  if (!images) return;
+  life.stop();
+  if (!images || life.gone()) return;
   for (const [id, data] of images) {
     if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
   }

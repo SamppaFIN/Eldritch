@@ -10,6 +10,7 @@
  * than a flag: a rebuilt map starts with an empty atlas and no memory of what was asked.
  */
 import type { Map as MapLibreMap } from 'maplibre-gl';
+import { watchRemoval } from '../map/mapLife.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
 import { bannerSpriteId, rasteriseBanners } from '../nation/bannerSprites.js';
@@ -26,8 +27,10 @@ import { ENEMY_FILL, OWN_FILL } from './territoryFeatures.js';
  */
 export async function addBannerSprites(map: MapLibreMap): Promise<void> {
   if (BANNER_IDS.every((id) => map.hasImage(bannerSpriteId(id)))) return;
+  const life = watchRemoval(map);
   const images = await rasteriseBanners();
-  if (!images) return;
+  life.stop();
+  if (!images || life.gone()) return;
   for (const [id, data] of images) {
     if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
   }
@@ -42,8 +45,10 @@ export async function addBannerSprites(map: MapLibreMap): Promise<void> {
  */
 export async function addTerrainSprites(map: MapLibreMap): Promise<void> {
   if (TERRAIN_KINDS.every((k) => map.hasImage(terrainSpriteId(k)))) return;
+  const life = watchRemoval(map);
   const images = await rasteriseTerrain();
-  if (!images) return;
+  life.stop();
+  if (!images || life.gone()) return;
   for (const [id, data] of images) {
     if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
   }
@@ -64,8 +69,10 @@ export async function addTerrainSprites(map: MapLibreMap): Promise<void> {
  */
 export async function addBountySprites(map: MapLibreMap): Promise<void> {
   if (BOUNTY_SPRITE_IDS.every((id) => map.hasImage(bountySpriteId(id)))) return;
+  const life = watchRemoval(map);
   const images = await rasteriseBounty();
-  if (!images) return;
+  life.stop();
+  if (!images || life.gone()) return;
   for (const [id, data] of images) {
     if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
   }

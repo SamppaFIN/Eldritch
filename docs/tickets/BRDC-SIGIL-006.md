@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `territory/cellMarks.ts`, `territoryMarks.ts`, `TerritoryLayer.ts`, `strengthArcs.ts`, `BuildingIconLayer.ts`, `CastleMarker.ts`, `PlaceMarkers.ts`, `QuestMarkers.ts`, `core/geo/strengthArc.ts`, sprite-rasterit |
 | **Vaihe** | 3 — Sivilisaatio |
-| **Status** | `done` (v0.6.20) — osittaiset kohdat merkitty `[~]`, lippu odottaa päätöstä |
+| **Status** | `done` (v0.6.20, v0.6.21) — osittaiset kohdat merkitty `[~]`, lippu odottaa päätöstä |
 | **Lähde** | Infinite 2026-09-15, kuvakaappaukset puhelimesta ja dev-serveriltä, vertailu Sigil §03:een |
 
 ## 🔴 RED
@@ -50,6 +50,9 @@ silti kaukana halutusta."*
 - [x] **Questin merkki kiinnitetyn heksan keskellä** — `QuestMarkers.test.ts`. Vanha rivi takaisin
       → testi kaatuu: merkki piirtyi Helsinkiin (`[24.94, 60.17]`) kiinnitetyn Tampereen heksan sijaan
 - [~] Teardown poistaa jokaisen tason molemmilta solulähteiltä — koodattu, mikään testi ei aja
+- [x] Sprite-latailijat eivät koske poistettuun karttaan (`watchRemoval`, v0.6.21). Infiniten
+      konsolissa `reading 'getImage'` kaatumisen jälkeen; `mapLife.test.ts`, ja Infiniten oma
+      dev-serveri päästä päähän: 0 virhettä
 - [x] `claim.spec.ts`: tasomäärä ei kasva, viivat pois loitonnettaessa — 2/2
 - [x] Portti vihreä (1405 testiä, typecheck, build, riviraja), versio 0.6.20 ja changelog
 

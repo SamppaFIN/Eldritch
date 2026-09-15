@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.21",
+    "date": "2026-09-15",
+    "notes": [
+      "Fixed: if the map closed or reloaded while its pictures were still loading, errors could pile up in the background. The pictures now notice the map is gone and stop."
+    ]
+  },
+  {
     "version": "0.6.20",
     "date": "2026-09-15",
     "notes": [
