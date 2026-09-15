@@ -11,6 +11,7 @@ import type { BuildRefusal, BuildingId } from '../rules/build.js';
 import { spend } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { projectCell } from '../rules/decay.js';
+import { underFortressAt } from './cellStore.js';
 import type { TechId } from '../rules/tech.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
@@ -39,7 +40,8 @@ export async function buildOn(
   templeAdjacent = false,
 ): Promise<BuildOutcome> {
   const stored = await store.get<Cell>(K.cell(h3));
-  const live = stored ? projectCell(stored, now) : null;
+  // A long-unwalked hex under a Fortress is still held (BRDC-BUILD-012).
+  const live = stored ? projectCell(stored, now, 1, null, await underFortressAt(store, h3)) : null;
   if (!live) return { ok: false, refused: 'not-yours' };
 
   const state = await settlePouch(store, owned, now);

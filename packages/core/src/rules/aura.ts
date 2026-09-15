@@ -126,6 +126,12 @@ export function defenceAura(
 }
 
 /**
+ * How far a Fortress's protection reaches, in rings (BRDC-BUILD-012) — and so how far a
+ * caller must load around a hex before `fortified` can be trusted with it.
+ */
+export const FORTRESS_REACH = BUILDINGS.fortress.aura?.radius ?? 0;
+
+/**
  * Whether `h3` is held under a Fortress (BRDC-BUILD-012).
  *
  * Infinite: *"jos rakennat fortifiikaation niin sen haluan, että sitä resurssia ei voi toinen
@@ -139,9 +145,8 @@ export function defenceAura(
  */
 export function fortified(known: ReadonlyMap<H3Index, Cell>, h3: H3Index): boolean {
   const ownerId = known.get(h3)?.ownerId;
-  const radius = BUILDINGS.fortress.aura?.radius;
-  if (!ownerId || radius === undefined) return false;
-  for (const src of cellsWithin(h3, radius)) {
+  if (!ownerId) return false;
+  for (const src of cellsWithin(h3, FORTRESS_REACH)) {
     const cell = known.get(src);
     if (cell?.ownerId === ownerId && hasWork(cell, 'fortress')) return true;
   }

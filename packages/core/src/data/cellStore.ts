@@ -11,9 +11,10 @@
  * and neither is spatially bounded.
  */
 import { cellToLatLng } from 'h3-js';
-import { regionsCoveringBBox } from '../geo/cells.js';
+import { cellsWithin, regionsCoveringBBox } from '../geo/cells.js';
 import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
+import { FORTRESS_REACH, fortified } from '../rules/aura.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
 import type { BBox, Cell, H3Index, Terrain } from '../types/domain.js';
@@ -84,9 +85,49 @@ export async function sweepAndPersist(
   loyalty?: (cell: Cell) => number,
   home: H3Index | null = null,
 ): Promise<DecaySweep> {
-  const sweep = sweepDecay(cells, now, loyalty, home);
+  const lookup = new Map<H3Index, Cell>(cells.map((c) => [c.h3, c]));
+  const underFortress = (c: Cell): boolean => fortified(lookup, c.h3);
+  let sweep = sweepDecay(cells, now, loyalty, home, underFortress);
+
+  /*
+   * A Fortress just outside `cells` still protects what is inside it (BRDC-BUILD-012). A
+   * viewport read would otherwise release a hex whose Fortress stands one hex past the
+   * edge. So before anything is deleted, the ring around every release candidate is read
+   * for what the set did not hold, and the sweep is decided again. Nothing released means
+   * nothing read — the common case costs what it did before.
+   */
+  if (sweep.released.length > 0) {
+    const missing = [
+      ...new Set(sweep.released.flatMap((h3) => cellsWithin(h3, FORTRESS_REACH))),
+    ].filter((h3) => !lookup.has(h3));
+    if (missing.length > 0) {
+      const found = await store.getMany<Cell>(missing.map((h3) => K.cell(h3)));
+      missing.forEach((h3, i) => {
+        const cell = found[i];
+        if (cell) lookup.set(h3, cell);
+      });
+      sweep = sweepDecay(cells, now, loyalty, home, underFortress);
+    }
+  }
+
   for (const h3 of sweep.released) await store.delete(K.cell(h3));
   return sweep;
+}
+
+/**
+ * Whether the hex at `h3` stands under a Fortress, reading its ring to find out
+ * (BRDC-BUILD-012). For the one-cell reads — building, warding — which would otherwise
+ * judge a long-unwalked fortified hex as released ground.
+ */
+export async function underFortressAt(store: KeyValueStore, h3: H3Index): Promise<boolean> {
+  const around = cellsWithin(h3, FORTRESS_REACH);
+  const found = await store.getMany<Cell>(around.map((c) => K.cell(c)));
+  const lookup = new Map<H3Index, Cell>();
+  around.forEach((c, i) => {
+    const cell = found[i];
+    if (cell) lookup.set(c, cell);
+  });
+  return fortified(lookup, h3);
 }
 
 /**

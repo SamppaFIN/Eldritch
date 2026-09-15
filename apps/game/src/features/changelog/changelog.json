@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.24",
+    "date": "2026-09-15",
+    "notes": [
+      "A Fortress now holds its ground. The hex it stands on and your hexes beside it can be worn down, but not taken, and they never fade. To bring a Fortress down, break through its walls on two separate days.",
+      "Not yet told on the map: a fortified hex may still warn that the Void will take it. It will not — that warning is fixed next."
+    ]
+  },
+  {
     "version": "0.6.23",
     "date": "2026-09-15",
     "notes": [

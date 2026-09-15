@@ -13,7 +13,7 @@
 import { neighboursOf } from '../geo/cells.js';
 import { emptyCell, resolveCapture } from './capture.js';
 import type { Attacker } from './capture.js';
-import { defenceAura } from './aura.js';
+import { defenceAura, fortified } from './aura.js';
 import type { CaptureOutcome, Cell, H3Index } from '../types/domain.js';
 
 export interface GrowthResult {
@@ -64,11 +64,16 @@ export function growInto(
 
   const defenderId = current?.ownerId && current.ownerId !== attacker.id ? current.ownerId : null;
   const defence = defenderId ? defenceAura(known, h3, defenderId) : 0;
+  // A rival's hex under their Fortress holds at 1 (BRDC-BUILD-012). `known` is this hex and
+  // its six neighbours — the Fortress's whole reach.
+  const holds = defenderId !== null && fortified(known, h3);
   const { cell, outcome } = resolveCapture(
     current ?? emptyCell(h3),
     { ...attacker, ownedNeighbours },
     now,
     defence,
+    null,
+    holds,
   );
   return { cell, outcome, skipped: null };
 }

@@ -82,12 +82,18 @@ paikkaus (+25/+50) ei paranna — muuten päivittäin kävelevä omistaja olisi 
 
 ### B — datakerros
 
-- [ ] Silmukka (`planClaim`) ja kasvu (`growInto`) — naapurit ovat jo muistissa
-- [ ] **Hearthin perustaminen** (`claimHearth`) piiritti ilman puolustusta ja ilman lattiaa —
+- [x] Silmukka (`planClaim`) ja kasvu (`growInto`) — naapurit ovat jo muistissa
+- [x] **Hearthin perustaminen** (`claimHearth`) piiritti ilman puolustusta ja ilman lattiaa —
       olisi ohittanut suojan kokonaan
-- [ ] **Näkymän haku** (`getCells`) vapauttaa rapistuneet. Linnoitus näkymän reunan takana
+- [x] **Näkymän haku** (`getCells`) vapauttaa rapistuneet. Linnoitus näkymän reunan takana
       ei saa jättää suojattua naapuria vapautettavaksi → reunan naapurit ladataan (`getMany`)
-- [ ] `closeWalk`in ikääntäminen ennen piiritystä; `buildStore` / `wardStore` elävyystarkistus
+- [x] `closeWalk`in ikääntäminen ennen piiritystä; `buildStore` / `wardStore` elävyystarkistus
+
+**Todennettu:** jokaiselle polulle kontrolli, jossa sama heksa *ilman* Linnoitusta kaatuu
+(`fortifyStore.test.ts`, `fortifyGrowth.test.ts`). Kävely: `walkNeighbourhood` lataa jokaisen
+heksan ja sen kuusi naapuria, joten `growInto`n tarkistus näkee koko ulottuvuuden. Ainoat kaksi
+solun poistoa datakerroksessa (`sweepAndPersist`, `closeWalk`) ovat molemmat suojattuja.
+Infiniten dev-serveri: jokainen muuttunut moduuli tarjoiltu, lataus + kävely 0 virhettä.
 
 ### C — käyttöliittymä ei saa valehdella
 

@@ -11,7 +11,7 @@ import { neighboursOf } from '../geo/cells.js';
 import type { Loop } from '../geo/loopDetection.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
 import type { Attacker } from '../rules/capture.js';
-import { defenceAura } from '../rules/aura.js';
+import { defenceAura, fortified } from '../rules/aura.js';
 import {
   XP_PER_CELL_CLAIMED,
   XP_PER_CELL_REINFORCED,
@@ -51,12 +51,20 @@ export function planClaim(
     const ownedNeighbours = neighboursOf(h3).filter(
       (n) => known.get(n)?.ownerId === attacker.id,
     ).length;
-    const defence =
-      before.ownerId && before.ownerId !== attacker.id
-        ? defenceAura(known, h3, before.ownerId)
-        : 0;
+    const defender = before.ownerId && before.ownerId !== attacker.id ? before.ownerId : null;
+    const defence = defender ? defenceAura(known, h3, defender) : 0;
+    // Ground under a rival's Fortress holds at 1 (BRDC-BUILD-012). `known` carries every
+    // target's neighbours — `cellsToLoad` — which is exactly the Fortress's reach.
+    const holds = defender !== null && fortified(known, h3);
 
-    const { cell, outcome } = resolveCapture(before, { ...attacker, ownedNeighbours }, now, defence);
+    const { cell, outcome } = resolveCapture(
+      before,
+      { ...attacker, ownedNeighbours },
+      now,
+      defence,
+      null,
+      holds,
+    );
     cells.push(cell);
     outcomes.push(outcome);
     xp += xpFor(outcome);
@@ -73,6 +81,9 @@ function xpFor(outcome: CaptureOutcome): number {
       return XP_PER_CELL_TAKEN;
     case 'reinforced':
       return XP_PER_CELL_REINFORCED;
+    case 'razed':
+      // Bringing a Fortress down is a siege won, not a lap walked (BRDC-BUILD-012).
+      return XP_PER_CELL_TAKEN;
     default:
       // A cell already walked today, or one merely damaged, pays nothing. Otherwise
       // pacing back and forth over a rival's border would be an XP fountain.

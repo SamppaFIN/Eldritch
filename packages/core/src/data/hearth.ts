@@ -4,8 +4,9 @@
  * Split out of MockRepository when it reached four hundred lines. Small, but a real
  * seam: this is the one place a cell is claimed without anybody walking to it.
  */
-import { cellAt, neighboursOf } from '../geo/cells.js';
+import { cellAt, cellsWithin, neighboursOf } from '../geo/cells.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
+import { FORTRESS_REACH, fortified } from '../rules/aura.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -29,9 +30,25 @@ export async function claimHearth(
   const h3 = cellAt(position);
   const attacker = { id: profile.id, level: profile.level };
 
+  /*
+   * Founding a Hearth besieges the ring it lands on, and did so with no defence and no
+   * floor — ground under a rival's Fortress would have fallen to it outright
+   * (BRDC-BUILD-012). The ring, and everything a Fortress guarding it could stand on,
+   * is read first.
+   */
+  const around = cellsWithin(h3, 1 + FORTRESS_REACH);
+  const found = await store.getMany<Cell>(around.map((c) => K.cell(c)));
+  const known = new Map<H3Index, Cell>();
+  around.forEach((c, i) => {
+    const cell = found[i];
+    if (cell) known.set(c, cell);
+  });
+
   for (const target of [h3, ...neighboursOf(h3)]) {
-    const current = (await store.get<Cell>(K.cell(target))) ?? emptyCell(target);
-    const { cell } = resolveCapture(current, attacker, now);
+    const current = known.get(target) ?? emptyCell(target);
+    const holds =
+      current.ownerId !== null && current.ownerId !== profile.id && fortified(known, target);
+    const { cell } = resolveCapture(current, attacker, now, 0, null, holds);
     await store.set(K.cell(target), cell);
   }
 

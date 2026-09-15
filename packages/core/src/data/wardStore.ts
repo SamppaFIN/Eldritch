@@ -6,6 +6,7 @@
  * inline in MockRepository — project the cell, ask, write and log only on success.
  */
 import { projectCell } from '../rules/decay.js';
+import { underFortressAt } from './cellStore.js';
 import { wardWith } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
@@ -23,7 +24,8 @@ export async function wardAt(
   // Projected first, so a cell decay has already released cannot be propped up from the
   // grave — and so the strength being paid to raise is the one on screen.
   const stored = await store.get<Cell>(K.cell(h3));
-  const live = stored ? projectCell(stored, now) : null;
+  // A long-unwalked hex under a Fortress is still held (BRDC-BUILD-012).
+  const live = stored ? projectCell(stored, now, 1, null, await underFortressAt(store, h3)) : null;
   if (!live) return { warded: false, refused: 'not-yours' };
 
   const result = await wardWith(store, live, me, owned, now);

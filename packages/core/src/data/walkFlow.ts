@@ -10,6 +10,8 @@
 import { filterTrail } from '../geo/filter.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { sweepDecay } from '../rules/decay.js';
+import { FORTRESS_REACH, fortified } from '../rules/aura.js';
+import { cellsWithin } from '../geo/cells.js';
 import { awardClaims } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { recordWalk } from './walkWriter.js';
@@ -100,14 +102,30 @@ export async function closeWalk(d: WalkDeps, runId: RunId, now: number): Promise
   if (!detected.closed) return { closed: false };
 
   const home = (await d.store.get<string>(K.home)) ?? null;
+  const targets = cellsToLoad(detected.loop);
+  /*
+   * Read one Fortress-reach past everything the claim touches (BRDC-BUILD-012). The aging
+   * below *deletes* what decay released, and whether a hex stands under a Fortress
+   * depends on the ring around it — which, for the outer cells here, lies beyond
+   * `targets`. Deciding from less would delete ground a Fortress promised to keep.
+   */
+  const lookupH3 = [...new Set(targets.flatMap((h3) => cellsWithin(h3, FORTRESS_REACH)))];
+  const found = await d.store.getMany<Cell>(lookupH3.map((h3) => K.cell(h3)));
+  const lookup = new Map<string, Cell>();
+  lookupH3.forEach((h3, i) => {
+    const cell = found[i];
+    if (cell) lookup.set(h3, cell);
+  });
+
   const known = new Map<string, Cell>();
-  for (const h3 of cellsToLoad(detected.loop)) {
-    const stored = await d.store.get<Cell>(K.cell(h3));
+  for (const h3 of targets) {
+    const stored = lookup.get(h3);
     // Aged first: besieging a cell that has already rotted away should find
     // empty ground, not a defender who stopped existing last week. The Hearth is
     // exempt — a loop that clips it must never be what deletes it (BRDC-HEARTH-002).
     if (stored) {
-      const [alive] = sweepDecay([stored], now, undefined, home).cells;
+      // …and so is ground under a Fortress, which does not decay at all.
+      const [alive] = sweepDecay([stored], now, undefined, home, (c) => fortified(lookup, c.h3)).cells;
       if (alive) known.set(h3, alive);
       else await d.store.delete(K.cell(h3));
     }
