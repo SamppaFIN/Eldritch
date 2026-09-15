@@ -55,8 +55,12 @@ export function LogPanel({ open, entries, now, onTopic, onClose }: LogPanelProps
         </RitualButton>
       </div>
 
+      {/* Stepping, not loops (BRDC-CLAIM-009 pivoted in 2026-09; loop closure has been
+          behind an off-by-default setting ever since). The empty state told a new player
+          to do the one thing the game no longer asks of them. Same words `LandsPanel`
+          uses for its own empty state, because it is the same first act. */}
       {entries.length === 0 ? (
-        <p className="log-panel__empty">Nothing has happened yet. Walk a loop.</p>
+        <p className="log-panel__empty">Nothing has happened yet. Walk into the hex beside you.</p>
       ) : (
         <ul className="log-panel__list">
           {entries.map((entry, i) => {

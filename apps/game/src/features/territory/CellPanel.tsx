@@ -38,11 +38,9 @@ import type { SpellBinding } from './useSpells.js';
 import type { CityBinding } from './useDiplomacy.js';
 import { historyLine } from './cellHistory.js';
 import { RESOURCE_WORD } from './territoryFeatures.js';
-import { shortNote } from './gateNote.js';
+import { EXPAND_REFUSAL, shortNote } from './gateNote.js';
 import type { WikiRef } from '../help/wikiPages.js';
 import './cell-panel.css';
-
-type ExpandFail = NonNullable<PlaceBinding['refusal']>;
 
 export interface CellPanelProps {
   cell: Cell | null;
@@ -89,11 +87,6 @@ const REFUSAL: Readonly<Record<WardRefusal, string>> = {
   'cannot-afford': `A ward costs ${WARD_COST.wood} timber. Claim woodland to gather it.`,
 };
 
-const EXPAND_REFUSAL: Readonly<Record<ExpandFail, string>> = {
-  'not-a-temple': 'Only a temple can be expanded.',
-  'at-max': 'This temple is already at its full strength.',
-  'cannot-afford': 'Not enough stone and gold. Hold hills and markets to gather them.',
-};
 
 /** "40 stone · 30 gold" from a cost map — the same word table as the Guide (BRDC-DETAIL-001). */
 function costLine(cost: Partial<ResourcePool>): string {

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.5.98",
+    "date": "2026-09-15",
+    "notes": [
+      "Research told you wisdom came from channelling mana at the Altar, on the Mana tab. Channelling was removed months ago and the Mana tab is in a screen you cannot reach from there. It now says where wisdom actually comes from — a Library, and every place you hold, hourly, without being asked.",
+      "History told a new player to walk a loop. Claiming has been done by stepping into the hex beside you since the pivot, with loops behind an off-by-default setting."
+    ]
+  },
+  {
     "version": "0.5.97",
     "date": "2026-09-15",
     "notes": [

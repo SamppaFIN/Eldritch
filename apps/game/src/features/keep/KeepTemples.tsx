@@ -8,15 +8,11 @@
  */
 import { useEffect, useState } from 'react';
 import { MAX_TEMPLE_EXPANSION, expansionCost, shortOf } from '@es3/core';
-import type { ExpandRefusal, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
+import type { GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
 import { RitualButton } from '@es3/ui';
-import { shortNote } from '../territory/gateNote.js';
+import { EXPAND_REFUSAL, shortNote } from '../territory/gateNote.js';
+import type { ExpandFail } from '../territory/gateNote.js';
 
-const REFUSAL: Readonly<Record<string, string>> = {
-  'not-a-temple': 'That place is not a temple.',
-  'at-max': 'This temple is already at its full strength.',
-  'cannot-afford': 'Not enough stone and gold. Hold hills and markets to gather them.',
-};
 
 /** Just the temples, Anchor and plain ground filtered out. */
 export function templeRows(places: readonly RevealedPlace[]): RevealedPlace[] {
@@ -40,7 +36,7 @@ export interface KeepTemplesProps {
 
 export function KeepTemples({ places, pool, repository, now, onPouch }: KeepTemplesProps) {
   const [live, setLive] = useState(places);
-  const [refusal, setRefusal] = useState<ExpandRefusal | 'not-a-temple' | null>(null);
+  const [refusal, setRefusal] = useState<ExpandFail | null>(null);
   useEffect(() => setLive(places), [places]);
 
   const temples = templeRows(live);
@@ -97,7 +93,7 @@ export function KeepTemples({ places, pool, repository, now, onPouch }: KeepTemp
       })}
       {refusal ? (
         <p className="hearth-panel__line hearth-panel__line--warn" role="status">
-          {REFUSAL[refusal] ?? 'That did not work.'}
+          {EXPAND_REFUSAL[refusal]}
         </p>
       ) : null}
     </div>

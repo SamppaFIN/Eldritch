@@ -132,9 +132,18 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
         ))
       )}
 
+      {/*
+        * This line shows exactly when every option is out of reach — the moment a stuck
+        * player most needs it to be true. It was wrong twice (BRDC-TECH-004): it sent them
+        * to "channelling mana at the Altar", which PIVOT-2026-09-09 P3 removed
+        * (`useKeepEconomy`: "so channelling is gone"), and to "the Mana tab", which is in
+        * the Keep — a screen this dialog cannot reach without being closed, since
+        * BRDC-KEEP-007 moved Research out of it.
+        */}
       {allUnaffordable ? (
         <p className="hearth-panel__line">
-          Wisdom comes from a Library, or from channelling mana at the Altar — the Mana tab.
+          Wisdom comes from a Library, and from every place you hold — an Anchor Stone or a
+          temple pays wisdom every hour without being asked.
         </p>
       ) : null}
 

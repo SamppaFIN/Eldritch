@@ -12,7 +12,7 @@
  * greying out in silence.
  */
 import { RESOURCE_WORD } from './territoryFeatures.js';
-import type { ResourceKind, ResourcePool } from '@es3/core';
+import type { ExpandRefusal, ResourceKind, ResourcePool } from '@es3/core';
 
 /** "60 stone and 20 gold" — what is still missing, as a phrase. */
 export function missingPhrase(short: Partial<ResourcePool>): string {
@@ -29,3 +29,23 @@ export function shortNote(short: Partial<ResourcePool>): string | null {
   const phrase = missingPhrase(short);
   return phrase ? `Short ${phrase}.` : null;
 }
+
+/**
+ * Why a temple could not be expanded — one table, for the two screens that expand one.
+ *
+ * Expanding a temple is offered both on the cell it stands on and in the Keep's list, and
+ * each kept its own copy of the refusals. Two of the three lines were byte-identical and
+ * the third said the same rule twice over ("Only a temple can be expanded." against "That
+ * place is not a temple."). The type was duplicated three times alongside them.
+ *
+ * Named after the older plan's D5, which `BRDC-KEEP-008` saw and deferred rather than
+ * guessed at. This is the same call as `RESOURCE_WORD` and `GROUND_NAME`: the copy that
+ * two screens share lives in one place, or it drifts.
+ */
+export type ExpandFail = ExpandRefusal | 'not-a-temple';
+
+export const EXPAND_REFUSAL: Readonly<Record<ExpandFail, string>> = {
+  'not-a-temple': 'Only a temple can be expanded.',
+  'at-max': 'This temple is already at its full strength.',
+  'cannot-afford': 'Not enough stone and gold. Hold hills and markets to gather them.',
+};
