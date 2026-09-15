@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.15",
+    "date": "2026-09-15",
+    "notes": [
+      "Works stand on their ground again. Each building now sits on a plinth tinted by the terrain beneath it, so a Sawmill reads as standing on forest — terrain’s place on the map since it stopped filling the hexes."
+    ]
+  },
+  {
     "version": "0.6.14",
     "date": "2026-09-15",
     "notes": [

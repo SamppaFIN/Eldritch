@@ -9,7 +9,7 @@
  * intel, the same call `territoryFeatures` makes for the single glyph.
  */
 import type { Feature, FeatureCollection, Point } from 'geojson';
-import { cellCentre, worksOn } from '@es3/core';
+import { cellCentre, terrainForCell, worksOn } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { spriteId } from './buildingSprites.js';
 
@@ -21,6 +21,8 @@ export interface BuildingIconProps {
   /** How many Works stand here, so a lone one centres and a trio spreads wider. */
   count: number;
   mine: boolean;
+  /** The terrain under it — the plinth's tint, and terrain's only place on the map now. */
+  ground: string;
 }
 
 export function buildingIconFeatures(
@@ -41,6 +43,9 @@ export function buildingIconFeatures(
           slot,
           count: works.length,
           mine: cell.ownerId !== null && cell.ownerId === me,
+          // The ground it stands on, for the plinth beneath it (Sigil §03: "Terrain never
+          // fills the hex; it tints the iso plinth under whatever stands there").
+          ground: terrainForCell(cell).kind,
         },
       });
     });

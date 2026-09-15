@@ -19,6 +19,7 @@ import { BUILDING_ROLE } from './buildingGlyphs.js';
 import type { BuildingId } from '@es3/core';
 
 export const WORK_ICON_SOURCE = 'work-icons';
+export const WORK_PLINTH_LAYER = 'work-plinth';
 export const WORK_ICON_LAYER = 'work-icons-symbol';
 
 const EMPTY: FeatureCollection<Point, BuildingIconProps> = {
@@ -54,6 +55,43 @@ export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): voi
     return;
   }
   map.addSource(WORK_ICON_SOURCE, { type: 'geojson', data: EMPTY });
+  /*
+   * The plinth (Sigil §03).
+   *
+   * "Terrain never fills the hex; it tints the iso plinth under whatever stands there."
+   * Since the terrain tiles came off the hex, this is where the ground shows: a disc under
+   * the structure, in the hue of what that terrain yields, so a Sawmill reads as standing
+   * on forest rather than floating on a tinted polygon.
+   *
+   * A disc rather than the document's 2:1 diamond — MapLibre cannot rotate a circle, and a
+   * diamond would mean one more sprite per terrain per building. At this size it reads as
+   * the ground the thing stands on, which is the job.
+   */
+  map.addLayer({
+    id: WORK_PLINTH_LAYER,
+    type: 'circle',
+    source: WORK_ICON_SOURCE,
+    minzoom: 15,
+    layout: { visibility: visible ? 'visible' : 'none' },
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 5, 19, 17],
+      'circle-color': [
+        'match',
+        ['get', 'ground'],
+        'forest', '#5fae6a',
+        'hill', '#a8b2c4',
+        'mountain', '#a9cbdb',
+        'lake', '#6fdc8c',
+        'coast', '#6fdc8c',
+        'market', '#ffd700',
+        '#7a7386',
+      ],
+      'circle-opacity': 0.34,
+      'circle-blur': 0.35,
+      'circle-translate': [0, 4],
+    },
+  });
+
   map.addLayer({
     id: WORK_ICON_LAYER,
     type: 'symbol',
@@ -103,6 +141,9 @@ export function setBuildingIconData(
  * icons off brings it back, so the toggle is "detailed / plain", never "double marked".
  */
 export function setBuildingIconsVisible(map: MapLibreMap, visible: boolean): void {
+  if (map.getLayer(WORK_PLINTH_LAYER)) {
+    map.setLayoutProperty(WORK_PLINTH_LAYER, 'visibility', visible ? 'visible' : 'none');
+  }
   if (map.getLayer(WORK_ICON_LAYER)) {
     map.setLayoutProperty(WORK_ICON_LAYER, 'visibility', visible ? 'visible' : 'none');
   }
@@ -112,7 +153,10 @@ export function setBuildingIconsVisible(map: MapLibreMap, visible: boolean): voi
 }
 
 export function removeBuildingIconLayer(map: MapLibreMap): void {
+  // Both layers before the source they share — MapLibre refuses to drop a source that
+  // still has a layer on it, and the plinth is the newer of the two.
   if (map.getLayer(WORK_ICON_LAYER)) map.removeLayer(WORK_ICON_LAYER);
+  if (map.getLayer(WORK_PLINTH_LAYER)) map.removeLayer(WORK_PLINTH_LAYER);
   if (map.getSource(WORK_ICON_SOURCE)) map.removeSource(WORK_ICON_SOURCE);
 }
 

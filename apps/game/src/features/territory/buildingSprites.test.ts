@@ -5,15 +5,24 @@
  * parts: an SVG string per building, and one point per Work with a distinct slot.
  */
 import { describe, expect, it } from 'vitest';
-import { BUILDINGS } from '@es3/core';
+import { BUILDINGS, cellAt } from '@es3/core';
 import type { BuildingId, Cell } from '@es3/core';
 import { SPRITE_PX, spriteId, spriteSvg } from './buildingSprites.js';
 import { buildingIconFeatures } from './buildingIconFeatures.js';
 
 const ALL = Object.keys(BUILDINGS) as BuildingId[];
 const T0 = Date.parse('2026-09-06T12:00:00Z');
-const cell = (h3: string, over: Partial<Cell> = {}): Cell => ({
-  h3,
+/*
+ * Real h3 indices, one per label. They used to be 'a', 'b', 'c' — which was fine while
+ * nothing here needed geometry, and stopped being fine when the features started
+ * carrying the terrain under each Work for its plinth (Sigil §03). A distinct, real cell
+ * per label keeps the test as readable and lets it mean something.
+ */
+const at = (label: string): string =>
+  cellAt({ lat: 61.4729 + (label.charCodeAt(0) - 97) * 0.002, lng: 23.7259 });
+
+const cell = (label: string, over: Partial<Cell> = {}): Cell => ({
+  h3: at(label),
   ownerId: 'me',
   strength: 300,
   lastVisitedAt: T0,
