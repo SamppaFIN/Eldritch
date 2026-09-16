@@ -104,6 +104,39 @@
   font-size: var(--text-sm);
 }
 
+.codex__overall {
+  color: var(--sacred-gold);
+  font-weight: var(--weight-bold);
+}
+
+/* Where you sit between the field's worst and best (Sigil §06, BRDC-CARD-005). */
+.codex__bar-track {
+  position: relative;
+  grid-column: 1 / -1;
+  block-size: 7px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--text) 12%, transparent);
+  overflow: visible;
+}
+
+.codex__bar-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  background: var(--sacred-gold);
+  border-radius: var(--radius-full);
+}
+
+/* A thin tick, not a second fill — the field's average is a reference mark, not a value
+   you are being compared against on the same visual channel as your own figure. */
+.codex__bar-avg {
+  position: absolute;
+  inset-block: -2px;
+  inline-size: 2px;
+  background: var(--text);
+  opacity: 0.6;
+}
+
 /* Best / Average / Worst, side by side — the context your own figure is read against. */
 .codex__figures {
   display: grid;

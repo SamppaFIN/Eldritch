@@ -7,10 +7,12 @@ import type { Metric, PlayerId } from '@es3/core';
 import {
   METRIC_BLURB,
   METRIC_NAME,
+  barPct,
   formatArea,
   formatDistance,
   formatMetric,
   gapLine,
+  overallStanding,
   placeWord,
 } from './figures.js';
 
@@ -127,5 +129,60 @@ describe('gapLine', () => {
   it('is silent for a realm alone, and for a field all level', () => {
     expect(gapLine(landWith(5_000), 5_000, 1)).toBeNull();
     expect(gapLine(landWith(5_000, 5_000), 5_000, 1)).toBeNull();
+  });
+});
+
+describe('barPct (BRDC-CARD-005)', () => {
+  it('places worst at 0 and best at 100', () => {
+    expect(barPct(0, 0, 10)).toBe(0);
+    expect(barPct(10, 0, 10)).toBe(100);
+  });
+
+  it('is linear in between', () => {
+    expect(barPct(5, 0, 10)).toBe(50);
+    expect(barPct(3, 0, 10)).toBe(30);
+  });
+
+  it('reads full when the field has no spread — nowhere lower to be', () => {
+    expect(barPct(7, 7, 7)).toBe(100);
+  });
+
+  it('never leaves its own 0–100 range', () => {
+    expect(barPct(-5, 0, 10)).toBe(0);
+    expect(barPct(15, 0, 10)).toBe(100);
+  });
+});
+
+describe('overallStanding (BRDC-CARD-005)', () => {
+  const metric = (id: Metric['id'], mine: number, others: number[]): Metric => {
+    const values = [mine, ...others];
+    return {
+      id,
+      ranked: [{ id: 'me' as PlayerId, name: 'Me', value: mine }, ...others.map((value, i) => ({
+        id: `p${i}` as PlayerId,
+        name: `P${i}`,
+        value,
+      }))],
+      best: Math.max(...values),
+      worst: Math.min(...values),
+      average: values.reduce((s, v) => s + v, 0) / values.length,
+    };
+  };
+
+  it('averages the rank across every measure the realm is listed in', () => {
+    // 1st of 3 in land, 3rd of 3 in works — mean rank 2.
+    const m = [metric('land', 100, [50, 10]), metric('works', 1, [5, 9])];
+    expect(overallStanding(m, 'me' as PlayerId)).toEqual({ rank: 2, of: 3 });
+  });
+
+  it('ignores a measure the realm has not published to', () => {
+    const listed = metric('land', 100, [50, 10]);
+    const notListed: Metric = { ...metric('works', 1, [5, 9]), ranked: [] };
+    expect(overallStanding([listed, notListed], 'me' as PlayerId)).toEqual({ rank: 1, of: 3 });
+  });
+
+  it('is null for a realm not listed anywhere', () => {
+    const notListed: Metric = { ...metric('land', 100, [50, 10]), ranked: [] };
+    expect(overallStanding([notListed], 'me' as PlayerId)).toBeNull();
   });
 });

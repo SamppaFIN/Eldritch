@@ -17,7 +17,16 @@ import { resolveBannerId } from '../nation/nation.js';
 import { placementIn } from '@es3/core';
 import type { Metric, PlayerId } from '@es3/core';
 import { useCodex } from './useCodex.js';
-import { METRIC_BLURB, METRIC_NAME, formatMetric, gapLine, placeWord } from './figures.js';
+import {
+  METRIC_BLURB,
+  METRIC_NAME,
+  barPct,
+  formatMetric,
+  gapLine,
+  ordinal,
+  overallStanding,
+  placeWord,
+} from './figures.js';
 import './codex-panel.css';
 
 export interface CodexPanelProps {
@@ -53,6 +62,11 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
     state.status === 'ready' &&
     state.table.metrics.some((m) => placementIn(m, me) !== null);
 
+  // "8 realms measured · you are 7th overall" (Sigil §06, BRDC-CARD-005) — the header says
+  // where you stand before a single row is tapped, the mean of every measure's own rank.
+  const overall =
+    me !== null && state.status === 'ready' ? overallStanding(state.table.metrics, me) : null;
+
   const row = (metric: Metric) => {
     const mine = me ? placementIn(metric, me) : null;
     const gap = mine ? gapLine(metric, mine.value, mine.rank) : null;
@@ -86,6 +100,23 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
             </>
           ) : null}
         </button>
+
+        {/* Where you sit between the field's worst and best, at a glance — the table of
+            three numbers below still says exactly what the bar only shows (Sigil §06,
+            BRDC-CARD-005). Drawn only once a realm is listed: with no `mine` there is no
+            single point to mark on it, only the field's own shape. */}
+        {mine ? (
+          <div className="codex__bar-track" aria-hidden>
+            <div
+              className="codex__bar-avg"
+              style={{ insetInlineStart: `${barPct(metric.average, metric.worst, metric.best)}%` }}
+            />
+            <div
+              className="codex__bar-fill"
+              style={{ inlineSize: `${barPct(mine.value, metric.worst, metric.best)}%` }}
+            />
+          </div>
+        ) : null}
 
         <dl className="codex__figures es-numeric">
           <div>
@@ -159,8 +190,14 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
       {state.status === 'ready' ? (
         <>
           <p className="codex__note">
-            {state.table.players} {state.table.players === 1 ? 'realm' : 'realms'} measured. Tap a
-            row for what it means and who leads it.
+            {state.table.players} {state.table.players === 1 ? 'realm' : 'realms'} measured
+            {overall ? (
+              <>
+                {' '}
+                · you are <strong className="codex__overall">{ordinal(overall.rank)}</strong> overall
+              </>
+            ) : null}
+            . Tap a row for what it means and who leads it.
           </p>
           {listed ? null : (
             <EmptyState

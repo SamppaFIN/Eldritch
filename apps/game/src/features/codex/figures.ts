@@ -8,7 +8,8 @@
  * once there is a km² to show; a realm of seven hexes is 11 353 m² and reading that as
  * "0.01 km²" tells them nothing.
  */
-import type { Metric, MetricId } from '@es3/core';
+import { placementIn } from '@es3/core';
+import type { Metric, MetricId, PlayerId } from '@es3/core';
 
 export const METRIC_NAME: Readonly<Record<MetricId, string>> = {
   land: 'Land',
@@ -97,4 +98,32 @@ export function gapLine(metric: Metric, mineValue: number, rank: number): string
   const below = metric.ranked.filter((r) => r.value < mineValue).map((r) => r.value);
   if (below.length === 0) return null;
   return `${formatMetric(metric.id, mineValue - Math.max(...below))} ahead`;
+}
+
+/** Where a value falls between the field's worst and best, as 0–100 — the Codex's own
+ *  comparison bar (Sigil §06, BRDC-CARD-005). Every measure here reads "more is better",
+ *  so this is a plain linear position, not a second rank. A field with no spread at all
+ *  (everyone level, or one realm alone) reads as full — there is nowhere lower to be. */
+export function barPct(value: number, worst: number, best: number): number {
+  if (best <= worst) return 100;
+  return Math.max(0, Math.min(100, ((value - worst) / (best - worst)) * 100));
+}
+
+export interface OverallStanding {
+  rank: number;
+  of: number;
+}
+
+/**
+ * The one number the header leads with — "you are 7th overall" (Sigil §06) — the mean of
+ * every measure's own rank a realm is actually listed in, rounded to the nearest placing.
+ * `null` when the realm is not listed in any of them yet, the same "nothing to average"
+ * case `CodexPanel`'s own `listed` check already handles for the table underneath it.
+ */
+export function overallStanding(metrics: readonly Metric[], me: PlayerId): OverallStanding | null {
+  const placements = metrics.map((m) => placementIn(m, me)).filter((p) => p !== null);
+  if (placements.length === 0) return null;
+  const rank = Math.round(placements.reduce((sum, p) => sum + p.rank, 0) / placements.length);
+  const of = Math.max(...placements.map((p) => p.of));
+  return { rank, of };
 }
