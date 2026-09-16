@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.32",
+    "date": "2026-09-16",
+    "notes": [
+      "Walk onto a hex with oak, birch, deer, mushrooms, berries, cattle, horses, hay, iron ore, peat, bog iron, a will-o'-wisp, a gold vein, a market stall, a caravan rest, scrap, a smoke sauna, an ale cellar, an orchard or a vineyard, and it now shows on the map as the thing it is — not a blank hex with a number in a panel somewhere.",
+      "Fish, deer, wheat, granite, marble and gems already had a picture from the original ten finds; the rest were invisible until now."
+    ]
+  },
+  {
     "version": "0.6.31",
     "date": "2026-09-16",
     "notes": [

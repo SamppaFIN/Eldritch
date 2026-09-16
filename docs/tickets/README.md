@@ -186,7 +186,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-SEED-004](BRDC-SEED-004.md) | ✅ HexSeed: Härmälänrannan heksojen esiarvot | M | SEED-001–003 |
 | [BRDC-TERRAIN-005](BRDC-TERRAIN-005.md) | ✅ Yhdeksän maastolajia, vanhat ja uudet rinnakkain | L | SEED-000 |
 | [BRDC-RES-001](BRDC-RES-001.md) | ✅ 38 bonusresurssia, alueittain | M–L | TERRAIN-005, SEED-003 |
-| [BRDC-RES-002](BRDC-RES-002.md) | Resurssien ja rakennelmien kuvat | M | RES-001, TERRAIN-005 |
+| [BRDC-RES-002](BRDC-RES-002.md) | 🔶 28/28 bonusresurssia kartalla; maamerkki/ihme/"?" toisten tikettien päätöksiä | M | RES-001, TERRAIN-005 |
 | [BRDC-LANDMARK-001](BRDC-LANDMARK-001.md) | 🔶 Maamerkit: talous ja kortti tehty, kartan merkki auki | M | SEED-002, SEED-001 |
 | [BRDC-TAVERN-001](BRDC-TAVERN-001.md) | Taverna ja tehtävätaulu | M | TERRAIN-005, QUEST-006, RES-001 |
 | [BRDC-BUILD-013](BRDC-BUILD-013.md) | 🔶 Forge rakennettavissa; Watchtower ei — kaksi puuttuvaa mekaniikkaa | M | TERRAIN-005, BUILD-012 |

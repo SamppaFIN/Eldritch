@@ -17,6 +17,7 @@ import { bannerSpriteId, rasteriseBanners } from '../nation/bannerSprites.js';
 export { bannerSpriteId };
 import { TERRAIN_KINDS, rasteriseTerrain, terrainSpriteId } from './terrainSprites.js';
 import { BOUNTY_SPRITE_IDS, bountySpriteId, rasteriseBounty } from './bountySprites.js';
+import { WORLDSEED_BOUNTY_IDS, rasteriseWorldseedBounty, worldseedBountySpriteId } from './worldseedBountySprites.js';
 import { CELL_BOUNTY_LAYER, CELL_FLAG_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER } from './layerIds.js';
 import { ENEMY_FILL, OWN_FILL } from './territoryFeatures.js';
 
@@ -61,20 +62,30 @@ export async function addTerrainSprites(map: MapLibreMap): Promise<void> {
 }
 
 /**
- * Draw the ten bounty icons into the atlas (Sigil §03, BRDC-SIGIL-003).
+ * Draw the bounty icons into the atlas: the legacy ten (Sigil §03, BRDC-SIGIL-003) and the
+ * Worldseed pool's own 22 (BRDC-RES-002) — both register under the same `bounty-<id>` name
+ * `territoryMarks.ts`'s `icon-image` expression builds from the cell's own property, so one
+ * layer draws both pools without knowing either exists.
  *
  * No fallback to flip away from: unlike terrain, nothing was ever drawn on the map for a
- * bounty before this, so a platform with no canvas simply keeps showing nothing —
+ * bounty before BRDC-SIGIL-003, so a platform with no canvas simply keeps showing nothing —
  * identical to today's behaviour, not a regression from it.
  */
 export async function addBountySprites(map: MapLibreMap): Promise<void> {
-  if (BOUNTY_SPRITE_IDS.every((id) => map.hasImage(bountySpriteId(id)))) return;
+  const allIds = [...BOUNTY_SPRITE_IDS.map(bountySpriteId), ...WORLDSEED_BOUNTY_IDS.map(worldseedBountySpriteId)];
+  if (allIds.every((id) => map.hasImage(id))) return;
   const life = watchRemoval(map);
-  const images = await rasteriseBounty();
+  // Sequential, not `Promise.all` — each call opens its own canvas, but two canvases
+  // decoding at once is exactly the contention `spriteRaster.ts` was written to avoid.
+  const legacy = await rasteriseBounty();
+  const seeded = await rasteriseWorldseedBounty();
   life.stop();
-  if (!images || life.gone()) return;
-  for (const [id, data] of images) {
-    if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
+  if (life.gone()) return;
+  for (const images of [legacy, seeded]) {
+    if (!images) continue;
+    for (const [id, data] of images) {
+      if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
+    }
   }
   if (map.getLayer(CELL_BOUNTY_LAYER)) {
     map.setLayoutProperty(CELL_BOUNTY_LAYER, 'visibility', 'visible');
