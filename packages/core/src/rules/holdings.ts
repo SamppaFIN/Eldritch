@@ -14,7 +14,7 @@ import { resourceForCell, terrainForCell } from './terrain.js';
 import type { ResourceKind, TerrainKind } from './terrain.js';
 import { worksOn } from './build.js';
 import { bountyOn } from './bounty.js';
-import type { BountyId } from './bounty.js';
+import type { BountyPick } from './bounty.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 
 export interface Holding {
@@ -29,8 +29,8 @@ export interface Holding {
   days: number;
   /** The Work standing on it, if any. One per hex (PIVOT-2026-09-09 §6). */
   work: BuildingId | null;
-  /** What this particular hex has on it, once revealed (BRDC-BOUNTY-001). */
-  bounty: BountyId | null;
+  /** What this particular hex has on it, once revealed (BRDC-BOUNTY-001, BRDC-RES-001). */
+  bounty: BountyPick | null;
   revealed: boolean;
   /** The Hearth cannot be lost and is listed first among the safe ones. */
   home: boolean;

@@ -16,7 +16,7 @@ import { MAX_STRENGTH } from '@es3/core';
 import type { Collected, GameRepository, Holding } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { BUILDING_NAME } from '../territory/names.js';
-import { BOUNTY_GLYPH, BOUNTY_NAME } from '../territory/bounty.js';
+import { bountyPickGlyph, bountyPickName } from '../territory/bounty.js';
 import { RESOURCE_COLOUR, RESOURCE_WORD, terrainGlyph } from '../territory/territoryFeatures.js';
 import { useLands } from './useLands.js';
 import type { Revealed } from './useLands.js';
@@ -127,7 +127,7 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
           <span className="lands__work">
             {h.bounty ? (
               <span className="lands__bounty">
-                <span aria-hidden>{BOUNTY_GLYPH[h.bounty]}</span> {BOUNTY_NAME[h.bounty]}
+                <span aria-hidden>{bountyPickGlyph(h.bounty)}</span> {bountyPickName(h.bounty)}
               </span>
             ) : null}
             {h.bounty && h.work ? ' · ' : ''}

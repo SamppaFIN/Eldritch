@@ -16,7 +16,7 @@
 import { bountyOn, worksOn } from '@es3/core';
 import './cell-detail.css';
 import type { Cell } from '@es3/core';
-import { BOUNTY_GLYPH, BOUNTY_NAME, bountyLine } from './bounty.js';
+import { bountyPickGlyph, bountyPickLine, bountyPickName } from './bounty.js';
 import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
 import { buildingGlyph } from './buildingGlyphs.js';
 import { BUILDING_NAME } from './names.js';
@@ -63,11 +63,11 @@ export function CellOn({ cell, revealed, place }: CellOnProps) {
       {find ? (
         <li className="cell-on__row">
           <span className="cell-on__mark" aria-hidden>
-            {BOUNTY_GLYPH[find]}
+            {bountyPickGlyph(find)}
           </span>
           <span className="cell-on__text">
-            <span className="cell-on__name">{BOUNTY_NAME[find]}</span>
-            <span className="cell-on__note">{bountyLine(find)}</span>
+            <span className="cell-on__name">{bountyPickName(find)}</span>
+            <span className="cell-on__note">{bountyPickLine(find)}</span>
           </span>
         </li>
       ) : null}

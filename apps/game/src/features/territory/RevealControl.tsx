@@ -8,7 +8,7 @@
 import { bountyOn, revealOf } from '@es3/core';
 import type { Cell, H3Index } from '@es3/core';
 import { RitualButton } from '@es3/ui';
-import { BOUNTY_GLYPH, UNSEEN_BOUNTY, bountyLine } from './bounty.js';
+import { UNSEEN_BOUNTY, bountyPickGlyph, bountyPickLine } from './bounty.js';
 
 const TIER: Readonly<Record<ReturnType<typeof revealOf>, string>> = {
   common: 'Common ground — nothing hidden here.',
@@ -45,7 +45,7 @@ export function RevealControl({ h3, revealed, cell, onReveal }: RevealControlPro
       <p className="cell-panel__note">{TIER[revealOf(h3)]}</p>
       {bounty ? (
         <p className="cell-panel__bounty">
-          <span aria-hidden>{BOUNTY_GLYPH[bounty]}</span> {bountyLine(bounty)}
+          <span aria-hidden>{bountyPickGlyph(bounty)}</span> {bountyPickLine(bounty)}
         </p>
       ) : null}
     </>

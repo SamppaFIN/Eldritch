@@ -179,7 +179,7 @@ export {
   bountyOn,
   bountyYield,
 } from './bounty.js';
-export type { Bounty, BountyId } from './bounty.js';
+export type { Bounty, BountyId, BountyPick, BountyPool } from './bounty.js';
 export { holdingOf, sortHoldings, summarise } from './holdings.js';
 export type { Holding, HoldingsSummary } from './holdings.js';
 export {

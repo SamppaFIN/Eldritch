@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.29",
+    "date": "2026-09-16",
+    "notes": [
+      "28 new bonus resources, on top of the original ten — a walk anywhere can now turn up mushrooms, an ancient oak, a smoke sauna, a vein of gold and more, several finds paying more than one resource at once.",
+      "In Härmälänranta these are no longer luck — the actual deposit is on the actual hex, placed by area rather than rolled per step. Its icon is still a stand-in colour badge; the real artwork is next."
+    ]
+  },
+  {
     "version": "0.6.28",
     "date": "2026-09-16",
     "notes": [

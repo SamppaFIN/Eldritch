@@ -19,7 +19,7 @@ import {
 } from '@es3/core';
 import { worksOn } from '@es3/core';
 import type {
-  BountyId,
+  BountyPick,
   Cell,
   CaptureOutcome,
   H3Index,
@@ -226,9 +226,9 @@ export function terrainGlyph(kind: TerrainKind): { char: string; color: string }
  * and the indirection earns its keep, because a badge tinted by what the find *pays*
  * cannot drift from the table the way a second hard-coded mapping would.
  */
-export function bountyInk(id: BountyId | null): string {
-  if (!id) return '';
-  const [resource] = Object.keys(bountyYield(id)) as ResourceKind[];
+export function bountyInk(pick: BountyPick | null): string {
+  if (!pick) return '';
+  const [resource] = Object.keys(bountyYield(pick)) as ResourceKind[];
   return resource ? MAP_RESOURCE_COLOUR[resource] : '';
 }
 
@@ -351,7 +351,9 @@ export function cellProperties(
     buildingColor: bg?.color ?? '',
     landmark: village ? VILLAGE_GLYPH : isLandmark ? (bg?.char ?? '') : '',
     landmarkColor: village ? CITY_COLOUR : (bg?.color ?? ''),
-    bounty: mineRevealed ? (bountyOn(cell) ?? '') : '',
+    // A Worldseed-pool find (BRDC-RES-001) has no icon yet (BRDC-RES-002) — the badge
+    // below still shows its real hue at low zoom; only the close-zoom icon is missing.
+    bounty: mineRevealed ? (bountyOn(cell)?.id ?? '') : '',
     bountyColor: bountyInk(mineRevealed ? bountyOn(cell) : null),
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
     // Your flag on ground you hold — but not where a building already carries the mark.

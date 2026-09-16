@@ -25,6 +25,9 @@ import { TRICKLE_PER_HOUR, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
 import { DECAY_GRACE_HOURS } from './constants.js';
 import { paintedBountyOf } from '../data/mapData.js';
+import { hexSeedOf } from '../data/hexSeedStore.js';
+import { BONUS_RESOURCES, yieldToResource } from '../data/worldseedAllocate.js';
+import type { BonusResourceDef, Yield } from '../data/worldseedAllocate.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
 export type BountyId =
@@ -101,36 +104,102 @@ function hash(s: string): number {
   return (h >>> 0) / 4294967296;
 }
 
-/** Which bounties could be on this ground, in table order. */
-export function bountiesFor(kind: TerrainKind): BountyId[] {
-  return BOUNTY_IDS.filter((id) => BOUNTIES[id].terrain.includes(kind));
+/**
+ * Which pool a bounty came from (BRDC-RES-001) — `BountyId` and a `BonusResourceDef.id`
+ * can name the *same word* (`gems`, `granite`, `fish`…) with two different definitions,
+ * so the id alone is never enough to resolve one back to its table. The pool says which.
+ */
+export type BountyPool = 'legacy' | 'worldseed';
+
+export interface BountyPick {
+  readonly id: string;
+  readonly pool: BountyPool;
+}
+
+interface WeightedCandidate {
+  readonly id: string;
+  readonly pool: BountyPool;
+  readonly weight: number;
+}
+
+/** The old ten, weighted evenly — this table never had a rarity concept. */
+function legacyCandidates(kind: TerrainKind): WeightedCandidate[] {
+  return BOUNTY_IDS.filter((id) => BOUNTIES[id].terrain.includes(kind)).map((id) => ({
+    id,
+    pool: 'legacy',
+    weight: 1,
+  }));
+}
+
+/**
+ * The 28 new finds, weighted by affinity × rarity — `allocateArea`'s own formula
+ * (`worldseedAllocate.ts`), so a hex outside a seeded area draws from the same
+ * probabilities a seeded area's own allocation would have used. A `require`d flag
+ * (`shoreline`, `oldGrowth`…) can never be confirmed outside a classified area, so a
+ * resource that needs one is honestly excluded there rather than guessed into place.
+ */
+function worldseedCandidates(kind: TerrainKind, flags: readonly string[]): WeightedCandidate[] {
+  return BONUS_RESOURCES.filter(
+    (r) => (r.affinity[kind] ?? 0) > 0 && (!r.require || r.require.every((f) => flags.includes(f))),
+  ).map((r) => ({ id: r.id, pool: 'worldseed', weight: (r.affinity[kind] ?? 0) * r.rarity }));
+}
+
+/** Which bounties could be on this ground, both pools together. */
+export function bountiesFor(kind: TerrainKind): BountyPick[] {
+  return [...legacyCandidates(kind), ...worldseedCandidates(kind, [])].map(({ id, pool }) => ({ id, pool }));
 }
 
 /**
  * The bounty on this cell, or null.
  *
- * Two rolls, like `terrainOf`: the first decides whether this hex has anything at all, the
- * second picks which. Split so the share can be tuned without moving every hex to a
- * different bounty.
+ * A seeded hex (`BRDC-SEED-004`) already has its answer decided by `BRDC-SEED-003`'s own
+ * area allocation — no roll, just a read, and an area-allocated absence is as authoritative
+ * as a presence. Everywhere else falls back to the two-roll hash `terrainOf` also uses: the
+ * first decides whether this hex has anything at all, the second draws from both pools'
+ * combined, weighted candidates.
  */
-export function bountyOn(cell: Cell): BountyId | null {
+export function bountyOn(cell: Cell): BountyPick | null {
   // A bounty placed by hand wins, for the same reason hand-drawn terrain does.
   const drawn = paintedBountyOf(cell.h3);
-  if (drawn) return drawn;
+  if (drawn) return { id: drawn, pool: 'legacy' };
+
+  const seed = hexSeedOf(cell.h3);
+  if (seed) return seed.resource ? { id: seed.resource.id, pool: 'worldseed' } : null;
 
   const kind = terrainForCell(cell).kind;
-  const candidates = bountiesFor(kind);
+  const candidates = [...legacyCandidates(kind), ...worldseedCandidates(kind, [])];
   if (candidates.length === 0) return null;
   if (hash(`bounty:${cell.h3}`) >= BOUNTY_SHARE) return null;
-  const pick = Math.floor(hash(`bounty-kind:${cell.h3}`) * candidates.length);
-  return candidates[Math.min(pick, candidates.length - 1)] ?? null;
+
+  const totalWeight = candidates.reduce((t, c) => t + c.weight, 0);
+  let roll = hash(`bounty-kind:${cell.h3}`) * totalWeight;
+  for (const c of candidates) {
+    roll -= c.weight;
+    if (roll <= 0) return { id: c.id, pool: c.pool };
+  }
+  const last = candidates[candidates.length - 1]!;
+  return { id: last.id, pool: last.pool };
 }
 
-/** What one bounty adds, per hour. `{}` for a cell that has none. */
-export function bountyYield(id: BountyId | null): Partial<ResourcePool> {
-  if (!id) return {};
-  const b = BOUNTIES[id];
-  return { [b.resource]: b.perHour };
+function worldseedResource(id: string): BonusResourceDef | undefined {
+  return BONUS_RESOURCES.find((r) => r.id === id);
+}
+
+/** What one bounty adds, per hour — every yield it has, not just one. `{}` for none. */
+export function bountyYield(pick: BountyPick | null): Partial<ResourcePool> {
+  if (!pick) return {};
+  if (pick.pool === 'legacy') {
+    const b = BOUNTIES[pick.id as BountyId];
+    return b ? { [b.resource]: b.perHour } : {};
+  }
+  const r = worldseedResource(pick.id);
+  if (!r) return {};
+  const out: Partial<ResourcePool> = {};
+  for (const [y, amount] of Object.entries(r.yields) as [Yield, number][]) {
+    const resource = yieldToResource(y);
+    out[resource] = (out[resource] ?? 0) + amount;
+  }
+  return out;
 }
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
@@ -152,10 +221,11 @@ export function bountyBonus(
   for (const cell of cells) {
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
     if (revealed[cell.h3] === undefined) continue;
-    const id = bountyOn(cell);
-    if (!id) continue;
-    const b = BOUNTIES[id];
-    out[b.resource] = (out[b.resource] ?? 0) + b.perHour;
+    const pick = bountyOn(cell);
+    if (!pick) continue;
+    for (const [resource, perHour] of Object.entries(bountyYield(pick)) as [ResourceKind, number][]) {
+      out[resource] = (out[resource] ?? 0) + perHour;
+    }
   }
   return out;
 }

@@ -2,53 +2,60 @@
 
 | | |
 |---|---|
-| **Alue** | `rules/bounty.ts`, `features/territory/income.ts`, `CellOn.tsx`, `CellIncome.tsx`, `bounty.ts` (nimet) |
+| **Alue** | `rules/bounty.ts`, `rules/holdings.ts`, `features/territory/bounty.ts`, `CellOn.tsx`, `RevealControl.tsx`, `LandsPanel.tsx`, `territoryFeatures.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M–L |
-| **Status** | `todo` — päätös tehty (`BRDC-SEED-000` D2, D3), toteutus alkaa |
-| **Riippuvuudet** | `BRDC-TERRAIN-005`, `BRDC-SEED-003` (jako) |
+| **Status** | `done` — ajettu ja todennettu 2026-09-16 |
+| **Riippuvuudet** | `BRDC-TERRAIN-005`, `BRDC-SEED-003` (jako), `BRDC-SEED-004` (siemenluku) |
 | **Lähde** | `worldseed.ts` (`BONUS_RESOURCES`, `ZONE`, `depositCount`, `allocate`), Worldseed §03 *One to three per area* |
 
 ## 🔴 RED
 
-**Nyt** (`rules/bounty.ts:57-118`): 10 löytöä — wheat, herd, deer, furs, gems, marble, fish,
-amber, spice, granite. Jokaisella **yksi** resurssi ja tuntituotto, ja löytö päätetään
-**heksa kerrallaan** hajautuksella (`BOUNTY_SHARE = 0.125`, eli joka kahdeksas heksa).
+**Nyt** (`rules/bounty.ts:57-118`): 10 löytöä, yksi resurssi kukin, heksa kerrallaan hajautus.
 
-**Worldseed:** 28 bonusresurssia, joilla on **useampi tuotto** (esim. Mushrooms `+1 food +1 wisdom`),
-maastoaffiniteetti × harvinaisuus, ja vaatimusliput (`shoreline`, `island`, `deepWater`,
-`leyCrossing`, `oldGrowth`). Ja ennen kaikkea **jako alueittain, ei heksoittain**: yhtenäinen
-saman maaston rypäs jaetaan 7–55 heksan alueiksi, jokainen alue saa 1–3 esiintymää, kukin
-**yhdelle** heksalle. Noin 5 % heksoista. *"A resource on every hex is a resource on no hex."*
+**Päätös (`BRDC-SEED-000` D2, D3): ei muunnosta — liitos.** Kaikki 10 vanhaa pysyvät. 28 uutta
+(`worldseedAllocate.ts`, jo olemassa `BRDC-SEED-003`:sta) lisätään rinnalle.
 
-**Päätös (`BRDC-SEED-000` D2, D3): ei muunnosta — liitos.** Kaikki 10 vanhaa löytöä
-(wheat, herd, deer, furs, gems, marble, fish, amber, spice, granite) **pysyvät sellaisinaan**.
-28 uutta lisätään niiden rinnalle. Yhteensä **38 bonusresurssia**. herd/furs/amber/spice
-**eivät** muunnu cattle/scrap/goldvein/stall:ksi vaikka ne muistuttavat toisiaan — kaksi
-erillistä resurssia samalla maastolla on hyväksytty lopputulos, ei väliaikainen tila.
-
-| Vanhat (10, muuttumattomina) | Uudet (28) |
-|---|---|
-| wheat, herd, deer, furs, gems, marble, fish, amber, spice, granite | reeds, waterfowl, leycrystal, oak, birch, mushrooms, berries, cattle, horses, hay, ironore, peat, bogiron, wisp, goldvein, stall, caravan, scrap, sauna, ale, orchard, vineyard, *(+6 muuta `worldseed.ts`:n `BONUS_RESOURCES`-taulusta, listataan toteutuksessa suoraan lähteestä)* |
+**Uusi ongelma löytyi toteutuksessa:** kuusi ID:tä (`fish`, `deer`, `wheat`, `granite`, `marble`,
+`gems`) on **molemmissa** tauluissa, eri määritelmillä — sama sana, kaksi eri löytöä. Pelkkä
+ID ei riitä kertomaan kumpaa taulua lukea. Ratkaisu: `bountyOn` palauttaa nyt
+`{ id, pool: 'legacy' | 'worldseed' }`, ei paljasta merkkijonoa — kummankin taulun sama sana
+elää siis rinnakkain ilman törmäystä, täsmälleen D2/D3:n hengessä.
 
 ## 🟢 GREEN
 
-- [ ] Bonusresurssitaulu `worldseed.ts`:stä sellaisenaan (28), tuotot `Yield → ResourceKind`
-      (`timber → wood`); **vanha 10:n taulu koskematta** samassa tiedostossa
-- [ ] **Seedatulla alueella** esiintymät (vanhat ja uudet) tulevat siemenestä
-      (`HexSeed.resource`), eivät hajautuksesta
-- [ ] **Seedatun alueen ulkopuolella** (D2): hajautus **molemmista pooleista yhdessä** —
-      38 resurssia, sama ~5 % kokonaistiheys kuin ennen (ei kahta erillistä hajautusta
-      päällekkäin samalla heksalla)
-- [ ] **Monituotto:** `bountyYield` / `bountyBonus` / `cellIncome` summaavat usean resurssin;
-      kortti näyttää kunkin omassa värissään (värilaki). Vanhat 10 pysyvät yksituottoisina
-- [ ] Vaatimusliput (uusille) luetaan heksan lipuista; vanhat 10:llä ei vaatimuslippuja,
-      kuten nytkin
-- [ ] Testit: yhdistetty tiheys `[0.03, 0.12]` seedatulla fixturella; monituoton summa;
-      vaatimuslippu estää esiintymän heksalla jolla lippua ei ole; regressio — olemassa oleva
-      herd/furs/amber/spice-testi läpäisee muuttumattomana
+- [x] Bonusresurssitaulu jo olemassa `worldseedAllocate.ts`:ssä (`BRDC-SEED-003`) — ei
+      kaksinkertaistettu tässä
+- [x] **Seedatulla alueella** (`hexSeedOf(h3)`, `BRDC-SEED-004`): `bountyOn` **lukee**, ei
+      arvo. Solu jolla on siemen mutta ei löytöä palauttaa `null` suoraan — alueen oma
+      poissaolo on yhtä auktoritatiivinen kuin läsnäolo, ei arvottava uudelleen hajautuksella
+- [x] **Seedatun alueen ulkopuolella:** yksi yhdistetty painotettu arvonta kahdesta
+      poolista — vanhat tasapainolla 1, uudet `affinity[maasto] × rarity`:lla, sama kaava
+      kuin `allocateArea`. `BOUNTY_SHARE` (0,125) ei muutettu — "sama tiheys kuin ennen"
+      tulkittiin vanhan, jo testatun arvon säilyttämiseksi eikä Worldseedin oman ~5 %:n
+      tiheyden tuomiseksi tähän kerrokseen (se tiheys on jo `DEPOSIT_DENSITY`, alueiden
+      omassa hajautuksessa)
+- [x] **Monituotto:** `bountyYield`/`bountyBonus` summaavat kaikki `BonusResourceDef.yields`in
+      resurssit, ei vain ensimmäistä. Vanhat 10 pysyvät yksituottoisina, koskematta
+- [x] **Vaatimusliput:** alueen ulkopuolella liput ovat aina tyhjät (ei survey-dataa), joten
+      mikään `require`illinen (leycrystal, oak, sauna…) ei koskaan arvo hajautuksesta —
+      todennettu testillä, ei vain väitetty
+- [x] **ID-törmäys ratkaistu:** `BountyPick { id, pool }` -tyyppi jokaisessa kutsupaikassa —
+      `holdings.ts`, `CellOn.tsx`, `RevealControl.tsx`, `LandsPanel.tsx`, `territoryFeatures.ts`
+      (`bountyInk`, kartan `bounty`/`bountyColor`-ominaisuudet). Uudet nimet/glyfit
+      (`features/territory/bounty.ts`in `bountyPickName/Glyph/Line`) resolvoivat kumman
+      tahansa poolin; editorin oma `BOUNTY_NAME`/`BOUNTY_GLYPH` (vain vanha 10) koskematta
+- [x] Kartalla worldseed-poolin löydöllä ei ole vielä ikonia (`BRDC-RES-002` piirtää sen) —
+      matalan zoomin väripiste (`CELL_BOUNTY_BADGE_LAYER`) näyttää silti oikean sävyn,
+      lähizoomin ikoni jää puuttumaan väliaikaisesti (kartan jo olemassa oleva
+      "ei ikonia → ei mitään" -sietokyky, ei uusi aukko)
+- [x] Testit: 17 `bounty.test.ts`issa (5 uutta) — seedatun heksan suora luku, seedatun
+      poissaolon ei-uudelleenarvonta, monituoton summa, vaatimuslipun esto, determinismi
+      korjattu `toEqual`ksi (uusi olio joka kutsulla). Regressio: kaikki vanhat testit
+      (herd/furs/amber/spice mukaan lukien) läpäisevät muuttumattomina
+- [x] Portti: 1518 testiä, `tsc -b`, `lint:lines`, tuotantobuild — kaikki vihreät
 
 ## Ei tässä
 
-- Kuvat — `BRDC-RES-002`
-- Jakoalgoritmi ja alueet — `BRDC-SEED-003`
+- Kuvat 28 uudelle löydölle — `BRDC-RES-002` (yksi jaettu paikkamerkki-glyfi `✦` toistaiseksi)
+- Editorin käsinmaalaus laajennettuna 38:aan — jätetty koskematta, ei pyydetty

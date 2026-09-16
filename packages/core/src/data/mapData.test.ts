@@ -107,7 +107,7 @@ describe('what the game reads', () => {
 
   it('places a bounty by hand, on ground the table would never have chosen', () => {
     loadDrawings(paint(newDrawing('test'), A, { t: 'mountain', b: 'fish' }));
-    expect(bountyOn(cell(A))).toBe('fish');
+    expect(bountyOn(cell(A))).toEqual({ id: 'fish', pool: 'legacy' });
   });
 
   it('leaves every hex it does not name alone', () => {
