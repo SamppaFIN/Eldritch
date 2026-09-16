@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.35",
+    "date": "2026-09-16",
+    "notes": [
+      "The Keep now names what's about to fade, not just how many: a short list of your soonest-to-decay ground, nearest first, each one tappable straight to its hex on the map.",
+      "The treasury list shows every resource you hold, not only the ones currently growing — a full pouch sitting at +0 an hour used to be invisible here."
+    ]
+  },
+  {
     "version": "0.6.34",
     "date": "2026-09-16",
     "notes": [

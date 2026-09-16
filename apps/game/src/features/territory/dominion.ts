@@ -30,6 +30,12 @@ export interface Dominion {
   firstLossInHours: number | null;
   /** Cells within a day of being taken by the Void. */
   atRisk: number;
+  /** The soonest few cells to fade, within `FADING_WINDOW_HOURS`, nearest first — a short
+   *  list a player can act on, not just the one aggregate count `atRisk` already gives
+   *  (Sigil §06 "NEXT 72 HOURS"). Never includes ground a Fortress protects. Hours are
+   *  carried alongside the cell so the UI never has to re-derive them from `now` a second
+   *  time — the same number, read once. */
+  fading: readonly { cell: Cell; hoursLeft: number }[];
   /** How many held cells produce each resource, counting only ones currently awake. */
   producing: Record<ResourceKind, number>;
   /**
@@ -49,6 +55,13 @@ const NONE = Object.fromEntries(RESOURCE_KINDS.map((k) => [k, 0])) as Record<Res
 /** A day is the horizon a walk can answer. Anything further off is not yet a decision. */
 const AT_RISK_HOURS = 24;
 
+/** The Keep's own longer horizon for the fading list — long enough to plan a walk around,
+ *  short enough that everything on it is still this week's problem (Sigil §06). */
+const FADING_WINDOW_HOURS = 72;
+
+/** However short the walk, nobody needs the whole realm sorted by doom. */
+const FADING_LIST_CAP = 5;
+
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
 export function dominionOf(owned: readonly Cell[], now: number): Dominion {
@@ -61,6 +74,7 @@ export function dominionOf(owned: readonly Cell[], now: number): Dominion {
   let weakest: Cell | null = null;
   let firstLossInHours: number | null = null;
   let atRisk = 0;
+  const soon: { cell: Cell; left: number }[] = [];
 
   for (const cell of owned) {
     areaM2 += cellAreaM2(cell.h3);
@@ -80,11 +94,17 @@ export function dominionOf(owned: readonly Cell[], now: number): Dominion {
     // strength buys has to have the time already spent decaying taken off it.
     const left = hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000;
     if (left <= AT_RISK_HOURS) atRisk += 1;
+    if (left <= FADING_WINDOW_HOURS) soon.push({ cell, left });
     if (firstLossInHours === null || left < firstLossInHours) {
       firstLossInHours = left;
       weakest = cell;
     }
   }
+
+  const fading = soon
+    .sort((a, b) => a.left - b.left)
+    .slice(0, FADING_LIST_CAP)
+    .map((s) => ({ cell: s.cell, hoursLeft: s.left }));
 
   const perHour = Object.fromEntries(
     RESOURCE_KINDS.map((k) => [k, producing[k] * TRICKLE_PER_HOUR]),
@@ -97,6 +117,7 @@ export function dominionOf(owned: readonly Cell[], now: number): Dominion {
     weakest,
     firstLossInHours,
     atRisk,
+    fading,
     producing,
     resting,
     perHour,

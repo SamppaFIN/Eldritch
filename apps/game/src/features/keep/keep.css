@@ -43,6 +43,11 @@
 }
 
 
+.keep-res-amount {
+  color: var(--text-dim);
+  text-align: end;
+}
+
 .keep-res-rate {
   min-inline-size: 4.5em;
   color: var(--awareness-green, #00ff88);
@@ -63,5 +68,45 @@
 
 .keep-collect-when {
   color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.keep-fading-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.keep-fading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.keep-fading-row:hover,
+.keep-fading-row:focus-visible {
+  background: color-mix(in oklch, var(--text) 8%, transparent);
+}
+
+.keep-fading-name {
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.keep-fading-left {
+  color: var(--danger);
   font-size: var(--text-sm);
 }

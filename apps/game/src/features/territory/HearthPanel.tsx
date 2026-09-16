@@ -200,6 +200,7 @@ export function HearthPanel({
         weakestH3={d.weakest?.h3 ?? null}
         atRisk={d.atRisk}
         firstLossInHours={d.firstLossInHours}
+        fading={d.fading}
         dark={dark}
         onWager={onWager}
         onPublish={onPublish}

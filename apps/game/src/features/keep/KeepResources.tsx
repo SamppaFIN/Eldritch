@@ -54,8 +54,10 @@ export function KeepResources({
   onPouch,
 }: KeepResourcesProps) {
   const [lastCollect, setLastCollect] = useState(() => load<number>('last-collect', 0));
-  // Only what is coming in — holdings live in the walking sheet's chips now.
-  const earning = shownResources(resources, perHour).filter((k) => (perHour[k] ?? 0) > 0);
+  // What you hold and what is coming in, together — a resource sitting at zero growth is
+  // still a fact worth a row (Sigil §06's own "100 · +0" treasury line), not just the ones
+  // presently ticking up.
+  const held = shownResources(resources, perHour);
   const canCollect = now - lastCollect >= COLLECT_COOLDOWN_MS;
 
   const collect = () => {
@@ -78,9 +80,9 @@ export function KeepResources({
         * thing this whole pass has been removing. The hourly rate is not in the sheet and
         * is the question the Keep is actually for: which ground is paying you.
         */}
-      {earning.length > 0 ? (
+      {held.length > 0 ? (
         <ul className="keep-res-list">
-          {earning.map((k) => (
+          {held.map((k) => (
             <li key={k} className="keep-res-row">
               <span
                 className="keep-res-pip"
@@ -88,7 +90,8 @@ export function KeepResources({
                 aria-hidden
               />
               <span className="keep-res-name">{RESOURCE_WORD[k]}</span>
-              <span className="keep-res-rate es-numeric">+{perHour[k]}/h</span>
+              <span className="keep-res-amount es-numeric">{resources?.[k] ?? 0}</span>
+              <span className="keep-res-rate es-numeric">+{perHour[k] ?? 0}/h</span>
             </li>
           ))}
         </ul>

@@ -7,9 +7,18 @@
  * jump to the cell about to be lost.
  */
 import { useState } from 'react';
+import { landmarkOn, terrainForCell } from '@es3/core';
+import type { Cell } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { GROUND_NAME } from '../territory/names.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import './keep.css';
+
+/** A landmark's real name outranks the bare ground it stands on — the same order `CellOn`
+ *  already reads a hex in (BRDC-LANDMARK-001). */
+function nameOf(cell: Cell): string {
+  return landmarkOn(cell.h3)?.name ?? GROUND_NAME[terrainForCell(cell).kind];
+}
 
 const SENT: Record<PublishResult, string> = {
   ok: 'Sent. Others see your realm within the hour.',
@@ -29,6 +38,8 @@ export interface KeepRealmProps {
   weakestH3: string | null;
   atRisk: number;
   firstLossInHours: number | null;
+  /** The soonest few cells to fade, nearest first (`dominionOf`'s own `fading`). */
+  fading: readonly { cell: Cell; hoursLeft: number }[];
   dark: { active: boolean; inDays: number };
   onWager: () => void;
   /** Publish your realm to the shared world — present only when the share toggle is on. */
@@ -40,6 +51,7 @@ export function KeepRealm({
   weakestH3,
   atRisk,
   firstLossInHours,
+  fading,
   dark,
   onWager,
   onPublish,
@@ -75,6 +87,22 @@ export function KeepRealm({
             : 'Nothing fades today.'}{' '}
           The first goes {hours(firstLossInHours)} from now.
         </p>
+      ) : null}
+
+      {/* The soonest few, named and tappable — one aggregate sentence could say "3 cells
+          fade" but not which ones, and the map does not follow you here (Sigil §06
+          "NEXT 72 HOURS"). */}
+      {fading.length > 0 ? (
+        <ul className="keep-fading-list">
+          {fading.map(({ cell, hoursLeft }) => (
+            <li key={cell.h3}>
+              <button type="button" className="keep-fading-row" onClick={() => onWeakest(cell.h3)}>
+                <span className="keep-fading-name">{nameOf(cell)}</span>
+                <span className="keep-fading-left es-numeric">{hours(hoursLeft)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {/*

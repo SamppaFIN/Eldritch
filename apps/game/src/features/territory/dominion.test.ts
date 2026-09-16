@@ -59,6 +59,29 @@ describe('dominionOf', () => {
     expect(dominionOf([a as Cell, b as Cell, doomed], T0).atRisk).toBe(1);
   });
 
+  it('lists the soonest to fade, nearest first, within its own longer window', () => {
+    const [a, b, c] = ground(3, 400);
+    // Base strength (100 h): 11 days stale leaves 24 h, 9.5 days leaves 60 h — both inside
+    // the 72 h window and outside atRisk's own 24 h one for the second, so this also
+    // proves `fading` is not just `atRisk` renamed.
+    const soon = { ...(a as Cell), strength: 100, lastVisitedAt: T0 - 11 * 24 * HOUR };
+    const later = { ...(b as Cell), strength: 100, lastVisitedAt: T0 - 9.5 * 24 * HOUR };
+    const d = dominionOf([soon, later, c as Cell], T0);
+    expect(d.fading.map((f) => f.cell.h3)).toEqual([soon.h3, later.h3]);
+    expect(d.fading[0]!.hoursLeft).toBeLessThan(d.fading[1]!.hoursLeft);
+  });
+
+  it('never lists ground a Fortress protects', () => {
+    const [doomed] = ground(1, 100, T0 - 11 * 24 * HOUR);
+    const fortressed: Cell = { ...doomed!, buildings: [{ id: 'fortress', builtAt: T0 }] };
+    expect(dominionOf([fortressed], T0).fading).toEqual([]);
+  });
+
+  it('caps the list rather than sorting the whole realm by doom', () => {
+    const doomed = ground(9, 100, T0 - 11 * 24 * HOUR);
+    expect(dominionOf(doomed, T0).fading.length).toBe(5);
+  });
+
   it('rates production from the ground that actually produces', () => {
     const cells = ground(30);
     const d = dominionOf(cells, T0);

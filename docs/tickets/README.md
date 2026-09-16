@@ -193,7 +193,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-WONDER-002](BRDC-WONDER-002.md) | 🔶 Härmälän 9 ihmettä: perusta + sijoitus (5/9), vaikutukset auki | L | SEED-003, TERRAIN-005, LANDMARK-001 |
 | [BRDC-QUEST-006](BRDC-QUEST-006.md) | 🔶 Seikkailu heksan parametrina (pikakorjaus tehty) | M | SEED-004 (pikakorjaus ei vaadi) |
 | [BRDC-CARD-001](BRDC-CARD-001.md) | 🔶 Auditoitu; luottamus-siru ja Linnoitus-naapuribugi korjattu | M | SEED-004 |
-| [BRDC-CARD-002](BRDC-CARD-002.md) | KEEP mallin mukaan | M | — |
+| [BRDC-CARD-002](BRDC-CARD-002.md) | 🔶 Aarrelista täysi, rappiolista lisätty; välilehdet ennallaan | M | — |
 | [BRDC-CARD-003](BRDC-CARD-003.md) | RESEARCH mallin mukaan | M | — |
 | [BRDC-CARD-004](BRDC-CARD-004.md) | YOU mallin mukaan | S–M | — |
 | [BRDC-CARD-005](BRDC-CARD-005.md) | CODEX mallin mukaan | S–M | — |
