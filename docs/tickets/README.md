@@ -182,7 +182,7 @@ kirjoitettu, käydään läpi ennen koodia. Järjestys: CLAN-001 (perusta) → C
 
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
-| [BRDC-CLAN-001](BRDC-CLAN-001.md) | ⬜ Luonnos: klaanin luonti, liittyminen, `clanId` julkaisussa | M | SHARE-003 |
+| [BRDC-CLAN-001](BRDC-CLAN-001.md) | ✅ Klaanin luonti, liittyminen, `clanId` julkaisussa | M | SHARE-003 |
 | [BRDC-CLAN-002](BRDC-CLAN-002.md) | ⬜ Luonnos: klaani-Codex — klaanit keskenään | M | CLAN-001 |
 | [BRDC-CLAN-003](BRDC-CLAN-003.md) | ⬜ Luonnos: klaanihallinta — perustajan token, nimeäminen, poisto | S–M | CLAN-001 |
 | [BRDC-IDENTITY-001](BRDC-IDENTITY-001.md) | ⬜ Luonnos: palautuskoodi — sama nimi ja klaani uudella laitteella | S | SHARE-003 |

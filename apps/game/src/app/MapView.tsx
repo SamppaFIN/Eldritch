@@ -378,7 +378,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onDeleteProgress={() => setConfirming('reset')}
         onRetireKingdom={() => setConfirming('retire')}
         onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
-        onOpenHallOfFame={aside.openHallOfFame} onOpenGpx={aside.openGpx}
+        onOpenHallOfFame={aside.openHallOfFame} onOpenClan={aside.openClan} onOpenGpx={aside.openGpx}
         onWager={inspect.openWager} onOpenGuide={aside.openGuide}
         onOpenEditor={EDITOR_AVAILABLE ? editor.toggle : undefined}
         repository={repository} position={point}

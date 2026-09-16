@@ -178,6 +178,17 @@ describe('submission — the signed message into the world', () => {
     const shards = buildShards([parsed.source], T0);
     expect(shards.size).toBeGreaterThan(0);
   });
+
+  it('carries clanId through the round trip, the same as nation and banner (BRDC-CLAN-001)', () => {
+    const clanned: WorldSource = { ...src, clanId: 'WYRM42' };
+    const parsed = parseSubmission(encodeSubmission(buildSubmission(clanned)));
+    expect(parsed.ok && parsed.source.clanId).toBe('WYRM42');
+  });
+
+  it('omits clanId when the player has not joined one', () => {
+    const parsed = parseSubmission(encodeSubmission(buildSubmission(src)));
+    expect(parsed.ok && 'clanId' in parsed.source).toBe(false);
+  });
 });
 
 describe('persisted player files (BRDC-SHARE-002)', () => {
@@ -239,6 +250,11 @@ describe('worldSourceFrom (BRDC-SHARE-002)', () => {
     expect('nation' in src).toBe(false);
     expect('banner' in src).toBe(false);
     expect(src.castle).toBeNull();
+  });
+
+  it('carries the clan when the identity has one (BRDC-CLAN-001)', () => {
+    const src = worldSourceFrom({ id: 'me', name: 'Seeker' }, [], null, { clanId: 'WYRM42' });
+    expect(src.clanId).toBe('WYRM42');
   });
 });
 

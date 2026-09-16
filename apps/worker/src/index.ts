@@ -19,6 +19,11 @@
  * writes the one chronicle a retired kingdom gets, using an AI key that must live here
  * and never on the client. It is the sole exception to claude.md §6.9's "no keys yet" —
  * noted there directly, not just here.
+ *
+ * BRDC-CLAN-001 adds `POST /clan` (create) and `GET /clan/<id>` (look up before joining).
+ * Same honesty as everything else here: a clan's `founderToken` is a bearer secret, not
+ * a password behind an account — whoever holds it can act as the founder, exactly as
+ * whoever holds a player `id` can already publish as that player.
  */
 import { buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
 import type { PlayerFile } from '@es3/core/data';
@@ -41,6 +46,7 @@ export interface Env {
 
 const PLAYER = 'player:';
 const SHARD = 'shard:';
+const CLAN = 'clan:';
 /**
  * One key for the whole Codex. `rebuild` already walks every player file, so measuring
  * them costs one more pass over data that is already in memory — and it means the client
@@ -161,6 +167,33 @@ async function craftChronicle(env: Env, facts: KingdomFacts): Promise<string | n
   }
 }
 
+interface ClanRecord {
+  id: string;
+  name: string;
+  founderId: string;
+  founderToken: string;
+  createdAt: number;
+}
+
+/** No 0/O/1/I/L — a code someone reads aloud over a phone call, not a password. */
+const CLAN_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+function randomCode(length: number): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (b) => CLAN_ALPHABET[b % CLAN_ALPHABET.length]).join('');
+}
+
+/** A fresh, unused clan code. Collision odds are astronomically low at this alphabet
+ *  size, but a hobby project's Worker is exactly the place a "surely never" bug turns
+ *  up eventually — five tries and a clear failure beats an infinite loop. */
+async function newClanId(kv: KV): Promise<string | null> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const id = randomCode(6);
+    if (!(await kv.get(CLAN + id))) return id;
+  }
+  return null;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === 'OPTIONS') return bare(204);
@@ -225,6 +258,38 @@ export default {
       return send({ story });
     }
 
+    if (request.method === 'POST' && url.pathname === '/clan') {
+      const body = (await request.json().catch(() => null)) as
+        | { name?: unknown; founderId?: unknown }
+        | null;
+      const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 40) : '';
+      const founderId = typeof body?.founderId === 'string' ? body.founderId : '';
+      if (!name || !founderId) return send({ fault: 'invalid' }, 400);
+
+      const id = await newClanId(env.WORLD);
+      if (!id) return send({ fault: 'unavailable' }, 503);
+
+      const record: ClanRecord = {
+        id,
+        name,
+        founderId,
+        founderToken: crypto.randomUUID(),
+        createdAt: Date.now(),
+      };
+      await env.WORLD.put(CLAN + id, JSON.stringify(record));
+      return send({ id: record.id, founderToken: record.founderToken });
+    }
+
+    if (request.method === 'GET' && url.pathname.startsWith('/clan/')) {
+      const id = url.pathname.slice('/clan/'.length).toUpperCase();
+      const raw = id ? await env.WORLD.get(CLAN + id) : null;
+      if (!raw) return bare(404);
+      const record = JSON.parse(raw) as ClanRecord;
+      // The join screen needs to know a code is real and its name — never the
+      // founder's token, which the founder's own device already holds.
+      return send({ id: record.id, name: record.name });
+    }
+
     if (request.method === 'GET' && url.pathname === '/') {
       return send({
         world: 'eldritch',
@@ -233,6 +298,8 @@ export default {
           'GET /world/<res6>',
           'GET /demographics',
           'POST /kingdom-story',
+          'POST /clan',
+          'GET /clan/<id>',
         ],
       });
     }

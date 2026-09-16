@@ -40,9 +40,7 @@ test('on: "Raise your banner" POSTs a sealed submission and reports it sent', as
   await openMap(page, HERE);
 
   await page.getByRole('button', { name: 'Menu' }).click();
-  await page
-    .getByRole('switch', { name: 'Share the world — see nearby realms, and let them see yours' })
-    .click();
+  await page.getByRole('switch', { name: 'Share your realm' }).click();
   await page.keyboard.press('Escape');
 
   const opened: string[] = [];

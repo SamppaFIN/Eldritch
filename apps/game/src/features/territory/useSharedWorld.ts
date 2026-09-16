@@ -11,6 +11,7 @@ import { useWorld } from './useWorld.js';
 import { publishSubmission } from '../../data/worldSource.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { readNation } from '../nation/nation.js';
+import { readClan } from '../clan/clan.js';
 
 export interface UseSharedWorldOptions {
   repository: GameRepository | null;
@@ -35,6 +36,8 @@ export function useSharedWorld({
     const identity: WorldIdentity = {};
     if (n.name.trim()) identity.nation = n.name.trim();
     if (n.bannerId) identity.banner = n.bannerId;
+    const clan = readClan();
+    if (clan.clanId) identity.clanId = clan.clanId;
     const source = await repository.exportWorldSource(now(), identity);
     return publishSubmission(source);
   }, [repository, now]);

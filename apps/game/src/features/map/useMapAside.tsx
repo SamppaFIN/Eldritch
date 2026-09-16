@@ -21,6 +21,7 @@ import { CodexPanel } from '../codex/CodexPanel.js';
 import { LandsPanel } from '../lands/LandsPanel.js';
 import { GpxPanel } from '../gpx/GpxPanel.js';
 import { HallOfFamePanel } from '../hall/HallOfFamePanel.js';
+import { ClanPanel } from '../clan/ClanPanel.js';
 
 export interface MapAside {
   node: ReactNode;
@@ -39,6 +40,8 @@ export interface MapAside {
   openGpx: () => void;
   /** Kingdoms retired on this device (BRDC-HALL-001). */
   openHallOfFame: () => void;
+  /** Create or join a clan (BRDC-CLAN-001). */
+  openClan: () => void;
   /** True while any of these sheets is covering the map (BRDC-HUD-005). */
   anyOpen: boolean;
   /** Close every aside — the MAP nav item's action (Sigil screen 02). */
@@ -72,6 +75,7 @@ export function useMapAside(
   const [landsGain, setLandsGain] = useState<Collected | null>(null);
   const [gpxOpen, setGpxOpen] = useState(false);
   const [hallOpen, setHallOpen] = useState(false);
+  const [clanOpen, setClanOpen] = useState(false);
   const [meId, setMeId] = useState<string | null>(null);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
 
@@ -163,6 +167,7 @@ export function useMapAside(
         now={now}
         onClose={() => setHallOpen(false)}
       />
+      <ClanPanel open={clanOpen} repository={repository} onClose={() => setClanOpen(false)} />
     </>
   );
 
@@ -176,9 +181,17 @@ export function useMapAside(
     openLands: () => setLandsOpen(true),
     openGpx: () => setGpxOpen(true),
     openHallOfFame: () => setHallOpen(true),
+    openClan: () => setClanOpen(true),
     landsGain,
     anyOpen:
-      help !== null || logOpen || characterOpen || codexOpen || landsOpen || gpxOpen || hallOpen,
+      help !== null ||
+      logOpen ||
+      characterOpen ||
+      codexOpen ||
+      landsOpen ||
+      gpxOpen ||
+      hallOpen ||
+      clanOpen,
     /** Back to the map — what the document's MAP nav item does (Sigil screen 02). */
     closeAll: () => {
       setHelp(null);
@@ -188,6 +201,7 @@ export function useMapAside(
       setLandsOpen(false);
       setGpxOpen(false);
       setHallOpen(false);
+      setClanOpen(false);
     },
   };
 }

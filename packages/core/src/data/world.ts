@@ -27,6 +27,9 @@ export interface WorldPlayer {
   /** Their nation's name and flag (BRDC-NATION-001, BRDC-WAGER-JSON-004), if set. */
   nation?: string;
   banner?: string;
+  /** The clan they publish under, if any (BRDC-CLAN-001) — self-declared, exactly as
+   *  trusted-not-verified as `nation`/`banner` already are. */
+  clanId?: string;
   /** Their Keep — the Hearth cell, published (BRDC-CASTLE-001 reversal). */
   castle: H3Index | null;
   cells: WireCell[];
@@ -61,6 +64,9 @@ export interface WorldSource {
   /** Nation name and flag, threaded in from `es3:nation` at the app boundary. */
   nation?: string;
   banner?: string;
+  /** The clan this device is publishing under, threaded in from `es3:clan`
+   *  (BRDC-CLAN-001). */
+  clanId?: string;
   castle: H3Index | null;
   /**
    * h3, strength, and — when known — terrain and the border building. A full `Cell` is
@@ -85,6 +91,7 @@ export interface WorldSubmission {
   name: string;
   nation?: string;
   banner?: string;
+  clanId?: string;
   castle: H3Index | null;
   cells: WireCell[];
   level?: number;
@@ -108,6 +115,7 @@ export function buildSubmission(source: WorldSource): WorldSubmission {
     name: source.name,
     ...(source.nation ? { nation: source.nation } : {}),
     ...(source.banner ? { banner: source.banner } : {}),
+    ...(source.clanId ? { clanId: source.clanId } : {}),
     castle: source.castle,
     ...(source.level ? { level: source.level } : {}),
     ...(source.leyM ? { leyM: Math.round(source.leyM) } : {}),
@@ -161,6 +169,7 @@ export function parseSubmission(text: string): SubmissionParse {
       name: s.name,
       ...(s.nation ? { nation: s.nation } : {}),
       ...(s.banner ? { banner: s.banner } : {}),
+      ...(s.clanId ? { clanId: s.clanId } : {}),
       castle: s.castle ?? null,
       ...(typeof s.level === 'number' ? { level: s.level } : {}),
       ...(typeof s.leyM === 'number' ? { leyM: s.leyM } : {}),
@@ -181,6 +190,8 @@ export function parseSubmission(text: string): SubmissionParse {
 export interface WorldIdentity {
   nation?: string;
   banner?: string;
+  /** The clan to publish under, if this device has joined one (BRDC-CLAN-001). */
+  clanId?: string;
 }
 
 /** Assemble the local player's own ground for publishing. Mirrors `exportChallengeFrom`. */
@@ -197,6 +208,7 @@ export function worldSourceFrom(
     name: me.name,
     ...(identity.nation ? { nation: identity.nation } : {}),
     ...(identity.banner ? { banner: identity.banner } : {}),
+    ...(identity.clanId ? { clanId: identity.clanId } : {}),
     castle,
     ...(me.level ? { level: me.level } : {}),
     ...(leyM > 0 ? { leyM: Math.round(leyM) } : {}),

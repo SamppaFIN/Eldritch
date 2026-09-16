@@ -1,0 +1,97 @@
+/* Create or join a clan. Same sheet as HallOfFamePanel and CodexPanel. */
+
+.clan {
+  position: fixed;
+  inset-inline: max(var(--space-3), env(safe-area-inset-left))
+    max(var(--space-3), env(safe-area-inset-right));
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  z-index: var(--z-hud);
+  margin-inline: auto;
+  max-inline-size: 28rem;
+  max-block-size: calc(
+    100dvh - var(--hud-height, 12rem) - max(var(--space-3), env(safe-area-inset-top)) -
+      var(--space-3)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.clan__bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.clan__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+.clan__close {
+  flex: 0 0 auto;
+  min-inline-size: var(--touch-min);
+  min-block-size: var(--touch-min);
+  padding-inline: 0;
+}
+
+.clan__note {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-body);
+}
+
+.clan__code {
+  margin: 0;
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  letter-spacing: 0.1em;
+}
+
+.clan__hint {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.clan__toggle {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.clan__label {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.clan__input {
+  inline-size: 100%;
+  box-sizing: border-box;
+  min-block-size: var(--touch-min);
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-1, 6px);
+  background: var(--void-black);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  letter-spacing: 0.04em;
+}
+
+.clan__input:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.clan__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
