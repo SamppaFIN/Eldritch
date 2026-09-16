@@ -6,14 +6,16 @@
  * "new waypoint" announcement. The dialogue is opened from a hex — `questHex` is which one.
  */
 import { useMemo, useState } from 'react';
-import { siteCell, visibleQuestSites } from '@es3/core';
-import type { GameRepository, H3Index } from '@es3/core';
+import { hasWork, siteCell, visibleQuestSites } from '@es3/core';
+import type { Cell, GameRepository, H3Index } from '@es3/core';
 import { useAdventure } from './useAdventure.js';
 import type { AdventureBinding } from './useAdventure.js';
 import { useQuestFinds } from './useQuestFinds.js';
 import { useQuestWaypoint } from './useQuestWaypoint.js';
 import { atStageHex, questCellInfo } from './questCell.js';
 import type { QuestCellInfo } from './questCell.js';
+import { questBoardEntries } from './questBoard.js';
+import type { QuestBoardEntry } from './questBoard.js';
 
 export interface FumingLake {
   adventures: AdventureBinding;
@@ -27,6 +29,9 @@ export interface FumingLake {
   openQuestHex: (h3: H3Index | null) => void;
   /** True while the player stands on the hex the open stage is acted on (BRDC-QUEST-003). */
   atStageHex: boolean;
+  /** The Tavern's own board, for the selected cell — null off a Tavern hex, `[]` on one
+   *  with nothing under way (BRDC-TAVERN-001). */
+  board: readonly QuestBoardEntry[] | null;
 }
 
 export function useFumingLake(
@@ -36,6 +41,8 @@ export function useFumingLake(
   standingOn: H3Index | null,
   selected: H3Index | null,
   clearWaypointKey: number,
+  /** The selected cell itself, only to check for a Tavern — nothing else here reads it. */
+  selectedCell: Cell | null = null,
 ): FumingLake {
   const [questHex, setQuestHex] = useState<H3Index | null>(null);
   // The clock itself, not a reading taken during render: a fresh millisecond every render
@@ -58,6 +65,7 @@ export function useFumingLake(
     dismissFound: finds.dismiss,
     questHex,
     atStageHex: atStageHex(fuming, standingOn),
+    board: selectedCell && hasWork(selectedCell, 'tavern') ? questBoardEntries(adventures.list) : null,
     // Tapping the statue's action begins the tale and shows its first page in one step —
     // and only from the statue's own hex (BRDC-QUEST-003).
     openQuestHex: (h3: H3Index | null) => {

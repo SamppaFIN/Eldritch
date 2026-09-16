@@ -10,7 +10,8 @@
  * (not asserted by construction) — every claim in a comment here was run, not guessed.
  */
 import { describe, expect, it } from 'vitest';
-import { ironAdjacentTo } from './buildStore.js';
+import { ironAdjacentTo, tavernInProvince } from './buildStore.js';
+import { regionOf } from '../geo/cells.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
 const T0 = Date.parse('2026-09-16T12:00:00Z');
@@ -51,5 +52,27 @@ describe('ironAdjacentTo', () => {
   it('does not count a Mine on a cell that is not actually a neighbour', () => {
     const farAway = cell(NOT_A_NEIGHBOUR, { buildings: [{ id: 'mine', builtAt: T0 }] });
     expect(ironAdjacentTo(NO_MOUNTAIN_NEARBY, [farAway])).toBe(false);
+  });
+});
+
+/** A real res-11 hex in central Helsinki — confirmed (`cellToParent`, res 6) to fall in a
+ *  different province than all of Härmälänranta, which is small enough to be one. */
+const OTHER_PROVINCE = '8b1126d338dcfff' as H3Index;
+
+describe('tavernInProvince', () => {
+  it('is true once the player holds a Tavern anywhere in the same province', () => {
+    expect(regionOf(HILL_NEAR_MOUNTAIN)).toBe(regionOf(PLAIN_NEIGHBOUR));
+    const tavern = cell(PLAIN_NEIGHBOUR, { buildings: [{ id: 'tavern', builtAt: T0 }] });
+    expect(tavernInProvince(HILL_NEAR_MOUNTAIN, [tavern])).toBe(true);
+  });
+
+  it('is false for a Tavern in a different province', () => {
+    expect(regionOf(HILL_NEAR_MOUNTAIN)).not.toBe(regionOf(OTHER_PROVINCE));
+    const tavern = cell(OTHER_PROVINCE, { buildings: [{ id: 'tavern', builtAt: T0 }] });
+    expect(tavernInProvince(HILL_NEAR_MOUNTAIN, [tavern])).toBe(false);
+  });
+
+  it('is false with no Tavern at all', () => {
+    expect(tavernInProvince(HILL_NEAR_MOUNTAIN, [])).toBe(false);
   });
 });

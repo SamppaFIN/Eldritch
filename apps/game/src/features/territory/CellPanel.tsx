@@ -34,6 +34,7 @@ import { AnomalyPanel } from './AnomalyPanel.js';
 import { TradePost, VillageNote } from './TradePost.js';
 import { QuestCellPanel } from '../quest/QuestCellPanel.js';
 import type { QuestCellInfo } from '../quest/questCell.js';
+import type { QuestBoardEntry } from '../quest/questBoard.js';
 import type { AnomalyBinding } from './useAnomaly.js';
 import type { BuildBinding, PlaceBinding, ResearchBinding, TradeBinding } from './useSelection.js';
 import type { SpellBinding } from './useSpells.js';
@@ -67,6 +68,9 @@ export interface CellPanelProps {
   /** The Fuming Lake on this hex, if it has a step or a landmark here (BRDC-QUEST-002). */
   quest?: QuestCellInfo | null;
   onQuestOpen?: () => void;
+  /** The Tavern's own board, on the Tavern's own cell — `null` everywhere else, `[]` on a
+   *  Tavern with nothing under way (BRDC-TAVERN-001). */
+  questBoard?: readonly QuestBoardEntry[] | null;
   /** Cells the player has revealed, and the reveal action (BRDC-CLAIM-009). */
   revealed?: Readonly<Record<string, number>>;
   onReveal?: (h3: string) => void;
@@ -114,6 +118,7 @@ export function CellPanel({
   city,
   quest,
   onQuestOpen,
+  questBoard,
   revealed,
   onReveal,
   research,
@@ -318,6 +323,23 @@ export function CellPanel({
       {city?.village ? <VillageNote city={city.village.city} steps={city.village.steps} /> : null}
 
       {quest ? <QuestCellPanel info={quest} onOpen={onQuestOpen ?? (() => {})} /> : null}
+
+      {questBoard ? (
+        <div className="cell-panel__board">
+          <p className="cell-panel__board-title">The quest board</p>
+          {questBoard.length > 0 ? (
+            <ul className="cell-panel__board-list">
+              {questBoard.map((q) => (
+                <li key={q.title}>
+                  {q.title} — {q.step}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="cell-panel__note">Nothing under way.</p>
+          )}
+        </div>
+      ) : null}
 
       {refusal ? (
         <p className="cell-panel__refusal" role="status">

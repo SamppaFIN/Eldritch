@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.33",
+    "date": "2026-09-16",
+    "notes": [
+      "New building: the Tavern. Settlement or trade ground, +2 gold and +1 culture an hour, one per province — and it holds the quest board: stand on it to see every tale you have under way and where its next step is, so a quest is no longer something you can only stumble back into.",
+      "Starting a tale at its own site (the statue, for now) still works exactly as before — the board is a second way to see it, not a replacement."
+    ]
+  },
+  {
     "version": "0.6.32",
     "date": "2026-09-16",
     "notes": [

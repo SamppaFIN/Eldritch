@@ -69,7 +69,7 @@ describe('BUILDINGS is well-formed', () => {
       [
         'granary', 'market', 'monument', 'storehouse',
         'sawmill', 'lumbermill', 'mine', 'quarry', 'farm', 'fishery', 'vineyard',
-        'library', 'temple-grove', 'lighthouse', 'fortress', 'forge',
+        'library', 'temple-grove', 'lighthouse', 'fortress', 'forge', 'tavern',
       ].sort(),
     );
   });
@@ -158,6 +158,15 @@ describe('canBuild refuses in order of how fundamental the objection is', () => 
     const hill = cell({ terrain: { kind: 'hill', source: 'tiles' } });
     expect(canBuild(loaded, 'forge', hill)).toEqual({ ok: false, refused: 'needs-iron-nearby' });
     expect(canBuild({ ...loaded, ironAdjacent: true }, 'forge', hill)).toEqual({ ok: true });
+  });
+
+  it('one-per-province for the Tavern when the player already holds one there (BRDC-TAVERN-001)', () => {
+    const settlement = cell({ terrain: { kind: 'settlement', source: 'tiles' } });
+    expect(canBuild({ ...loaded, tavernInProvince: true }, 'tavern', settlement)).toEqual({
+      ok: false,
+      refused: 'one-per-province',
+    });
+    expect(canBuild(loaded, 'tavern', settlement)).toEqual({ ok: true });
   });
 
   /*

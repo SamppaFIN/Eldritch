@@ -46,6 +46,8 @@ export interface Building {
   needsPlace?: 'temple';
   /** Must have an iron-yielding neighbour — the Forge's own gate (BRDC-BUILD-013). */
   needsIronAdjacent?: boolean;
+  /** Only one may stand per province (res-6 region) — the Tavern's own gate (BRDC-TAVERN-001). */
+  uniquePerProvince?: boolean;
 }
 
 export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
@@ -184,6 +186,17 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     needsIronAdjacent: true,
     produces: { iron: 2 },
   },
+  // BRDC-TAVERN-001 (Worldseed's own): the quest board. No tech gate in the document —
+  // Market, its closest kin, has none either. Cost is this ticket's own call (the document
+  // gives none): priced a step above Market's, since it pays a second resource on top.
+  tavern: {
+    cost: { wood: 40, gold: 30 },
+    terrain: ['settlement', 'market'],
+    tech: null,
+    requires: [],
+    uniquePerProvince: true,
+    produces: { gold: 2, culture: 1 },
+  },
 };
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
@@ -302,6 +315,7 @@ export type BuildRefusal =
   | 'locked'
   | 'needs-a-temple'
   | 'needs-iron-nearby'
+  | 'one-per-province'
   | 'cell-full'
   | 'cannot-afford';
 
@@ -315,6 +329,8 @@ export interface BuildContext {
   templeAdjacent?: boolean;
   /** Is a hill (or a Mine) within one ring? Gates the Forge (BRDC-BUILD-013). */
   ironAdjacent?: boolean;
+  /** Does the player already hold a Tavern in this cell's province? (BRDC-TAVERN-001). */
+  tavernInProvince?: boolean;
 }
 
 export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
@@ -350,6 +366,11 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   // The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — a hill within one ring.
   if (b.needsIronAdjacent && !ctx.ironAdjacent) {
     return { ok: false, refused: 'needs-iron-nearby' };
+  }
+  // The Tavern's own gate (BRDC-TAVERN-001): one per province, so the quest board stays a
+  // landmark to walk to rather than something every settlement hex quietly grows.
+  if (b.uniquePerProvince && ctx.tavernInProvince) {
+    return { ok: false, refused: 'one-per-province' };
   }
   // An upgrade takes the slot it replaces, so it does not run into the cap.
   if (!upgrading && here.length >= CELL_BUILDING_CAP) {

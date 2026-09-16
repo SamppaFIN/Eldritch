@@ -54,6 +54,9 @@ const CAP: Readonly<Record<BuildingId, string>> = {
   // An anvil (top plate + narrow base) under a small forge-flame — distinct from mine's
   // pick-arc and quarry's stepped terrace.
   forge: '<path d="M18 18 L46 18 L40 24 L24 24 Z" fill="{{f}}"/><rect x="28" y="24" width="8" height="6" fill="{{d}}"/><path d="M32 2 Q37 9 32 14 Q27 9 32 2 Z" fill="{{f}}"/>',
+  // A gabled roof over a lit window, with a small ornament at the ridge — a house you would
+  // walk into, distinct from Market's wide canopy and Granary's silo dome.
+  tavern: '<path d="M20 20 L32 8 L44 20 Z" fill="{{f}}"/><rect x="25" y="20" width="14" height="7" fill="{{d}}"/><circle cx="32" cy="6" r="2" fill="{{f}}"/>',
 };
 
 /** The shared isometric block: a top rhombus and two side faces, y 16–56. */

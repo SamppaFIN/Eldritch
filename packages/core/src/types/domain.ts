@@ -86,7 +86,9 @@ export type BuildingId =
   // BRDC-BUILD-004: the defensive aura
   | 'fortress'
   // BRDC-BUILD-013: Worldseed's forge. Watchtower is not here yet — see that ticket.
-  | 'forge';
+  | 'forge'
+  // BRDC-TAVERN-001: Worldseed's tavern — the quest board.
+  | 'tavern';
 
 /** One Work standing on a cell, and when it went up. */
 export interface CellBuilding {

@@ -344,3 +344,23 @@
   font-size: var(--text-sm);
 }
 
+/* The Tavern's own board (BRDC-TAVERN-001) — same bordered-section shape as `__place`. */
+.cell-panel__board {
+  margin-block-start: var(--space-2);
+  border-block-start: 1px solid var(--glass-border);
+  padding-block-start: var(--space-2);
+}
+
+.cell-panel__board-title {
+  margin: 0 0 var(--space-1);
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}
+
+.cell-panel__board-list {
+  margin: 0;
+  padding-inline-start: 1.1em;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+

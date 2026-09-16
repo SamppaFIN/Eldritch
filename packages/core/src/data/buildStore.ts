@@ -12,7 +12,7 @@ import { spend, terrainOf } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { projectCell } from '../rules/decay.js';
 import { underFortressAt } from './cellStore.js';
-import { neighboursOf } from '../geo/cells.js';
+import { neighboursOf, regionOf } from '../geo/cells.js';
 import type { TechId } from '../rules/tech.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
@@ -30,6 +30,14 @@ export function ironAdjacentTo(h3: H3Index, owned: readonly Cell[]): boolean {
   return neighboursOf(h3).some(
     (n) => terrainOf(n).kind === 'mountain' || owned.some((c) => c.h3 === n && hasWork(c, 'mine')),
   );
+}
+
+/** The Tavern's own gate (BRDC-TAVERN-001): true when the player already holds a Tavern
+ *  somewhere in this hex's res-6 province — "province" is the same grouping BRDC-NATION-001
+ *  already uses for the realm's provinces, not a new concept. */
+export function tavernInProvince(h3: H3Index, owned: readonly Cell[]): boolean {
+  const province = regionOf(h3);
+  return owned.some((c) => regionOf(c.h3) === province && hasWork(c, 'tavern'));
 }
 
 export type BuildOutcome = { ok: true; cell: Cell } | { ok: false; refused: BuildRefusal };
@@ -52,6 +60,7 @@ export async function buildOn(
   now: number,
   templeAdjacent = false,
   ironAdjacent = false,
+  tavernInProvince = false,
 ): Promise<BuildOutcome> {
   const stored = await store.get<Cell>(K.cell(h3));
   // A long-unwalked hex under a Fortress is still held (BRDC-BUILD-012).
@@ -60,7 +69,15 @@ export async function buildOn(
 
   const state = await settlePouch(store, owned, now);
   const check = canBuild(
-    { playerId: me, researched, pool: state.pool, buildings: buildingsOf(owned), templeAdjacent, ironAdjacent },
+    {
+      playerId: me,
+      researched,
+      pool: state.pool,
+      buildings: buildingsOf(owned),
+      templeAdjacent,
+      ironAdjacent,
+      tavernInProvince,
+    },
     id,
     live,
   );

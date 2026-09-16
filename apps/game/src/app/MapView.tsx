@@ -187,7 +187,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const sheetOpen =
     inspect.selected !== null || inspect.sanctum || inspect.researchOpen || aside.anyOpen;
 
-  const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0);
+  const quest = useFumingLake(repository, clock.now, territory.owned.length, standingOn, inspect.selected, territory.lastClaim?.at ?? 0, inspect.cell);
   const cipher = useCipher(repository, standingOn, clock.now, trail.points.length);
   useMomentTriggers({ show: moments.show, xp: profile?.xp, riteLearned: inspect.research.lastRite, questEnded: quest.adventures.justEnded });
 
@@ -298,7 +298,7 @@ export function MapView({ onLeave }: MapViewProps) {
         trade={inspect.trade}
         build={inspect.build}
         anomaly={inspect.anomaly}
-        quest={quest.questCell}
+        quest={quest.questCell} questBoard={quest.board}
         city={inspect.city}
         onQuestOpen={() => quest.openQuestHex(inspect.selected)}
         revealed={discovery.revealed}
