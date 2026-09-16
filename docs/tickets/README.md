@@ -173,6 +173,20 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | [BRDC-HALL-001](BRDC-HALL-001.md) | ✅ Retire Kingdom: arkistoi ennen pyyhkäisyä, Hall of Fame | L | PERSIST-002, CODEX-001, NATION-001 |
 | [BRDC-HALL-002](BRDC-HALL-002.md) | ✅ Retiroinnin palkinto: AI-tarina Workerista, paikallinen varatarina aina | M | HALL-001, SHARE-003 |
 
+**Multiplayer: klaanit ja identiteetti (2026-09-17, suunnitelmavaihe):** Infiniten pyyntö
+— käyttäjien itse sopimat klaanit, klaanit keskenään, ja identiteetin säilyminen laitteen
+vaihdon yli — kaikki ilman uutta tietokantaa, samalla Cloudflare Workerilla joka jo ajaa
+jaettua maailmaa (`BRDC-SHARE-003`). Ei yhtään tikettiä vielä toteutettu; RED/GREEN
+kirjoitettu, käydään läpi ennen koodia. Järjestys: CLAN-001 (perusta) → CLAN-002
+(klaani-Codex) → CLAN-003 (hallinta); IDENTITY-001 on itsenäinen, ei riipu CLAN-sarjasta.
+
+| ID | Nimi | Effort | Riippuvuudet |
+|---|---|:---:|---|
+| [BRDC-CLAN-001](BRDC-CLAN-001.md) | ⬜ Luonnos: klaanin luonti, liittyminen, `clanId` julkaisussa | M | SHARE-003 |
+| [BRDC-CLAN-002](BRDC-CLAN-002.md) | ⬜ Luonnos: klaani-Codex — klaanit keskenään | M | CLAN-001 |
+| [BRDC-CLAN-003](BRDC-CLAN-003.md) | ⬜ Luonnos: klaanihallinta — perustajan token, nimeäminen, poisto | S–M | CLAN-001 |
+| [BRDC-IDENTITY-001](BRDC-IDENTITY-001.md) | ⬜ Luonnos: palautuskoodi — sama nimi ja klaani uudella laitteella | S | SHARE-003 |
+
 **Worldseed-integraatio (2026-09-16):** Infiniten päivitetyt design-dokumentit
 (`Eldritch-pelin uusi design systeemi/handoff/`) tuovat Härmälänrannan siemendatan,
 7 maastolajia, 28 bonusresurssia, kaksi uutta rakennusta ja yhdeksän paikallista ihmettä.
