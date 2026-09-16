@@ -23,6 +23,7 @@ export const BUILDING_NAME: Readonly<Record<BuildingId, string>> = {
   'temple-grove': 'Temple Grove',
   lighthouse: 'Lighthouse',
   fortress: 'Fortress',
+  forge: 'Forge',
 };
 
 export const SPELL_NAME: Readonly<Record<SpellId, string>> = {

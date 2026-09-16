@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.31",
+    "date": "2026-09-16",
+    "notes": [
+      "New building: the Forge. Needs Toolmaking and a hill or settlement hex with iron in reach — a natural mountain next door, or your own Mine standing there — and turns that iron into +2 more per hour.",
+      "Its partner, the Watchtower, is not buildable yet: its two promised effects (permanent fog-clearing, and halving a rival's siege) don't exist as mechanics anywhere in the game yet, and one of the open questions — whether it should stack with the Fortress — is a balance call, not a bug fix."
+    ]
+  },
+  {
     "version": "0.6.30",
     "date": "2026-09-16",
     "notes": [

@@ -51,6 +51,9 @@ const CAP: Readonly<Record<BuildingId, string>> = {
   'temple-grove': '<path d="M32 2 L44 22 L20 22 Z" fill="{{f}}"/><rect x="29" y="20" width="6" height="6" fill="{{d}}"/>',
   lighthouse: '<path d="M26 22 L28 4 L36 4 L38 22 Z" fill="{{f}}"/><path d="M12 8 L24 6 M52 8 L40 6" stroke="{{d}}" stroke-width="2"/>',
   fortress: '<path d="M16 22 v-10 h5 v5 h5 v-5 h5 v5 h5 v-5 h5 v10 Z" fill="{{f}}"/>',
+  // An anvil (top plate + narrow base) under a small forge-flame — distinct from mine's
+  // pick-arc and quarry's stepped terrace.
+  forge: '<path d="M18 18 L46 18 L40 24 L24 24 Z" fill="{{f}}"/><rect x="28" y="24" width="8" height="6" fill="{{d}}"/><path d="M32 2 Q37 9 32 14 Q27 9 32 2 Z" fill="{{f}}"/>',
 };
 
 /** The shared isometric block: a top rhombus and two side faces, y 16–56. */

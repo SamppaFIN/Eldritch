@@ -23,7 +23,7 @@ import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk, type WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
-import { buildOn, demolishOn, type BuildOutcome, type DemolishOutcome } from './buildStore.js';
+import { buildOn, demolishOn, ironAdjacentTo, type BuildOutcome, type DemolishOutcome } from './buildStore.js';
 import { takeRazed } from './razedStore.js';
 import { cityAtDoor, tradeAt } from './cityStateStore.js';
 import type { CityState } from '../rules/cityState.js';
@@ -162,7 +162,7 @@ export class MockRepository implements GameRepository {
     const nearTemple = (await this.getPlaces()).some((p) => near.includes(p.h3));
     const me = (await this.getProfile()).id;
     const owned = await this.getOwnedCells(now);
-    return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple);
+    return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple, ironAdjacentTo(h3, owned));
   }
 
   async demolish(h3: H3Index, now: number, id?: BuildingId): Promise<DemolishOutcome> {

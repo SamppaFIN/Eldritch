@@ -29,6 +29,7 @@ export const BUILDING_ROLE: Readonly<Record<BuildingId, BuildingRole>> = {
   fortress: 'defence',
   monument: 'culture',
   vineyard: 'culture',
+  forge: 'produce',
 };
 
 /**

@@ -6,18 +6,31 @@
  * does not grow two more verbs inline. `wardWith` in pouch.js is the shape: settle the
  * pouch, ask the rule, and write only on success.
  */
-import { BUILDINGS, buildCost, buildingsOf, canBuild, refund, worksOn } from '../rules/build.js';
+import { BUILDINGS, buildCost, buildingsOf, canBuild, hasWork, refund, worksOn } from '../rules/build.js';
 import type { BuildRefusal, BuildingId } from '../rules/build.js';
-import { spend } from '../rules/terrain.js';
+import { spend, terrainOf } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { projectCell } from '../rules/decay.js';
 import { underFortressAt } from './cellStore.js';
+import { neighboursOf } from '../geo/cells.js';
 import type { TechId } from '../rules/tech.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
-import type { Cell, PlayerId } from '../types/domain.js';
+import type { Cell, H3Index, PlayerId } from '../types/domain.js';
+
+/**
+ * The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — a mountain within one ring, or
+ * a Mine already standing on one. A hill within reach counts whether the player owns it or
+ * not (iron in the ground does not care who holds the deed); a Mine only counts once it is
+ * actually built, so it has to be the player's own.
+ */
+export function ironAdjacentTo(h3: H3Index, owned: readonly Cell[]): boolean {
+  return neighboursOf(h3).some(
+    (n) => terrainOf(n).kind === 'mountain' || owned.some((c) => c.h3 === n && hasWork(c, 'mine')),
+  );
+}
 
 export type BuildOutcome = { ok: true; cell: Cell } | { ok: false; refused: BuildRefusal };
 export type DemolishOutcome = { ok: true; cell: Cell } | { ok: false; refused: 'nothing-here' };
@@ -38,6 +51,7 @@ export async function buildOn(
   researched: readonly TechId[],
   now: number,
   templeAdjacent = false,
+  ironAdjacent = false,
 ): Promise<BuildOutcome> {
   const stored = await store.get<Cell>(K.cell(h3));
   // A long-unwalked hex under a Fortress is still held (BRDC-BUILD-012).
@@ -46,7 +60,7 @@ export async function buildOn(
 
   const state = await settlePouch(store, owned, now);
   const check = canBuild(
-    { playerId: me, researched, pool: state.pool, buildings: buildingsOf(owned), templeAdjacent },
+    { playerId: me, researched, pool: state.pool, buildings: buildingsOf(owned), templeAdjacent, ironAdjacent },
     id,
     live,
   );

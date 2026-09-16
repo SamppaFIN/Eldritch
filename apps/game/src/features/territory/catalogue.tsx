@@ -59,6 +59,7 @@ export const BUILDING_BLURB: Readonly<Record<BuildingId, string>> = {
   'temple-grove': 'Consecrated trees that raise mana in the ground nearby.',
   lighthouse: 'Its light reaches the water; boats come back with more.',
   fortress: 'Blunts every attack on the ground around it.',
+  forge: 'Iron worked hot, beside the hill or the mine that feeds it.',
 };
 
 /** The one Rite each school leads to. Every value's `SPELLS[v].school` is its own key

@@ -189,7 +189,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-RES-002](BRDC-RES-002.md) | Resurssien ja rakennelmien kuvat | M | RES-001, TERRAIN-005 |
 | [BRDC-LANDMARK-001](BRDC-LANDMARK-001.md) | 🔶 Maamerkit: talous ja kortti tehty, kartan merkki auki | M | SEED-002, SEED-001 |
 | [BRDC-TAVERN-001](BRDC-TAVERN-001.md) | Taverna ja tehtävätaulu | M | TERRAIN-005, QUEST-006, RES-001 |
-| [BRDC-BUILD-013](BRDC-BUILD-013.md) | Forge ja Watchtower | M | TERRAIN-005, BUILD-012 |
+| [BRDC-BUILD-013](BRDC-BUILD-013.md) | 🔶 Forge rakennettavissa; Watchtower ei — kaksi puuttuvaa mekaniikkaa | M | TERRAIN-005, BUILD-012 |
 | [BRDC-WONDER-002](BRDC-WONDER-002.md) | 🔶 Härmälän 9 ihmettä: perusta + sijoitus (5/9), vaikutukset auki | L | SEED-003, TERRAIN-005, LANDMARK-001 |
 | [BRDC-QUEST-006](BRDC-QUEST-006.md) | 🔶 Seikkailu heksan parametrina (pikakorjaus tehty) | M | SEED-004 (pikakorjaus ei vaadi) |
 | [BRDC-CARD-001](BRDC-CARD-001.md) | HERE-kortti mallin mukaan | M | SEED-004 |

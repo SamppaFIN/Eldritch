@@ -71,6 +71,8 @@ describe('techUnlocks', () => {
     expect(techUnlocks('forestry')).toBe('Unlocks Sawmill and Lumbermill');
     expect(techUnlocks('smithing')).toBe('Unlocks the Forgeheart rite');
     expect(techUnlocks('astronomy')).toBe('Unlocks Library and the Insight rite');
-    expect(techUnlocks('toolmaking')).toBe('Leads to Masonry and Mining');
+    // BRDC-BUILD-013: toolmaking now unlocks the Forge directly, so it no longer falls
+    // back to naming the techs it leads to — the same rule forestry already follows.
+    expect(techUnlocks('toolmaking')).toBe('Unlocks Forge');
   });
 });

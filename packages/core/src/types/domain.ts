@@ -84,7 +84,9 @@ export type BuildingId =
   | 'temple-grove'
   | 'lighthouse'
   // BRDC-BUILD-004: the defensive aura
-  | 'fortress';
+  | 'fortress'
+  // BRDC-BUILD-013: Worldseed's forge. Watchtower is not here yet — see that ticket.
+  | 'forge';
 
 /** One Work standing on a cell, and when it went up. */
 export interface CellBuilding {

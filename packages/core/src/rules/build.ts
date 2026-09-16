@@ -44,6 +44,8 @@ export interface Building {
   aura?: { kind: AuraKind; radius: number; amount: number };
   /** Must be built next to a revealed place of this kind (BRDC-BUILD-003). */
   needsPlace?: 'temple';
+  /** Must have an iron-yielding neighbour — the Forge's own gate (BRDC-BUILD-013). */
+  needsIronAdjacent?: boolean;
 }
 
 export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
@@ -168,6 +170,20 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     requires: [],
     aura: { kind: 'defence', radius: 1, amount: 30 },
   },
+  // BRDC-BUILD-013 (Worldseed's own): needs a hill or settlement, and iron next door — a
+  // Mine's own ground counts, so does a bare mountain hex, owned or not. Worldseed's
+  // Watchtower is not here: its two effects (a permanent reveal radius, halving a rival's
+  // siege) are both new systems this ticket's own RED said to measure before switching
+  // on, and the siege half raises a real balance question ("does it stack with a
+  // Fortress?") this ticket leaves open for Infinite rather than assuming.
+  forge: {
+    cost: { wood: 30, stone: 40 },
+    terrain: ['hill', 'settlement'],
+    tech: 'toolmaking',
+    requires: [],
+    needsIronAdjacent: true,
+    produces: { iron: 2 },
+  },
 };
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
@@ -285,6 +301,7 @@ export type BuildRefusal =
   | 'wrong-terrain'
   | 'locked'
   | 'needs-a-temple'
+  | 'needs-iron-nearby'
   | 'cell-full'
   | 'cannot-afford';
 
@@ -296,6 +313,8 @@ export interface BuildContext {
   buildings: readonly BuildingId[];
   /** Is the target cell on or next to a revealed temple? Gates Library and Temple Grove. */
   templeAdjacent?: boolean;
+  /** Is a hill (or a Mine) within one ring? Gates the Forge (BRDC-BUILD-013). */
+  ironAdjacent?: boolean;
 }
 
 export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
@@ -327,6 +346,10 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   // The dwell gate (BRDC-BUILD-003): a Library or Temple Grove needs a temple beside it.
   if (b.needsPlace === 'temple' && !ctx.templeAdjacent) {
     return { ok: false, refused: 'needs-a-temple' };
+  }
+  // The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — a hill within one ring.
+  if (b.needsIronAdjacent && !ctx.ironAdjacent) {
+    return { ok: false, refused: 'needs-iron-nearby' };
   }
   // An upgrade takes the slot it replaces, so it does not run into the cap.
   if (!upgrading && here.length >= CELL_BUILDING_CAP) {

@@ -69,7 +69,7 @@ describe('BUILDINGS is well-formed', () => {
       [
         'granary', 'market', 'monument', 'storehouse',
         'sawmill', 'lumbermill', 'mine', 'quarry', 'farm', 'fishery', 'vineyard',
-        'library', 'temple-grove', 'lighthouse', 'fortress',
+        'library', 'temple-grove', 'lighthouse', 'fortress', 'forge',
       ].sort(),
     );
   });
@@ -152,6 +152,12 @@ describe('canBuild refuses in order of how fundamental the objection is', () => 
     const plain = cell({ terrain: { kind: 'plain', source: 'tiles' } });
     expect(canBuild(loaded, 'temple-grove', plain)).toEqual({ ok: false, refused: 'needs-a-temple' });
     expect(canBuild({ ...loaded, templeAdjacent: true }, 'temple-grove', plain)).toEqual({ ok: true });
+  });
+
+  it('needs-iron-nearby for the Forge with no hill or Mine in reach (BRDC-BUILD-013)', () => {
+    const hill = cell({ terrain: { kind: 'hill', source: 'tiles' } });
+    expect(canBuild(loaded, 'forge', hill)).toEqual({ ok: false, refused: 'needs-iron-nearby' });
+    expect(canBuild({ ...loaded, ironAdjacent: true }, 'forge', hill)).toEqual({ ok: true });
   });
 
   /*
