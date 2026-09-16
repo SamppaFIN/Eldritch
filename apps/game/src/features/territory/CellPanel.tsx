@@ -198,7 +198,7 @@ export function CellPanel({
         </p>
       ) : null}
 
-      <CellWorth cell={cell} now={now} showDetail={showDetail} />
+      <CellWorth cell={cell} now={now} showDetail={showDetail} fortified={build?.fortified ?? false} />
 
       {/* A named place says what it produces — "where mana comes from" is readable here,
           per source (BRDC-MANA-001); the HUD carries the total. */}

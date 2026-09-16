@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.34",
+    "date": "2026-09-16",
+    "notes": [
+      "The cell card no longer lies about ground it borders: a hex next to your Fortress now correctly says the Void has no claim on it, instead of counting down like any ordinary hex.",
+      "The ground's chip row now says Surveyed, or a plain \"?\" when the map is honestly guessing rather than reporting a real survey — replacing the old \"(estimated)\" caption nobody could act on."
+    ]
+  },
+  {
     "version": "0.6.33",
     "date": "2026-09-16",
     "notes": [

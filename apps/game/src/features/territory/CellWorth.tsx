@@ -17,7 +17,6 @@ import {
   hoursUntilReleased,
   isCityState,
   resourceForCell,
-  worksOn,
 } from '@es3/core';
 import type { Cell } from '@es3/core';
 import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
@@ -39,13 +38,13 @@ export interface CellWorthProps {
   now: number;
   /** Show the strength bar and decay clock — off for a rival cell you have not scouted. */
   showDetail: boolean;
+  /** On the Fortress's own hex, or one of the seven it protects (BRDC-BUILD-012,
+   *  BRDC-CARD-001 — the neighbour-hex card used to have no way to know this). */
+  fortified: boolean;
 }
 
-export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
+export function CellWorth({ cell, now, showDetail, fortified }: CellWorthProps) {
   const resource = resourceForCell(cell);
-  // A Fortress on this very hex protects it (BRDC-BUILD-012). Neighbours it protects
-  // cannot be told apart from here: this panel is handed one cell.
-  const standsFortress = worksOn(cell).some((w) => w.id === 'fortress');
   return (
     <>
       <dl className="cell-panel__worth">
@@ -92,7 +91,7 @@ export function CellWorth({ cell, now, showDetail }: CellWorthProps) {
               never rots is a lie with a number on it (BRDC-DIPLO-001, BRDC-LANDS-001). */}
           {isCityState(cell.ownerId) ? (
             <p className="cell-panel__decay">Held for good — the Void has no claim here.</p>
-          ) : standsFortress ? (
+          ) : fortified ? (
             <p className="cell-panel__decay">
               {cell.breachedOn
                 ? 'Its Fortress is breached. Broken through again on another day, it falls.'

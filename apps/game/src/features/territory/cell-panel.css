@@ -53,14 +53,6 @@
   font-family: var(--font-body);
 }
 
-/* Whether the terrain was read from the map or guessed (BRDC-TERRAIN-002). */
-.cell-panel__source {
-  color: var(--text-dim);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-normal);
-}
-
 /* The resource banner beneath the head — colour set inline, per resource (BRDC-DETAIL-001). */
 .cell-panel__yield {
   color: var(--text-dim);
@@ -105,6 +97,14 @@
 .cell-panel__tag--here {
   background: color-mix(in oklch, var(--accent) 24%, transparent);
   color: var(--accent);
+}
+
+/* "The map admits it does not know" (BRDC-CARD-001) — quieter than the ownership chips,
+   since this is a caveat about the reading, not a fact about the ground. */
+.cell-panel__tag--unsure {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid color-mix(in oklch, var(--text) 30%, transparent);
 }
 
 .cell-panel__visits {

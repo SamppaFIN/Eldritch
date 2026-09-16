@@ -6,7 +6,7 @@
  * and it reads better here — nothing else in the map screen needs to know how it works.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BUILDINGS, buildingsOf, cellsWithin, emptyCell, hasWork, worksOn } from '@es3/core';
+import { BUILDINGS, buildingsOf, cellsWithin, emptyCell, fortified, hasWork, worksOn } from '@es3/core';
 import type {
   BuildRefusal,
   BuildingId,
@@ -55,6 +55,9 @@ export interface BuildBinding {
   refusal: BuildFail | null;
   onBuild: (h3: H3Index, id: BuildingId) => void;
   onDemolish: (h3: H3Index, id: BuildingId) => void;
+  /** True on the Fortress's own hex or one of the seven it protects (BRDC-BUILD-012's own
+   *  remaining gap — the neighbour-hex card used to have no way to know this). */
+  fortified: boolean;
 }
 
 /**
@@ -166,6 +169,9 @@ export function useSelection({
   // must not count against the cap (BRDC-BUILD-007 field bug: a Wager from a builder made
   // it impossible to build anything). An off-screen building can still under-count; fine.
   const myBuildings = useMemo(() => buildingsOf(cells.filter((c) => !c.imported)), [cells]);
+  // The cells already in view are enough to answer "is a Fortress within reach" for a
+  // card, the same trust `templeAdjacent` already places in what is loaded (BRDC-CARD-001).
+  const known = useMemo(() => new Map(cells.map((c) => [c.h3, c])), [cells]);
 
   const [sanctum, setSanctum] = useState(false);
   const [wager, setWager] = useState(false);
@@ -340,7 +346,14 @@ export function useSelection({
     sanctum,
     wager,
     researchOpen,
-    build: { researched: research.researched, myBuildings, refusal: buildRefusal, onBuild, onDemolish },
+    build: {
+      researched: research.researched,
+      myBuildings,
+      refusal: buildRefusal,
+      onBuild,
+      onDemolish,
+      fortified: cell ? fortified(known, cell.h3) : false,
+    },
     onCellTap,
     onPlaceTap,
     onCastleTap,
