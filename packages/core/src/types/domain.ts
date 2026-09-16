@@ -48,7 +48,12 @@ export type TerrainKind =
   | 'mountain'
   | 'lake'
   | 'coast'
-  | 'market';
+  | 'market'
+  // BRDC-TERRAIN-005: Worldseed's two new terrains, added alongside the seven above rather
+  // than replacing any of them (BRDC-SEED-000 D1) — 'water'/'trade' are its names for
+  // lake+coast/market and are folded onto those at classification time, never stored.
+  | 'marsh'
+  | 'settlement';
 
 /** Whether a cell's terrain was read from the map's vector tiles or stood in by a hash. */
 export type TerrainSource = 'tiles' | 'hash' | 'seed';

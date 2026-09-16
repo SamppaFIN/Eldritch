@@ -87,6 +87,11 @@ export const TERRAIN_TABLE: Readonly<
   lake: { resource: 'food', buildSites: ['fishery'] },
   coast: { resource: 'food', buildSites: ['fishery', 'harbour'] },
   market: { resource: 'gold', buildSites: ['market'] },
+  // BRDC-TERRAIN-005. Worldseed's own description pays settlement in gold *and* culture —
+  // this table gives one resource per terrain everywhere else, so settlement is gold for
+  // now and the culture half is a flagged gap, not a silent decision (ticket's GREEN).
+  marsh: { resource: 'food', buildSites: [] },
+  settlement: { resource: 'gold', buildSites: ['market'] },
 };
 
 /** Paid once, the moment a producing cell changes hands. Never capped — see spend below. */

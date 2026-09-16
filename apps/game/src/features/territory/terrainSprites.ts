@@ -53,6 +53,13 @@ const tree = (x: number, y: number, s: number): string =>
   `<path d="M${x},${y} l${-s},${-s * 2.3} l${s},${-0.7 * s} l${s},${0.7 * s} z" fill="${TIMBER}"/>` +
   `<path d="M${x},${y} l${s},${-s * 2.3} l${-s},${-0.7 * s} z" fill="#000" fill-opacity=".35"/>`;
 
+/** A little roofed house — BRDC-TERRAIN-005's settlement topper, three strokes: body,
+ *  roof, and the same shading `block` uses so it sits on the plinth the same way. */
+const house = (x: number, y: number, s: number): string =>
+  `<path d="M${x - s},${y} L${x + s},${y} L${x + s},${y - s} L${x - s},${y - s} Z" fill="#c9877a"/>` +
+  `<path d="M${x - s - 1},${y - s} L${x},${y - s - s * 0.8} L${x + s + 1},${y - s} Z" fill="#8a3a30"/>` +
+  `<path d="M${x - s},${y} L${x + s},${y} L${x + s},${y - s} L${x - s},${y - s} Z" fill="#000" fill-opacity=".18"/>`;
+
 /**
  * What stands on each plinth. The plinth's own colour is the ground; the topper is what
  * the ground *is*.
@@ -79,6 +86,13 @@ const TILE: Readonly<Record<TerrainKind, string>> = {
     <g stroke="#5a4a2a" stroke-width="2.2" stroke-linecap="round">
     <path d="M16,32 l0,9"/><path d="M48,32 l0,9"/><path d="M32,41 l0,8"/></g>
     <circle cx="32" cy="31" r="2.6" fill="#fff" fill-opacity=".6"/>`,
+  // BRDC-TERRAIN-005 — a water pool with reeds standing in it, no model in either design
+  // document (the doc itself has no marsh tile).
+  marsh: `${plinth('#233d38')}<path d="M26,42 L38,42 L34,48 L30,48 Z" fill="${WATER}" fill-opacity=".35"/>
+    <g stroke="#3fcf9a" stroke-width="1.4" stroke-linecap="round" opacity=".9">
+    <path d="M20,40 l-1,-6"/><path d="M20,40 l2,-5"/><path d="M44,39 l-1,-6"/><path d="M44,39 l2,-5"/></g>`,
+  // Red-toned per the document's own pen law (§02: "red pen = built-up housing").
+  settlement: `${plinth('#3a2422')}${house(23, 40, 6)}${house(40, 43, 5)}`,
 };
 
 export const TERRAIN_KINDS = Object.keys(TILE) as TerrainKind[];

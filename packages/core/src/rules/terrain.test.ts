@@ -110,13 +110,29 @@ describe('terrainOf', () => {
 
 describe('TERRAIN_TABLE', () => {
   it('has a resource and build sites for every kind', () => {
-    const kinds: TerrainKind[] = ['plain', 'forest', 'hill', 'mountain', 'lake', 'coast', 'market'];
+    const kinds: TerrainKind[] = [
+      'plain',
+      'forest',
+      'hill',
+      'mountain',
+      'lake',
+      'coast',
+      'market',
+      'marsh',
+      'settlement',
+    ];
     for (const k of kinds) {
       expect(TERRAIN_TABLE[k]).toBeDefined();
       expect(Array.isArray(TERRAIN_TABLE[k].buildSites)).toBe(true);
     }
     expect(TERRAIN_TABLE.plain.resource).toBeNull();
     expect(TERRAIN_TABLE.mountain.resource).toBe('iron');
+  });
+
+  // BRDC-TERRAIN-005: added alongside the original seven, not in place of any of them.
+  it('gives the two Worldseed terrains a resource, same as any other ground', () => {
+    expect(TERRAIN_TABLE.marsh.resource).toBe('food');
+    expect(TERRAIN_TABLE.settlement.resource).toBe('gold');
   });
 });
 

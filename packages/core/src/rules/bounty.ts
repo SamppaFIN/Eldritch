@@ -61,12 +61,18 @@ export const BOUNTIES: Readonly<Record<BountyId, Bounty>> = {
   furs: { terrain: ['forest'], resource: 'gold', perHour: 2 },
   gems: { terrain: ['mountain'], resource: 'gold', perHour: 3 },
   marble: { terrain: ['hill', 'mountain'], resource: 'culture', perHour: 2 },
-  fish: { terrain: ['lake', 'coast'], resource: 'food', perHour: 3 },
+  // Worldseed's own BONUS_RESOURCES gives `fish` a 0.3 marsh affinity alongside water's
+  // 1.0 — marsh got no bounty of its own when BRDC-TERRAIN-005 added it, and this is the
+  // stopgap until BRDC-RES-001's dedicated marsh finds (peat, bog iron) land.
+  fish: { terrain: ['lake', 'coast', 'marsh'], resource: 'food', perHour: 3 },
   amber: { terrain: ['coast'], resource: 'culture', perHour: 2 },
   // Every kind of ground can carry something. Without this, a player whose whole
   // neighbourhood is a place of trade could walk for weeks and never find anything —
   // and `bountiesFor` returning nothing is a silent exclusion, not a design.
-  spice: { terrain: ['market', 'plain'], resource: 'culture', perHour: 2 },
+  // Settlement (BRDC-TERRAIN-005) shares this slot too, provisionally — Worldseed's own
+  // Ale Cellar and Market Stall pay culture/gold there; this is the stand-in until
+  // BRDC-RES-001 gives settlement its own finds.
+  spice: { terrain: ['market', 'plain', 'settlement'], resource: 'culture', perHour: 2 },
   // Civilization V's Stone, and the only bounty that pays a building material
   // (BRDC-TERRAIN-004). Twelve of the fifteen Works are quoted in stone and hill is the
   // one terrain that gives it, so a player whose neighbourhood has no hill in it could

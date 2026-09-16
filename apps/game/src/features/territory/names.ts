@@ -61,6 +61,8 @@ export const TERRAIN_NAME: Readonly<Record<TerrainKind, string>> = {
   lake: 'Lake',
   coast: 'Coast',
   market: 'Market',
+  marsh: 'Marsh',
+  settlement: 'Settlement',
 };
 
 /** The same ground, said the way a cell card and a discovery say it. */
@@ -72,4 +74,6 @@ export const GROUND_NAME: Readonly<Record<TerrainKind, string>> = {
   lake: 'Still water',
   coast: 'The shoreline',
   market: 'A place of trade',
+  marsh: 'Wet ground',
+  settlement: 'Rows of houses',
 };

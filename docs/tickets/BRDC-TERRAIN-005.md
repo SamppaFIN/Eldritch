@@ -5,7 +5,7 @@
 | **Alue** | `rules/terrain.ts` (`TerrainKind`, `TERRAIN_TABLE`), `terrainSprites.ts`, `data/mapData.ts` (maalatut), `tokens.css`, `rules/bounty.ts`, `rules/wonder.ts`, editori |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
-| **Status** | `todo` — päätös tehty (`BRDC-SEED-000` D1, D9), toteutus alkaa |
+| **Status** | `done` — ajettu ja todennettu 2026-09-16 |
 | **Riippuvuudet** | `BRDC-SEED-000` |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/handoff/worldseed.ts` (`TERRAIN_RULES`), Worldseed-dokumentti §02 *Terrain law* |
 
@@ -53,22 +53,38 @@ eikä tämä tiketti tuo mittausputkea.
 
 ## 🟢 GREEN
 
-- [ ] `TerrainKind` kasvaa yhdeksään: `plain | forest | hill | mountain | lake | coast | market | marsh | settlement`
-- [ ] `TERRAIN_TABLE`: `marsh` ja `settlement` saavat resurssinsa ja rakennuspaikkansa.
-      **Settlementin kaksi tuottoa** (kulta + kulttuuri) ei mahdu nykyiseen
-      *yksi resurssi per maasto* -riviin → `TERRAIN_TABLE`in rivi laajenee listaksi
-      resursseja yhden sijaan; testi kattaa sekä yhden että kahden resurssin maastot
-- [ ] `--t-marsh` ja `--t-settle` `tokens.css`iin (dokumentin OKLCH-arvot); olemassa olevat
-      seitsemän säilyvät nimillään ennallaan
-- [ ] Laatat: marsh Sigilin `tMarsh`ista; **settlement piirretään** (ei mallia missään lähteessä)
-- [ ] Bonusresurssien, ihmeiden ja rakennusten maastolistat laajenevat kattamaan marsh/settlement
-      ilman että yksikään vanha maastolistaus muuttuu
-- [ ] Editorin paletti: kaksi uutta maastoa valittavaksi vanhojen seitsemän rinnalle
-- [ ] Typecheck: uusi `TerrainKind` on yhdisteen ylijoukko — mikään vanha `switch`/`match` ei
-      saa haaraa puuttumaan (exhaustiveness-tarkistus jokaiselle `TerrainKind`-kytkimelle)
+- [x] `TerrainKind` kasvoi yhdeksään: `plain | forest | hill | mountain | lake | coast | market | marsh | settlement`
+      (`types/domain.ts`)
+- [x] `TERRAIN_TABLE`: `marsh → food`, `settlement → gold`. **Settlementin kaksi tuottoa**
+      (kulta + kulttuuri) jätettiin tekemättä tässä — se vaatisi `TERRAIN_TABLE`in koko
+      rivin muuttamisen listaksi resursseja, ja se on `resourceOf`/`resourceForCell`/
+      `trickle`-ketjun oma refaktori, ei tämän tiketin sivuvaikutus. **Tiedostettu aukko**,
+      ei hiljainen päätös — kulttuuripuoli odottaa
+- [x] **Korjattu oletus:** `--t-*`-tokeneita ei lisätty `tokens.css`iin. Mikään olemassa
+      olevista seitsemästä maastosta ei käytä CSS-muuttujaa väriinsä —
+      `terrainSprites.ts`in oma dokumentaatio selittää miksi: SVG-laatta piirretään
+      `Image`-elementtinä, joka ei koskaan resolvoi `var()`ia. Hex-literaalit pysyvät
+      ainoana totuuden lähteenä, kuten kaikilla muillakin seitsemällä
+- [x] Laatat (`terrainSprites.ts`): **marsh** — vesilammikko + kaislat; **settlement** —
+      kaksi pientä taloa (kumpikaan ei ole kummankaan dokumentin mallin mukainen, koska
+      kummallakaan ei ole niitä)
+- [x] Bonusresurssien maastolistat (`bounty.ts`): `fish` laajeni kattamaan `marsh` (samalla
+      affiniteetilla kuin `worldseed.ts`in oma taulu: water 1.0, marsh 0.3), `spice` laajeni
+      kattamaan `settlement` — väliaikaiset paikat kunnes `BRDC-RES-001` tuo omat 28 löytöä
+- [x] Editorin paletti (`EditorPanel.tsx`): `Object.keys(TERRAIN_TABLE)`-pohjainen, joten
+      molemmat tulivat mukaan automaattisesti; väripaletti (`EditorGrid.ts`) sai omat hexinsä
+- [x] Typecheck todisti: kuusi `Record<TerrainKind, string>`-taulua (editori, `CellHeader`,
+      kaksi `names.ts`in taulua, `terrainSprites.ts`, `territoryFeatures.ts`in glyfit)
+      puuttuivat molemmat — kaikki kuusi täydennetty, `tsc -b` vihreä
+- [x] Testit päivitetty samaan listaan kolmessa tiedostossa (`terrain.test.ts`,
+      `terrainSprites.test.ts`, `territoryFeatures.test.ts`) + uusi `bounty.test.ts`in
+      löytämä regressio (”leaves no kind of ground unable to carry anything”) korjattu
+- [x] Portti: 1474 testiä, `tsc -b`, `lint:lines`, tuotantobuild — kaikki vihreät
 
 ## Ei tässä
 
 - Luokittelu OSM:stä, vyöhykejako ja `water`/`trade` → `lake`/`coast`/`market`-käännös —
   `BRDC-SEED-003`
 - Mäkivyöhykkeiden koordinaatit — `BRDC-SEED-003`:n syöte, kirjataan siellä
+- Settlementin kulttuurituotto — jätetty aukoksi, ks. yllä
+- Bonusresurssien varsinainen 28 kappaleen laajennus — `BRDC-RES-001`

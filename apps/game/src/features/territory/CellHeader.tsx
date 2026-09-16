@@ -27,6 +27,8 @@ const YIELD: Readonly<Record<TerrainKind, string>> = {
   lake: 'yields food',
   coast: 'yields food',
   market: 'yields gold',
+  marsh: 'yields food',
+  settlement: 'yields gold',
 };
 
 export interface CellHeaderProps {

@@ -202,6 +202,8 @@ const TERRAIN_CHAR: Readonly<Record<TerrainKind, string>> = {
   lake: '≈',
   coast: '≈',
   market: '◆',
+  marsh: '∿',
+  settlement: '⌂',
 };
 
 /**

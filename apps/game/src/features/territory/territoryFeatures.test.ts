@@ -122,7 +122,17 @@ describe('terrain glyph', () => {
   });
 
   it('every terrain kind resolves to a glyph or an explicit null', () => {
-    const kinds: TerrainKind[] = ['plain', 'forest', 'hill', 'mountain', 'lake', 'coast', 'market'];
+    const kinds: TerrainKind[] = [
+      'plain',
+      'forest',
+      'hill',
+      'mountain',
+      'lake',
+      'coast',
+      'market',
+      'marsh',
+      'settlement',
+    ];
     for (const kind of kinds) {
       const g = terrainGlyph(kind);
       if (kind === 'plain') expect(g).toBeNull();

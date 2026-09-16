@@ -10,7 +10,7 @@ import { TERRAIN_KINDS, TERRAIN_PX, terrainSpriteId, terrainSvg } from './terrai
 describe('the ground library', () => {
   it('covers every terrain the game has, and nothing else', () => {
     expect([...TERRAIN_KINDS].sort()).toEqual(
-      ['coast', 'forest', 'hill', 'lake', 'market', 'mountain', 'plain'].sort(),
+      ['coast', 'forest', 'hill', 'lake', 'market', 'marsh', 'mountain', 'plain', 'settlement'].sort(),
     );
   });
 

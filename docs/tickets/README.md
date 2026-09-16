@@ -184,7 +184,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-SEED-002](BRDC-SEED-002.md) | ✅ Maamerkit ja pisteet OpenStreetMapista | M | SEED-001 |
 | [BRDC-SEED-003](BRDC-SEED-003.md) | Vyöhykkeiden jako heksoiksi | L | SEED-001, TERRAIN-005 |
 | [BRDC-SEED-004](BRDC-SEED-004.md) | HexSeed: Härmälänrannan heksojen esiarvot | M | SEED-001–003 |
-| [BRDC-TERRAIN-005](BRDC-TERRAIN-005.md) | Seitsemän maastolajia Worldseedin mukaan | L | SEED-000 |
+| [BRDC-TERRAIN-005](BRDC-TERRAIN-005.md) | ✅ Yhdeksän maastolajia, vanhat ja uudet rinnakkain | L | SEED-000 |
 | [BRDC-RES-001](BRDC-RES-001.md) | 28 bonusresurssia, alueittain | M–L | TERRAIN-005, SEED-003 |
 | [BRDC-RES-002](BRDC-RES-002.md) | Resurssien ja rakennelmien kuvat | M | RES-001, TERRAIN-005 |
 | [BRDC-LANDMARK-001](BRDC-LANDMARK-001.md) | Maamerkit: kartta kertoo mitä tässä on | M | SEED-002, SEED-001 |

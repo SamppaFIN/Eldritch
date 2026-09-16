@@ -35,6 +35,9 @@ const GROUND: Readonly<Record<TerrainKind, string>> = {
   lake: '#2a5c8a',
   coast: '#3a7fa8',
   market: '#b08a2a',
+  // BRDC-TERRAIN-005 — matched to the Worldseed design tokens (--t-marsh, --t-settle).
+  marsh: '#359282',
+  settlement: '#da534f',
 };
 
 type Empty = { type: 'FeatureCollection'; features: [] };
