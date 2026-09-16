@@ -56,6 +56,38 @@
   overflow: hidden;
 }
 
+/* The ring around the sigil, showing the distance to the next milestone (Sigil §06,
+   BRDC-CARD-004) — a second layer behind the same button, not a change to `Avatar` itself. */
+.character__avatar-ring-wrap {
+  position: relative;
+  flex: none;
+  inline-size: 68px;
+  block-size: 68px;
+  display: grid;
+  place-items: center;
+}
+
+.character__avatar-ring {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.character__avatar-ring-track {
+  fill: none;
+  stroke: color-mix(in oklch, var(--text) 20%, transparent);
+  stroke-width: 5;
+}
+
+.character__avatar-ring-fill {
+  fill: none;
+  stroke: var(--awareness-green);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s var(--ease);
+}
+
 .character__name-wrap {
   flex: 1;
   min-inline-size: 0;
@@ -130,6 +162,11 @@
   color: var(--text);
   font-family: var(--font-display);
   font-size: var(--text-body);
+}
+
+.character__next {
+  color: var(--text-dim);
+  font-weight: var(--weight-regular);
 }
 
 .character__xp {

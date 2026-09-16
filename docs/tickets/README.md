@@ -195,7 +195,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-CARD-001](BRDC-CARD-001.md) | 🔶 Auditoitu; luottamus-siru ja Linnoitus-naapuribugi korjattu | M | SEED-004 |
 | [BRDC-CARD-002](BRDC-CARD-002.md) | 🔶 Aarrelista täysi, rappiolista lisätty; välilehdet ennallaan | M | — |
 | [BRDC-CARD-003](BRDC-CARD-003.md) | 🔶 Aikakausipalkki ja punainen puute-huomautus tehty; riitit erillään | M | — |
-| [BRDC-CARD-004](BRDC-CARD-004.md) | YOU mallin mukaan | S–M | — |
+| [BRDC-CARD-004](BRDC-CARD-004.md) | 🔶 Tietoisuusrengas tehty; elinikäiset luvut vaativat uutta tilaa | S–M | — |
 | [BRDC-CARD-005](BRDC-CARD-005.md) | CODEX mallin mukaan | S–M | — |
 
 **Portti V3:** ⬜ rakenna saha kotimetsään, tutki teknologia, löydä ihme, ja **selitä

@@ -20,6 +20,9 @@ import { milestoneForLevel, visibleMilestones } from './consciousness.js';
 import { useCharacter } from './useCharacter.js';
 import './character.css';
 
+/** 2π × the ring's own radius (44) — `stroke-dasharray`'s unit is the path length itself. */
+const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
+
 export interface CharacterPanelProps {
   open: boolean;
   repository: GameRepository | null;
@@ -129,15 +132,29 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
       </div>
 
       <div className="character__identity">
-        <button
-          type="button"
-          className="character__avatar-flag"
-          aria-label={`Sigil: ${AVATAR_META[avatar].name}. Change`}
-          aria-expanded={pickingAvatar}
-          onClick={() => setPickingAvatar((v) => !v)}
-        >
-          <Avatar id={avatar} size={52} />
-        </button>
+        {/* The ring is the distance to the next milestone, drawn around the sigil rather
+            than said again in a second bar (Sigil §06, BRDC-CARD-004) — the XP bar under
+            "Consciousness" below still carries the exact number for anyone who wants it. */}
+        <div className="character__avatar-ring-wrap">
+          <svg className="character__avatar-ring" viewBox="-50 -50 100 100" aria-hidden>
+            <circle className="character__avatar-ring-track" r="44" />
+            <circle
+              className="character__avatar-ring-fill"
+              r="44"
+              transform="rotate(-90)"
+              style={{ strokeDasharray: `${state.progress * RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}` }}
+            />
+          </svg>
+          <button
+            type="button"
+            className="character__avatar-flag"
+            aria-label={`Sigil: ${AVATAR_META[avatar].name}. Change`}
+            aria-expanded={pickingAvatar}
+            onClick={() => setPickingAvatar((v) => !v)}
+          >
+            <Avatar id={avatar} size={52} />
+          </button>
+        </div>
         <div className="character__name-wrap">
           <label className="character__label" htmlFor="character-name">
             Name
@@ -159,6 +176,11 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
       <h3 className="character__section">Consciousness</h3>
       <p className="character__level es-numeric">
         {state.level} · {state.name}
+        {/* The one-line answer to "how far to the next one" (Sigil §06) — the ladder
+            below still spells out what every reached rung meant, unspoiled ahead. */}
+        {ladder.next ? (
+          <span className="character__next"> → {ladder.next.level} {ladder.next.name}</span>
+        ) : null}
       </p>
       <div className="character__xp" aria-hidden>
         <div className="character__xp-fill" style={{ inlineSize: `${state.progress * 100}%` }} />
