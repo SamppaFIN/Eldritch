@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { cellAt } from '../geo/cells.js';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
-import { readHallOfFame, retireKingdom } from './hallOfFameStore.js';
+import { readHallOfFame, retireKingdom, setKingdomStory } from './hallOfFameStore.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
 
 const cell = (lat: number, lng: number): Cell => ({
@@ -92,5 +92,31 @@ describe('retireKingdom', () => {
     expect(entry.areaM2).toBe(0);
     expect(entry.population).toBe(0);
     expect(entry.provinces).toBe(0);
+  });
+
+  it('has no story until one is revealed (BRDC-HALL-002)', async () => {
+    const entry = await retireKingdom(new MemoryStore(), profile(0), [], 0, () => 'k');
+    expect(entry.story).toBeUndefined();
+  });
+});
+
+describe('setKingdomStory', () => {
+  it('attaches a chronicle to the matching entry, leaving others untouched', async () => {
+    const store = new MemoryStore();
+    await retireKingdom(store, profile(100), [], 1_000, () => 'first');
+    await retireKingdom(store, profile(200), [], 2_000, () => 'second');
+
+    await setKingdomStory(store, 'first', 'Once there was a kingdom.');
+
+    const archive = await readHallOfFame(store);
+    expect(archive.find((e) => e.id === 'first')?.story).toBe('Once there was a kingdom.');
+    expect(archive.find((e) => e.id === 'second')?.story).toBeUndefined();
+  });
+
+  it('is a no-op for an id that does not exist', async () => {
+    const store = new MemoryStore();
+    await retireKingdom(store, profile(0), [], 0, () => 'k');
+    await setKingdomStory(store, 'nope', 'text');
+    expect((await readHallOfFame(store))[0]?.story).toBeUndefined();
   });
 });

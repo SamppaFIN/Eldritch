@@ -375,4 +375,6 @@ export interface GameRepository {
   retireKingdom(now: number): Promise<HallOfFameEntry>;
   /** Every kingdom retired on this device, oldest first. */
   getHallOfFame(): Promise<HallOfFameEntry[]>;
+  /** Attach a chronicle to one archived kingdom, once revealed (BRDC-HALL-002). */
+  setKingdomStory(id: string, story: string): Promise<void>;
 }

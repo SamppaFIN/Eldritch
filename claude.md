@@ -214,6 +214,14 @@ Se on tämän säännön koko olemassaolon syy.
    on mock data; the shared world is a JSON file published by a cron job, which needs no key
    on the client (`BRDC-SHARE-001`). Supabase gets wired up in Phase 5, not before — and key
    rotation (`BRDC-SEC-000`) happens then, not now.
+   Amended 2026-09-17 (BRDC-HALL-002): one exception, the same shape as the claim chime in
+   rule 6 — unparked for one moment, not a standing door. Retiring a kingdom's reward is an
+   AI-written chronicle, and writing it needs a key that must never reach the client. The
+   key lives only as a Cloudflare Worker secret (`apps/worker`, `wrangler secret put
+   AI_API_KEY`) — the same Worker `BRDC-SHARE-003` already runs, one more endpoint on it.
+   If the Worker is unreachable or the key is unset, the client falls back to a local,
+   no-network chronicle built from the kingdom's own numbers; the reward never depends on
+   the key existing.
 
 ---
 

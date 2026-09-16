@@ -30,10 +30,25 @@ export interface HallOfFameEntry {
   secretSites: number;
   wonders: number;
   cipherShards: number;
+  /** The chronicle shown for this kingdom — AI-written, or `kingdomChronicle.js`'s local
+   *  fallback if the Worker could not be reached. Absent until first revealed
+   *  (BRDC-HALL-002), so revealing costs nothing for a kingdom nobody looks back at. */
+  story?: string;
 }
 
 export async function readHallOfFame(store: KeyValueStore): Promise<HallOfFameEntry[]> {
   return (await store.get<HallOfFameEntry[]>(K.hallOfFame)) ?? [];
+}
+
+/** Attach a chronicle to one archived kingdom, once — read back on every later visit. */
+export async function setKingdomStory(
+  store: KeyValueStore,
+  id: string,
+  story: string,
+): Promise<void> {
+  const archive = await readHallOfFame(store);
+  const next = archive.map((e) => (e.id === id ? { ...e, story } : e));
+  await store.set(K.hallOfFame, next);
 }
 
 async function countAt(store: KeyValueStore, key: string): Promise<number> {

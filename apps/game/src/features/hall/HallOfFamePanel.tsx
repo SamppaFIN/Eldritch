@@ -22,7 +22,12 @@ export interface HallOfFamePanelProps {
   onClose: () => void;
 }
 
-function row(entry: HallOfFameEntry, now: number) {
+function row(
+  entry: HallOfFameEntry,
+  now: number,
+  revealing: boolean,
+  onReveal: (id: string) => void,
+) {
   return (
     <li key={entry.id} className="hall__row">
       <div className="hall__head">
@@ -61,13 +66,27 @@ function row(entry: HallOfFameEntry, now: number) {
             .join(' · ')}
         </p>
       ) : null}
+      {/* The reward for retiring (BRDC-HALL-002): a chronicle, fetched only when asked
+          for and kept once it arrives — most kingdoms are never revisited. */}
+      {entry.story ? (
+        <p className="hall__story">{entry.story}</p>
+      ) : (
+        <RitualButton
+          variant="ghost"
+          className="hall__reveal"
+          disabled={revealing}
+          onClick={() => onReveal(entry.id)}
+        >
+          {revealing ? 'Writing the chronicle…' : 'Reveal the chronicle'}
+        </RitualButton>
+      )}
     </li>
   );
 }
 
 export function HallOfFamePanel({ open, repository, now, onClose }: HallOfFamePanelProps) {
   const panelRef = useRef<HTMLElement>(null);
-  const { entries, loading } = useHallOfFame(repository, open);
+  const { entries, loading, revealing, reveal } = useHallOfFame(repository, open);
   useEscape(open, onClose);
 
   if (!open) return null;
@@ -93,7 +112,9 @@ export function HallOfFamePanel({ open, repository, now, onClose }: HallOfFamePa
       ) : null}
 
       {entries.length > 0 ? (
-        <ul className="hall__list">{entries.map((e) => row(e, now()))}</ul>
+        <ul className="hall__list">
+          {entries.map((e) => row(e, now(), revealing.has(e.id), reveal))}
+        </ul>
       ) : null}
     </GlassPanel>
   );

@@ -114,3 +114,19 @@
   color: var(--accent-warm);
   font-size: var(--text-sm);
 }
+
+.hall__reveal {
+  align-self: flex-start;
+  min-block-size: var(--touch-min);
+}
+
+.hall__story {
+  margin: 0;
+  padding: var(--space-2);
+  border-inline-start: 2px solid color-mix(in oklch, var(--sacred-gold) 45%, transparent);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
