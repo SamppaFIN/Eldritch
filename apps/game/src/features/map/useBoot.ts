@@ -100,15 +100,21 @@ export function useBoot(now: () => number, clock: unknown): Boot {
      * Written to the same small-facts store `last-collect` uses; seven h3 strings is not
      * IndexedDB's business. Once written they are never recomputed, so the statue stays
      * where the player walked to it.
+     *
+     * Key renamed `-v2` (BRDC-QUEST-006): every pin written before `anchorQuestSites`
+     * stopped anchoring inside Härmälä is the *wrong* hex — the statue sitting on the
+     * Keep, everything else slid the same vector. Reading the old key back as valid would
+     * keep that mistake forever. The old key is simply never read again; nothing deletes
+     * it, there is nothing there worth deleting.
      */
-    const stored = load<Partial<Record<QuestSiteId, H3Index>>>('quest-cells', {});
+    const stored = load<Partial<Record<QuestSiteId, H3Index>>>('quest-cells-v2', {});
     if (Object.keys(stored).length > 0) {
       pinQuestCells(stored);
       return;
     }
     const cells = resolveQuestCells();
     pinQuestCells(cells);
-    saveNow('quest-cells', cells);
+    saveNow('quest-cells-v2', cells);
   }, [castle]);
 
   return { repository, alerts, profile, setProfile, castle };

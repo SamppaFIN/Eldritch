@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.28",
+    "date": "2026-09-16",
+    "notes": [
+      "Fixed: raising a Keep in Härmälä no longer drags the Fuming Lake tale onto it. The Statue of the Boy stands at its own real spot again, and the whole story with it — a Keep already in the district is not carried anywhere.",
+      "A save from before this fix had the wrong places pinned down; that old pin is set aside rather than kept."
+    ]
+  },
+  {
     "version": "0.6.27",
     "date": "2026-09-16",
     "notes": [

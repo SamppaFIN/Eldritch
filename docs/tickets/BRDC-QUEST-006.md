@@ -5,7 +5,7 @@
 | **Alue** | `data/questSites.ts`, `features/map/useBoot.ts`, siemen (`HexSeed.quest`), `QuestMarkers.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `todo` — syy mitattu |
+| **Status** | `[~]` osittain valmis 2026-09-16 — pikakorjaus ajettu ja todennettu; `HexSeed.quest` ja *What Sleeps at the Shore* auki |
 | **Riippuvuudet** | `BRDC-SEED-004` (lopullinen muoto); pikakorjaus mahdollinen ilman |
 | **Lähde** | Infinite 2026-09-15: *"korjata nuo questit oikeille heksoille.. Nyt statue of boy on jostain syystä mun keepin paikalla, se alunperin oli tuolla harmatun täplän päällä.. Muuta seikkailut oikeille heksoille, siten että seikkailu on heksan parametri tms.. muut kaikki kohdat on täsmälleen saman verran vinossa alkuperäisestä paikasta"* · 2026-09-16: *"Seikkailun pisteet on hieman sinnepäin annettu, aiemmat lokaatio tiedot on oikein"* |
 
@@ -26,16 +26,30 @@ Uuden ketjun *"What Sleeps at the Shore"* koordinaatit ovat Infiniten mukaan suu
 
 ## 🟢 GREEN
 
-- [ ] **Seedatulla alueella seikkailu on heksan parametri** (`HexSeed.quest { chain, node, item }`),
-      aiempien vahvistettujen koordinaattien heksoilla. Ei ankkurointia
-- [ ] **Pikakorjaus ennen siementä:** kun Keep on Härmälän alueella, ankkuria ei aseteta ja paikat ovat
-      `QUEST_SITES`issa. Testi: Keep 100 m patsaasta → `siteCell('statue') === cellAt(QUEST_SITES.statue)`,
-      ja se epäonnistuu vanhalla koodilla
-- [ ] **Väärät tallennetut kiinnitykset hylätään kerran** (avaimen versio), ei hiljaista jäämistä. Testi
-- [ ] Alueen ulkopuolella `BRDC-QUEST-004`:n ankkurointi säilyy (päätös D12)
+- [x] **Pikakorjaus:** `anchorQuestSites` (`data/questSites.ts`) ei aseta ankkuria kun `home`
+      on jo `SEED_BOX`in sisällä — patsas ja koko muoto pysyvät `QUEST_SITES`in omissa,
+      oikeissa koordinaateissa. Testi: Keep 100 m ja 250 m patsaasta →
+      `siteCell('statue') === cellAt(QUEST_SITES.statue)`, jokainen paikka täsmälleen
+      kirjoitettuun koordinaattiin — molemmat epäonnistuvat vanhalla koodilla (todennettu:
+      testi punaisena ennen korjausta)
+- [x] **Alueen ulkopuolella ankkurointi säilyy** (D8): Helsinki-testi läpäisee muuttumattomana
+- [x] **Väärät tallennetut kiinnitykset hylätään:** `useBoot.ts`in tallennusavain
+      `quest-cells` → `quest-cells-v2`. Vanhan avaimen alla oleva (väärä) data ei enää
+      koskaan tule luetuksi — ei poisteta, ei tarvitse, uusi avain riittää
+- [ ] **Seedatulla alueella seikkailu on heksan parametri** (`HexSeed.quest { chain, node, item }`)
+      — ei tehty. Pikakorjaus riittää nykyiselle *Fuming Lake* -tarinalle (`QUEST_SITES` on jo
+      oikea), joten täysi `HexSeed.quest`-integraatio siirtyy siihen asti kun uusi ketju
+      (*What Sleeps at the Shore*) oikeasti tarvitsee sen
 - [ ] *What Sleeps at the Shore*: 5 solmua + 3 välimuistia heksan parametreina — koordinaatit
       vahvistetaan ennen siementä (`BRDC-SEED-001` tai Infiniten pitkä painallus)
 - [ ] Tehtävätaulu listaa ketjut (`BRDC-TAVERN-001`)
+
+## Todennettu
+
+- 3 uutta testiä (`questAnchor.test.ts`), kaikki 19 kysymystiedoston testiä vihreitä
+- Portti: 1515 testiä, `tsc -b`, `lint:lines`, tuotantobuild — kaikki vihreät
+- Versio nostettu, changelog kirjoitettu — korjaa juuri sitä mistä Infinite valitti.
+  Kenttäkoe laitteella vahvistaa lopullisesti, mutta korjaus on todennettu yksikkötestein
 
 ## Päätös Infiniteltä
 

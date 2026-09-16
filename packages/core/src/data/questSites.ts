@@ -20,6 +20,7 @@
 import { cellAt } from '../geo/cells.js';
 import { bearing, destination } from '../geo/project.js';
 import { haversine } from '../geo/haversine.js';
+import { SEED_BOX } from '../rules/terrainSeed.js';
 import type { H3Index, LatLng } from '../types/domain.js';
 
 export type QuestSiteId =
@@ -75,9 +76,27 @@ const SHAPE: Readonly<Record<QuestSiteId, { bearing: number; metres: number }>> 
  */
 let anchor: LatLng | null = null;
 
-/** Move the tale to a player's own ground. `null` puts it back where it was written. */
+/**
+ * A home already inside the district the tale was written in (BRDC-QUEST-006).
+ *
+ * `SHAPE.statue` is a zero-metre bearing — anchoring makes `questSiteAt('statue')` return
+ * the anchor itself, so a Keep raised in Härmälä placed the statue exactly on the Keep, and
+ * every other site slid by the same vector (Keep − the real statue). A Keep already inside
+ * `SEED_BOX` does not need the tale carried to it; it is already there.
+ */
+function inHarmala(pos: LatLng): boolean {
+  return (
+    pos.lat >= SEED_BOX.south && pos.lat <= SEED_BOX.north && pos.lng >= SEED_BOX.west && pos.lng <= SEED_BOX.east
+  );
+}
+
+/**
+ * Move the tale to a player's own ground. `null` puts it back where it was written, and so
+ * does a home already inside Härmälä (`BRDC-QUEST-006`) — the tale is not carried to
+ * somewhere it already is.
+ */
 export function anchorQuestSites(home: LatLng | null): void {
-  anchor = home;
+  anchor = home && !inHarmala(home) ? home : null;
 }
 
 /**

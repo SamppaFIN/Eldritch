@@ -3,7 +3,7 @@
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { anchorQuestSites, questSiteAt, siteCell, QUEST_SITES, QUEST_SITE_IDS, FUMING_PATH } from './questSites.js';
-import { bearing } from '../geo/project.js';
+import { bearing, destination } from '../geo/project.js';
 import { haversine } from '../geo/haversine.js';
 import { cellAt } from '../geo/cells.js';
 
@@ -80,5 +80,32 @@ describe('anchored to a player\u2019s own ground', () => {
     anchorQuestSites(HELSINKI);
     anchorQuestSites(null);
     expect(questSiteAt('lake')).toEqual(QUEST_SITES.lake);
+  });
+});
+
+describe('a Keep already inside Härmälä (BRDC-QUEST-006)', () => {
+  /*
+   * The bug Infinite hit: `SHAPE.statue` is a zero-metre bearing, so anchoring to a Keep
+   * raised in Härmälä put the statue exactly on the Keep — "statue of boy on jostain
+   * syystä mun keepin paikalla" — and every other site slid by the same vector. A Keep
+   * that is already in the district the tale was written in does not need it carried
+   * anywhere; the fix is to not anchor at all.
+   */
+  it('is not anchored — the statue stays at its own real hex, not the Keep', () => {
+    const keep = destination(QUEST_SITES.statue, 45, 100); // 100 m from the statue
+    anchorQuestSites(keep);
+    expect(siteCell('statue')).toBe(cellAt(QUEST_SITES.statue));
+    expect(siteCell('statue')).not.toBe(cellAt(keep));
+  });
+
+  it('leaves every site at its own written coordinate, not shifted toward the Keep', () => {
+    const keep = destination(QUEST_SITES.statue, 200, 250);
+    anchorQuestSites(keep);
+    for (const id of QUEST_SITE_IDS) expect(questSiteAt(id)).toEqual(QUEST_SITES[id]);
+  });
+
+  it('still anchors normally for a Keep genuinely outside the district', () => {
+    anchorQuestSites(HELSINKI);
+    expect(siteCell('statue')).toBe(cellAt(HELSINKI));
   });
 });

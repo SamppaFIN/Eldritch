@@ -191,7 +191,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-TAVERN-001](BRDC-TAVERN-001.md) | Taverna ja tehtävätaulu | M | TERRAIN-005, QUEST-006, RES-001 |
 | [BRDC-BUILD-013](BRDC-BUILD-013.md) | Forge ja Watchtower | M | TERRAIN-005, BUILD-012 |
 | [BRDC-WONDER-002](BRDC-WONDER-002.md) | Härmälän yhdeksän ihmettä | L | SEED-003, TERRAIN-005, LANDMARK-001 |
-| [BRDC-QUEST-006](BRDC-QUEST-006.md) | Seikkailu heksan parametrina | M | SEED-004 (pikakorjaus ei vaadi) |
+| [BRDC-QUEST-006](BRDC-QUEST-006.md) | 🔶 Seikkailu heksan parametrina (pikakorjaus tehty) | M | SEED-004 (pikakorjaus ei vaadi) |
 | [BRDC-CARD-001](BRDC-CARD-001.md) | HERE-kortti mallin mukaan | M | SEED-004 |
 | [BRDC-CARD-002](BRDC-CARD-002.md) | KEEP mallin mukaan | M | — |
 | [BRDC-CARD-003](BRDC-CARD-003.md) | RESEARCH mallin mukaan | M | — |
