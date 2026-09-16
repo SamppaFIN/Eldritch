@@ -21,6 +21,7 @@ import {
   TRICKLE_PER_HOUR,
   bountyBonus,
   buildingBonus,
+  landmarkBonus,
   researchBonus,
   resourceForCell,
 } from '@es3/core';
@@ -71,6 +72,11 @@ export function cellIncome(
   const find = bountyBonus([cell], revealed, now);
   parts.push(...partsOf(find, 'What was found here'));
   add(total, find);
+
+  // No reveal gate, unlike a find: the statue is not a secret (BRDC-LANDMARK-001).
+  const landmark = landmarkBonus([cell], now);
+  parts.push(...partsOf(landmark, 'The landmark here'));
+  add(total, landmark);
 
   const work = buildingBonus([cell], now);
   parts.push(...partsOf(work, 'The Work on it'));

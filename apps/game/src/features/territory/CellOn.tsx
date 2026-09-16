@@ -13,13 +13,14 @@
  * Each row is mark, name, and what it does. The Work gets its description as well as its
  * effect, because "Sawmill · +4 timber an hour" says what it pays and never what it is.
  */
-import { bountyOn, worksOn } from '@es3/core';
+import { LANDMARK_CULTURE_PER_HOUR, bountyOn, landmarkOn, worksOn } from '@es3/core';
 import './cell-detail.css';
 import type { Cell } from '@es3/core';
 import { bountyPickGlyph, bountyPickLine, bountyPickName } from './bounty.js';
 import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
 import { buildingGlyph } from './buildingGlyphs.js';
 import { BUILDING_NAME } from './names.js';
+import { RESOURCE_COLOUR } from './territoryFeatures.js';
 
 export interface CellOnProps {
   cell: Cell;
@@ -33,10 +34,31 @@ export function CellOn({ cell, revealed, place }: CellOnProps) {
   const find = revealed ? bountyOn(cell) : null;
   const works = worksOn(cell);
   const hasPlace = place.kind !== null;
-  if (!find && works.length === 0 && !hasPlace) return null;
+  // Not gated on `revealed` (BRDC-LANDMARK-001): the statue is not a secret waiting to be
+  // found, it simply stands there — the same reason `landmarkBonus` carries no reveal gate.
+  const landmark = landmarkOn(cell.h3);
+  if (!find && !landmark && works.length === 0 && !hasPlace) return null;
 
   return (
     <ul className="cell-on" aria-label="What is on this hex">
+      {/* First — a real, named place outranks a generic find or Work (BRDC-LANDMARK-001).
+          The full HERE-card reorder that puts it above everything else is BRDC-CARD-001;
+          this is the honest version of "first" the current card can give it today. */}
+      {landmark ? (
+        <li className="cell-on__row">
+          <span className="cell-on__mark" style={{ color: RESOURCE_COLOUR.culture }} aria-hidden>
+            ◇
+          </span>
+          <span className="cell-on__text">
+            <span className="cell-on__name">{landmark.name}</span>
+            <span className="cell-on__note">{landmark.lore}</span>
+            <span className="cell-on__effect">
+              Held ground: +{LANDMARK_CULTURE_PER_HOUR} culture an hour.
+            </span>
+          </span>
+        </li>
+      ) : null}
+
       {hasPlace ? (
         <li className="cell-on__row">
           {/* Gold for a Temple, green for the Anchor — the map's own nimbus (Sigil §03). */}

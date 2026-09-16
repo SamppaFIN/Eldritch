@@ -21,7 +21,7 @@ describe('hexSeedOf', () => {
     expect(hexSeedOf(OUTSIDE_HEX)).toBeNull();
   });
 
-  it("reads the statue's own hex from the built file, landmark and all", () => {
+  it("reads the confirmed statue's own hex from the built file", () => {
     const built = (harmala as { hexes: Record<string, { terrain: string; landmark?: { name: string } }> })
       .hexes[STATUE_HEX];
     expect(built).toBeDefined(); // the built area really does cover the confirmed statue
@@ -30,7 +30,20 @@ describe('hexSeedOf', () => {
     expect(seed).not.toBeNull();
     expect(seed!.h3).toBe(STATUE_HEX);
     expect(seed!.terrain).toBe(built!.terrain);
-    expect(seed!.landmark?.name).toBe(built!.landmark?.name);
+  });
+
+  /*
+   * A weaker version of this test asserted `seed.landmark?.name === built.landmark?.name`
+   * on this exact hex, which passed vacuously (both undefined) — HARMALA_STATUE and the
+   * OSM sculpture node BRDC-SEED-002 matched it to are a few metres apart, close enough to
+   * be the same statue but on the *adjacent* H3 hex, not this one. The landmark really is
+   * in the build; it just is not necessarily on the hex the confirmed point falls in.
+   */
+  it('carries the Statue of the Boy landmark somewhere in the built area, name and lore', () => {
+    const withStatue = Object.values(
+      (harmala as { hexes: Record<string, { landmark?: { name: string; lore: string } }> }).hexes,
+    ).find((h) => h.landmark?.name === 'Statue of the Boy');
+    expect(withStatue?.landmark?.lore.length).toBeGreaterThan(0);
   });
 
   it('carries a resource id where the build placed a deposit', () => {

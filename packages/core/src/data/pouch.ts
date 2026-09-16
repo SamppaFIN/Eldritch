@@ -16,6 +16,7 @@ import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
 import { placeBonus } from '../rules/mana.js';
 import { bountyBonus } from '../rules/bounty.js';
+import { landmarkBonus } from '../rules/landmark.js';
 import { activeSpells } from '../rules/spell.js';
 import { domainSpellBonus } from '../rules/spellEffects.js';
 import type { ActiveSpell } from '../rules/spell.js';
@@ -55,9 +56,10 @@ function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void
  * The per-hour bonus `settleResources` adds on top of the raw trickle: building
  * production (BRDC-BUILD-001), mana and wisdom from held places (BRDC-MANA-002), what
  * research pays on its own ground (PIVOT-2026-09-09 §3), a running research spell
- * (BRDC-SPELL-001), and area auras from Libraries and the like (BRDC-BUILD-003),
- * merged additively. Each is filtered by its own rule — kept here so `rules/terrain.ts`
- * stays blind to all of it.
+ * (BRDC-SPELL-001), area auras from Libraries and the like (BRDC-BUILD-003), a bounty on
+ * revealed ground, gold from a trade route, and culture from a real landmark held
+ * (BRDC-LANDMARK-001), merged additively. Each is filtered by its own rule — kept here so
+ * `rules/terrain.ts` stays blind to all of it.
  */
 async function perHourBonus(
   store: KeyValueStore,
@@ -84,6 +86,7 @@ async function perHourBonus(
 
   const routes = (await store.get<TradeRoute[]>(K.tradeRoutes)) ?? [];
   addInto(merged, routeGoldBonus(routes, owned, now));
+  addInto(merged, landmarkBonus(owned, now));
   return merged;
 }
 

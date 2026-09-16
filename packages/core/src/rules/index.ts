@@ -180,6 +180,7 @@ export {
   bountyYield,
 } from './bounty.js';
 export type { Bounty, BountyId, BountyPick, BountyPool } from './bounty.js';
+export { LANDMARK_CULTURE_PER_HOUR, landmarkBonus, landmarkOn } from './landmark.js';
 export { holdingOf, sortHoldings, summarise } from './holdings.js';
 export type { Holding, HoldingsSummary } from './holdings.js';
 export {
