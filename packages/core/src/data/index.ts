@@ -21,6 +21,7 @@ export {
   yieldToResource,
 } from './worldseedAllocate.js';
 export type { BonusResourceDef, Deposit, RequireFlag, Yield } from './worldseedAllocate.js';
+export { enableWorldseed, hexSeedOf } from './hexSeedStore.js';
 export { SEED_NEIGHBOURS, seedCells } from './seed.js';
 export type { SeedNeighbour } from './seed.js';
 export { cellsToLoad, planClaim } from './claiming.js';

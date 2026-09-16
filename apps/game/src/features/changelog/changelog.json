@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.27",
+    "date": "2026-09-16",
+    "notes": [
+      "Härmälänranta's ground is real now, not a guess. Water, marsh, forest, trade and settlement follow the actual district — 2447 hexes surveyed by hand, not hashed.",
+      "A handful of real places are already known: the Statue of the Boy and thirteen others carry their true name and a line of lore, waiting for the card that will show it."
+    ]
+  },
+  {
     "version": "0.6.26",
     "date": "2026-09-16",
     "notes": [

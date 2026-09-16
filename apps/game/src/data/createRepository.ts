@@ -5,13 +5,15 @@
  * directly. In Phase 3 this is where SupabaseRepository appears behind an environment
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
-import { MemoryStore, MockRepository, enableTerrainSurvey } from '@es3/core';
+import { MemoryStore, MockRepository, enableTerrainSurvey, enableWorldseed } from '@es3/core';
 import type { BuildingId, GameRepository } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
 // The hand survey of the field-test area is client content, not a rule — on for the
 // running game, off in the core test suite (BRDC-TERRAIN-003).
 enableTerrainSurvey();
+// The built Worldseed data (BRDC-SEED-004) — same reasoning, same shape.
+enableWorldseed();
 
 export interface RepositoryHandle {
   repository: GameRepository;

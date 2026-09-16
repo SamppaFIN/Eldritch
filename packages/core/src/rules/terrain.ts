@@ -19,6 +19,7 @@ import { DECAY_GRACE_HOURS } from './constants.js';
 import { seededTerrainOf } from './terrainSeed.js';
 import { paintedTerrainOf } from '../data/mapData.js';
 import { surveyedTerrainOf } from '../data/localSurvey.js';
+import { hexSeedOf } from '../data/hexSeedStore.js';
 import { localShare } from './share.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 
@@ -155,11 +156,26 @@ function kindForRegion(region: number): TerrainKind {
  * asks whether this particular cell is really that, which frays the edges. A region of
  * uniform hexagons reads as generated, because it is.
  */
+/**
+ * The built Worldseed data (BRDC-SEED-004) as a `Terrain`, or `null` outside a seeded area.
+ * Hand-classified real zones, not a hash — shares `seededTerrainOf`'s tier (a person looked
+ * at this ground) and is checked first: `seededTerrainOf`'s own box always answers
+ * *something* for anything inside it, so it would otherwise never be reached at all in the
+ * area both cover.
+ */
+function worldseedTerrainOf(h3: H3Index): Terrain | null {
+  const worldseed = hexSeedOf(h3);
+  return worldseed ? { kind: worldseed.terrain, source: 'seed' } : null;
+}
+
 export function terrainOf(h3: H3Index): Terrain {
   // A hex somebody drew by hand wins over everything (BRDC-MAP-EDIT-001): it is the most
   // deliberate answer available, because a person looked at that hex and said so.
   const drawn = paintedTerrainOf(h3);
   if (drawn) return drawn;
+
+  const worldseed = worldseedTerrainOf(h3);
+  if (worldseed) return worldseed;
 
   // A hand-surveyed test area wins over the hash (BRDC-TERRAIN-003); null everywhere else.
   const seeded = seededTerrainOf(h3);
@@ -177,13 +193,18 @@ export function terrainOf(h3: H3Index): Terrain {
 }
 
 /**
- * The terrain to use for a cell: a hand-drawn hex first, then the survey, then whatever a
- * tile read stored, then the hash. Both hand answers beat a stored tile value on purpose —
- * they are the ones that were checked by a person.
+ * The terrain to use for a cell: a hand-drawn hex first, then the Worldseed data or the
+ * older survey, then whatever a tile read stored, then the hash. All three hand answers
+ * beat a stored tile value on purpose — they are the ones that were checked by a person,
+ * and `cell.terrain` is only ever a `source: 'tiles'` read the map happened to confirm.
  */
 export function terrainForCell(cell: Cell): Terrain {
   return (
-    paintedTerrainOf(cell.h3) ?? seededTerrainOf(cell.h3) ?? cell.terrain ?? terrainOf(cell.h3)
+    paintedTerrainOf(cell.h3) ??
+    worldseedTerrainOf(cell.h3) ??
+    seededTerrainOf(cell.h3) ??
+    cell.terrain ??
+    terrainOf(cell.h3)
   );
 }
 
