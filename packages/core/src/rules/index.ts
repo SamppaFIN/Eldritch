@@ -206,6 +206,8 @@ export {
 export type { Encounter, EncounterChoice, EncounterKind } from './encounter.js';
 export { WONDERS, WONDER_IDS, WONDER_STARS, wonderFits } from './wonder.js';
 export type { Wonder, WonderId } from './wonder.js';
+export { HARMALA_WONDERS, HARMALA_WONDER_IDS, harmalaWonderFits } from './harmalaWonder.js';
+export type { HarmalaWonder, HarmalaWonderId } from './harmalaWonder.js';
 export {
   WONDER_PROVINCE_RES,
   WONDER_SCOPE_RES,

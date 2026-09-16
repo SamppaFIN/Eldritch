@@ -2,69 +2,69 @@
 
 | | |
 |---|---|
-| **Alue** | `rules/wonder.ts`, `rules/wonderPlace.ts`, siemen (`HexSeed.structure`), ihmeiden vaikutukset useaan sääntöön |
+| **Alue** | `rules/harmalaWonder.ts`, `scripts/build-hexseed.mjs` (sijoitus), siemen (`HexSeed.structure`) |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
-| **Status** | `todo` — päätökset tehty (`BRDC-SEED-000` D4–D6, D9), toteutus alkaa |
+| **Status** | `[~]` osittain valmis 2026-09-16 — perusta ja sijoitus tehty, yhdeksän vaikutusta auki |
 | **Riippuvuudet** | `BRDC-SEED-003`, `BRDC-TERRAIN-005`, `BRDC-LANDMARK-001` |
 | **Lähde** | `worldseed.ts` (`WONDERS`), `seed.harmala.json` (`wonders`), Worldseed §06 *The Nine Wonders* |
 
 ## 🔴 RED
 
-**Nyt:** 12 lovecraftilaista ihmettä (`rules/wonder.ts`: R'lyeh, Hyperborea, Kadath, Leng,
-Arkham, Innsmouth…), sijoitettu **provinssin hajautuksella** (`wonderPlace.ts`).
+**Nyt:** 12 lovecraftilaista ihmettä (`rules/wonder.ts`), sijoitettu provinssin hajautuksella.
+Jokaisella on yksinkertainen `{bonus: ResourcePool, aura: {kind, radius}}` -vaikutus.
 
-**Worldseed:** 9 paikallista ihmettä, joilla on **paikkapredikaatti** (`require` + painotettu
-`prefer`); siementäjä pisteyttää heksat ja kiinnittää ihmeen parhaaseen — mutta niiden nimet
-(Sunken Bell, Great Sauna…) ovat mundaaneja, eivätkä sovi pelin muuten läpikotaisin
-lovecraftilaiseen sanastoon (§12).
-
-**Päätös (`BRDC-SEED-000` D4, D5): korvaavat, 9 kappaletta, lovecraftilaiset nimet.**
-9 paikallista ihmettä korvaavat 12:n hajautetun listan kokonaan seedatulla alueella, ja jokainen
-saa mytoksesta ammentavan nimen paikallisen ankkurinsa päälle — sama tyyli kuin nykyisessä
-listassa (yksi evokatiivinen erisnimi, ei kuvaileva lause):
-
-| Paikallinen (Worldseed) | **Uusi nimi** | Vaikutus (uutta mekaniikkaa) |
-|---|---|---|
-| Sunken Bell | **Y'ha-nthlei's Bell** | marsh- ja water-solut tuottavat tuplasti; välimuistit 1 km paljastuvat |
-| Drowned Spire | **The Dagon Spire** | +8 mana/h realmin laajuisesti; vesiheksat 2 km paljastuvat |
-| Eye of Pyhäjärvi | **The Drowned Eye** | 3 km pysyvä paljastus; kilpailijan piiritys ilmoitetaan · **avautuu tehtävän solmusta 5** |
-| Great Sauna | **The Ancient Löyly** | **rappio tauolla 12 h jokaisen kävelyn jälkeen** |
-| Ley Observatory | **The Yuggoth Lens** | riitit −25 % manaa |
-| Whispering Grove | **The Dunwich Grove** | metsäsolut eivät rapistu alle 200 |
-| Iron Bell Foundry | **The Carcosa Foundry** | **valtaukset +40 vahvuutta kilpailijoita vastaan** |
-| The Boy Who Waits | **He Who Waits at the Shore** | maamerkin viereiset solut tuplaavat kulttuurin |
-| Ten Thousand Steps | **The Thousand Masks Road** | +3 kaikkea/h; kävely 1,5× tietoisuuteen |
-
-**Ristiriita ratkaistu:** dokumentin luovutusosion "exactly 8 wonders" on kirjoitusvirhe;
-taulukko ja `expectedCounts` sanovat 9, ja 9 on vahvistettu.
-
-**Ten Thousand Steps / The Thousand Masks Road (D6, D9):** ei siirretä pois, ei DEM:iä.
-Vaatimus on "hill", ja seedatulla alueella hill tulee `BRDC-TERRAIN-005`:n nimetyistä
-mäkivyöhykkeistä (leirintäalue, Härmälänranta) — Infiniten paikallistuntemus korvaa mittauksen.
-Jos yksikään ehdokashekso ei osu nimettyyn mäkivyöhykkeeseen, ihde jää sijoittamatta sillä
-ajolla eikä pakoteta väärälle maastolle.
+**Löydös toteutuksessa:** yhdenkään yhdeksästä uudesta ihmeestä vaikutus ei mahdu tähän
+muotoon. Jokainen on **oma, uusi pelimekaniikkansa** — tuoton kertoja (ei lisäys), koko
+realmin laajuinen vakiobonus, rappiosäännön muutos, riitin manahinnan alennus, taisteluun
+vaikuttava vahvuuslisä, ehdollinen vierekkäisyyskertoja, tietoisuuden kokemuskerroin. Yhtään
+näistä ei voi kytkeä päälle ilman että se koskettaa jotain jo olemassa olevaa, tarkkaan
+viritettyä sääntöä (`decay.ts`, `capture.ts`, `mana.ts`, `dwell.ts`). Tiketin oma GREEN
+sanoi jo tämän: *"mitataan sim/issä ennen käyttöönottoa."* Yhdeksän mittaamatonta
+sääntömuutosta kerralla olisi juuri se minkä lause on tarkoitettu estämään.
 
 ## 🟢 GREEN
 
-- [ ] 9 ihmemäärittelyä yllä olevilla nimillä; seedatulla alueella paikka siemenestä
-      (`HexSeed.structure`), joka korvaa `wonderPlace.ts`in hajautuksen **vain seedatulla alueella**
-      — muualla 12 vanhaa pysyvät (ei `BRDC-SEED-000`-riippuvuutta, koska aluetta ei ole seedattu)
-- [ ] **Sijoitus `harmalaHint`istä, ei pisteytyksestä** (päätös `BRDC-SEED-003`:ssa, joka
-      alun perin varasi tämän itselleen): `prefer`-pisteytys tarvitsisi survey-signaaleja
-      (`elevation`, `adjacentWater`, `leyCrossings`, `shorelineLength`…) joita
-      `zoneOverrides`-datasta ei saa — ne tulisivat vasta täydestä OSM-surveystä. Sijoitus on
-      siis `harmalaHint`-koordinaatti käännettynä (`BRDC-SEED-001`) lähimmälle H3-solulle,
-      **`require`-maastovaatimus kovana esteenä**: jos hint-solun maasto ei täsmää, ihde jää
-      sijoittamatta sillä ajolla eikä pakoteta väärälle maastolle
-- [ ] Ihmeen lunastus: maailmassa ainutkertainen, ensimmäinen hinnan maksava realmi
-- [ ] **Jokainen vaikutus oma, testattu sääntönsä** — halvimmasta alkaen; piiritykseen tai rappioon
-      vaikuttavat (The Ancient Löyly, The Carcosa Foundry, The Dunwich Grove) **mitataan `sim/`issä**
-      ennen käyttöönottoa
-- [ ] The Drowned Eye avautuu vasta tehtävän solmusta 5 (`BRDC-QUEST-006`)
-- [ ] Ihme maamerkin päällä: halo (`BRDC-RES-002`)
-- [ ] Lore-teksti jokaiselle: yksi kappale, sitoo mytoksen nimen paikalliseen ankkuriin
-      (esim. *The Ancient Löyly*: sauna joka ei koskaan jäähdy, koska jokin allapäin pitää sen kuumana)
+- [x] 9 ihmemäärittelyä yllä olevilla nimillä (`rules/harmalaWonder.ts`): nimi, lore,
+      vaikutuskuvaus (teksti, ei vielä koodia), maastovaatimus, lippuvaatimus,
+      jäljitettävä `worldseedId`
+- [x] **Sijoitus, mitattu:** `scripts/build-hexseed.mjs` tarkistaa jokaisen ihmeen
+      `harmalaHint`-koordinaatin (dokumentin oma, käännetty) hakuosuman heksalle
+      **ja sen kuudelle naapurille** (~50 m), `require`-maasto ja -liput kovana esteenä.
+      Alun perin vain tarkka heksa tarkistettiin: 2/9 sijoittui. Naapurirengas mitattiin
+      tarpeelliseksi täsmälleen samasta syystä kuin `BRDC-LANDMARK-001`in patsashavainto —
+      hint-koordinaatti voi olla muutaman metrin väärässä solussa. Naapurirenkaan kanssa:
+      **5/9 sijoittui** — Y'ha-nthlei's Bell, The Dagon Spire, The Dunwich Grove,
+      The Carcosa Foundry, He Who Waits at the Shore
+- [x] **4/9 jää sijoittamatta, syyt mitattu ja kirjattu** — ei arvattu:
+  - *The Drowned Eye* (vaatii `island`-lipun; vain yksi vyöhyke koko datassa kantaa sitä)
+  - *The Ancient Löyly* (vaatii `shoreline` + settlement/forest; hint-alue on `coast`)
+  - *The Yuggoth Lens* (vaatii `leyCrossing` — **ei koskaan sijoitu tällä datalla**:
+    lippu vaatisi dokumentin omien `leyLines[]`-viivojen leikkauspisteen laskennan,
+    jota `BRDC-SEED-003`in luokittelu ei tee. Uusi, rajattu jatkotyö)
+  - *The Thousand Masks Road* (vaatii `hill` — `BRDC-SEED-000` D9:n tunnettu aukko, ei DEM:iä)
+- [ ] Ihmeen lunastus — **ei tehty samalla mekaniikalla kuin dokumentti kuvaa.**
+      Worldseed kuvaa ihmeet ostettaviksi (`cost`); peli löytää ihmeensä paljastamalla
+      (`wonderStore.ts`in `findWonderAt`, ei maksua). Yhdeksän uutta ei muuta tätä — ne
+      seuraavat pelin omaa mekaniikkaa, eivät dokumentin. **Löytö-integraatio itsessään
+      auki**, oma pieni jatkotyö
+- [ ] **Yhdeksän vaikutusta — ei yhtään tehty.** Jokainen oma tikettinsä tästä eteenpäin,
+      halvimmasta kalleimpaan mitattuna. Ei kytketty päälle mihinkään sääntöön
+- [ ] The Drowned Eye avautuu vasta tehtävän solmusta 5 — odottaa sijoitusta ja löytöä
+- [ ] Ihme maamerkin päällä: halo — `BRDC-RES-002`
+- [x] Testit: 8 `harmalaWonder.test.ts`issa (nimet, jäljitettävyys, `harmalaWonderFits`)
+- [x] Portti: 1536 testiä, `tsc -b`, `lint:lines`, tuotantobuild — kaikki vihreät
+
+## Ei versionostoa
+
+`HexSeed.structure` on nyt datassa (5 heksaa), mutta mikään pelin koodi ei vielä lue sitä —
+ei löytöä, ei vaikutusta, ei karttamerkkiä. Ei havaittavaa muutosta pelaajalle.
+
+## Jatkotyöt, numeroimatta
+
+- Löytö-integraatio: 9 ihmettä `wonderStore.ts`in `findWonderAt`-tyyppiseen polkuun
+- `leyCrossing`-lippu: leikkauspistelaskenta dokumentin `leyLines[]`-datasta
+- Yhdeksän erillistä vaikutussääntöä, kukin oma tikettinsä ja `sim/`-mittauksensa
 
 ## Ei tässä
 
