@@ -64,7 +64,7 @@ export interface MapViewProps {
 export function MapView({ onLeave }: MapViewProps) {
   const [basemap, setBasemap] = useState<BasemapState>('loading');
   const [bbox, setBbox] = useState<BBox | null>(null);
-  const [confirming, setConfirming] = useState<'withdraw' | 'reset' | null>(null);
+  const [confirming, setConfirming] = useState<'withdraw' | 'reset' | 'retire' | null>(null);
   const [places, setPlaces] = useState<RevealedPlace[]>([]);
   const [settings, onSettingsChange] = useSettings();
   const [nation] = useNation();
@@ -376,23 +376,20 @@ export function MapView({ onLeave }: MapViewProps) {
         onChange={onSettingsChange}
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
+        onRetireKingdom={() => setConfirming('retire')}
         onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
-        onOpenGpx={aside.openGpx} onWager={inspect.openWager} onOpenGuide={aside.openGuide}
+        onOpenHallOfFame={aside.openHallOfFame} onOpenGpx={aside.openGpx}
+        onWager={inspect.openWager} onOpenGuide={aside.openGuide}
         onOpenEditor={EDITOR_AVAILABLE ? editor.toggle : undefined}
-        repository={repository}
-        position={point}
+        repository={repository} position={point}
         onDebugGrant={() => void repository?.debugGrant(clock.now()).then(() => repository?.getResources(clock.now()).then(setResources))}
         onResetPouch={() => void repository?.resetResources(clock.now()).then(setResources)}
         visible={inspect.cell === null && !inspect.sanctum}
       />
 
       <SanctumDialogs
-        confirming={confirming}
-        setConfirming={setConfirming}
-        onLeave={onLeave}
-        repository={repository}
-        ownedCells={territory.owned.length}
-        distanceM={trail.distanceM}
+        confirming={confirming} setConfirming={setConfirming} onLeave={onLeave} now={clock.now}
+        repository={repository} ownedCells={territory.owned.length} distanceM={trail.distanceM}
       />
     </main>
   );

@@ -95,12 +95,14 @@ export function PouchResetDialog({ open, onConfirm, onCancel }: ResetDialogProps
 }
 
 export interface SanctumDialogsProps {
-  confirming: 'withdraw' | 'reset' | null;
-  setConfirming: (v: 'withdraw' | 'reset' | null) => void;
+  confirming: 'withdraw' | 'reset' | 'retire' | null;
+  setConfirming: (v: 'withdraw' | 'reset' | 'retire' | null) => void;
   onLeave: () => void;
   repository: GameRepository;
   ownedCells: number;
   distanceM: number;
+  /** For the retire confirm, which needs a timestamp `resetAll` never did (BRDC-HALL-001). */
+  now: () => number;
 }
 
 /**
@@ -116,6 +118,7 @@ export function SanctumDialogs({
   repository,
   ownedCells,
   distanceM,
+  now,
 }: SanctumDialogsProps) {
   return (
     <>
@@ -140,7 +143,48 @@ export function SanctumDialogs({
         }}
         onCancel={() => setConfirming(null)}
       />
+      <RetireDialog
+        open={confirming === 'retire'}
+        onConfirm={() => {
+          void (async () => {
+            await repository.retireKingdom(now());
+            clearAll();
+            window.location.reload();
+          })();
+        }}
+        onCancel={() => setConfirming(null)}
+      />
     </>
+  );
+}
+
+/**
+ * Retiring on purpose (BRDC-HALL-001) — a different door out than Delete progress, next to
+ * it in the Advanced list but not styled as a mistake to be talked out of. What it takes is
+ * the same wipe; what makes it not the panic button is that this kingdom is kept first.
+ */
+export function RetireDialog({ open, onConfirm, onCancel }: ResetDialogProps) {
+  return (
+    <Modal
+      open={open}
+      title="Retire this kingdom?"
+      onClose={onCancel}
+      footer={
+        <>
+          <RitualButton variant="ghost" className="es-btn--quiet" onClick={onConfirm}>
+            Retire it
+          </RitualButton>
+          <RitualButton onClick={onCancel}>Keep building</RitualButton>
+        </>
+      }
+    >
+      <p>
+        Every warded cell, every ley-line and all consciousness gained will be unmade — but
+        this kingdom&rsquo;s name, level, ground held and what it achieved join the Hall of
+        Fame first, kept there for good.
+      </p>
+      <p>A new kingdom begins the moment you confirm.</p>
+    </Modal>
   );
 }
 

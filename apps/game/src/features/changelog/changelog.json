@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.42",
+    "date": "2026-09-16",
+    "notes": [
+      "New: Retire this kingdom, in the menu's Advanced section. Ending a kingdom on purpose now archives its name, level, ground, population and everything found into a new Hall of Fame — reachable from the menu — before starting fresh. \"Delete progress\" still wipes everything with nothing kept, unchanged."
+    ]
+  },
+  {
     "version": "0.6.41",
     "date": "2026-09-16",
     "notes": [

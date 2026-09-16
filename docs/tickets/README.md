@@ -170,6 +170,7 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | [BRDC-WIKI-001](BRDC-WIKI-001.md) | Pelinsisäinen tietokirja | M | BUILD-001, TECH-001 |
 | [BRDC-TUTOR-001](BRDC-TUTOR-001.md) | Asteittainen opetus | M | BUILD-001, REVEAL-001, WIKI-001 |
 | [BRDC-ACHIEVE-001](BRDC-ACHIEVE-001.md) | Saavutukset ja ilmoitukset | S | HEX-001, WONDER-001 |
+| [BRDC-HALL-001](BRDC-HALL-001.md) | ✅ Retire Kingdom: arkistoi ennen pyyhkäisyä, Hall of Fame | L | PERSIST-002, CODEX-001, NATION-001 |
 
 **Worldseed-integraatio (2026-09-16):** Infiniten päivitetyt design-dokumentit
 (`Eldritch-pelin uusi design systeemi/handoff/`) tuovat Härmälänrannan siemendatan,

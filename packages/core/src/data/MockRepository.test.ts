@@ -289,6 +289,36 @@ describe('resetAll', () => {
   });
 });
 
+describe('retireKingdom (BRDC-HALL-001)', () => {
+  it('archives what was built, then wipes it exactly as resetAll does', async () => {
+    const id = await repo.startRun(T0);
+    await repo.submitTrail(id, walk());
+    await repo.addXp(500);
+    const held = await repo.getOwnedCells(T0);
+    expect(held.length).toBeGreaterThan(0);
+    const xpBefore = (await repo.getProfile()).xp;
+
+    const entry = await repo.retireKingdom(T0);
+
+    expect(entry.cells).toBe(held.length);
+    expect(entry.xp).toBe(xpBefore);
+    expect(await repo.getOwnedCells(T0)).toEqual([]);
+    expect((await repo.getProfile()).xp).toBe(0);
+    expect(await repo.getHallOfFame()).toEqual([entry]);
+  });
+
+  it('keeps every past kingdom across repeated retirements', async () => {
+    await repo.addXp(100);
+    await repo.retireKingdom(T0);
+    await repo.addXp(200);
+    await repo.retireKingdom(T0 + 1);
+
+    const archive = await repo.getHallOfFame();
+    expect(archive).toHaveLength(2);
+    expect(archive.map((e) => e.xp)).toEqual([100, 200]);
+  });
+});
+
 /** Local helper so the test does not depend on a repository internal. */
 function centreOf(h3: string): { lat: number; lng: number } {
   const [lat, lng] = cellToLatLng(h3);

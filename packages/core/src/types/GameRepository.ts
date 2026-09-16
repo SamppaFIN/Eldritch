@@ -62,6 +62,7 @@ import type {
 import type { SecretSiteId } from '../data/questSites.js';
 import type { AchievementView } from '../data/achievementStore.js';
 import type { CipherView } from '../data/cipherStore.js';
+import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -369,4 +370,9 @@ export interface GameRepository {
   resetAll(): Promise<void>;
   /** Dev only: refill the pouch (BRDC-ECON-002). Shown behind `import.meta.env.DEV`. */
   debugGrant(now: number): Promise<void>;
+  /** Archives the current kingdom's figures, then wipes exactly as `resetAll` does — the
+   *  archive is the one thing that survives (BRDC-HALL-001). */
+  retireKingdom(now: number): Promise<HallOfFameEntry>;
+  /** Every kingdom retired on this device, oldest first. */
+  getHallOfFame(): Promise<HallOfFameEntry[]>;
 }

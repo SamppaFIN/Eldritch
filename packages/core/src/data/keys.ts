@@ -64,4 +64,7 @@ export const K = {
    *  (BRDC-SEED-005) — a mismatch means a rebuild may have moved what an already-revealed
    *  seeded hex actually holds. */
   seedBuiltAt: 'seed-built-at',
+  /** Retired kingdoms, `HallOfFameEntry[]` — the one record `retireKingdom` keeps back
+   *  from the wipe it otherwise does (BRDC-HALL-001). */
+  hallOfFame: 'hall-of-fame',
 } as const;

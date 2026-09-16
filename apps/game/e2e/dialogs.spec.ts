@@ -150,6 +150,45 @@ test('resetting actually empties the sanctuary', async ({ page }) => {
   expect(leftovers).toEqual([]);
 });
 
+test('retiring asks, and says the kingdom joins the Hall of Fame first', async ({ page }) => {
+  // BRDC-HALL-001 — a different door than Delete progress: this one keeps something.
+  await openMap(page);
+  await openMenuAction(page, 'Retire this kingdom');
+
+  // Named, not the bare role — a non-modal tutorial toast (`UnlockMoment`) can be on
+  // screen at the same time, and `getByRole('dialog')` alone would match either.
+  const dialog = page.getByRole('dialog', { name: /Retire this kingdom/i });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText(/Hall of Fame/i);
+
+  await page.getByRole('button', { name: 'Keep building' }).click();
+  await expect(dialog).not.toBeVisible();
+});
+
+test('retiring archives the kingdom, then starts a fresh one', async ({ page }) => {
+  test.setTimeout(120_000);
+  await openMap(page);
+  await page.waitForTimeout(2_000);
+
+  await openMenuAction(page, 'Retire this kingdom');
+  await page.getByRole('button', { name: 'Retire it' }).click();
+
+  // Same reload contract as Delete progress: the title screen means the session went
+  // with it, and nothing under `es3:` survives in localStorage.
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 20_000 });
+  const leftovers = await page.evaluate(() =>
+    Object.keys(localStorage).filter((k) => k.startsWith('es3:')),
+  );
+  expect(leftovers).toEqual([]);
+
+  // But the kingdom that just ended is waiting in the next one's Hall of Fame.
+  await openMap(page);
+  await openMenuAction(page, 'Hall of Fame Kingdoms retired');
+  const hall = page.getByRole('region', { name: 'Hall of Fame' });
+  await expect(hall).toBeVisible();
+  await expect(hall).not.toContainText(/No kingdom has retired yet/i);
+});
+
 test('the menu control is a real button with a real name, and reaches Delete progress', async ({
   page,
 }) => {

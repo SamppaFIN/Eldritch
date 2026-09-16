@@ -149,3 +149,5 @@ export { markUnlockSeen, seenUnlocks } from './unlockStore.js';
 export { clearSurvey, recordSurvey, surveySize, surveyedTerrainOf } from './localSurvey.js';
 export { GPX_ASSUMED_ACCURACY_M, parseGpx } from './gpx.js';
 export type { GpxFault, GpxParse } from './gpx.js';
+export { readHallOfFame, retireKingdom } from './hallOfFameStore.js';
+export type { HallOfFameEntry } from './hallOfFameStore.js';

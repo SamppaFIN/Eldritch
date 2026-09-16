@@ -65,6 +65,7 @@ import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adve
 import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, getQuestFindsFor, investigateAnomalyFor, recordQuestFindFor, resolveAnomalyFor, startAdventureFor, type SecretSiteId } from './storyRepo.js';
 import { cipherView, recordShard, type CipherView } from './cipherStore.js';
 import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
+import { readHallOfFame, retireKingdom, type HallOfFameEntry } from './hallOfFameStore.js';
 
 export interface MockRepositoryOptions {
   store?: KeyValueStore;
@@ -359,6 +360,9 @@ export class MockRepository implements GameRepository {
   async resetAll(): Promise<void> {
     await this.store.clear();
   }
+  retireKingdom = async (now: number): Promise<HallOfFameEntry> =>
+    retireKingdom(this.store, await this.getProfile(), await this.getOwnedCells(now), now, this.newId);
+  getHallOfFame = (): Promise<HallOfFameEntry[]> => readHallOfFame(this.store);
 
   /* --- Internals -------------------------------------------------------- */
 
