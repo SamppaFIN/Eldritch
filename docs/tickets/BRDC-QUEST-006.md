@@ -42,7 +42,8 @@ Uuden ketjun *"What Sleeps at the Shore"* koordinaatit ovat Infiniten mukaan suu
       (*What Sleeps at the Shore*) oikeasti tarvitsee sen
 - [ ] *What Sleeps at the Shore*: 5 solmua + 3 välimuistia heksan parametreina — koordinaatit
       vahvistetaan ennen siementä (`BRDC-SEED-001` tai Infiniten pitkä painallus)
-- [ ] Tehtävätaulu listaa ketjut (`BRDC-TAVERN-001`)
+- [x] Tehtävätaulu listaa ketjut (`BRDC-TAVERN-001`, tehty 2026-09-16: `questBoardEntries`
+      listaa jokaisen käynnissä olevan seikkailun Tavernan omalla heksalla)
 
 ## Todennettu
 
