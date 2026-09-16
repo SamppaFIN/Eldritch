@@ -7,6 +7,7 @@ import type { Metric, PlayerId } from '@es3/core';
 import {
   METRIC_BLURB,
   METRIC_NAME,
+  METRIC_TITLE,
   barPct,
   formatArea,
   formatDistance,
@@ -14,6 +15,7 @@ import {
   gapLine,
   overallStanding,
   placeWord,
+  titlesHeld,
 } from './figures.js';
 
 describe('formatArea', () => {
@@ -184,5 +186,51 @@ describe('overallStanding (BRDC-CARD-005)', () => {
   it('is null for a realm not listed anywhere', () => {
     const notListed: Metric = { ...metric('land', 100, [50, 10]), ranked: [] };
     expect(overallStanding([notListed], 'me' as PlayerId)).toBeNull();
+  });
+});
+
+describe('METRIC_TITLE and titlesHeld — field report 2026-09-16', () => {
+  const metric = (id: Metric['id'], mine: number, others: number[]): Metric => {
+    const values = [mine, ...others];
+    return {
+      id,
+      ranked: [{ id: 'me' as PlayerId, name: 'Me', value: mine }, ...others.map((value, i) => ({
+        id: `p${i}` as PlayerId,
+        name: `P${i}`,
+        value,
+      }))],
+      best: Math.max(...values),
+      worst: Math.min(...values),
+      average: values.reduce((s, v) => s + v, 0) / values.length,
+    };
+  };
+
+  it('names every measure the core can produce, "the" lore register throughout', () => {
+    for (const id of METRIC_IDS) {
+      expect(METRIC_TITLE[id]).toMatch(/^The /);
+    }
+  });
+
+  it('holds a title only for a measure actually led outright', () => {
+    const leading = metric('land', 100, [50, 10]);
+    const behind = metric('works', 1, [5, 9]);
+    expect(titlesHeld([leading, behind], 'me' as PlayerId)).toEqual(['land']);
+  });
+
+  it('shares a title on a tie for the lead, the same rule placementIn already keeps', () => {
+    const tied = metric('population', 100, [100, 10]);
+    expect(titlesHeld([tied], 'me' as PlayerId)).toEqual(['population']);
+  });
+
+  it('holds every title at once when the realm leads more than one measure', () => {
+    const land = metric('land', 100, [50]);
+    const works = metric('works', 9, [5]);
+    expect(titlesHeld([land, works], 'me' as PlayerId)).toEqual(['land', 'works']);
+  });
+
+  it('holds nothing while unlisted, or leading nothing', () => {
+    const notListed: Metric = { ...metric('land', 100, [50]), ranked: [] };
+    expect(titlesHeld([notListed], 'me' as PlayerId)).toEqual([]);
+    expect(titlesHeld([metric('land', 10, [50])], 'me' as PlayerId)).toEqual([]);
   });
 });

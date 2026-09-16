@@ -32,6 +32,33 @@ export const METRIC_BLURB: Readonly<Record<MetricId, string>> = {
   footfall: 'Every day walked on every hex, added up. Only time buys this one.',
 };
 
+/**
+ * An honorary title for whoever leads a measure outright (field report 2026-09-16,
+ * Infinite: *"give honorary title to the player that holds the title, like landlord who
+ * holds the most area"*). Lore, not a mechanic — the same register `MILESTONES`
+ * (`consciousness.ts`) uses for a level name, kept out of that table on purpose so a
+ * Codex title is never confused for a Consciousness rank.
+ */
+export const METRIC_TITLE: Readonly<Record<MetricId, string>> = {
+  land: 'The Landlord',
+  leyline: 'The Pathwalker',
+  consciousness: 'The Farseer',
+  population: 'The Sovereign',
+  works: 'The Artificer',
+  provinces: 'The Far-Warden',
+  footfall: 'The Devoted',
+};
+
+/**
+ * Every title this realm currently holds outright — every measure it is 1st of, ties
+ * included (`placementIn`'s own rule: level with the leader shares the lead, it is not
+ * "2nd of 7"). `[]` while unlisted or leading nothing, the same "nothing to say yet" the
+ * table above it already leaves silent.
+ */
+export function titlesHeld(metrics: readonly Metric[], me: PlayerId): MetricId[] {
+  return metrics.filter((m) => placementIn(m, me)?.rank === 1).map((m) => m.id);
+}
+
 const round = (n: number, places = 0): string =>
   n.toLocaleString('en-GB', { maximumFractionDigits: places });
 

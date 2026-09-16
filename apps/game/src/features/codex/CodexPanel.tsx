@@ -20,6 +20,7 @@ import { useCodex } from './useCodex.js';
 import {
   METRIC_BLURB,
   METRIC_NAME,
+  METRIC_TITLE,
   barPct,
   formatMetric,
   gapLine,
@@ -71,15 +72,22 @@ export function CodexPanel({ open, me, onClose }: CodexPanelProps) {
     const mine = me ? placementIn(metric, me) : null;
     const gap = mine ? gapLine(metric, mine.value, mine.rank) : null;
     const showing = expanded === metric.id;
+    // An honorary title for the outright leader (field report 2026-09-16: "give honorary
+    // title to the player that holds the title, like landlord who holds the most area") —
+    // lore and a colour on the one row it is actually true of, not a mechanic.
+    const titled = mine?.rank === 1;
     return (
-      <li key={metric.id} className="codex__row">
+      <li key={metric.id} className={`codex__row${titled ? ' codex__row--titled' : ''}`}>
         <button
           type="button"
           className="codex__head"
           aria-expanded={showing}
           onClick={() => setExpanded(showing ? null : metric.id)}
         >
-          <span className="codex__name">{METRIC_NAME[metric.id]}</span>
+          <span className="codex__name">
+            {METRIC_NAME[metric.id]}
+            {titled ? <span className="codex__title">{METRIC_TITLE[metric.id]}</span> : null}
+          </span>
           {/*
             * Nothing at all rather than "—" and "not listed" on every row (Sigil handoff:
             * "No dimmed rows, no 'none', no 'not listed'"). An unranked realm used to get

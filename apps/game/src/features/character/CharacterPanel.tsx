@@ -18,6 +18,8 @@ import { readAvatarId, writeAvatarId } from './avatarIds.js';
 import type { AvatarId } from './avatarIds.js';
 import { milestoneForLevel, visibleMilestones } from './consciousness.js';
 import { useCharacter } from './useCharacter.js';
+import { useCodex } from '../codex/useCodex.js';
+import { METRIC_TITLE, titlesHeld } from '../codex/figures.js';
 import './character.css';
 
 /** 2π × the ring's own radius (44) — `stroke-dasharray`'s unit is the path length itself. */
@@ -78,6 +80,9 @@ function Found({ finds, onTopic }: { finds: readonly SecretSiteId[]; onTopic: (t
 
 export function CharacterPanel({ open, repository, now, version, onTopic, onClose }: CharacterPanelProps) {
   const { profile, finds, achievements, cipher, onRename } = useCharacter(repository, now, open, version);
+  // Fetched independently of the Codex screen itself — a title is worth knowing about
+  // here even on a visit that never opens the Codex at all (field report 2026-09-16).
+  const { state: codex } = useCodex(open);
   const [draft, setDraft] = useState('');
   const ref = useRef<HTMLElement>(null);
 
@@ -116,6 +121,8 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
   const state = levelState(profile?.xp ?? 0);
   const milestone = milestoneForLevel(state.level);
   const ladder = visibleMilestones(state.level);
+  const titles =
+    profile && codex.status === 'ready' ? titlesHeld(codex.table.metrics, profile.id) : [];
   const commit = () => {
     if (draft.trim() && draft.trim() !== profile?.name) onRename(draft);
   };
@@ -172,6 +179,20 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
       </div>
 
       {pickingAvatar ? <AvatarPicker current={avatar} onPick={pickAvatar} /> : null}
+
+      {/* Honorary titles, one per Codex measure this realm leads outright (field report
+          2026-09-16: "give honorary title to the player that holds the title... if many,
+          all of them"). Silent while unlisted or leading nothing — the same quiet the
+          Codex itself keeps for a realm with nothing to report yet. */}
+      {titles.length > 0 ? (
+        <ul className="character__titles" aria-label="Titles held">
+          {titles.map((id) => (
+            <li key={id} className="character__title">
+              {METRIC_TITLE[id]}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <h3 className="character__section">Consciousness</h3>
       <p className="character__level es-numeric">

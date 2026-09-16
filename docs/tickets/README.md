@@ -207,6 +207,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-CARD-002](BRDC-CARD-002.md) | 🔶 Aarrelista täysi, rappiolista lisätty; välilehdet ennallaan | M | — |
 | [BRDC-CARD-003](BRDC-CARD-003.md) | 🔶 Aikakausipalkki ja punainen puute-huomautus tehty; riitit erillään | M | — |
 | [BRDC-CARD-004](BRDC-CARD-004.md) | 🔶 Tietoisuusrengas tehty; elinikäiset luvut vaativat uutta tilaa | S–M | — |
+| [BRDC-CODEX-004](BRDC-CODEX-004.md) | ✅ Kunnianimet johtaville mittareille, Codexissa ja You-ruudulla | S | CODEX-001 |
 | [BRDC-CARD-005](BRDC-CARD-005.md) | 🔶 Kokonaissija ja vertailupalkki tehty — sarjan valmein | S–M | — |
 
 **Portti V3:** ⬜ rakenna saha kotimetsään, tutki teknologia, löydä ihme, ja **selitä

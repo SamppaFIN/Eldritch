@@ -91,6 +91,25 @@
   font-size: var(--text-body);
 }
 
+/* The one measure this realm leads outright, coloured apart from the rest (field report
+   2026-09-16, "small lore and color trick for the codex of dominion"). */
+.codex__row--titled {
+  border-block-end-color: color-mix(in oklch, var(--sacred-gold) 45%, transparent);
+}
+
+.codex__title {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--sacred-gold) 16%, transparent);
+  color: var(--sacred-gold);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-style: italic;
+  vertical-align: middle;
+}
+
 .codex__mine {
   color: var(--sacred-gold);
   font-size: var(--text-body);

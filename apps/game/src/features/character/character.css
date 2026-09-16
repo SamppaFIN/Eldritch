@@ -124,6 +124,28 @@
   outline-offset: 2px;
 }
 
+/* Honorary titles, one per Codex measure led outright (field report 2026-09-16) — same
+   gold-badge treatment `codex-panel.css`'s own `.codex__title` gives the leading row. */
+.character__titles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.character__title {
+  padding-inline: var(--space-2);
+  padding-block: 2px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--sacred-gold) 16%, transparent);
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
 .character__label {
   color: var(--text-dim);
   font-size: var(--text-sm);
