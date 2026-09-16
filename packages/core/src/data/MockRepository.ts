@@ -29,7 +29,7 @@ import { cityAtDoor, tradeAt } from './cityStateStore.js';
 import type { CityState } from '../rules/cityState.js';
 import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools, type ConsecrateOutcome, type ExpandOutcome, type SchoolOutcome } from './templeStore.js';
 import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
-import { readRevealed, revealAt, type RevealOutcome } from './revealStore.js';
+import { readRevealed, reconcileSeedReveals, revealAt, type RevealOutcome } from './revealStore.js';
 import { readPaths } from './pathStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges, type WalkedEdge } from '../geo/paths.js';
@@ -46,19 +46,8 @@ import { addXpTo, readProfile, setName } from './profileStore.js';
 import { achievementsFor } from './achievementRepo.js';
 import type { AchievementView } from './achievementStore.js';
 import type {
-  BBox,
-  Cell,
-  LatLng,
-  RevealedPlace,
-  ClaimResult,
-  DecayResult,
-  GameRepository,
-  H3Index,
-  PlayerProfile,
-  Run,
-  RunId,
-  Terrain,
-  TrailPoint,
+  BBox, Cell, LatLng, RevealedPlace, ClaimResult, DecayResult, GameRepository,
+  H3Index, PlayerProfile, Run, RunId, Terrain, TrailPoint,
 } from '../types/index.js';
 import { MemoryStore, type KeyValueStore } from './kv.js';
 import { versioned, type SchemaOutcome, type VersionedStore } from './schema.js';
@@ -172,6 +161,7 @@ export class MockRepository implements GameRepository {
   async takeRazed(now: number): Promise<BuildingId[]> {
     return takeRazed(this.store, await this.getOwnedCells(now), now);
   }
+  reconcileSeedReveals = (): Promise<H3Index[]> => reconcileSeedReveals(this.store);
   getTradeRoutes = (): Promise<TradeRoute[]> => readRoutes(this.store);
 
   async layTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome> {

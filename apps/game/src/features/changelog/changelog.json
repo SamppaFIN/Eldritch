@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.40",
+    "date": "2026-09-16",
+    "notes": [
+      "Fixed: a hex revealed before the ground itself was corrected could never be revealed again, even after the correction — so a bonus resource the game moved onto that ground was gone for good. Affected hexes now return to Your Lands as unrevealed, ready for a fresh, correct reveal, with a notice explaining why."
+    ]
+  },
+  {
     "version": "0.6.39",
     "date": "2026-09-16",
     "notes": [

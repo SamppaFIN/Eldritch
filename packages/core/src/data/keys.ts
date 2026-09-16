@@ -60,4 +60,8 @@ export const K = {
   encounters: 'encounters',
   /** The last UTC day the daily omen was rolled, so reopening the app cannot re-roll it. */
   omenDay: 'omen-day',
+  /** The Worldseed build's own `builtAt` this device last reconciled `revealed` against
+   *  (BRDC-SEED-005) — a mismatch means a rebuild may have moved what an already-revealed
+   *  seeded hex actually holds. */
+  seedBuiltAt: 'seed-built-at',
 } as const;

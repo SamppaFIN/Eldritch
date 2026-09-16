@@ -81,7 +81,9 @@ const REGIONS: readonly Region[] = [
   { shape: 'circle', kind: 'lake', note: 'Pyhäjärvi — the NE arm', lat: 61.4749, lng: 23.7351, radiusM: 320 },
 ];
 
-function inBox(lat: number, lng: number): boolean {
+/** Whether a point falls inside the surveyed box — exported for `BRDC-SEED-005`, which
+ *  needs the same "is this hex even seeded ground" check outside any terrain lookup. */
+export function inBox(lat: number, lng: number): boolean {
   return (
     lat >= SEED_BOX.south && lat <= SEED_BOX.north && lng >= SEED_BOX.west && lng <= SEED_BOX.east
   );

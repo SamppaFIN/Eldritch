@@ -34,6 +34,9 @@ export interface NoticeConditions {
   schemaReset: boolean;
   /** How many Works the one-per-cell migration took down, already paid back. */
   razed: number;
+  /** How many revealed hexes a Worldseed rebuild may have moved the ground under
+   *  (BRDC-SEED-005) — cleared back to unrevealed, ready for a correct reveal. */
+  staleReveals: number;
   /**
    * The location trouble worth explaining, or null while it is merely slow
    * (BRDC-GEO-001). `denied` is a decision that can be reversed; `blocked` is the browser
@@ -60,6 +63,19 @@ export interface NoticeConditions {
 export function razedLine(count: number): string {
   const works = count === 1 ? 'One Work' : `${count} Works`;
   return `The building system changed. ${works} came down, and every stone of it is back in your pouch.`;
+}
+
+/**
+ * What a Worldseed rebuild owes the player, in one sentence (BRDC-SEED-005).
+ *
+ * Same shape as `razedLine`: something the game did to the realm without being asked,
+ * with the cost already undone rather than merely explained. Nothing was taken here —
+ * the hexes simply went back to unrevealed — so the sentence says where to collect,
+ * not an apology.
+ */
+export function staleRevealsLine(count: number): string {
+  const hexes = count === 1 ? 'One hex you revealed' : `${count} hexes you revealed`;
+  return `The ground itself was corrected. ${hexes} moved and can be revealed again, correctly, from Your Lands.`;
 }
 
 /**
@@ -125,6 +141,9 @@ export function noticesFor(c: NoticeConditions, dismissed: ReadonlySet<string>):
     });
   }
   if (c.razed > 0) all.push({ id: 'razed', sticky: true, text: razedLine(c.razed) });
+  if (c.staleReveals > 0) {
+    all.push({ id: 'stale-reveals', sticky: true, text: staleRevealsLine(c.staleReveals) });
+  }
   // Sticky: without a location there is no game at all, so this one waits to be read
   // rather than sliding past in seven seconds.
   if (c.geo) all.push({ id: 'geo', sticky: true, text: geoAdvice(c.geo) });

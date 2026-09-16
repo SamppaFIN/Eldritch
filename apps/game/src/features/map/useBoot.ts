@@ -25,9 +25,9 @@ import type { GameRepository, H3Index, PlayerProfile, QuestSiteId } from '@es3/c
 import { createRepository } from '../../data/createRepository.js';
 import type { NoticeConditions } from '../hud/notices.js';
 
-/** The three things `createRepository` can report about the save it opened. */
-export type BootAlerts = Pick<NoticeConditions, 'durable' | 'schemaReset' | 'razed'>;
-const QUIET: BootAlerts = { durable: true, schemaReset: false, razed: 0 };
+/** What `createRepository` can report about the save it opened. */
+export type BootAlerts = Pick<NoticeConditions, 'durable' | 'schemaReset' | 'razed' | 'staleReveals'>;
+const QUIET: BootAlerts = { durable: true, schemaReset: false, razed: 0, staleReveals: 0 };
 
 export interface Boot {
   repository: GameRepository | null;
@@ -52,7 +52,12 @@ export function useBoot(now: () => number, clock: unknown): Boot {
       const handle = await createRepository();
       if (cancelled) return;
       setRepository(handle.repository);
-      setAlerts({ durable: handle.durable, schemaReset: handle.reset, razed: handle.razed.length });
+      setAlerts({
+        durable: handle.durable,
+        schemaReset: handle.reset,
+        razed: handle.razed.length,
+        staleReveals: handle.staleReveals.length,
+      });
       setProfile(await handle.repository.getProfile());
       // A returning player already has a Keep; setHome below only fires for a fresh one.
       setCastle(await handle.repository.getCastle());

@@ -11,6 +11,7 @@ const QUIET: NoticeConditions = {
   durable: true,
   schemaReset: false,
   razed: 0,
+  staleReveals: 0,
   geo: null,
   worldStirredMs: null,
   shifted: false,
@@ -75,6 +76,25 @@ describe('noticesFor', () => {
 
   it('says nothing about razing when the migration took nothing', () => {
     expect(noticesFor({ ...QUIET, razed: 0 }, NONE)).toEqual([]);
+  });
+
+  /*
+   * BRDC-SEED-005. Also a notice about something the game did to the realm without being
+   * asked, so it is sticky the same way `razed` is — it must not slide past unread while
+   * the correction it is reporting sits waiting in Your Lands.
+   */
+  it('reports hexes a Worldseed rebuild moved, and does not expire', () => {
+    const [one] = noticesFor({ ...QUIET, staleReveals: 1 }, NONE);
+    expect(one?.text).toContain('One hex you revealed');
+    expect(one?.sticky).toBe(true);
+
+    const [many] = noticesFor({ ...QUIET, staleReveals: 4 }, NONE);
+    expect(many?.text).toContain('4 hexes you revealed');
+    expect(many?.text).toContain('Your Lands');
+  });
+
+  it('says nothing about stale reveals when nothing moved', () => {
+    expect(noticesFor({ ...QUIET, staleReveals: 0 }, NONE)).toEqual([]);
   });
 
   /*

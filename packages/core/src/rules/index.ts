@@ -124,7 +124,7 @@ export {
 } from './terrain.js';
 export { terrainFromTiles } from './terrainTiles.js';
 export type { TileFeature } from './terrainTiles.js';
-export { HARMALA_STATUE, SEED_BOX, enableTerrainSurvey, seededTerrainOf } from './terrainSeed.js';
+export { HARMALA_STATUE, SEED_BOX, enableTerrainSurvey, inBox, seededTerrainOf } from './terrainSeed.js';
 export type {
   BuildSite,
   ResourceKind,

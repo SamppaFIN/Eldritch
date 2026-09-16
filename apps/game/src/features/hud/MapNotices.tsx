@@ -21,14 +21,14 @@ export type MapNoticesProps = NoticeConditions;
 export function MapNotices(props: MapNoticesProps) {
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(() => new Set());
 
-  const { durable, schemaReset, razed, geo, worldStirredMs, shifted, offsetDays } = props;
+  const { durable, schemaReset, razed, staleReveals, geo, worldStirredMs, shifted, offsetDays } = props;
   const notices = useMemo(
     () =>
       noticesFor(
-        { durable, schemaReset, razed, geo, worldStirredMs, shifted, offsetDays },
+        { durable, schemaReset, razed, staleReveals, geo, worldStirredMs, shifted, offsetDays },
         dismissed,
       ),
-    [durable, schemaReset, razed, geo, worldStirredMs, shifted, offsetDays, dismissed],
+    [durable, schemaReset, razed, staleReveals, geo, worldStirredMs, shifted, offsetDays, dismissed],
   );
 
   // One timer per showing notice, keyed by the ids on screen. A notice dismissed by hand

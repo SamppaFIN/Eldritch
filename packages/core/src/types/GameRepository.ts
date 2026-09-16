@@ -200,6 +200,12 @@ export interface GameRepository {
    * player can be told. `[]` on every open but the first one after the upgrade.
    */
   takeRazed(now: number): Promise<BuildingId[]>;
+  /**
+   * Clear whatever a Worldseed rebuild moved out from under an already-revealed hex
+   * (BRDC-SEED-005), once per new build. Returns the hexes cleared, back to unrevealed,
+   * so the player can be told and can reveal them again for the correct payout.
+   */
+  reconcileSeedReveals(): Promise<H3Index[]>;
 
   /* --- Diplomacy (BRDC-DIPLO-001) -------------------------------------- */
   /** The city state whose quay this hex is, or null. Diplomacy happens at a place. */

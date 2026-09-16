@@ -20,6 +20,11 @@ export function enableWorldseed(on = true): void {
 
 interface HexSeedDoc {
   readonly area: string;
+  /** When `scripts/build-hexseed.mjs` last wrote this file — the one fingerprint that
+   *  changes whenever a rebuild could have moved a hex's terrain or resource
+   *  (`BRDC-SEED-005`'s own reason for existing: a hex revealed against an older build
+   *  can promise a payout the current one no longer agrees with). */
+  readonly builtAt: string;
   readonly hexes: Readonly<Record<string, Omit<HexSeed, 'h3'>>>;
 }
 
@@ -34,4 +39,19 @@ export function hexSeedOf(h3: H3Index): HexSeed | null {
     if (hex) return { h3, ...hex };
   }
   return null;
+}
+
+/**
+ * When the loaded Worldseed build was made — one string, changed by any rebuild.
+ *
+ * Not per-hex: a rebuild can move a deposit from one hex in an area to another without
+ * touching either hex's own record, so comparing a single hex's own fields to itself
+ * would miss exactly the case that matters. One build-wide fingerprint catches every
+ * such move at once, at the cost of treating the whole seeded area as suspect together —
+ * the trade `BRDC-SEED-005` makes deliberately, since a full-area re-reveal costs the
+ * player nothing but a tap.
+ */
+export function harmalaBuiltAt(): string {
+  if (!enabled) return '';
+  return (AREAS[0] as HexSeedDoc | undefined)?.builtAt ?? '';
 }

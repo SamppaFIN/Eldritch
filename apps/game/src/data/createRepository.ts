@@ -6,7 +6,7 @@
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
 import { MemoryStore, MockRepository, enableTerrainSurvey, enableWorldseed } from '@es3/core';
-import type { BuildingId, GameRepository } from '@es3/core';
+import type { BuildingId, GameRepository, H3Index } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
 // The hand survey of the field-test area is client content, not a rule — on for the
@@ -26,6 +26,9 @@ export interface RepositoryHandle {
    * (PIVOT-2026-09-09 §6). Empty on every open but the first one after the upgrade.
    */
   razed: BuildingId[];
+  /** Revealed hexes a Worldseed rebuild may have moved the ground under, cleared back to
+   *  unrevealed (BRDC-SEED-005). Empty on every open but the first one after a rebuild. */
+  staleReveals: H3Index[];
 }
 
 export async function createRepository(): Promise<RepositoryHandle> {
@@ -37,6 +40,7 @@ export async function createRepository(): Promise<RepositoryHandle> {
   // Right after the schema gate, before anything reads the pouch: the migration's debt is
   // settled here or the player never hears about it.
   const razed = await repository.takeRazed(Date.now());
+  const staleReveals = await repository.reconcileSeedReveals();
 
   /*
    * No starter grant here any more (BRDC-ECON-007). The founding stash is handed out
@@ -44,5 +48,5 @@ export async function createRepository(): Promise<RepositoryHandle> {
    * fills only from claiming ground and holding it. `grantVersionGift` and its safety net
    * are gone: an empty pouch is now a real state, not one to paper over.
    */
-  return { repository, durable, reset, razed };
+  return { repository, durable, reset, razed, staleReveals };
 }
