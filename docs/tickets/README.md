@@ -192,7 +192,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-BUILD-013](BRDC-BUILD-013.md) | 🔶 Forge rakennettavissa; Watchtower ei — kaksi puuttuvaa mekaniikkaa | M | TERRAIN-005, BUILD-012 |
 | [BRDC-WONDER-002](BRDC-WONDER-002.md) | 🔶 Härmälän 9 ihmettä: perusta + sijoitus (5/9), vaikutukset auki | L | SEED-003, TERRAIN-005, LANDMARK-001 |
 | [BRDC-QUEST-006](BRDC-QUEST-006.md) | 🔶 Seikkailu heksan parametrina (pikakorjaus tehty) | M | SEED-004 (pikakorjaus ei vaadi) |
-| [BRDC-CARD-001](BRDC-CARD-001.md) | 🔶 Auditoitu; luottamus-siru ja Linnoitus-naapuribugi korjattu | M | SEED-004 |
+| [BRDC-CARD-001](BRDC-CARD-001.md) | 🔶 4 korjausta: luottamus-siru, Linnoitus-bugi, resurssilaatikko, seikkailunappi ensin | M | SEED-004 |
 | [BRDC-CARD-002](BRDC-CARD-002.md) | 🔶 Aarrelista täysi, rappiolista lisätty; välilehdet ennallaan | M | — |
 | [BRDC-CARD-003](BRDC-CARD-003.md) | 🔶 Aikakausipalkki ja punainen puute-huomautus tehty; riitit erillään | M | — |
 | [BRDC-CARD-004](BRDC-CARD-004.md) | 🔶 Tietoisuusrengas tehty; elinikäiset luvut vaativat uutta tilaa | S–M | — |

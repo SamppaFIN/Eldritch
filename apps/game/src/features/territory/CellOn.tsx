@@ -20,7 +20,7 @@ import { bountyPickGlyph, bountyPickLine, bountyPickName } from './bounty.js';
 import { BUILDING_BLURB, buildingEffect, renderEffect } from './catalogue.js';
 import { buildingGlyph } from './buildingGlyphs.js';
 import { BUILDING_NAME } from './names.js';
-import { RESOURCE_COLOUR } from './territoryFeatures.js';
+import { RESOURCE_COLOUR, bountyInk } from './territoryFeatures.js';
 
 export interface CellOnProps {
   cell: Cell;
@@ -83,7 +83,13 @@ export function CellOn({ cell, revealed, place }: CellOnProps) {
       ) : null}
 
       {find ? (
-        <li className="cell-on__row">
+        // A find gets the boxed treatment the design document draws for it (Sigil §06,
+        // "SPECIAL RESOURCE") — Infinite, field report 2026-09-16: the live card read as
+        // plain text next to the model's own bordered, tinted banner.
+        <li
+          className="cell-on__row cell-on__row--boxed"
+          style={{ '--box-ink': bountyInk(find) } as React.CSSProperties}
+        >
           <span className="cell-on__mark" aria-hidden>
             {bountyPickGlyph(find)}
           </span>

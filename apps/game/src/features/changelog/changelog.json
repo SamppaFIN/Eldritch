@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.39",
+    "date": "2026-09-16",
+    "notes": [
+      "An adventure waiting on a hex now shows its button first on the cell card, above everything else — it used to sit at the very bottom, past trade, tribute and every building on the hex.",
+      "A special resource now gets a bordered, tinted banner in its own colour instead of a plain line of text."
+    ]
+  },
+  {
     "version": "0.6.38",
     "date": "2026-09-16",
     "notes": [

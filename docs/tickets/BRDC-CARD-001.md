@@ -5,7 +5,7 @@
 | **Alue** | `features/territory/CellPanel.tsx`, `CellHeader.tsx`, `CellOn.tsx`, `CellWorth.tsx`, `useSelection.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `[~]` osittain valmis 2026-09-16 — kaksi konkreettista korjausta tehty; visuaalinen uudelleenjärjestely auki |
+| **Status** | `[~]` osittain valmis 2026-09-16 — neljä konkreettista korjausta tehty; visuaalinen uudelleenjärjestely auki |
 | **Riippuvuudet** | `BRDC-SEED-004` (tarina, maamerkki, luottamus) — rakenne voidaan tehdä ennen |
 | **Lähde** | `Eldritch-Sigil.html` §06 *Seven screens* — 03 · HERE · Infinite 2026-09-16: *"nuo kortit ovat toteutettu vain osiltaan.. Ei tarvitse noudattaa 100%, voit käyttää nykytoteutusta pohjana.. mutta rakennetaan kaikki ruudut mallien mukaiseksi"* |
 
@@ -27,7 +27,8 @@ Mallin oma HTML (`Eldritch-Sigil.html`, "03 · HERE") luettu suoraan lähteestä
 |---|---|---|
 | ◉ YOU ARE STANDING HERE · ✕ | `cell-panel__head`: sama, "Here"-sirulla | ✅ sama sisältö, eri sijainti (sirurivillä, ei omana headerinä) |
 | Kuva + nimi + SURVEYED/UNCLAIMED-sirut | Terrain-glyfi + `GROUND_NAME` + "(surveyed)"-proosa + omistus-sirut | 🔶 **korjattu tässä kierroksessa** — proosa korvattu oikealla Surveyed/"?"-sirulla, luottamuksesta luettuna |
-| SPECIAL RESOURCE -banneri, oma väri, oma laatikko | `CellOn`in yleinen rivi (glyfi+nimi+kuvaus), värillinen mutta ei laatikko | ⬜ auki — visuaalinen, ei toiminnallinen ero |
+| SPECIAL RESOURCE -banneri, oma väri, oma laatikko | `CellOn`in yleinen rivi (glyfi+nimi+kuvaus), värillinen mutta ei laatikko | 🔶 **korjattu 2026-09-16** — Infiniten kenttäraportti kuvakaappauksin: *"karttakortti ei nyt sisällä näitä koristeluita"* |
+| Seikkailupisteen nappi näkyy heti | `QuestCellPanel` oli renderöity kortin **viimeisenä**, kaupan/tributin/jokaisen rakennusrivin jälkeen | 🔶 **korjattu 2026-09-16** — Infiniten kenttäraportti: *"jos ruudulla on seikkailu piste, niin se nappi näytetään ihan ensin"* |
 | 3 pylvästä: GROUND / NEIGHBOURS / WALKED | `CellWorth`in `<dl>`: Ground / **Yields** / Neighbours / Walked (4) | **Tietoinen poikkeama.** "Yields" on todellinen, eri luku kuin ylläolevan otsikon "yields gold" — sen poistaminen olisi tiedon häviämistä pelkän ulkoasun vuoksi. Jätetty, koska "ei tarvitse noudattaa 100%" |
 | LORE · THIS CELL | Ei kortilla vielä — odottaa `BRDC-SEED-004`:n tarinageneraattoria | ⬜ auki, tämän tiketin oma riippuvuus |
 | 1 castattava riitti + "N more Rites locked here ›" | `SpellPanel`: molemmat kotiriitit aina omana rivinään, syy näkyvissä (`"Locked — study X"`, `"running"`, mana) | ❌ **ei tehdä.** Pelissä on kaksi kotiriittiä, ei yhdeksän — malli oletti isomman riittivalikoiman. Yhden rivin tiivistäminen "1 more Rite locked here"-tekstiksi **poistaisi** juuri sen syyn miksi se on lukossa (`claude.md` §14: *"errors say what to do, not what failed"*) — huonompi, ei parempi. Malli ei sovi tämän pelin todelliseen riittimäärään |
@@ -53,7 +54,19 @@ Mallin oma HTML (`Eldritch-Sigil.html`, "03 · HERE") luettu suoraan lähteestä
 - [x] Testit: `CellHeader.test.ts` (4 uutta, `surveyed`in kaikki neljä haaraa, oikealla
       rakennetulla siemendatalla). Portti: 1560 testiä, `tsc -b`, `lint:lines`,
       tuotantobuild — kaikki vihreät
-- [ ] Erikoisresurssi omana laatikkona (visuaalinen, ei toiminnallinen — auki)
+
+**Lisätty 2026-09-16, Infiniten oman kenttäraportin perusteella (kaksi kuvakaappausta:
+malli vs. oikea kortti):**
+
+- [x] **Erikoisresurssin oma laatikko.** `CellOn.tsx`in "find"-rivi saa nyt reunan ja
+      taustan resurssin omassa värissä (`--box-ink`, `color-mix`), sama rakenne kuin mallin
+      SPECIAL RESOURCE -banneri — ei enää pelkkä värillinen teksti tyhjän rivin päällä
+- [x] **Seikkailupisteen nappi ensin.** `QuestCellPanel` siirretty `CellHeader`in jälkeen,
+      ennen `CellOn`ia — se oli renderöity kortin *viimeisenä*, kaupan/tributin/jokaisen
+      rakennusrivin jälkeen. Portti uudelleen: 1574 testiä, `tsc -b`, `lint:lines`,
+      tuotantobuild — kaikki vihreät. **Ei todennettu selaimessa käsin** (ei
+      selainautomaatiota tässä istunnossa) — devpalvelin pystyssä (`:5173`, HTTP 200)
+      Infiniten omaa tarkistusta varten
 - [ ] LORE · THIS CELL — odottaa `BRDC-SEED-004`:n tarinageneraattoria
 - [ ] 360 px -kuvakaappaus mallin rinnalla — ei kuvakaappaustyökalua tässä istunnossa
 

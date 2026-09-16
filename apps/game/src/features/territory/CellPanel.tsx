@@ -170,6 +170,12 @@ export function CellPanel({
     >
       <CellHeader cell={cell} mine={mine} here={here} onClose={onClose} />
 
+      {/* An adventure waiting on this exact hex outranks everything else the card could
+          say — Infinite, field report 2026-09-16: "if there's an adventure point on the
+          hex, show that button first." It used to sit after trade, tribute and every
+          building row, at the very bottom of a card that can run well past one screen. */}
+      {quest ? <QuestCellPanel info={quest} onOpen={onQuestOpen ?? (() => {})} /> : null}
+
       {/* What stands here, then what it pays, then who held it and when — the order a
           player standing on the hex actually asks in (BRDC-DETAIL-002). */}
       <CellOn
@@ -321,8 +327,6 @@ export function CellPanel({
         />
       ) : null}
       {city?.village ? <VillageNote city={city.village.city} steps={city.village.steps} /> : null}
-
-      {quest ? <QuestCellPanel info={quest} onOpen={onQuestOpen ?? (() => {})} /> : null}
 
       {questBoard ? (
         <div className="cell-panel__board">

@@ -66,6 +66,15 @@
   gap: var(--space-2);
 }
 
+/* A find's own banner (Sigil §06 "SPECIAL RESOURCE") — bordered and tinted in the
+   resource's own hue, set per-row via `--box-ink`, rather than a plain text line. */
+.cell-on__row--boxed {
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--box-ink, var(--text)) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--box-ink, var(--text)) 35%, transparent);
+}
+
 .cell-on__mark {
   flex: none;
   inline-size: 1.5rem;
