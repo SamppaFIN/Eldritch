@@ -8,6 +8,19 @@ export { registerWorldseed, registrationDelta } from './worldseedRegister.js';
 export type { BoxTuple, LatLngTuple, WorldseedDoc } from './worldseedRegister.js';
 export { matchLandmark, seedLandmarks } from './landmarkSeed.js';
 export type { LandmarkSeed, OsmElement, WrittenLandmark } from './landmarkSeed.js';
+export { applyCoastalSplit, classifyGrid, classifyHex } from './worldseedTerrain.js';
+export type { HexClassification, WorldseedTerrain, ZoneOverrideRecord } from './worldseedTerrain.js';
+export { ZONE, partitionIntoAreas } from './worldseedPartition.js';
+export type { Area } from './worldseedPartition.js';
+export {
+  BONUS_RESOURCES,
+  DEPOSIT_CAP,
+  DEPOSIT_DENSITY,
+  allocateArea,
+  depositCount,
+  yieldToResource,
+} from './worldseedAllocate.js';
+export type { BonusResourceDef, Deposit, RequireFlag, Yield } from './worldseedAllocate.js';
 export { SEED_NEIGHBOURS, seedCells } from './seed.js';
 export type { SeedNeighbour } from './seed.js';
 export { cellsToLoad, planClaim } from './claiming.js';

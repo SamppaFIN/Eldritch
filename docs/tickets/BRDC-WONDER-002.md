@@ -50,6 +50,13 @@ ajolla eikä pakoteta väärälle maastolle.
 - [ ] 9 ihmemäärittelyä yllä olevilla nimillä; seedatulla alueella paikka siemenestä
       (`HexSeed.structure`), joka korvaa `wonderPlace.ts`in hajautuksen **vain seedatulla alueella**
       — muualla 12 vanhaa pysyvät (ei `BRDC-SEED-000`-riippuvuutta, koska aluetta ei ole seedattu)
+- [ ] **Sijoitus `harmalaHint`istä, ei pisteytyksestä** (päätös `BRDC-SEED-003`:ssa, joka
+      alun perin varasi tämän itselleen): `prefer`-pisteytys tarvitsisi survey-signaaleja
+      (`elevation`, `adjacentWater`, `leyCrossings`, `shorelineLength`…) joita
+      `zoneOverrides`-datasta ei saa — ne tulisivat vasta täydestä OSM-surveystä. Sijoitus on
+      siis `harmalaHint`-koordinaatti käännettynä (`BRDC-SEED-001`) lähimmälle H3-solulle,
+      **`require`-maastovaatimus kovana esteenä**: jos hint-solun maasto ei täsmää, ihde jää
+      sijoittamatta sillä ajolla eikä pakoteta väärälle maastolle
 - [ ] Ihmeen lunastus: maailmassa ainutkertainen, ensimmäinen hinnan maksava realmi
 - [ ] **Jokainen vaikutus oma, testattu sääntönsä** — halvimmasta alkaen; piiritykseen tai rappioon
       vaikuttavat (The Ancient Löyly, The Carcosa Foundry, The Dunwich Grove) **mitataan `sim/`issä**

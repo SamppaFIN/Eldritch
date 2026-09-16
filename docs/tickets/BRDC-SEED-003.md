@@ -1,46 +1,86 @@
-# BRDC-SEED-003 — Vyöhykkeiden jako heksoiksi: maasto, bonusresurssit, ihmeet
+# BRDC-SEED-003 — Vyöhykkeiden jako heksoiksi: maasto, bonusresurssit
 
 | | |
 |---|---|
-| **Alue** | uusi `packages/core/src/data/worldseedPartition.ts` |
+| **Alue** | `packages/core/src/data/worldseedTerrain.ts`, `worldseedPartition.ts`, `worldseedAllocate.ts`, `scripts/build-worldseed.mjs` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
-| **Status** | `todo` |
+| **Status** | `done` — ajettu ja todennettu 2026-09-16 |
 | **Riippuvuudet** | `BRDC-SEED-001`, `BRDC-TERRAIN-005` |
-| **Lähde** | `worldseed.ts` (`classify`, `populate`/`partition`+`allocate`, `place`), Worldseed §03 |
+| **Lähde** | `worldseed.ts` (`classify`, `ZONE`/`depositCount`/`allocate`), Worldseed §03 |
 
 ## 🔴 RED
 
 `worldseed.ts`in putki (`survey → classify → populate/partition+allocate → place → freeze`)
-on kirjoitettu axial `q:r`-ruudukolle 25 m circumradiuksella. Peli käyttää H3 res-11:tä
-(~1622 m² lat 61:llä). Kumpaakaan ruudukkoa ei ole käännetty toisiksi missään — tämä on koko
-"luodaan heksa gridi worldseedin mukaan" -pyynnön ydin.
+on kirjoitettu axial `q:r`-ruudukolle 25 m circumradiuksella. Peli käyttää H3 res-11:tä.
+Kumpaakaan ruudukkoa ei ollut käännetty toisiksi missään.
 
-Lisäksi jako on **alueellinen, ei heksakohtainen**: yhtenäinen saman maaston rypäs pilkotaan
-7–55 heksan alueiksi, ja jokainen alue saa 1–3 bonusresurssiesiintymää (~5 % heksoista) —
-tämä poikkeaa pelin nykyisestä per-heksa-hajautuksesta (`BOUNTY_SHARE`) täysin, ja on syy
-miksi `BRDC-RES-001` ei voi vain lukea vanhaa hajautusfunktiota.
+**Korjattu oletus alkuperäisestä RED:stä.** Alkuperäinen suunnitelma oletti että
+`seed.harmala.json` kantaisi axial-ruudukon ja per-heksa OSM-peittoprosentit
+(`SurveyRecord.cover`), joista `classify()` päättelisi maaston. Kumpaakaan ei ole: dokumentti
+antaa `grid.origin`+`circumradiusM` (koordinaatiston määrittely, ei materialisoitua
+ruudukkoa) ja `zoneOverrides`-listan — 18 käsin piirrettyä, ihmisen jo luokittelemaa
+vyöhykettä (laatikko tai yksi rantaviiva-sääntö), ei koko bbox:n kattava OSM-peitto.
+`partition` ja `place` ovat `worldseed.ts`:ssä `declare function` -allekirjoituksia ilman
+runkoa — algoritmia ei ollut annettu, vain sen kuvaus §03:ssa.
+
+Tämä tiketti käyttää siis **oikeasti olemassa olevaa dataa** (`zoneOverrides`, ihmisen
+tarkistama) sen sijaan että yrittäisi rakentaa puuttuvan OSM-peitto-putken uudelleen — se
+olisi oma, ison luokan projektinsa.
 
 ## 🟢 GREEN
 
-- [ ] **Ruudukon käännös:** dokumentin axial `q:r` -keskipisteet muunnetaan `latLngToH3`illa
-      res-11:een (käännetyn ankkurin koordinaatistossa, `BRDC-SEED-001`). Yksi solu voi saada
-      nolla tai useamman axial-ruudun keskipisteen — enemmistöäänestys tai pinta-alapainotus
-      päättää, kumpi maasto/data voittaa; testattu molemmilla ääripäillä
-- [ ] `classify`: OSM-tagit ja `TERRAIN_RULES` tuottavat maastolajin per H3-solu, sisältäen
-      `confidence`-arvon (`BRDC-CARD-001`in "?" -kiekkoa varten)
-- [ ] `partition`: samaa maastoa olevat vierekkäiset solut ryhmitellään 7–55 solun alueiksi
-      (H3-naapuruus, ei axial). Testi: tunnettu fixture-alue tuottaa alueen kokoluokan sisällä
-- [ ] `allocate`: jokainen alue saa 1–3 bonusresurssiesiintymää yhdelle solulleen,
-      maastoaffiniteetin ja harvinaisuuden mukaan painotettuna (`BRDC-RES-001`)
-- [ ] Ihmekandidaatit (`BRDC-WONDER-002`): `require`-predikaatti suodattaa solut,
-      `prefer`-painotus valitsee parhaan — sama koneisto kuin `allocate`, eri syöte
-- [ ] `expectedCounts`-tyyppinen build-aikainen assertio: tiheydet, aluekoot ja
-      ihmemäärä (9, `BRDC-SEED-000` D5) tarkistetaan joka buildissa, epäonnistuu äänekkäästi
-- [ ] Yksikkötestit `seed.harmala.json`in käännetyllä datalla — ei live-verkkoa
+- [x] **Ruudukko:** `cellsCoveringBBox` (jo olemassa, `geo/cells.ts`) tuottaa oikean H3
+      res-11 -ruudukon dokumentin käännetyn `bbox`:n yli. Ajettu Härmälälle: **2447 heksaa**
+      (`expectedCounts.totalHexes [2400, 3400]`:n sisällä)
+- [x] `classifyHex`/`classifyGrid` (`worldseedTerrain.ts`): jokainen heksa luokitellaan
+      `zoneOverrides`ista — laatikko tai `bboxNorthOf`-rantaviivasääntö (liukuinterpolaatio
+      pisteiden välillä), korkein `priority` voittaa päällekkäisyydessä (todennettu:
+      Vähäjärven suo priority 2 voittaa Vähäjärvenpuiston priority 1:n niiden yhteisellä
+      alueella). Ei mikään vyöhyke → `plain`, confidence 0.4 (< 0.5, `BRDC-CARD-001`in
+      "?"-kiekko laukeaa oikein)
+- [x] `water`→`lake`/`coast` ja `trade`→`market` (`BRDC-TERRAIN-005`:n päätös): rantaerottelu
+      on oma jälkiajo naapuruuden yli — vesiheksa joka koskettaa ei-vesinaapuria on `coast`,
+      muuten `lake`. Testattu erikseen puhtaalla, käsin rakennetulla luokittelulla
+      (order-independent: molemmat lukevat alkuperäisestä kartasta, eivät muokatusta)
+- [x] `hill` ei tule mistään vyöhykkeestä tässä datassa (yhtään hill-vyöhykettä ei ole
+      piirretty) — `BRDC-SEED-000` D9:n "ei DEM:iä vielä" näkyy rehellisesti, ei peitelty
+- [x] `partitionIntoAreas` (`worldseedPartition.ts`): H3-naapuruuden yli laskettu
+      samanmaastoinen yhtenäisyys, ylikokoiset (>55) pilkotaan rajattuina BFS-lohkoina,
+      alikokoiset (<7) sulautetaan suurimpaan koskettavaan naapuriin **maastosta
+      riippumatta**. **Löydetty ja korjattu bugi ennen julkaisua:** pilkkomisen jättämä
+      pieni jäännöslohko sulautui takaisin juuri siihen sisarlohkoon josta se pilkottiin,
+      mitätöiden kokorajan — korjattu niin ettei sulautus koskaan ylitä `maxHexes`ää.
+      Ajettu Härmälälle: **55 aluetta**
+- [x] `allocateArea` (`worldseedAllocate.ts`): `worldseed.ts`in oma `BONUS_RESOURCES` (28),
+      `depositCount`, `DEPOSIT_CAP` — lähes sanasta sanaan portattu (ainoa muutos: maaston
+      affiniteettiavaimet pelin nimillä). Deterministinen (`prng`, jo olemassa
+      `sim/walk.ts`:ssä), `require`-liput kunnioitettu. Ajettu: **137 löytöä**,
+      tiheys 137/2447 ≈ 0,056 (`DEPOSIT_DENSITY [0.03, 0.12]`:n sisällä)
+- [x] `scripts/build-worldseed.mjs harmala`: koko putki päästä päähän, `expectedCounts`in
+      vasten. `totalHexes`, `depositDensity`, `depositsPerArea`, `areasWithZeroDeposits`
+      ovat kovia esteitä (epäonnistuminen pysäyttää buildin). **`byTerrain` on lasku
+      varoitukseksi**, ei esteeksi: se olettaa täyden OSM-peiton koko bbox:n yli, ja
+      `zoneOverrides` kattaa vain nimetyt paikat — suurin osa bbox:sta jää oikeutetusti
+      `plain`iksi. Ajossa kolme varoitusta (forest, plain, settlement matalat/korkeat
+      osuudet); `water`/`trade` **täsmäsivät** odotettuun huolimatta korvaavasta datalähteestä
+- [x] Tulos tallennettu `packages/core/src/data/seed/harmala.terrain.json`iin (heksat,
+      alueet, löydöt) — välituote, ei lopullinen `HexSeed`
+- [x] Yksikkötestit kolmessa tiedostossa oikealla, käännetyllä Härmälä-datalla ja oikeilla
+      H3-soluilla (ei live-verkkoa): 9 + 6 + 12 = 27 testiä
+
+## Päätös Infiniteltä
+
+**Ihmeiden sijoitus siirretty `BRDC-WONDER-002`:een, ei tehty tässä.** Alkuperäinen
+GREEN-kohta ("sama koneisto kuin allocate, eri syöte") osoittautui vaatimaan
+survey-signaaleja joita ei ole (`elevation`, `adjacentWater`, `leyCrossings`,
+`shorelineLength`…) — nämä tulisivat täydestä OSM-surveystä, ei `zoneOverrides`ista.
+Keksimäni pisteytys olisi arvaus, ei data. `WONDER-002` käyttää sen sijaan dokumentin omaa
+`harmalaHint`-koordinaattia + maastovaatimuksen tarkistusta kovana esteenä.
 
 ## Ei tässä
 
-- Maastolajien nimet ja värit — `BRDC-TERRAIN-005`
-- Bonusresurssien data ja kuvat — `BRDC-RES-001`, `BRDC-RES-002`
-- Lopullinen `HexSeed`-kokoonpano ja tallennus — `BRDC-SEED-004`
+- Maastolajien nimet ja värit — `BRDC-TERRAIN-005` (valmis)
+- Bonusresurssien kuvat — `BRDC-RES-002`
+- Ihmeiden sijoitus — `BRDC-WONDER-002`
+- Lopullinen `HexSeed`-kokoonpano (maamerkit + questit + tämä) ja tallennus — `BRDC-SEED-004`
