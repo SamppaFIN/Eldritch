@@ -191,6 +191,16 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-TAVERN-001](BRDC-TAVERN-001.md) | 🔶 Taverna ja tehtävätaulu toimivat; Ale Cellar -synergia auki | M | TERRAIN-005, QUEST-006, RES-001 |
 | [BRDC-BUILD-013](BRDC-BUILD-013.md) | 🔶 Forge rakennettavissa; Watchtower ei — kaksi puuttuvaa mekaniikkaa | M | TERRAIN-005, BUILD-012 |
 | [BRDC-WONDER-002](BRDC-WONDER-002.md) | 🔶 Härmälän 9 ihmettä: perusta + sijoitus (5/9), vaikutukset auki | L | SEED-003, TERRAIN-005, LANDMARK-001 |
+| [BRDC-WONDER-003](BRDC-WONDER-003.md) | ⬜ Luonnos: ihmeen oma bonus maksaa vihdoin (yhteinen perusta) | S | WONDER-001, WONDER-002 |
+| [BRDC-WONDER-004](BRDC-WONDER-004.md) | ⬜ Luonnos: Thousand Masks Road | S | WONDER-003 |
+| [BRDC-WONDER-005](BRDC-WONDER-005.md) | ⬜ Luonnos: Carcosa Foundry | S | WONDER-003 |
+| [BRDC-WONDER-006](BRDC-WONDER-006.md) | ⬜ Luonnos: Yuggoth Lens | S | WONDER-003 |
+| [BRDC-WONDER-007](BRDC-WONDER-007.md) | ⬜ Luonnos: He Who Waits at the Shore | M | WONDER-003, LANDMARK-001 |
+| [BRDC-WONDER-008](BRDC-WONDER-008.md) | ⬜ Luonnos: The Dunwich Grove | M | WONDER-003 |
+| [BRDC-WONDER-009](BRDC-WONDER-009.md) | ⬜ Luonnos: The Ancient Löyly | M | WONDER-003 |
+| [BRDC-WONDER-010](BRDC-WONDER-010.md) | ⬜ Luonnos: Y'ha-nthlei's Bell | L | WONDER-003, WONDER-007 |
+| [BRDC-WONDER-011](BRDC-WONDER-011.md) | ⬜ Luonnos: The Dagon Spire — paljastuksen skaalautuvuus mitattava | L | WONDER-003 |
+| [BRDC-WONDER-012](BRDC-WONDER-012.md) | ⬜ Luonnos: The Drowned Eye — kallein, kolme erillistä estettä | XL | WONDER-003, WONDER-011, SHARE-001 |
 | [BRDC-QUEST-006](BRDC-QUEST-006.md) | 🔶 Seikkailu heksan parametrina (pikakorjaus tehty) | M | SEED-004 (pikakorjaus ei vaadi) |
 | [BRDC-CARD-001](BRDC-CARD-001.md) | 🔶 4 korjausta: luottamus-siru, Linnoitus-bugi, resurssilaatikko, seikkailunappi ensin | M | SEED-004 |
 | [BRDC-CARD-002](BRDC-CARD-002.md) | 🔶 Aarrelista täysi, rappiolista lisätty; välilehdet ennallaan | M | — |

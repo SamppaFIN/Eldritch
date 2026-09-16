@@ -60,11 +60,18 @@ sääntömuutosta kerralla olisi juuri se minkä lause on tarkoitettu estämää
 `HexSeed.structure` on nyt datassa (5 heksaa), mutta mikään pelin koodi ei vielä lue sitä —
 ei löytöä, ei vaikutusta, ei karttamerkkiä. Ei havaittavaa muutosta pelaajalle.
 
-## Jatkotyöt, numeroimatta
+## Jatkotyöt
 
-- Löytö-integraatio: 9 ihmettä `wonderStore.ts`in `findWonderAt`-tyyppiseen polkuun
+- **Yhdeksän vaikutustikettiä kirjoitettu 2026-09-16, halvimmasta kalleimpaan mitattuna
+  ja luonnosteltu — ei toteutettu:** `BRDC-WONDER-003` (yhteinen perusta: ihmeen oma
+  bonus ei tänään maksa mitään, ei edes alkuperäisellä 12:lla), `-004` Thousand Masks
+  Road, `-005` Carcosa Foundry, `-006` Yuggoth Lens, `-007` He Who Waits at the Shore,
+  `-008` Dunwich Grove, `-009` Ancient Löyly, `-010` Y'ha-nthlei's Bell, `-011` Dagon
+  Spire, `-012` Drowned Eye (kallein: löytöportti + 3 km paljastus + uusi
+  hyökkäysilmoitus). Jokainen oma RED, mitattu koodista — ei arvattu
+- Löytö-integraatio: 8/9 (Drowned Eye erikseen, `BRDC-WONDER-012`) `wonderStore.ts`in
+  `findWonderAt`-tyyppiseen polkuun
 - `leyCrossing`-lippu: leikkauspistelaskenta dokumentin `leyLines[]`-datasta
-- Yhdeksän erillistä vaikutussääntöä, kukin oma tikettinsä ja `sim/`-mittauksensa
 
 ## Ei tässä
 
