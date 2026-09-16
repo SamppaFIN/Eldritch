@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.36",
+    "date": "2026-09-16",
+    "notes": [
+      "Research now shows a real progress bar toward the next era, not just a word count.",
+      "A technology you can't yet afford names what it's short by in red, instead of the same grey as everything else on the card."
+    ]
+  },
+  {
     "version": "0.6.35",
     "date": "2026-09-16",
     "notes": [

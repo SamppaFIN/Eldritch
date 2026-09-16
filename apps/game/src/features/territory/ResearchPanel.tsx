@@ -8,7 +8,7 @@
  */
 import { MetatronsCube, RitualButton } from '@es3/ui';
 import { shortNote } from './gateNote.js';
-import { TECHS, researchCost, timeToAfford } from '@es3/core';
+import { TECHS, eraProgress, researchCost, timeToAfford } from '@es3/core';
 import type { ResourcePool, TechId, TechRefusal } from '@es3/core';
 import { titleCase } from './names.js';
 import { TECH_BLURB, techUnlocks, techYieldLine } from './catalogue.js';
@@ -62,10 +62,11 @@ export function TechRow({ id, wisdom, pending, pool, wisdomPerHour, onResearch, 
             {pending ? 'Researching…' : `${cost} wisdom`}
           </RitualButton>
           {/* The wait beside the title is a forecast; this is the plain fact the button is
-              refusing on. "You have 0 of 20" is what a greyed price needs to say
-              (BRDC-UI-002). */}
+              refusing on, named in red rather than shared grey (Sigil §06, BRDC-CARD-003):
+              "cards you cannot afford name the missing thing in red instead of greying out
+              silently". "You have 0 of 20" is what a greyed price needs to say (BRDC-UI-002). */}
           {!pending && wisdom < cost ? (
-            <span className="hearth-panel__research-wait">{shortNote({ wisdom: cost - wisdom })}</span>
+            <span className="hearth-panel__research-missing">{shortNote({ wisdom: cost - wisdom })}</span>
           ) : null}
         </>
       )}
@@ -95,12 +96,24 @@ export function ResearchPanel({ research, pool, wisdomPerHour }: ResearchPanelPr
   // panel is a wall of greyed buttons with no way forward (BRDC-KEEP-006).
   const allUnaffordable =
     research.options.length > 0 && research.options.every((id) => wisdom < researchCost(id));
+  const era = eraProgress(research.researched);
 
   return (
     <div className="hearth-panel__research">
       <p className="hearth-panel__research-head">
         Research · {titleCase(research.era)} · {research.researched.length}/{TOTAL} known
       </p>
+
+      {/* How close the current era is to turning (Sigil §06, BRDC-CARD-003) — measured
+          against this era's own technologies, not the whole tree. */}
+      {era.nextEraAt !== null ? (
+        <div className="hearth-panel__era-bar" aria-hidden>
+          <div
+            className="hearth-panel__era-bar-fill"
+            style={{ inlineSize: `${(era.doneInEra / era.totalInEra) * 100}%` }}
+          />
+        </div>
+      ) : null}
 
       {research.lastEra ? (
         <p className="hearth-panel__research-era" role="status">

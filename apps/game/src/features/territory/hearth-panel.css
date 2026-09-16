@@ -147,6 +147,25 @@
   color: var(--text-dim);
 }
 
+/* Named in red, not greyed out silently (Sigil §06, BRDC-CARD-003). */
+.hearth-panel__research-missing {
+  color: var(--danger);
+}
+
+.hearth-panel__era-bar {
+  block-size: 5px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+
+.hearth-panel__era-bar-fill {
+  block-size: 100%;
+  background: linear-gradient(90deg, var(--r-wisdom), var(--mystic-cyan));
+  border-radius: inherit;
+  transition: inline-size 0.3s var(--ease);
+}
+
 /* The temple's element choice, once and for good (BRDC-TEMPLE-002). */
 .hearth-panel__schools {
   display: flex;

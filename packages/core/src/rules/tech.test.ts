@@ -14,6 +14,7 @@ import {
   canResearch,
   eraChanged,
   eraOf,
+  eraProgress,
   hasTech,
   research,
   researchBonus,
@@ -153,6 +154,32 @@ describe('eraChanged', () => {
     const oneShort = prehistory.slice(0, -1);
     expect(eraChanged(oneShort, prehistory)).toBe('antiquity');
     expect(eraChanged(prehistory, [...prehistory, 'masonry'])).toBeNull();
+  });
+});
+
+describe('eraProgress (BRDC-CARD-003)', () => {
+  it('measures the current era against its own technologies, not the whole tree', () => {
+    const p = eraProgress([]);
+    expect(p).toEqual({ era: 'prehistory', doneInEra: 0, totalInEra: ofEra('prehistory').length, nextEraAt: ofEra('prehistory').length });
+  });
+
+  it('carries doneInEra up as that era is researched', () => {
+    const p = eraProgress(ofEra('prehistory').slice(0, 1));
+    expect(p.doneInEra).toBe(1);
+    expect(p.era).toBe('prehistory');
+  });
+
+  it('moves to the next era, and its own cumulative threshold, on the boundary', () => {
+    const p = eraProgress(ofEra('prehistory'));
+    expect(p.era).toBe('antiquity');
+    expect(p.doneInEra).toBe(0);
+    expect(p.totalInEra).toBe(ofEra('antiquity').length);
+    expect(p.nextEraAt).toBe(ofEra('prehistory').length + ofEra('antiquity').length);
+  });
+
+  it('has no next era once the tree is complete', () => {
+    expect(eraProgress(ALL).nextEraAt).toBeNull();
+    expect(eraProgress(ALL).era).toBe('medieval');
   });
 });
 

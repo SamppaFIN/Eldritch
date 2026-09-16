@@ -208,6 +208,42 @@ export function eraChanged(before: readonly TechId[], after: readonly TechId[]):
   return now === eraOf(before) ? null : now;
 }
 
+export interface EraProgress {
+  era: Era;
+  /** Researched, of this era's own technologies. */
+  doneInEra: number;
+  totalInEra: number;
+  /** Every technology needed, cumulatively, to complete this era and enter the next —
+   *  `null` in the last era, which has none to enter (Sigil §06's own progress bar). */
+  nextEraAt: number | null;
+}
+
+/**
+ * How close the current era is to turning, for the bar `BRDC-CARD-003` asks for.
+ *
+ * The model's own sample data ("NEXT ERA AT 13") uses the *whole tree's* size as a
+ * placeholder number, not a real threshold — this game has three real eras of 3, 4 and 6
+ * technologies, and the boundary that actually fires (`eraComplete`) is "every technology
+ * of the *current* era", so that is what gets measured, not the tree's total.
+ */
+export function eraProgress(researched: readonly TechId[]): EraProgress {
+  const era = eraOf(researched);
+  const known = new Set(researched);
+  const eraIndex = ERAS.indexOf(era);
+  const ofEra = (e: Era) => ALL_TECHS.filter((id) => TECHS[id].era === e);
+  const isLast = eraIndex === ERAS.length - 1;
+  const nextEraAt = isLast
+    ? null
+    : ERAS.slice(0, eraIndex + 1).reduce((n, e) => n + ofEra(e).length, 0);
+
+  return {
+    era,
+    doneInEra: ofEra(era).filter((id) => known.has(id)).length,
+    totalInEra: ofEra(era).length,
+    nextEraAt,
+  };
+}
+
 /**
  * What research adds to the hourly trickle, over every owned, awake cell (PIVOT §3).
  *

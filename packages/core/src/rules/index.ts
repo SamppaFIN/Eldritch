@@ -16,6 +16,7 @@ export {
   canResearch,
   eraChanged,
   eraOf,
+  eraProgress,
   hasTech,
   research,
   researchCost,
@@ -27,6 +28,7 @@ export {
 } from './tech.js';
 export type {
   Era,
+  EraProgress,
   ResearchResult,
   Tech,
   TechId,
