@@ -59,6 +59,15 @@ export const ENEMY_FILL = '#5c1a1a';
 export const CITY_COLOUR = '#ffd700';
 export const ENEMY_STROKE = '#a13b3b';
 /**
+ * A clanmate's ground (BRDC-CLAN-004) — `--eldritch-blue` and a lifted twin, the same
+ * relation `OWN_FILL`/`OWN_STROKE` has to `--cosmic-purple`. Not `--awareness-green`:
+ * that colour already means "mine and healthy" everywhere else it touches the map (the
+ * Keep marker, your own strength arcs) — reusing it here would say "this is yours" about
+ * ground that is not. Not `--mystic-cyan` either: mana's own glyph already owns that hue.
+ */
+export const ALLY_FILL = '#1e2a4a';
+export const ALLY_STROKE = '#4a6fa8';
+/**
  * Seen but not held — a cell revealed only by being next to yours. A neutral pale tone
  * (from `--glass-border`, `oklch(1 0 0 / 0.1)`), never `OWN_FILL`, so "explored,
  * unclaimed" stops looking identical to your own territory at low strength.
@@ -78,6 +87,8 @@ export const CONTESTED_BELOW = 100;
 export interface CellProperties {
   strength: number;
   mine: boolean;
+  /** A clanmate's ground, not yours (BRDC-CLAN-004). Always `false` when `mine` is true. */
+  ally: boolean;
   contested: boolean;
   color: string;
   /** Terrain glyph, or `''` where the ground shows nothing (plain). */
@@ -317,7 +328,8 @@ export function cellProperties(
   placeHere = false,
 ): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
-  const rival = cell.ownerId !== null && !mine;
+  const ally = !mine && cell.ally === true;
+  const rival = cell.ownerId !== null && !mine && !ally;
   const glyph = terrainGlyph(terrainOf(cell.h3).kind);
   // Shown on any owner's cell — a rival's building on a bordering hex is intel. A cell
   // can hold several Works now (BUILD-007); the text layer marks the newest, which is
@@ -331,12 +343,13 @@ export function cellProperties(
   return {
     strength: cell.strength,
     mine,
+    ally,
     // Filled in by `cellsToGeoJson`, which is the only caller that knows the whole realm.
     neighbours: 0,
     contested: cell.ownerId !== null && cell.strength < CONTESTED_BELOW,
-    // Three tiers: mine, a rival's, or seen-but-unclaimed. Strength drives opacity in
-    // the paint expression, so a fresh reveal (strength 0) is naturally faint.
-    color: mine ? OWN_FILL : rival ? ENEMY_FILL : REVEAL_FILL,
+    // Four tiers: mine, a clanmate's, a rival's, or seen-but-unclaimed. Strength drives
+    // opacity in the paint expression, so a fresh reveal (strength 0) is naturally faint.
+    color: mine ? OWN_FILL : ally ? ALLY_FILL : rival ? ENEMY_FILL : REVEAL_FILL,
     // The ground you hold and everything one ring around it reads its terrain
     // (BRDC-MAP-003, reverted 2026-09-02 on Infinite's call: a bordering cell is
     // *known*). Anything past that ring is never drawn — that is the fog.

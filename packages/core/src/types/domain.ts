@@ -152,6 +152,12 @@ export interface Cell {
    */
   imported?: boolean;
   /**
+   * This imported cell's owner is a clanmate, not a stranger (BRDC-CLAN-004). Set
+   * alongside `imported`, from the same shard merge — never true when `imported` is
+   * absent. Additive, no migration.
+   */
+  ally?: boolean;
+  /**
    * Resolved terrain, once the map's tiles have been read for this cell
    * (BRDC-TERRAIN-002). Absent means "not resolved yet" — callers fall back to the hash
    * (`terrainForCell`). Additive, so no save migration.

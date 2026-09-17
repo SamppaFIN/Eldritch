@@ -11,7 +11,7 @@
 import type { FeatureCollection, Point, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
-import { CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territoryFeatures.js';
+import { ALLY_STROKE, CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territoryFeatures.js';
 import { cellMarksToGeoJson, cellsToGeoJson } from './cellMarks.js';
 import type { CellProperties } from './territoryFeatures.js';
 import { BANNER_IDS } from '../nation/nation.js';
@@ -36,6 +36,7 @@ import {
   CELL_LINE_LAYER,
   CELL_RIVAL_LINE_LAYER,
   CELL_OWN_LINE_LAYER,
+  CELL_ALLY_LINE_LAYER,
   CELL_CONTESTED_LAYER,
   CELL_ICON_LAYER,
   CELL_GROUND_LAYER,
@@ -161,7 +162,10 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   });
 
   /*
-   * A rival's border is dashed — "hostile at a glance" (Sigil hexStates).
+   * A rival's border is dashed — "hostile at a glance" (Sigil hexStates). A clanmate's is
+   * not (BRDC-CLAN-004): excluded here and given its own solid stroke below, the same
+   * reasoning `CELL_OWN_LINE_LAYER` already has — a border you read at a glance should
+   * not say "threat" about ground a friend holds.
    *
    * Its own layer because `line-dasharray` is not a data-driven property in MapLibre: one
    * dash pattern per layer, so "dashed only for rivals" has to be a filtered layer rather
@@ -173,11 +177,30 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     type: 'line',
     source: CELL_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
-    filter: ['all', ['!', ['get', 'mine']], ['!=', ['get', 'color'], REVEAL_FILL]],
+    filter: [
+      'all',
+      ['!', ['get', 'mine']],
+      ['!', ['get', 'ally']],
+      ['!=', ['get', 'color'], REVEAL_FILL],
+    ],
     paint: {
       'line-color': ['get', 'color'],
       'line-width': 3,
       'line-dasharray': [9, 5],
+      'line-opacity': 0.95,
+    },
+  });
+
+  /** A clanmate's border, solid rather than dashed — known ground, not a threat. */
+  map.addLayer({
+    id: CELL_ALLY_LINE_LAYER,
+    type: 'line',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['get', 'ally'],
+    paint: {
+      'line-color': ALLY_STROKE,
+      'line-width': 3,
       'line-opacity': 0.95,
     },
   });

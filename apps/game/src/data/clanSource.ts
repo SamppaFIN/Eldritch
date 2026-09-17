@@ -1,10 +1,11 @@
 /**
- * Talking to the Worker's clan endpoints (BRDC-CLAN-001).
+ * Talking to the Worker's clan endpoints (BRDC-CLAN-001, BRDC-CLAN-004).
  *
  * Same honesty as `worldSource.ts`: every failure here is swallowed into a named
  * outcome, never thrown — a friend group is a nice-to-have, not something that should
  * ever break the map underneath it.
  */
+import type { H3Index, PlayerId } from '@es3/core';
 import { WORLD_API } from './worldSource.js';
 
 export type CreateClanResult =
@@ -24,6 +25,27 @@ export async function createClan(name: string, founderId: string): Promise<Creat
     return { ok: true, id: data.id, founderToken: data.founderToken };
   } catch {
     return { ok: false, reason: 'failed' };
+  }
+}
+
+export interface ClanMember {
+  id: PlayerId;
+  name: string;
+  castle: H3Index | null;
+}
+
+/** Every clanmate currently publishing, for pulling their ground in regardless of the
+ *  camera's own position (BRDC-CLAN-004). `null` on any failure — never thrown. */
+export async function fetchClanRoster(clanId: string): Promise<ClanMember[] | null> {
+  try {
+    const res = await fetch(`${WORLD_API}/clan/${encodeURIComponent(clanId)}/roster`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { members?: ClanMember[] };
+    return Array.isArray(data.members) ? data.members : null;
+  } catch {
+    return null;
   }
 }
 

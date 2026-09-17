@@ -24,6 +24,10 @@
  * Same honesty as everything else here: a clan's `founderToken` is a bearer secret, not
  * a password behind an account — whoever holds it can act as the founder, exactly as
  * whoever holds a player `id` can already publish as that player.
+ *
+ * BRDC-CLAN-004 adds `GET /clan/<id>/roster` — every live member's id, name and Keep, so
+ * a client can pull in a clanmate's ground regardless of where the camera is pointed
+ * (`useWorld.ts`'s own fetch is otherwise strictly viewport-driven).
  */
 import { buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
 import type { PlayerFile } from '@es3/core/data';
@@ -280,6 +284,18 @@ export default {
       return send({ id: record.id, founderToken: record.founderToken });
     }
 
+    if (request.method === 'GET' && url.pathname.endsWith('/roster')) {
+      const id = url.pathname.slice('/clan/'.length, -'/roster'.length).toUpperCase();
+      if (!id) return bare(404);
+      // No need to check `clan:<id>` exists first — a clan with nobody currently
+      // publishing under it and one with a typo'd id look identical: an empty roster.
+      const live = mergePlayerFiles(await allFiles(env.WORLD), Date.now(), WORLD_PLAYER_TTL_MS);
+      const members = live
+        .filter((p) => p.clanId === id)
+        .map((p) => ({ id: p.id, name: p.nation ?? p.name, castle: p.castle }));
+      return send({ members });
+    }
+
     if (request.method === 'GET' && url.pathname.startsWith('/clan/')) {
       const id = url.pathname.slice('/clan/'.length).toUpperCase();
       const raw = id ? await env.WORLD.get(CLAN + id) : null;
@@ -300,6 +316,7 @@ export default {
           'POST /kingdom-story',
           'POST /clan',
           'GET /clan/<id>',
+          'GET /clan/<id>/roster',
         ],
       });
     }

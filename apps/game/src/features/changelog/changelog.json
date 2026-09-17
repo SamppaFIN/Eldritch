@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.45",
+    "date": "2026-09-17",
+    "notes": [
+      "A clanmate's ground now shows up on the map wherever they hold it, not just where you happen to be standing — drawn with a solid blue border, never the rival's hostile red or dashed line."
+    ]
+  },
+  {
     "version": "0.6.44",
     "date": "2026-09-17",
     "notes": [

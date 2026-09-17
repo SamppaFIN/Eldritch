@@ -28,12 +28,14 @@ export async function mergeWorld(
   text: string,
   meId: PlayerId,
   now: number,
+  /** Clanmates' ids, so their ground draws as known rather than hostile (BRDC-CLAN-004). */
+  allies?: ReadonlySet<PlayerId>,
 ): Promise<WorldImportResult> {
   const parsed = parseWorld(text);
   if (!parsed.ok) return parsed;
 
   let written = 0;
-  for (const cell of worldToCells(parsed.shard, meId, now)) {
+  for (const cell of worldToCells(parsed.shard, meId, now, allies)) {
     const existing = await store.get<Cell>(K.cell(cell.h3));
     if (existing?.ownerId === meId) continue;
     await store.set(K.cell(cell.h3), cell);

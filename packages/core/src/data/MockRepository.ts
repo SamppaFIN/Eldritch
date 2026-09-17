@@ -47,7 +47,7 @@ import { achievementsFor } from './achievementRepo.js';
 import type { AchievementView } from './achievementStore.js';
 import type {
   BBox, Cell, LatLng, RevealedPlace, ClaimResult, DecayResult, GameRepository,
-  H3Index, PlayerProfile, Run, RunId, Terrain, TrailPoint,
+  H3Index, PlayerId, PlayerProfile, Run, RunId, Terrain, TrailPoint,
 } from '../types/index.js';
 import { MemoryStore, type KeyValueStore } from './kv.js';
 import { versioned, type SchemaOutcome, type VersionedStore } from './schema.js';
@@ -189,8 +189,11 @@ export class MockRepository implements GameRepository {
   importChallenge = async (text: string, now: number): Promise<ImportResult> =>
     importChallengeInto(this.store, await muster(this, now), text, now);
 
-  importWorld = async (text: string, now: number): Promise<WorldImportResult> =>
-    mergeWorld(this.store, text, (await this.getProfile()).id, now);
+  importWorld = async (
+    text: string,
+    now: number,
+    allies?: ReadonlySet<PlayerId>,
+  ): Promise<WorldImportResult> => mergeWorld(this.store, text, (await this.getProfile()).id, now, allies);
 
   exportWorldSource = (now: number, identity: WorldIdentity): Promise<WorldSource> =>
     sealWorld(this, identity, now, this.store);

@@ -176,13 +176,15 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 **Multiplayer: klaanit ja identiteetti (2026-09-17, suunnitelmavaihe):** Infiniten pyyntö
 — käyttäjien itse sopimat klaanit, klaanit keskenään, ja identiteetin säilyminen laitteen
 vaihdon yli — kaikki ilman uutta tietokantaa, samalla Cloudflare Workerilla joka jo ajaa
-jaettua maailmaa (`BRDC-SHARE-003`). Ei yhtään tikettiä vielä toteutettu; RED/GREEN
-kirjoitettu, käydään läpi ennen koodia. Järjestys: CLAN-001 (perusta) → CLAN-002
-(klaani-Codex) → CLAN-003 (hallinta); IDENTITY-001 on itsenäinen, ei riipu CLAN-sarjasta.
+jaettua maailmaa (`BRDC-SHARE-003`). Järjestys: CLAN-001 (perusta) → CLAN-004 (klaanien
+oma alue näkyy, tehty tässä järjestyksessä CLAN-002:n sijaan koska Infinite pyysi sen
+suoraan heti klaanikoodin saatuaan) → CLAN-002 (klaani-Codex) → CLAN-003 (hallinta);
+IDENTITY-001 on itsenäinen, ei riipu CLAN-sarjasta.
 
 | ID | Nimi | Effort | Riippuvuudet |
 |---|---|:---:|---|
 | [BRDC-CLAN-001](BRDC-CLAN-001.md) | ✅ Klaanin luonti, liittyminen, `clanId` julkaisussa | M | SHARE-003 |
+| [BRDC-CLAN-004](BRDC-CLAN-004.md) | ✅ Klaanikaverin alue näkyy kartalla, väri erottaa rivaalista | M | CLAN-001 |
 | [BRDC-CLAN-002](BRDC-CLAN-002.md) | ⬜ Luonnos: klaani-Codex — klaanit keskenään | M | CLAN-001 |
 | [BRDC-CLAN-003](BRDC-CLAN-003.md) | ⬜ Luonnos: klaanihallinta — perustajan token, nimeäminen, poisto | S–M | CLAN-001 |
 | [BRDC-IDENTITY-001](BRDC-IDENTITY-001.md) | ⬜ Luonnos: palautuskoodi — sama nimi ja klaani uudella laitteella | S | SHARE-003 |

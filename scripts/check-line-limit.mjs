@@ -14,7 +14,7 @@ const LIMIT = 400;
 const EXCEPTIONS = new Map([['packages/ui/src/styles/tokens.css', 800]]);
 const ROOTS = ['apps', 'packages', 'scripts'];
 const EXTS = /\.(ts|tsx|css|mjs|js)$/;
-const SKIP = new Set(['node_modules', 'dist', 'dist-types', 'coverage', '.vite']);
+const SKIP = new Set(['node_modules', 'dist', 'dist-types', 'coverage', '.vite', '.wrangler']);
 
 function* walk(dir) {
   for (const entry of readdirSync(dir)) {

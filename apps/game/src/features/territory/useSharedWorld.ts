@@ -12,6 +12,7 @@ import { publishSubmission } from '../../data/worldSource.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { readNation } from '../nation/nation.js';
 import { readClan } from '../clan/clan.js';
+import { useClan } from '../clan/useClan.js';
 
 export interface UseSharedWorldOptions {
   repository: GameRepository | null;
@@ -28,7 +29,16 @@ export function useSharedWorld({
   onMerged,
   enabled,
 }: UseSharedWorldOptions): { stirredMs: number | null; publish: () => Promise<PublishResult> } {
-  const stirred = useWorld({ repository, bbox: enabled ? bbox : null, now, onMerged });
+  // Reactive, unlike the one-shot `readClan()` in `publish()` below: joining a clan while
+  // the map is open should start pulling that clan's ground in without a reload.
+  const { clan } = useClan();
+  const stirred = useWorld({
+    repository,
+    bbox: enabled ? bbox : null,
+    now,
+    onMerged,
+    clanId: enabled ? clan.clanId || null : null,
+  });
 
   const publish = useCallback(async (): Promise<PublishResult> => {
     if (!repository) return 'failed';

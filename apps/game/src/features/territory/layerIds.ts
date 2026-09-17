@@ -21,6 +21,9 @@ export const CELL_BLIGHT_LAYER = 'cells-blight';
 export const CELL_RIVAL_LINE_LAYER = 'cells-rival-line';
 /** Your stroke, drawn above rival dashes so a shared edge reads as yours (BRDC-SIGIL-006). */
 export const CELL_OWN_LINE_LAYER = 'cells-own-line';
+/** A clanmate's stroke — solid, not dashed, so it reads as known rather than hostile
+ *  (BRDC-CLAN-004). */
+export const CELL_ALLY_LINE_LAYER = 'cells-ally-line';
 export const CELL_LINE_LAYER = 'cells-line';
 export const CELL_CONTESTED_LAYER = 'cells-contested';
 export const CELL_ICON_LAYER = 'cells-icon';

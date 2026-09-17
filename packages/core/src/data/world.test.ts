@@ -137,6 +137,22 @@ describe('worldToCells', () => {
     const owners = new Set(worldToCells(shard, 'nobody', T0).map((c) => c.ownerId));
     expect(owners).toEqual(new Set(['a', 'b']));
   });
+
+  it('marks a clanmate ally, and nobody else, when allies is given (BRDC-CLAN-004)', () => {
+    const cells = worldToCells(shard, 'a', T0, new Set(['b']));
+    expect(cells.every((c) => c.ownerId === 'b')).toBe(true);
+    expect(cells.every((c) => c.ally === true)).toBe(true);
+  });
+
+  it('marks nobody ally when allies is empty or absent', () => {
+    expect(worldToCells(shard, 'a', T0).every((c) => c.ally === undefined)).toBe(true);
+    expect(worldToCells(shard, 'a', T0, new Set()).every((c) => c.ally === undefined)).toBe(true);
+  });
+
+  it('does not mark a stranger ally just because they are in the allies set for someone else', () => {
+    const cells = worldToCells(shard, 'a', T0, new Set(['someone-else']));
+    expect(cells.every((c) => c.ally === undefined)).toBe(true);
+  });
 });
 
 describe('worldAgeMs', () => {

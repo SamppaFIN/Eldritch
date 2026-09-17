@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CITY_STATES, anomalyAt, cellAt, emptyCell, neighboursOf } from '@es3/core';
 import type { Cell, TerrainKind } from '@es3/core';
 import {
+  ALLY_FILL,
   CONTESTED_BELOW,
   ENEMY_FILL,
   OWN_FILL,
@@ -52,6 +53,25 @@ describe('ownership colour', () => {
 
   it('is not mine when nobody is signed in', () => {
     expect(cellProperties(cell(ME, 200), null).mine).toBe(false);
+  });
+
+  it("paints a clanmate's ground its own colour, not the rival red (BRDC-CLAN-004)", () => {
+    const allyCell = { ...cell(RIVAL, 200), ally: true };
+    const props = cellProperties(allyCell, ME);
+    expect(props.ally).toBe(true);
+    expect(props.color).toBe(ALLY_FILL);
+    expect(props.color).not.toBe(ENEMY_FILL);
+    expect(props.color).not.toBe(OWN_FILL);
+    expect(props.mine).toBe(false);
+  });
+
+  it('never marks your own ground ally, even if the ally flag were somehow set', () => {
+    const oddCell = { ...cell(ME, 200), ally: true };
+    expect(cellProperties(oddCell, ME).ally).toBe(false);
+  });
+
+  it('leaves a plain rival unmarked as ally', () => {
+    expect(cellProperties(cell(RIVAL, 200), ME).ally).toBe(false);
   });
 });
 

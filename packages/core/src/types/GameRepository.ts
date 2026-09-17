@@ -16,6 +16,7 @@ import type {
   ClaimResult,
   DecayResult,
   H3Index,
+  PlayerId,
   PlayerProfile,
   RevealedPlace,
   Run,
@@ -282,8 +283,9 @@ export interface GameRepository {
    * cells (BRDC-SHARE-001). Never overwrites the local player's own ground, never fights
    * — a shard is state, not a challenge. A bad shard comes back as a named fault, and the
    * game carries on without it. Safe to call repeatedly with the same or a fresher shard.
+   * `allies` marks clanmates' cells as known ground rather than a threat (BRDC-CLAN-004).
    */
-  importWorld(text: string, now: number): Promise<WorldImportResult>;
+  importWorld(text: string, now: number, allies?: ReadonlySet<PlayerId>): Promise<WorldImportResult>;
 
   /**
    * Seal the local player's own ground for publishing to the shared world (BRDC-SHARE-002).

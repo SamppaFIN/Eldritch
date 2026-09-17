@@ -1,9 +1,9 @@
 /**
- * BRDC-CLAN-001 — the client's two calls to the Worker's clan endpoints.
+ * BRDC-CLAN-001, BRDC-CLAN-004 — the client's calls to the Worker's clan endpoints.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WORLD_API } from './worldSource.js';
-import { createClan, findClan } from './clanSource.js';
+import { createClan, fetchClanRoster, findClan } from './clanSource.js';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -69,5 +69,30 @@ describe('findClan', () => {
       }),
     );
     expect(await findClan('NOPE00')).toEqual({ ok: false, reason: 'failed' });
+  });
+});
+
+describe('fetchClanRoster', () => {
+  it('GETs the roster path and returns the member list', async () => {
+    const members = [{ id: 'p1', name: 'Seeker', castle: '8b112492eb03fff' }];
+    const fetch = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ members }) }) as Response);
+    vi.stubGlobal('fetch', fetch);
+
+    expect(await fetchClanRoster('WYRM42')).toEqual(members);
+    const [url] = fetch.mock.calls[0] as unknown as [string];
+    expect(url).toBe(`${WORLD_API}/clan/WYRM42/roster`);
+  });
+
+  it('is null, not a throw, on a bad response or the network being down', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 }) as Response));
+    expect(await fetchClanRoster('WYRM42')).toBeNull();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    );
+    expect(await fetchClanRoster('WYRM42')).toBeNull();
   });
 });

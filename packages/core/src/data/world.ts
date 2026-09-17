@@ -264,8 +264,17 @@ export function parseWorld(text: string): WorldParse {
  * Marked `imported`: it is someone else's ground, refreshed by cron, and this device
  * never witnesses its visits. `lastVisitedAt` is set to `now` for completeness, but the
  * `imported` flag is what actually keeps decay off it (`rules/decay.ts`).
+ *
+ * `allies`, when given, marks a clanmate's cells `ally: true` (BRDC-CLAN-004) — drawn as
+ * known ground rather than a threat. Self-declared on publish, same trust level as
+ * `nation`/`banner` already are.
  */
-export function worldToCells(shard: WorldShard, mineId: PlayerId, now: number): Cell[] {
+export function worldToCells(
+  shard: WorldShard,
+  mineId: PlayerId,
+  now: number,
+  allies?: ReadonlySet<PlayerId>,
+): Cell[] {
   const cells: Cell[] = [];
   for (const player of shard.players) {
     if (player.id === mineId) continue;
@@ -275,6 +284,7 @@ export function worldToCells(shard: WorldShard, mineId: PlayerId, now: number): 
       seenAt: number;
     };
     if (player.banner) from.banner = player.banner;
+    const ally = allies?.has(player.id) === true;
     for (const c of player.cells) {
       cells.push({
         h3: c.h3,
@@ -283,6 +293,7 @@ export function worldToCells(shard: WorldShard, mineId: PlayerId, now: number): 
         lastVisitedAt: now,
         visitDays: [],
         imported: true,
+        ...(ally ? { ally: true } : {}),
         importedFrom: from,
         ...(c.t ? { terrain: { kind: c.t, source: 'hash' as const } } : {}),
         ...(c.b?.length ? { buildings: c.b.map((id) => ({ id, builtAt: now })) } : {}),
