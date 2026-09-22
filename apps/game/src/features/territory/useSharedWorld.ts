@@ -11,7 +11,7 @@ import { useWorld } from './useWorld.js';
 import { publishSubmission } from '../../data/worldSource.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { readNation } from '../nation/nation.js';
-import { readClan } from '../clan/clan.js';
+import { leaveClan, readClan } from '../clan/clan.js';
 import { useClan } from '../clan/useClan.js';
 
 export interface UseSharedWorldOptions {
@@ -31,13 +31,13 @@ export function useSharedWorld({
 }: UseSharedWorldOptions): { stirredMs: number | null; publish: () => Promise<PublishResult> } {
   // Reactive, unlike the one-shot `readClan()` in `publish()` below: joining a clan while
   // the map is open should start pulling that clan's ground in without a reload.
-  const { clan } = useClan();
+  const { clan: myClan } = useClan();
   const stirred = useWorld({
     repository,
     bbox: enabled ? bbox : null,
     now,
     onMerged,
-    clanId: enabled ? clan.clanId || null : null,
+    clanId: enabled ? myClan.clanId || null : null,
   });
 
   const publish = useCallback(async (): Promise<PublishResult> => {
@@ -49,7 +49,11 @@ export function useSharedWorld({
     const clan = readClan();
     if (clan.clanId) identity.clanId = clan.clanId;
     const source = await repository.exportWorldSource(now(), identity);
-    return publishSubmission(source);
+    const outcome = await publishSubmission(source);
+    // The founder removed this player (BRDC-CLAN-003) — their own file cannot be
+    // edited, so this is the moment the Worker can actually say so.
+    if (outcome.kicked) leaveClan();
+    return outcome.status;
   }, [repository, now]);
 
   return { stirredMs: enabled ? stirred : null, publish };

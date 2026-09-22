@@ -66,23 +66,31 @@ export async function fetchDemographics(): Promise<CodexFetch> {
 
 export type PublishResult = 'ok' | 'rate-limited' | 'failed';
 
+export interface PublishOutcome {
+  status: PublishResult;
+  /** The founder removed this player from the clan they published under
+   *  (BRDC-CLAN-003) — never true unless `clanId` was actually sent. */
+  kicked: boolean;
+}
+
 /**
  * Publish the player's own ground to the Worker. One POST, no tab, no account. `429` is
  * the Worker's one-a-minute limit; anything else that is not a success is `failed` and
  * the caller says so without drama.
  */
-export async function publishSubmission(source: WorldSource): Promise<PublishResult> {
+export async function publishSubmission(source: WorldSource): Promise<PublishOutcome> {
   try {
     const res = await fetch(`${WORLD_API}/submit`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: encodeSubmission(buildSubmission(source)),
     });
-    if (res.ok) return 'ok';
-    if (res.status === 429) return 'rate-limited';
-    return 'failed';
+    if (res.status === 429) return { status: 'rate-limited', kicked: false };
+    if (!res.ok) return { status: 'failed', kicked: false };
+    const data = (await res.json().catch(() => null)) as { kicked?: boolean } | null;
+    return { status: 'ok', kicked: data?.kicked === true };
   } catch {
-    return 'failed';
+    return { status: 'failed', kicked: false };
   }
 }
 

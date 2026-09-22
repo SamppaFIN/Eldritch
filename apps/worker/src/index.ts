@@ -28,6 +28,13 @@
  * BRDC-CLAN-004 adds `GET /clan/<id>/roster` — every live member's id, name and Keep, so
  * a client can pull in a clanmate's ground regardless of where the camera is pointed
  * (`useWorld.ts`'s own fetch is otherwise strictly viewport-driven).
+ *
+ * BRDC-CLAN-003 adds `POST /clan/<id>/rename` and `POST /clan/<id>/kick`, both gated on
+ * the founder's own `founderToken` — a bearer secret, not a password behind an account,
+ * exactly as trusted as everything else here. A kicked player is never edited out of
+ * their own file; `clan:<id>.kicked` overrides their own claim wherever the clan is
+ * read (the roster, `/submit`'s response), which is what "kicked" has to mean when
+ * nobody's own data can be altered by anyone else.
  */
 import { buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
 import type { PlayerFile } from '@es3/core/data';
@@ -177,6 +184,16 @@ interface ClanRecord {
   founderId: string;
   founderToken: string;
   createdAt: number;
+  /** Absent on a clan created before BRDC-CLAN-003 — read as empty, never migrated. */
+  kicked?: string[];
+}
+
+/** The clan, only if `founderToken` is the one it was created (or last verified) with. */
+async function verifiedClan(kv: KV, id: string, founderToken: string): Promise<ClanRecord | null> {
+  const raw = await kv.get(CLAN + id);
+  if (!raw) return null;
+  const record = JSON.parse(raw) as ClanRecord;
+  return record.founderToken === founderToken ? record : null;
 }
 
 /** No 0/O/1/I/L — a code someone reads aloud over a phone call, not a password. */
@@ -214,7 +231,20 @@ export default {
       await env.WORLD.put(PLAYER + id, JSON.stringify(file));
       await env.WORLD.put(`rl:${id}`, '1', { expirationTtl: COOLDOWN_S });
       const regions = await rebuild(env.WORLD, Date.now());
-      return send({ ok: true, cells: parsed.source.cells.length, regions });
+
+      // A clan's founder can remove a member (BRDC-CLAN-003) but never edit their file —
+      // this is where a kicked player's own next publish is told so, honestly, every time.
+      let kicked = false;
+      if (parsed.source.clanId) {
+        const raw = await env.WORLD.get(CLAN + parsed.source.clanId);
+        if (raw) kicked = ((JSON.parse(raw) as ClanRecord).kicked ?? []).includes(id);
+      }
+      return send({
+        ok: true,
+        cells: parsed.source.cells.length,
+        regions,
+        ...(kicked ? { kicked: true } : {}),
+      });
     }
 
     if (request.method === 'GET' && url.pathname.startsWith('/world/')) {
@@ -290,10 +320,48 @@ export default {
       // No need to check `clan:<id>` exists first — a clan with nobody currently
       // publishing under it and one with a typo'd id look identical: an empty roster.
       const live = mergePlayerFiles(await allFiles(env.WORLD), Date.now(), WORLD_PLAYER_TTL_MS);
+      const raw = await env.WORLD.get(CLAN + id);
+      const kicked = raw ? ((JSON.parse(raw) as ClanRecord).kicked ?? []) : [];
       const members = live
-        .filter((p) => p.clanId === id)
+        .filter((p) => p.clanId === id && !kicked.includes(p.id))
         .map((p) => ({ id: p.id, name: p.nation ?? p.name, castle: p.castle }));
       return send({ members });
+    }
+
+    if (request.method === 'POST' && url.pathname.endsWith('/rename')) {
+      const id = url.pathname.slice('/clan/'.length, -'/rename'.length).toUpperCase();
+      const body = (await request.json().catch(() => null)) as
+        | { founderToken?: unknown; name?: unknown }
+        | null;
+      const founderToken = typeof body?.founderToken === 'string' ? body.founderToken : '';
+      const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 40) : '';
+      if (!id || !founderToken || !name) return send({ fault: 'invalid' }, 400);
+
+      const record = await verifiedClan(env.WORLD, id, founderToken);
+      if (!record) return send({ fault: 'forbidden' }, 403);
+
+      record.name = name;
+      await env.WORLD.put(CLAN + id, JSON.stringify(record));
+      return send({ ok: true });
+    }
+
+    if (request.method === 'POST' && url.pathname.endsWith('/kick')) {
+      const id = url.pathname.slice('/clan/'.length, -'/kick'.length).toUpperCase();
+      const body = (await request.json().catch(() => null)) as
+        | { founderToken?: unknown; playerId?: unknown }
+        | null;
+      const founderToken = typeof body?.founderToken === 'string' ? body.founderToken : '';
+      const playerId = typeof body?.playerId === 'string' ? body.playerId : '';
+      if (!id || !founderToken || !playerId) return send({ fault: 'invalid' }, 400);
+
+      const record = await verifiedClan(env.WORLD, id, founderToken);
+      if (!record) return send({ fault: 'forbidden' }, 403);
+
+      const kicked = record.kicked ?? [];
+      if (!kicked.includes(playerId)) kicked.push(playerId);
+      record.kicked = kicked;
+      await env.WORLD.put(CLAN + id, JSON.stringify(record));
+      return send({ ok: true });
     }
 
     if (request.method === 'GET' && url.pathname.startsWith('/clan/')) {
@@ -317,6 +385,8 @@ export default {
           'POST /clan',
           'GET /clan/<id>',
           'GET /clan/<id>/roster',
+          'POST /clan/<id>/rename',
+          'POST /clan/<id>/kick',
         ],
       });
     }

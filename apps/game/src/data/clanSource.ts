@@ -1,5 +1,5 @@
 /**
- * Talking to the Worker's clan endpoints (BRDC-CLAN-001, BRDC-CLAN-004).
+ * Talking to the Worker's clan endpoints (BRDC-CLAN-001, BRDC-CLAN-003, BRDC-CLAN-004).
  *
  * Same honesty as `worldSource.ts`: every failure here is swallowed into a named
  * outcome, never thrown — a friend group is a nice-to-have, not something that should
@@ -46,6 +46,51 @@ export async function fetchClanRoster(clanId: string): Promise<ClanMember[] | nu
     return Array.isArray(data.members) ? data.members : null;
   } catch {
     return null;
+  }
+}
+
+export type AdminResult = 'ok' | 'forbidden' | 'failed';
+
+function adminResult(res: Response): AdminResult {
+  if (res.ok) return 'ok';
+  if (res.status === 403) return 'forbidden';
+  return 'failed';
+}
+
+/** Rename the clan — the founder's `founderToken` is the only key (BRDC-CLAN-003). */
+export async function renameClan(
+  id: string,
+  founderToken: string,
+  name: string,
+): Promise<AdminResult> {
+  try {
+    const res = await fetch(`${WORLD_API}/clan/${encodeURIComponent(id)}/rename`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ founderToken, name }),
+    });
+    return adminResult(res);
+  } catch {
+    return 'failed';
+  }
+}
+
+/** Remove a member. Their own file is never touched — this only makes the roster and
+ *  their next `/submit` stop counting them (BRDC-CLAN-003). */
+export async function kickMember(
+  id: string,
+  founderToken: string,
+  playerId: PlayerId,
+): Promise<AdminResult> {
+  try {
+    const res = await fetch(`${WORLD_API}/clan/${encodeURIComponent(id)}/kick`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ founderToken, playerId }),
+    });
+    return adminResult(res);
+  } catch {
+    return 'failed';
   }
 }
 

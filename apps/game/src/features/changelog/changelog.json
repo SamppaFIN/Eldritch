@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.47",
+    "date": "2026-09-22",
+    "notes": [
+      "The clan founder now gets a management screen: rename the clan, or remove a member — the admin key lives only on the founder's own device, so losing it loses the rights too."
+    ]
+  },
+  {
     "version": "0.6.46",
     "date": "2026-09-22",
     "notes": [

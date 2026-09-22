@@ -95,3 +95,40 @@
   color: var(--danger);
   font-size: var(--text-sm);
 }
+
+.clan__admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+}
+
+.clan__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.clan__row .clan__input {
+  flex: 1;
+}
+
+.clan__roster {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.clan__member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: var(--touch-min);
+  color: var(--text);
+  font-size: var(--text-body);
+}

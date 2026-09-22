@@ -8,12 +8,13 @@
  *
  * Same sheet as `HallOfFamePanel`/`CodexPanel`: non-modal, ESC closes.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
-import type { GameRepository } from '@es3/core';
+import type { GameRepository, PlayerId } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { createClan, findClan } from '../../data/clanSource.js';
 import { useClan } from './useClan.js';
+import { ClanAdmin } from './ClanAdmin.js';
 import './clan-panel.css';
 
 export interface ClanPanelProps {
@@ -32,7 +33,13 @@ export function ClanPanel({ open, repository, onClose }: ClanPanelProps) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [meId, setMeId] = useState<PlayerId | null>(null);
   useEscape(open, onClose);
+
+  useEffect(() => {
+    if (!open || !repository) return;
+    void repository.getProfile().then((p) => setMeId(p.id));
+  }, [open, repository]);
 
   if (!open) return null;
 
@@ -83,6 +90,15 @@ export function ClanPanel({ open, repository, onClose }: ClanPanelProps) {
           </p>
           <p className="clan__code es-numeric">Code: {clan.clanId}</p>
           <p className="clan__hint">Share this code so friends can join the same clan.</p>
+          {clan.founderToken ? (
+            <ClanAdmin
+              clanId={clan.clanId}
+              clanName={clan.clanName}
+              founderToken={clan.founderToken}
+              meId={meId}
+              onRenamed={(next) => set({ ...clan, clanName: next })}
+            />
+          ) : null}
           <RitualButton variant="ghost" onClick={leave}>
             Leave clan
           </RitualButton>

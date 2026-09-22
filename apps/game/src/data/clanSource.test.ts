@@ -1,9 +1,10 @@
 /**
- * BRDC-CLAN-001, BRDC-CLAN-004 — the client's calls to the Worker's clan endpoints.
+ * BRDC-CLAN-001, BRDC-CLAN-003, BRDC-CLAN-004 — the client's calls to the Worker's
+ * clan endpoints.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WORLD_API } from './worldSource.js';
-import { createClan, fetchClanRoster, findClan } from './clanSource.js';
+import { createClan, fetchClanRoster, findClan, kickMember, renameClan } from './clanSource.js';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -94,5 +95,53 @@ describe('fetchClanRoster', () => {
       }),
     );
     expect(await fetchClanRoster('WYRM42')).toBeNull();
+  });
+});
+
+describe('renameClan', () => {
+  it('POSTs the founder token and new name to the rename path', async () => {
+    const fetch = vi.fn(async () => ({ ok: true, status: 200 }) as Response);
+    vi.stubGlobal('fetch', fetch);
+
+    expect(await renameClan('WYRM42', 'tok', 'New Name')).toBe('ok');
+    const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`${WORLD_API}/clan/WYRM42/rename`);
+    expect(JSON.parse(String(init.body))).toEqual({ founderToken: 'tok', name: 'New Name' });
+  });
+
+  it('tells a wrong token apart from an unreachable Worker', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 403 }) as Response));
+    expect(await renameClan('WYRM42', 'wrong', 'X')).toBe('forbidden');
+
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 }) as Response));
+    expect(await renameClan('WYRM42', 'tok', 'X')).toBe('failed');
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    );
+    expect(await renameClan('WYRM42', 'tok', 'X')).toBe('failed');
+  });
+});
+
+describe('kickMember', () => {
+  it('POSTs the founder token and the player to remove', async () => {
+    const fetch = vi.fn(async () => ({ ok: true, status: 200 }) as Response);
+    vi.stubGlobal('fetch', fetch);
+
+    expect(await kickMember('WYRM42', 'tok', 'p2')).toBe('ok');
+    const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`${WORLD_API}/clan/WYRM42/kick`);
+    expect(JSON.parse(String(init.body))).toEqual({ founderToken: 'tok', playerId: 'p2' });
+  });
+
+  it('tells a wrong token apart from an unreachable Worker', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 403 }) as Response));
+    expect(await kickMember('WYRM42', 'wrong', 'p2')).toBe('forbidden');
+
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 }) as Response));
+    expect(await kickMember('WYRM42', 'tok', 'p2')).toBe('failed');
   });
 });

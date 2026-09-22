@@ -21,6 +21,11 @@ export interface Clan {
 const KEY = 'clan';
 const NONE: Clan = { clanId: '', clanName: '', founderToken: null };
 
+/** `useClan.ts` listens for this — any writer, not only the hook's own `set`/`leave`,
+ *  so a clan lost outside a component (BRDC-CLAN-003: a rejected `/submit`) still
+ *  updates a `ClanPanel` that happens to be open. */
+export const CLAN_CHANGED_EVENT = 'es3:clan-changed';
+
 export function readClan(): Clan {
   const stored = load<Partial<Clan> | null>(KEY, null);
   if (!stored?.clanId || typeof stored.clanName !== 'string') return NONE;
@@ -33,10 +38,12 @@ export function readClan(): Clan {
 
 export function writeClan(next: Clan): Clan {
   saveNow(KEY, next);
+  window.dispatchEvent(new Event(CLAN_CHANGED_EVENT));
   return next;
 }
 
 export function leaveClan(): Clan {
   saveNow(KEY, NONE);
+  window.dispatchEvent(new Event(CLAN_CHANGED_EVENT));
   return NONE;
 }

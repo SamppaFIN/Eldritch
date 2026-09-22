@@ -2,12 +2,14 @@
  * The clan, shared and reactive — same reason as `useNation.ts`: more than one screen
  * will read this (the menu's own row, and `BRDC-CLAN-002`'s league panel showing "your
  * own clan"), and a plain `useState(readClan)` in each would never see the other change.
+ *
+ * `writeClan`/`leaveClan` dispatch `CLAN_CHANGED_EVENT` themselves (BRDC-CLAN-003) — not
+ * only this hook's own `set`/`leave` calls it, but `useSharedWorld.ts`'s `publish()` too,
+ * when the Worker says the founder removed this player mid-session.
  */
 import { useCallback, useSyncExternalStore } from 'react';
-import { leaveClan, readClan, writeClan } from './clan.js';
+import { CLAN_CHANGED_EVENT, leaveClan, readClan, writeClan } from './clan.js';
 import type { Clan } from './clan.js';
-
-const EVENT = 'es3:clan-changed';
 
 let snapshot: Clan = readClan();
 
@@ -16,10 +18,10 @@ function subscribe(onChange: () => void): () => void {
     snapshot = readClan();
     onChange();
   };
-  window.addEventListener(EVENT, handler);
+  window.addEventListener(CLAN_CHANGED_EVENT, handler);
   window.addEventListener('storage', handler); // another tab
   return () => {
-    window.removeEventListener(EVENT, handler);
+    window.removeEventListener(CLAN_CHANGED_EVENT, handler);
     window.removeEventListener('storage', handler);
   };
 }
@@ -34,11 +36,9 @@ export function useClan(): UseClan {
   const clan = useSyncExternalStore(subscribe, () => snapshot);
   const set = useCallback((next: Clan) => {
     snapshot = writeClan(next);
-    window.dispatchEvent(new Event(EVENT));
   }, []);
   const leave = useCallback(() => {
     snapshot = leaveClan();
-    window.dispatchEvent(new Event(EVENT));
   }, []);
   return { clan, set, leave };
 }

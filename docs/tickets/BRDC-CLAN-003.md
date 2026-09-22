@@ -6,7 +6,7 @@
 | **Vaihe** | 3 — Sivilisaatio (multiplayer-sarja) |
 | **Effort** | S–M |
 | **Riippuvuudet** | `BRDC-CLAN-001` (`founderToken` syntyy siellä) |
-| **Status** | luonnos — käydään läpi ennen toteutusta |
+| **Status** | `done` — 2026-09-22 (v0.6.47) |
 
 ## 🔴 RED
 
@@ -21,40 +21,54 @@ pelaaja-id:tään suojattavaksi.
 
 ## 🟢 GREEN
 
-- [ ] `founderToken` (luotu `BRDC-CLAN-001`in `POST /clan`issa) on ainoa avain
-      hallintatoimiin — **sama periaate kuin `BRDC-IDENTITY-001`in palautuskoodi**:
-      satunnainen, jaettu vain kerran, säilytetty vain perustajan omalla laitteella.
-      Ei salasanaa, ei tiliä, ei ulkoista auth-palvelua — yksi bearer-secret KV:ssä,
-      verrattuna palvelimella
-- [ ] Worker: `POST /clan/<id>/rename {founderToken, name}` — vertaa
-      `founderToken`ia tallennettuun, päivittää `clan:<id>`in nimen
-- [ ] Worker: `POST /clan/<id>/kick {founderToken, playerId}` — lisää `playerId`in
-      `clan:<id>.kicked: string[]`-listaan. **Ei poista ketään pelaajan omasta
-      tiedostosta** — `playerId` voi yhä väittää kuuluvansa klaaniin omassa
-      julkaisussaan, mutta `rebuild()` (`BRDC-CLAN-002`) jättää `kicked`-listalla
-      olevat pois klaanin jäsenlaskennasta riippumatta heidän omasta ilmoituksestaan.
-      Potkulista voittaa jäsenen oman väitteen — sama periaate kuin monessa muussakin
-      pelissä, ei vaadi mitään uutta luottamusprimitiiviä
-- [ ] Worker: `POST /submit`in vastaukseen `kicked: boolean` jos pyynnön mukana tullut
-      `clanId` on sellainen josta lähettäjä on potkittu. Asiakas tyhjentää paikallisen
-      klaanitilansa tämän nähdessään (ei enää näytä "jäsen klaanissa X" -tilaa)
-- [ ] Asiakas: klaanin oma "Hallinta"-näkymä, näkyy vain jos laitteella on tallennettu
-      `founderToken` juuri tälle klaanille — nimikentän muokkaus, jäsenlista +
-      "Poista"-nappi per jäsen (jäsenlista tulee `BRDC-CLAN-002`in klaani-Codexin
-      mukana kulkevasta rosterista)
-- [ ] Rehellisyys UI:ssa: hallintanäkymä sanoo suoraan että `founderToken` on
-      ainoa avain — jos laite katoaa/nollataan (`Delete progress`, `Retire Kingdom`),
-      hallintaoikeus katoaa mukana, eikä sitä voi palauttaa erikseen
-- [ ] Portti: `lint:lines`, `tsc -b`, vitest, `pnpm build`. Workerin reitit käsin
-      todennettu `wrangler dev`illä
+- [x] `founderToken` on ainoa avain hallintatoimiin — sama periaate kuin
+      `BRDC-IDENTITY-001`in palautuskoodi tulisi olemaan. Ei salasanaa, ei tiliä
+- [x] Worker: `POST /clan/<id>/rename {founderToken, name}` — `verifiedClan()`-apurilla
+      (uusi, jaettu `rename`/`kick`in kesken) vertaa tokenia, päivittää nimen
+- [x] Worker: `POST /clan/<id>/kick {founderToken, playerId}` — lisää `kicked:
+      string[]`-listaan (`ClanRecord`iin uusi valinnainen kenttä, additiivinen, vanhat
+      ilman sitä luetaan tyhjänä). Ei poista mitään pelaajan omasta tiedostosta
+- [x] **Skoopin tarkennus:** RED viittasi `rebuild()`in (`BRDC-CLAN-002`) suodattavan
+      potkitut pois — mutta `BRDC-CLAN-002` ei ole vielä olemassa, ja `BRDC-CLAN-004`
+      (tehty tätä ennen) toi jo `GET /clan/<id>/roster`in. Tämä tiketti päivitti SEN
+      suodattamaan `kicked`-listan sijaan — sama työ, oikea paikka
+- [x] Worker: `POST /submit`in vastaus kantaa `kicked: true`n kun lähettäjän `clanId`
+      on sellainen josta hänet on potkittu (kevyt lisäys olemassa olevaan `/submit`iin)
+- [x] Asiakas: `publishSubmission`in paluuarvo `PublishResult`-merkkijonosta
+      `PublishOutcome`-olioksi (`{status, kicked}`). `useSharedWorld.ts`in `publish()`
+      purkaa `.status`in omaksi paluuarvokseen (ei muutosta `KeepRealm`/`HearthPanel`iin)
+      ja kutsuu `leaveClan()`in kun `.kicked` on tosi
+- [x] `clan.ts`in `writeClan`/`leaveClan` lähettävät nyt itse `CLAN_CHANGED_EVENT`in
+      (uusi, jaettu vakio) — ei enää vain `useClan.ts`in oma `set`/`leave`, joten
+      avoinna oleva `ClanPanel` päivittyy myös kun `publish()` potkaisee ulos kesken
+      kartan avoinna olon
+- [x] Asiakas: uusi `ClanAdmin.tsx` (oma tiedosto, ei ahdettu `ClanPanel.tsx`ään) —
+      nimikentän muokkaus, jäsenlista rosterista, "Remove"-nappi per jäsen paitsi
+      omalle rivilleen (itsensä potkiminen lukitsisi hallinnan pois seuraavalla
+      julkaisulla)
+- [x] Rehellisyys UI:ssa: `ClanAdmin` sanoo suoraan *"the admin key lives here, not on
+      an account. Losing this device loses it too, for good."*
+- [x] Portti: `lint:lines`, `tsc -b`, **1625** vitest (+7: `clanSource.test.ts` rename/
+      kick, `worldSource.test.ts` `PublishOutcome`), `pnpm build`, `e2e/clan-admin.spec.ts`
+      (uusi, 2/2) + `e2e/clan.spec.ts` (3/3, ei regressiota). Workerin `/rename` ja
+      `/kick` todennettu käsin `wrangler dev`illä: väärä token → 403 ei muutosta; oikea
+      token → nimi/roster muuttuu; klaanin jäsen joka potkitaan **ennen ensimmäistä
+      julkaisuaan** näkyy `kicked: true`na jo omassa ensimmäisessä `/submit`-vastauksessaan
 
 ## Todennus
 
-Suunnitelmavaihe. Toteutusvaiheessa: väärä `founderToken` → `403`, ei muutosta;
-oikea token → nimi/potkulista päivittyy; potkittu pelaaja saa `kicked: true` seuraavassa
-`/submit`issaan ja paikallinen tila tyhjenee; potkitun oma yritys julkaista sama
-`clanId` uudelleen ei palauta jäsenyyttä (potkulista pysyvä, ei vain kertaluontoinen
-lippu).
+`clanSource.test.ts`: `renameClan`/`kickMember` POSTaavat oikean rungon oikeaan
+polkuun, palauttavat `'forbidden'`in 403:sta erillään `'failed'`istä, eivät koskaan
+heitä. `worldSource.test.ts`: `publishSubmission` palauttaa `{status, kicked}`in,
+`kicked: true` vain kun Worker sanoo niin. `e2e/clan-admin.spec.ts`: perustaja nimeää
+klaanin uudelleen ja näkee sen otsikossa; perustaja poistaa jäsenen ja roster tyhjenee
+oikein tyhjän-tilan tekstiin asti (ei jää haamurivi näkyviin).
+
+**Käsin, oikeaa Workeria vasten:** klaani luotu, väärä token 403, oikea token muuttaa
+nimen ja näkyy `GET /clan/<id>`issa; jäsen julkaisee, potkaistaan, roster tyhjenee
+välittömästi; jäsen joka potkitaan ENNEN ensimmäistä julkaisuaan näkee `kicked:true`n
+jo siinä ensimmäisessä vastauksessaan — potkulista ei vaadi että potkittu on koskaan
+edes julkaissut mitään.
 
 ## Ei tässä
 

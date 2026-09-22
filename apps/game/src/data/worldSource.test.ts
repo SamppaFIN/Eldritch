@@ -49,10 +49,10 @@ describe('fetchWorldShards', () => {
 
 describe('publishSubmission', () => {
   it('POSTs the sealed submission to the Worker and reports ok', async () => {
-    const fetch = vi.fn(async () => ({ ok: true, status: 200 }) as Response);
+    const fetch = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) }) as Response);
     vi.stubGlobal('fetch', fetch);
 
-    expect(await publishSubmission(SOURCE)).toBe('ok');
+    expect(await publishSubmission(SOURCE)).toEqual({ status: 'ok', kicked: false });
     const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(`${WORLD_API}/submit`);
     expect(init.method).toBe('POST');
@@ -61,12 +61,20 @@ describe('publishSubmission', () => {
     expect(body.id).toBe('p1');
   });
 
+  it('reports kicked when the Worker says so (BRDC-CLAN-003)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ kicked: true }) }) as Response),
+    );
+    expect(await publishSubmission(SOURCE)).toEqual({ status: 'ok', kicked: true });
+  });
+
   it('maps 429 to rate-limited and anything else to failed', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 429 }) as Response));
-    expect(await publishSubmission(SOURCE)).toBe('rate-limited');
+    expect(await publishSubmission(SOURCE)).toEqual({ status: 'rate-limited', kicked: false });
 
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 }) as Response));
-    expect(await publishSubmission(SOURCE)).toBe('failed');
+    expect(await publishSubmission(SOURCE)).toEqual({ status: 'failed', kicked: false });
   });
 
   it('is failed, not a throw, when the network is down', async () => {
@@ -76,7 +84,7 @@ describe('publishSubmission', () => {
         throw new Error('offline');
       }),
     );
-    expect(await publishSubmission(SOURCE)).toBe('failed');
+    expect(await publishSubmission(SOURCE)).toEqual({ status: 'failed', kicked: false });
   });
 });
 
