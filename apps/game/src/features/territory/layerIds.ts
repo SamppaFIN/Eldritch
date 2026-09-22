@@ -59,3 +59,9 @@ export const CELL_DETAIL_MINZOOM = 13;
  * not a gap or an overlap.
  */
 export const NATION_MAXZOOM = 10;
+
+/** Where a tap on the Atlas flies the camera to: past `NATION_MAXZOOM` so the ordinary
+ *  cell layers take over and draw whatever ground is actually there, short of
+ *  `CELL_DETAIL_MINZOOM` so the icons and marks stay off until someone zooms in further
+ *  by hand — a glance at the city, not a walk through it. */
+export const NATION_FLY_ZOOM = 12;

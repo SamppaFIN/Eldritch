@@ -11,6 +11,9 @@ test.use({ permissions: ['geolocation'], geolocation: HERE });
 
 const REGION_TAMPERE = '85088a2ffffffff';
 const REGION_HELSINKI = '851126d3fffffff';
+/** `REGION_HELSINKI`'s own centre, h3.cellToLatLng once by hand (h3-js is a dependency
+ *  of @es3/core, not of this app, so it is not importable from a Node-run spec file). */
+const HELSINKI_CENTRE = { lat: 60.20612303713854, lng: 24.976852103066726 };
 
 /** The live map's centre and zoom, read off the global the app exposes for tests. */
 function mapState(page: Page): Promise<{ lng: number; lat: number; zoom: number }> {
@@ -83,6 +86,18 @@ async function setZoom(page: Page, zoom: number) {
   );
 }
 
+/** Where a lng/lat currently lands on screen, so a real mouse click can hit it. */
+function screenPointFor(page: Page, lng: number, lat: number): Promise<{ x: number; y: number }> {
+  return page.evaluate(
+    ([lng, lat]) => {
+      const m = (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap;
+      const p = m.project([lng, lat]);
+      return { x: p.x, y: p.y };
+    },
+    [lng, lat],
+  );
+}
+
 const nationFeatureCount = (page: Page): Promise<number> =>
   page.evaluate(() => {
     const m = (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap;
@@ -123,4 +138,51 @@ test('draws nothing when the Atlas has no data yet, not an error', async ({ page
   await setZoom(page, 4);
   await page.waitForTimeout(500);
   expect(await nationFeatureCount(page)).toBe(0);
+});
+
+test('tapping a municipality flies the camera out to it', async ({ page }) => {
+  await page.route('**/atlas', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        v: 1,
+        generatedAt: Date.now(),
+        regions: [
+          { region: REGION_TAMPERE, dominant: { id: 'a', name: 'Alice' }, areaM2: 4865, players: 1 },
+          { region: REGION_HELSINKI, dominant: { id: 'b', name: 'Bob' }, areaM2: 1660, players: 1 },
+        ],
+      }),
+    }),
+  );
+
+  await openMap(page);
+  await unpinCamera(page);
+  await setZoom(page, 4);
+  await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(2);
+
+  // A stationary player reads as "not walking" to the onboarding teacher (BRDC-TUTOR-001),
+  // and this spec has been idle long enough for a lesson card to come due and cover the
+  // map — tutor.spec.ts's own way of clearing it.
+  const unlockCard = page.locator('.unlock__card');
+  if (await unlockCard.isVisible().catch(() => false)) {
+    await unlockCard.getByRole('button', { name: 'Not now' }).click();
+  }
+
+  const point = await screenPointFor(page, HELSINKI_CENTRE.lng, HELSINKI_CENTRE.lat);
+  // `map.project` returns coordinates relative to the map's own container, which is what
+  // a canvas click's `position` expects — not page coordinates (step-claim.spec.ts's own
+  // pattern for tapping the map directly rather than through a locator).
+  await page.locator('canvas').first().click({ position: point });
+
+  await expect
+    .poll(() => mapState(page).then((s) => s.zoom), { timeout: 10_000 })
+    .toBeGreaterThan(11);
+  const landed = await mapState(page);
+  // Within a few kilometres of the municipality's own centre, not exactly on it —
+  // flyTo settles smoothly rather than snapping to the pixel, and the target itself is
+  // wherever the tap's own coordinates resolve to (BRDC-ATLAS-001 field report:
+  // the tapped feature's own id does not survive MapLibre's tiling intact).
+  expect(Math.abs(landed.lng - HELSINKI_CENTRE.lng)).toBeLessThan(0.05);
+  expect(Math.abs(landed.lat - HELSINKI_CENTRE.lat)).toBeLessThan(0.05);
 });

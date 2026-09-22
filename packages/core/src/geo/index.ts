@@ -15,6 +15,7 @@ export {
   cellsWithin,
   hexDistance,
   isOwnershipCell,
+  nationRegionAt,
   nationRegionOf,
   neighboursOf,
   regionAt,

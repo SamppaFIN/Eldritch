@@ -5,9 +5,9 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-SHARE-001, BRDC-CASTLE-001, BRDC-CLAIM-006 |
-| **Status** | `[~]` osittain — datakerros ja kansallinen taso valmis ja todennettu,
-  kaupunkitaso, jatkuva zoomi, kamera-lento ja historia vielä auki. 2026-09-22 (v0.6.51) |
-| **Valmius** | ~50 % — ks. "Tilanne 2026-09-22" alla |
+| **Status** | `[~]` osittain — datakerros, kansallinen taso ja kamera-lento valmis ja
+  todennettu; kaupunkitaso, jatkuva zoomi ja historia vielä auki. 2026-09-23 (v0.6.52) |
+| **Valmius** | ~60 % — ks. "Tilanne 2026-09-23" alla |
 | **Lähde** | Infinite 2026-08-31: *"tarkoitus on että lopulta näemme koko Suomen eri kaupungit ja niiden laajenemisen.. tavallaan niin kuin pelaisit Civilization vitosta kavereiden kanssa"* |
 
 ## 🔴 RED
@@ -93,7 +93,7 @@ etukäteen se on hakemistorakenne.
 joissa kussakin omistajajakauma. Muutama kymmenen kilotavua koko maasta, riippumatta
 pelaajamäärästä.
 
-## Tilanne 2026-09-22
+## Tilanne 2026-09-23
 
 Tiketti kirjoitettiin 2026-08-31, ennen Workeria (`BRDC-SHARE-003`) ja ennen kuin Keep
 muuttui oikeaksi Hearth-soluksi (`BRDC-CASTLE-001`in kumous). "Ei tässä" -kohta alla
@@ -114,8 +114,18 @@ suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
       niin että raja on yksi luku molemmin puolin, ei kaksi joita voi unohtaa
       synkronoida. Puuttuu yhä: keskimmäinen kaupunkitaso (res 8), ja siirtymä on kova
       raja eikä jatkuva liuku — ks. GREEN yllä
-- [ ] **Kamera-lento naapurikansaan** — uusi imperatiivinen metodi `MapHandle`iin
-      (`focusHere` osaa tänään vain paikallisen GPS-sijainnin). Ei aloitettu
+- [x] **Kamera-lento naapurikansaan** (v0.6.52): napautus `nation-fill`-tasolla lentää
+      kameran sinne, zoomiin `NATION_FLY_ZOOM = 12` — rajan yli, jolloin tavalliset
+      solutasot ottavat piirron ja `useWorld`in näkymäpohjainen shard-haku tuo oikeat
+      solut, jos jokin on julkaissut niitä sinne. Ei oma `MapHandle`-metodi lopulta —
+      itsenäinen kuuntelija `MapCanvas`issa riitti, koska mikään ei tarvinnut sen
+      käynnistämistä ulkopuolelta. Ei myöskään "linnalle" täsmälleen, koska
+      `AtlasRegion`illa ei ole hallitsijan Keep-koordinaattia — kunnan oma keskipiste
+      kelpaa yhtä hyvin paikaksi jota napauttaa
+- [x] `useCameraFollow`iin uusi `unfollow()` — pudottaa seurannan liikuttamatta kameraa,
+      jotta seuraava GPS-fiksi ei repisi kameraa takaisin kotiin kesken lennon
+- [x] `packages/core/src/geo/cells.ts`iin `nationRegionAt(position)`, `regionAt`in
+      sisarfunktio res-5:lle, 2 testiä
 - [ ] **Laajeneminen ajassa** ("sama kaupunki viikko sitten ja nyt") — vaatisi
       Workeriin kokonaan uuden historiasnapshot-mekanismin, jota ei ole olemassa missään
       muodossa tänään. Ei aloitettu, ei edes suunniteltu tarkemmin
@@ -127,6 +137,19 @@ kaikilta, joka pyynnöllä. Kaksikerroksinen korjaus: `parseSubmission` hylkää
 virheellisen solun/linnan nimetyllä syyllä ennen tallennusta, ja Worker suodattaa
 mahdollisen jo-KV:ssä-olevan pahan rivin pois jokaisella luvulla. Molemmat todennettu
 käsin oikeaa Workeria vasten.
+
+**Toinen sivulöydös, 2026-09-23 — MapLibre ei säilytä merkkijono-`id`:tä ehjänä.**
+Kamera-lentoa rakentaessa `e.features[0].id` osoittautui typistetyksi: h3-indeksi
+`'851126d3fffffff'` tuli takaisin numerona `851126` — ensimmäinen numeroketju ennen
+ensimmäistä heksakirjainta, sekä `queryRenderedFeatures`ista että
+`querySourceFeatures`ista, GeoJSON-lähteen omasta `id`-kentästä riippumatta. Sama koskee
+jo olemassa olevaa `cells-fill`ia (todennettu käsin: pelaajan oma kotisolu palautti
+`id: 8`) — koodi ei vain koskaan huomannut, koska `hits(e, [CELL_FILL_LAYER])[0]?.id`in
+`typeof id === 'string'` -tarkistus epäonnistuu hiljaa jokaisella oikealla napautuksella
+ja koodi putoaa `cellAt(e.lngLat)`iin, joka on aina oikein riippumatta `id`:stä. Ei siis
+tuotantobugi tähän asti — mutta jokainen jatkossa kirjoitettava tasoklikkaus (esim.
+kaupunkitaso res 8:lla) tarvitsee saman kaavan: laske kohde napautuksen
+**koordinaateista** (`nationRegionAt`, `cellAt`), älä koskaan `feature.id`:stä.
 
 ## Ei tässä
 

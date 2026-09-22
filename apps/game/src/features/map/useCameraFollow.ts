@@ -28,6 +28,10 @@ export interface CameraFollow {
   following: boolean;
   recenter: () => void;
   focusHere: () => void;
+  /** Drop the pin without moving the camera — for a move that is not the player's own
+   *  position, such as flying out to a neighbour nation on the Atlas (BRDC-ATLAS-001).
+   *  Without this the next GPS fix would drag the camera straight back home. */
+  unfollow: () => void;
 }
 
 export function useCameraFollow({
@@ -121,5 +125,7 @@ export function useCameraFollow({
     flashStandingHex(map, cellAt(position), prefersReduced());
   }, [map, position]);
 
-  return { following, recenter, focusHere };
+  const unfollow = useCallback(() => setFollowing(false), []);
+
+  return { following, recenter, focusHere, unfollow };
 }

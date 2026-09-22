@@ -9,7 +9,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
-import { cellAt, QUEST_SITES, siteCell } from '@es3/core';
+import { cellAt, cellCentre, nationRegionAt, QUEST_SITES, siteCell } from '@es3/core';
 import { useEditorPaint } from '../editor/useEditorPaint.js';
 import type { Editor } from '../editor/useEditor.js';
 import type {
@@ -31,6 +31,7 @@ import { setTradeData } from './TradeLayer.js';
 import { CELL_FILL_LAYER, setTerritoryData } from '../territory/TerritoryLayer.js';
 import { setArcData } from '../territory/strengthArcs.js';
 import { useNationLayer } from '../territory/useNationLayer.js';
+import { NATION_FILL_LAYER, NATION_FLY_ZOOM } from '../territory/layerIds.js';
 import { useMapLayers } from './useMapLayers.js';
 import { useBuildingIcons } from './useBuildingIcons.js';
 import { PLACE_CORE_LAYER, PLACE_HALO_LAYER, setPlaceData } from '../territory/PlaceMarkers.js';
@@ -210,6 +211,10 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
       // The Keep has its own listener; this global one fires for every click, so without
       // the guard it would re-select the cell under the Keep and close its panel.
       if (onCastleTap && hits(e, [CASTLE_CORE_LAYER, CASTLE_HALO_LAYER]).length) return;
+      // The Atlas has its own listener too — below NATION_MAXZOOM there is no rendered
+      // cell under the tap anyway, so without this guard it would open the empty-cell
+      // panel for whatever bare hex sits under a municipality the player has never visited.
+      if (hits(e, [NATION_FILL_LAYER]).length) return;
 
       // Only the sigil itself, not its wide glow — a halo hit would swallow taps on the
       // hexes around a quest site and open nothing (field report 2026-09-02).
@@ -339,8 +344,41 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   const held = useHearthTour(map, ready, castle) || (editor?.on ?? false);
 
   // The camera pin, and the ways back to the player (BRDC-MAP-004).
-  const { following, recenter, focusHere } = useCameraFollow({ map, ready, position, touring: held });
+  const { following, recenter, focusHere, unfollow } = useCameraFollow({ map, ready, position, touring: held });
   useEditorPaint(map, ready, editor ?? null);
+
+  // Tapping a municipality on the Atlas flies out to it — a glance at a neighbour nation
+  // rather than a walk there (BRDC-ATLAS-001). unfollow first, or the next GPS fix would
+  // drag the camera straight back home mid-flight.
+  //
+  // The target comes from where the tap landed, not the tapped feature's own id: a
+  // GeoJSON source's string id does not survive MapLibre's vector-tile encoding intact,
+  // so `e.features[0].id` hands back a silently truncated number here — the same
+  // limitation `cellAt(e.lngLat)` already works around for an ordinary hex tap below.
+  useEffect(() => {
+    if (!map || !ready) return;
+    const onClick = (e: MapLayerMouseEvent) => {
+      if (!e.features?.length) return;
+      unfollow();
+      const region = nationRegionAt({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+      const centre = cellCentre(region);
+      map.flyTo({ center: [centre.lng, centre.lat], zoom: NATION_FLY_ZOOM, essential: true });
+    };
+    const enter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+    const leave = () => {
+      map.getCanvas().style.cursor = '';
+    };
+    map.on('click', [NATION_FILL_LAYER], onClick);
+    map.on('mouseenter', [NATION_FILL_LAYER], enter);
+    map.on('mouseleave', [NATION_FILL_LAYER], leave);
+    return () => {
+      map.off('click', [NATION_FILL_LAYER], onClick);
+      map.off('mouseenter', [NATION_FILL_LAYER], enter);
+      map.off('mouseleave', [NATION_FILL_LAYER], leave);
+    };
+  }, [map, ready, unfollow]);
 
   useImperativeHandle(ref, () => ({ focusHere }), [focusHere]);
 

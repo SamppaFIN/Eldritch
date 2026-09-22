@@ -1,11 +1,13 @@
 import { cellToLatLng, getResolution } from 'h3-js';
 import { describe, expect, it } from 'vitest';
-import { H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
+import { H3_RES_NATION, H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
 import { fixture } from '../sim/fixtures/index.js';
 import {
   cellAreaM2,
   cellAt,
   isOwnershipCell,
+  nationRegionAt,
+  nationRegionOf,
   neighboursOf,
   regionAt,
   regionOf,
@@ -148,6 +150,16 @@ describe('regionAt', () => {
 
   it('agrees with regionOf(cellAt(...))', () => {
     expect(regionAt(ORIGIN)).toBe(regionOf(cellAt(ORIGIN)));
+  });
+});
+
+describe('nationRegionAt', () => {
+  it('returns a res-5 municipality', () => {
+    expect(getResolution(nationRegionAt(ORIGIN))).toBe(H3_RES_NATION);
+  });
+
+  it('agrees with nationRegionOf(cellAt(...))', () => {
+    expect(nationRegionAt(ORIGIN)).toBe(nationRegionOf(cellAt(ORIGIN)));
   });
 });
 

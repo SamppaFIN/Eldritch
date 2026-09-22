@@ -76,6 +76,20 @@ export function nationRegionOf(cell: H3Index): H3Index {
 }
 
 /**
+ * The res-5 municipality a position falls in, without first resolving the res-11 cell —
+ * `regionAt`'s own reason applies again: a tap on the Atlas has coordinates, not a cell.
+ *
+ * Resolved from the click position rather than the tapped feature's own id, because a
+ * GeoJSON source's string feature id does not survive MapLibre's internal vector-tile
+ * encoding intact — `queryRenderedFeatures` hands back a silently truncated number, not
+ * the h3 string that was set. `cellAt`'s own call site works around the same limitation
+ * the same way (BRDC-ATLAS-001 field report, 2026-09-23).
+ */
+export function nationRegionAt(position: LatLng): H3Index {
+  return latLngToCell(position.lat, position.lng, H3_RES_NATION);
+}
+
+/**
  * The res-6 regions that could hold a cell inside `bbox`.
  *
  * This is what lets `getCells` be a bounded read: rather than scanning every stored cell,
