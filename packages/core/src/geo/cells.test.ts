@@ -5,6 +5,7 @@ import { fixture } from '../sim/fixtures/index.js';
 import {
   cellAreaM2,
   cellAt,
+  isOwnershipCell,
   neighboursOf,
   regionAt,
   regionOf,
@@ -108,6 +109,22 @@ describe('cellAt', () => {
   it('gives nearby positions the same cell and distant ones a different one', () => {
     expect(cellAt(ORIGIN)).toBe(cellAt(destination(ORIGIN, 45, 3)));
     expect(cellAt(ORIGIN)).not.toBe(cellAt(destination(ORIGIN, 45, 500)));
+  });
+});
+
+describe('isOwnershipCell (BRDC-SHARE-004)', () => {
+  it('accepts a real cell at ownership resolution', () => {
+    expect(isOwnershipCell(cellAt(ORIGIN))).toBe(true);
+  });
+
+  it("rejects that same cell's parent — a real h3 index, wrong resolution", () => {
+    expect(isOwnershipCell(regionOf(cellAt(ORIGIN)))).toBe(false);
+  });
+
+  it('rejects nonsense, never throwing', () => {
+    expect(isOwnershipCell('not-a-cell')).toBe(false);
+    expect(isOwnershipCell('')).toBe(false);
+    expect(isOwnershipCell('8b112492eb03cfff')).toBe(false); // hand-typed, invalid
   });
 });
 

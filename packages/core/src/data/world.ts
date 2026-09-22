@@ -17,6 +17,7 @@
  * is the Hearth cell — the game is among friends, and this file carries the real home.
  */
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
+import { isOwnershipCell } from '../geo/cells.js';
 import { checksum, toWireCell } from './challenge.js';
 import type { WireCell } from './challenge.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
@@ -50,7 +51,13 @@ export interface WorldShard {
   sum: string;
 }
 
-export type WorldFault = 'not-json' | 'not-a-shard' | 'wrong-version' | 'damaged' | 'too-large';
+export type WorldFault =
+  | 'not-json'
+  | 'not-a-shard'
+  | 'wrong-version'
+  | 'damaged'
+  | 'too-large'
+  | 'invalid-cell';
 
 export type WorldParse = { ok: true; shard: WorldShard } | { ok: false; fault: WorldFault };
 
@@ -158,6 +165,13 @@ export function parseSubmission(text: string): SubmissionParse {
   }
   if (s.v !== WORLD_VERSION) return { ok: false, fault: 'wrong-version' };
   if (s.cells.length > MAX_SHARD_CELLS) return { ok: false, fault: 'too-large' };
+  // Every h3-js call downstream (regionOf, nationRegionOf, cellCentre, ...) throws on a
+  // malformed cell rather than returning an error — this is the front door that stops
+  // one before it can reach any of them (BRDC-SHARE-004).
+  if (!s.cells.every((c) => typeof c?.h3 === 'string' && isOwnershipCell(c.h3))) {
+    return { ok: false, fault: 'invalid-cell' };
+  }
+  if (s.castle != null && !isOwnershipCell(s.castle)) return { ok: false, fault: 'invalid-cell' };
 
   const { sum, ...payload } = s as WorldSubmission;
   if (sum !== checksum(payload)) return { ok: false, fault: 'damaged' };

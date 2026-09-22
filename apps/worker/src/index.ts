@@ -45,7 +45,8 @@
  * country-wide view a phone can actually load: a few hundred rows, not 157M res-11 cells.
  */
 import { atlasOf, buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
-import type { PlayerFile } from '@es3/core/data';
+import type { PlayerFile, WorldSource } from '@es3/core/data';
+import { isOwnershipCell } from '@es3/core/geo';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
 import { craftChronicle, isKingdomFacts } from './chronicle.js';
 import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './clan.js';
@@ -111,9 +112,27 @@ async function allFiles(kv: KV): Promise<PlayerFile[]> {
   return files;
 }
 
+/** A source's cells and Keep are all real resolution-11 h3 cells. */
+function sourceIsValid(s: WorldSource): boolean {
+  return s.cells.every((c) => isOwnershipCell(c.h3)) && (s.castle == null || isOwnershipCell(s.castle));
+}
+
+/**
+ * Every player still inside the TTL, malformed rows dropped (BRDC-SHARE-004).
+ *
+ * `parseSubmission` refuses a bad cell at the door now, but a row written before that
+ * fix (or restored from an older backup) could still be sitting in KV — every h3-js
+ * call downstream throws on one, so this is the one place that has to check again
+ * before any of `demographicsOf`/`clanCodexOf`/`atlasOf`/`buildShards` sees the data.
+ */
+async function liveSources(kv: KV, now: number): Promise<WorldSource[]> {
+  const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS);
+  return live.filter(sourceIsValid);
+}
+
 /** Rebuild every region's shard from the players still inside the TTL. */
 async function rebuild(kv: KV, now: number): Promise<number> {
-  const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS);
+  const live = await liveSources(kv, now);
   await kv.put(CODEX, JSON.stringify(demographicsOf(live, now)));
   await kv.put(CLAN_CODEX, JSON.stringify(await clanCodexOf(kv, live, now)));
   await kv.put(ATLAS, JSON.stringify({ v: 1, generatedAt: now, regions: atlasOf(live) }));
@@ -180,7 +199,7 @@ export default {
       let codex = await env.WORLD.get(CODEX);
       if (!codex) {
         const now = Date.now();
-        const live = mergePlayerFiles(await allFiles(env.WORLD), now, WORLD_PLAYER_TTL_MS);
+        const live = await liveSources(env.WORLD, now);
         if (live.length === 0) return bare(204);
         codex = JSON.stringify(demographicsOf(live, now));
         await env.WORLD.put(CODEX, codex);
@@ -195,7 +214,7 @@ export default {
       let codex = await env.WORLD.get(CLAN_CODEX);
       if (!codex) {
         const now = Date.now();
-        const live = mergePlayerFiles(await allFiles(env.WORLD), now, WORLD_PLAYER_TTL_MS);
+        const live = await liveSources(env.WORLD, now);
         const table = await clanCodexOf(env.WORLD, live, now);
         if (table.players === 0) return bare(204);
         codex = JSON.stringify(table);
@@ -211,7 +230,7 @@ export default {
       let atlas = await env.WORLD.get(ATLAS);
       if (!atlas) {
         const now = Date.now();
-        const live = mergePlayerFiles(await allFiles(env.WORLD), now, WORLD_PLAYER_TTL_MS);
+        const live = await liveSources(env.WORLD, now);
         const regions = atlasOf(live);
         if (regions.length === 0) return bare(204);
         atlas = JSON.stringify({ v: 1, generatedAt: now, regions });
@@ -264,7 +283,7 @@ export default {
       if (!id) return bare(404);
       // No need to check `clan:<id>` exists first — a clan with nobody currently
       // publishing under it and one with a typo'd id look identical: an empty roster.
-      const live = mergePlayerFiles(await allFiles(env.WORLD), Date.now(), WORLD_PLAYER_TTL_MS);
+      const live = await liveSources(env.WORLD, Date.now());
       const raw = await env.WORLD.get(CLAN + id);
       const kicked = raw ? ((JSON.parse(raw) as ClanRecord).kicked ?? []) : [];
       const members = live

@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.50",
+    "date": "2026-09-22",
+    "notes": [
+      "Under the hood: the shared world now refuses a malformed submission by name instead of risking it taking down the Codex or the Atlas for everyone."
+    ]
+  },
+  {
     "version": "0.6.49",
     "date": "2026-09-22",
     "notes": [

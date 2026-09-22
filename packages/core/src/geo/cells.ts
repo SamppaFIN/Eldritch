@@ -10,8 +10,10 @@ import {
   cellToBoundary,
   cellToLatLng,
   cellToParent,
+  getResolution,
   gridDisk,
   gridDistance,
+  isValidCell,
   latLngToCell,
   polygonToCells,
 } from 'h3-js';
@@ -37,6 +39,19 @@ export function ringToCells(ring: readonly LatLng[]): H3Index[] {
 /** The cell a position falls in, at ownership resolution. */
 export function cellAt(position: LatLng): H3Index {
   return latLngToCell(position.lat, position.lng, H3_RES_OWNERSHIP);
+}
+
+/**
+ * Whether `h3` is a real, resolution-11 cell — never throws (BRDC-SHARE-004).
+ *
+ * Every h3-js call downstream (`regionOf`, `nationRegionOf`, `cellCentre`, ...)
+ * assumes the strings it is handed decode cleanly, and throws an `H3LibraryError`
+ * when one does not — found the hard way when one malformed cell in a published
+ * submission crashed the Worker's whole rebuild, not just the one player's row. This
+ * is the one check that stands between untrusted input and every one of those calls.
+ */
+export function isOwnershipCell(h3: string): boolean {
+  return isValidCell(h3) && getResolution(h3) === H3_RES_OWNERSHIP;
 }
 
 /** A cell's centre as `{ lat, lng }` — h3-js returns `[lat, lng]`, this hides that. */

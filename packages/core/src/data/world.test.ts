@@ -188,6 +188,28 @@ describe('submission — the signed message into the world', () => {
     });
   });
 
+  it('refuses a submission carrying a cell that is not a real resolution-11 h3 index (BRDC-SHARE-004)', () => {
+    const badCell: WorldSource = { ...src, cells: [{ h3: 'not-a-cell', strength: 100 }] };
+    expect(parseSubmission(encodeSubmission(buildSubmission(badCell)))).toEqual({
+      ok: false,
+      fault: 'invalid-cell',
+    });
+  });
+
+  it('refuses a submission whose Keep is not a real cell either, even with fine cells', () => {
+    const badCastle: WorldSource = { ...src, castle: 'not-a-cell' };
+    expect(parseSubmission(encodeSubmission(buildSubmission(badCastle)))).toEqual({
+      ok: false,
+      fault: 'invalid-cell',
+    });
+  });
+
+  it('still accepts a null Keep — no castle is not a bad one', () => {
+    const noCastle: WorldSource = { ...src, castle: null };
+    const parsed = parseSubmission(encodeSubmission(buildSubmission(noCastle)));
+    expect(parsed.ok).toBe(true);
+  });
+
   it('feeds buildShards — a submission becomes shards', () => {
     const parsed = parseSubmission(encodeSubmission(buildSubmission(src)));
     if (!parsed.ok) throw new Error('unreachable');

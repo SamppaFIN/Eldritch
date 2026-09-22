@@ -108,18 +108,13 @@ suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
       Workeriin kokonaan uuden historiasnapshot-mekanismin, jota ei ole olemassa missään
       muodossa tänään. Ei aloitettu, ei edes suunniteltu tarkemmin
 
-**Sivulöydös, ei korjattu:** `atlasOf`/`regionOf` (`demographics.ts`in `provinces`-
-mittari, olemassa jo ennen tätä tikettiä) kaatuvat `h3-js`in virheeseen jos JOKU
-lähetetty solu ei koodaa kelvollista res-11-h3-indeksiä. Todettu vahingossa: käsin
-kirjoitettu testi-h3-merkkijono osoittautui virheelliseksi ja kaatoi koko `rebuild()`in
-— ei vain `/atlas`in, myös `/demographics`in ja `/clan-codex`in samassa pyynnössä,
-koska kaikki kolme lasketaan samassa funktiossa. `parseSubmission` ei tänään tarkista
-että jokainen `cells[].h3` on aidosti res-11 — vain JSON-muodon ja tarkistussumman.
-Käytännössä ei realistinen riski (peli itse tuottaa h3:t aina `cellAt`/`ringToCells`in
-kautta, ei koskaan käsin), mutta yksi tahallisesti väärämuotoinen `/submit`-pyyntö
-kaataisi koko jaetun maailman kaikilta samaksi minuutiksi kunnes seuraava onnistunut
-`/submit` korjaa KV:n uudella `rebuild()`illa. Ei tämän tiketin alaa — jos halutaan
-korjata, se on `parseSubmission`in tai `rebuild()`in oma tiketti, ei Atlas-spesifinen.
+**Sivulöydös — korjattu omana tikettinään, `BRDC-SHARE-004` (`done`, v0.6.50).**
+`atlasOf`/`regionOf` kaatuivat `h3-js`in virheeseen jos joku lähetetty solu ei
+koodannut kelvollista res-11-h3-indeksiä — yksi paha solu kaatoi koko `rebuild()`in,
+kaikilta, joka pyynnöllä. Kaksikerroksinen korjaus: `parseSubmission` hylkää
+virheellisen solun/linnan nimetyllä syyllä ennen tallennusta, ja Worker suodattaa
+mahdollisen jo-KV:ssä-olevan pahan rivin pois jokaisella luvulla. Molemmat todennettu
+käsin oikeaa Workeria vasten.
 
 ## Ei tässä
 
