@@ -15,7 +15,7 @@ import {
   latLngToCell,
   polygonToCells,
 } from 'h3-js';
-import { H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
+import { H3_RES_NATION, H3_RES_OWNERSHIP, H3_RES_REGION } from '../rules/constants.js';
 import type { BBox, H3Index, LatLng } from '../types/domain.js';
 
 /**
@@ -53,6 +53,11 @@ export function regionOf(cell: H3Index): H3Index {
 /** The res-6 region a position falls in, without first resolving the res-11 cell. */
 export function regionAt(position: LatLng): H3Index {
   return latLngToCell(position.lat, position.lng, H3_RES_REGION);
+}
+
+/** The res-5 municipality a cell falls in — the Atlas's own scale (BRDC-ATLAS-001). */
+export function nationRegionOf(cell: H3Index): H3Index {
+  return cellToParent(cell, H3_RES_NATION);
 }
 
 /**

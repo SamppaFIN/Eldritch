@@ -13,6 +13,12 @@ export const H3_RES_OWNERSHIP = 11;
 /** Realtime channel shard (Phase 3). ~36 km². */
 export const H3_RES_REGION = 6;
 /**
+ * The Atlas's own scale (BRDC-ATLAS-001) — a municipality, ~253 km². 1 338 of these
+ * cover Finland; res 6 (9 368) is one tier too fine for a country-wide view, and res 4
+ * (191) is too coarse to tell neighbouring nations apart on a phone screen.
+ */
+export const H3_RES_NATION = 5;
+/**
  * Nominal res-11 cell area, for rough estimates only.
  *
  * H3 cells are not equal-area: 2150 m² is the global mean, but at Tampere's latitude

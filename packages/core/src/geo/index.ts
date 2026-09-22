@@ -14,6 +14,7 @@ export {
   cellsCoveringBBox,
   cellsWithin,
   hexDistance,
+  nationRegionOf,
   neighboursOf,
   regionAt,
   regionOf,

@@ -5,8 +5,9 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-SHARE-001, BRDC-CASTLE-001, BRDC-CLAIM-006 |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `[~]` osittain — datakerros valmis ja todennettu, kartan piirto ja kamera-lento
+  vielä auki. 2026-09-22 (v0.6.50) |
+| **Valmius** | ~35 % — ks. "Tilanne 2026-09-22" alla |
 | **Lähde** | Infinite 2026-08-31: *"tarkoitus on että lopulta näemme koko Suomen eri kaupungit ja niiden laajenemisen.. tavallaan niin kuin pelaisit Civilization vitosta kavereiden kanssa"* |
 
 ## 🔴 RED
@@ -24,13 +25,18 @@ lähemmäs 200 miljoonaa, koska ne ovat siellä pienempiä — Tampereella 1 622
 
 ## 🟢 GREEN
 
-- [ ] **Kolme mittakaavaa**, ja kartta vaihtaa niiden välillä zoomin mukaan
-- [ ] Kansallinen näkymä piirtää **kaupungit ja niiden rajat**, ei soluja
-- [ ] Laajeneminen näkyy **ajassa**: sama kaupunki viikko sitten ja nyt
+- [ ] **Kolme mittakaavaa**, ja kartta vaihtaa niiden välillä zoomin mukaan — piirto
+      tekemättä, ks. "Tilanne 2026-09-22"
+- [ ] Kansallinen näkymä piirtää **kaupungit ja niiden rajat**, ei soluja — piirto
+      tekemättä; datapuoli (kuka hallitsee mitäkin kuntaa) on valmis ja todennettu
+- [ ] Laajeneminen näkyy **ajassa**: sama kaupunki viikko sitten ja nyt — vaatii
+      historiasnapshotit, ei aloitettu
 - [ ] Siirtymä mittakaavojen välillä on **jatkuva**, ei kahden erillisen näytön vaihto
-- [ ] Kansallinen näkymä latautuu **yhdestä pienestä tiedostosta** eikä vaadi koko maailmaa
-- [ ] Piirtomäärä mitattu jokaisella tasolla; ei arvioitu
-- [ ] Toimii 360 px:llä — se on peli, jota katsotaan puhelimesta
+      — piirto tekemättä
+- [x] Kansallinen näkymä latautuu **yhdestä pienestä tiedostosta** eikä vaadi koko
+      maailmaa — `GET /atlas`, sama kylmäkäynnistys-pelastus kuin `/demographics`illa
+- [ ] Piirtomäärä mitattu jokaisella tasolla; ei arvioitu — piirto tekemättä
+- [ ] Toimii 360 px:llä — se on peli, jota katsotaan puhelimesta — piirto tekemättä
 
 ## Toteutus — mitattu resoluutiotaulukko
 
@@ -80,10 +86,43 @@ etukäteen se on hakemistorakenne.
 joissa kussakin omistajajakauma. Muutama kymmenen kilotavua koko maasta, riippumatta
 pelaajamäärästä.
 
+## Tilanne 2026-09-22
+
+Tiketti kirjoitettiin 2026-08-31, ennen Workeria (`BRDC-SHARE-003`) ja ennen kuin Keep
+muuttui oikeaksi Hearth-soluksi (`BRDC-CASTLE-001`in kumous). "Ei tässä" -kohta alla
+*"vieraiden pelaajien solutason data on tarkoituksella karkea"* ei enää pidä
+paikkaansa — se on jo julkista. Infinite valitsi 2026-09-22 koko alkuperäisen
+suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
+
+- [x] **`BRDC-HEX-003`** (oma tikettinsä, `done`, v0.6.49) — `cells-flag` data-driven,
+      esiehto sille että toisen kansan Keep voi ylipäätään näyttää mitään kartalla
+- [x] **Datakerros** (tässä, v0.6.50): `H3_RES_NATION = 5`, `nationRegionOf()`,
+      `packages/core/src/data/worldStats.ts`in `atlasOf()` (puhdas, 6 testiä), Worker
+      `GET /atlas` (`rebuild()`in yhteydessä kirjoitettu, sama kylmäkäynnistys-pelastus
+      kuin `/demographics`/`clan-codex`illa). Todennettu käsin `wrangler dev`illä:
+      kaksi pelaajaa eri kunnissa, oikea hallitseva pelaaja per alue, oikea pinta-ala
+- [ ] **Kartan piirto** — uusi res-5-taso, kolme mittakaavaa, jatkuva zoomi. Ei aloitettu
+- [ ] **Kamera-lento naapurikansaan** — uusi imperatiivinen metodi `MapHandle`iin
+      (`focusHere` osaa tänään vain paikallisen GPS-sijainnin). Ei aloitettu
+- [ ] **Laajeneminen ajassa** ("sama kaupunki viikko sitten ja nyt") — vaatisi
+      Workeriin kokonaan uuden historiasnapshot-mekanismin, jota ei ole olemassa missään
+      muodossa tänään. Ei aloitettu, ei edes suunniteltu tarkemmin
+
+**Sivulöydös, ei korjattu:** `atlasOf`/`regionOf` (`demographics.ts`in `provinces`-
+mittari, olemassa jo ennen tätä tikettiä) kaatuvat `h3-js`in virheeseen jos JOKU
+lähetetty solu ei koodaa kelvollista res-11-h3-indeksiä. Todettu vahingossa: käsin
+kirjoitettu testi-h3-merkkijono osoittautui virheelliseksi ja kaatoi koko `rebuild()`in
+— ei vain `/atlas`in, myös `/demographics`in ja `/clan-codex`in samassa pyynnössä,
+koska kaikki kolme lasketaan samassa funktiossa. `parseSubmission` ei tänään tarkista
+että jokainen `cells[].h3` on aidosti res-11 — vain JSON-muodon ja tarkistussumman.
+Käytännössä ei realistinen riski (peli itse tuottaa h3:t aina `cellAt`/`ringToCells`in
+kautta, ei koskaan käsin), mutta yksi tahallisesti väärämuotoinen `/submit`-pyyntö
+kaataisi koko jaetun maailman kaikilta samaksi minuutiksi kunnes seuraava onnistunut
+`/submit` korjaa KV:n uudella `rebuild()`illa. Ei tämän tiketin alaa — jos halutaan
+korjata, se on `parseSubmission`in tai `rebuild()`in oma tiketti, ei Atlas-spesifinen.
+
 ## Ei tässä
 
 - Realtime. Cron riittää; kaupungit eivät laajene sekunneissa
-- Vieraiden pelaajien solutason data. Se on `BRDC-CASTLE-001`:n kahden tarkkuustason
-  julkinen puoli, ja tarkoituksella karkea
 - Suomen ulkopuoli. Rajaus on Suomi, koska pelaajat ovat Suomessa. Mikään yllä ei
   kuitenkaan sido maahan — H3 on globaali, ja `atlas.json` kasvaa vain asutuilla soluilla

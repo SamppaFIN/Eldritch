@@ -39,20 +39,19 @@
  * BRDC-CLAN-002 adds `GET /clan-codex` — every clan measured against every other, the
  * same `demographicsOf` the player Codex already uses, fed one synthetic realm per
  * clan instead of one per player (`clanMeasurables`, `@es3/core/data`).
+ *
+ * BRDC-ATLAS-001 adds `GET /atlas` — one row per res-5 municipality with any player's
+ * ground in it, naming whoever holds the most of it (`atlasOf`, `@es3/core/data`). The
+ * country-wide view a phone can actually load: a few hundred rows, not 157M res-11 cells.
  */
-import {
-  buildShards,
-  clanMeasurables,
-  demographicsOf,
-  mergePlayerFiles,
-  parseSubmission,
-} from '@es3/core/data';
-import type { Demographics, Measurable, PlayerFile, WorldSource } from '@es3/core/data';
+import { atlasOf, buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
+import type { PlayerFile } from '@es3/core/data';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
 import { craftChronicle, isKingdomFacts } from './chronicle.js';
+import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './clan.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
-interface KV {
+export interface KV {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
   delete(key: string): Promise<void>;
@@ -68,7 +67,6 @@ export interface Env {
 
 const PLAYER = 'player:';
 const SHARD = 'shard:';
-const CLAN = 'clan:';
 /**
  * One key for the whole Codex. `rebuild` already walks every player file, so measuring
  * them costs one more pass over data that is already in memory — and it means the client
@@ -77,6 +75,8 @@ const CLAN = 'clan:';
 const CODEX = 'codex';
 /** Same shape, one row per clan instead of per player (BRDC-CLAN-002). */
 const CLAN_CODEX = 'clan-codex';
+/** The country-wide view, one row per res-5 municipality (BRDC-ATLAS-001). */
+const ATLAS = 'atlas';
 /** One submission a minute per player. KV's own floor for an expiry is 60 s. */
 const COOLDOWN_S = 60;
 
@@ -116,6 +116,7 @@ async function rebuild(kv: KV, now: number): Promise<number> {
   const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS);
   await kv.put(CODEX, JSON.stringify(demographicsOf(live, now)));
   await kv.put(CLAN_CODEX, JSON.stringify(await clanCodexOf(kv, live, now)));
+  await kv.put(ATLAS, JSON.stringify({ v: 1, generatedAt: now, regions: atlasOf(live) }));
   const shards = buildShards(live, now);
   const kept = new Set<string>();
   for (const [region, shard] of shards) {
@@ -125,61 +126,6 @@ async function rebuild(kv: KV, now: number): Promise<number> {
   const { keys } = await kv.list({ prefix: SHARD });
   for (const key of keys) if (!kept.has(key.name)) await kv.delete(key.name);
   return shards.size;
-}
-
-interface ClanRecord {
-  id: string;
-  name: string;
-  founderId: string;
-  founderToken: string;
-  createdAt: number;
-  /** Absent on a clan created before BRDC-CLAN-003 — read as empty, never migrated. */
-  kicked?: string[];
-}
-
-/** The clan, only if `founderToken` is the one it was created (or last verified) with. */
-async function verifiedClan(kv: KV, id: string, founderToken: string): Promise<ClanRecord | null> {
-  const raw = await kv.get(CLAN + id);
-  if (!raw) return null;
-  const record = JSON.parse(raw) as ClanRecord;
-  return record.founderToken === founderToken ? record : null;
-}
-
-/**
- * Every clan measured against every other (BRDC-CLAN-002). `clanMeasurables` only ever
- * sees a `WorldSource`, which carries a clan's code, never its name — resolved here,
- * one KV read per clan actually present, from the same `clan:<id>` record `verifiedClan`
- * reads.
- */
-async function clanCodexOf(kv: KV, live: WorldSource[], now: number): Promise<Demographics> {
-  const measurables = clanMeasurables(live);
-  const named: Measurable[] = await Promise.all(
-    measurables.map(async (m) => {
-      const raw = await kv.get(CLAN + m.id);
-      const name = raw ? (JSON.parse(raw) as ClanRecord).name : m.id;
-      return { ...m, name };
-    }),
-  );
-  return demographicsOf(named, now);
-}
-
-/** No 0/O/1/I/L — a code someone reads aloud over a phone call, not a password. */
-const CLAN_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-
-function randomCode(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, (b) => CLAN_ALPHABET[b % CLAN_ALPHABET.length]).join('');
-}
-
-/** A fresh, unused clan code. Collision odds are astronomically low at this alphabet
- *  size, but a hobby project's Worker is exactly the place a "surely never" bug turns
- *  up eventually — five tries and a clear failure beats an infinite loop. */
-async function newClanId(kv: KV): Promise<string | null> {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const id = randomCode(6);
-    if (!(await kv.get(CLAN + id))) return id;
-  }
-  return null;
 }
 
 export default {
@@ -256,6 +202,22 @@ export default {
         await env.WORLD.put(CLAN_CODEX, codex);
       }
       return new Response(codex, {
+        headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+      });
+    }
+
+    // Same cold-start rescue as `/demographics` and `/clan-codex` above, same reason.
+    if (request.method === 'GET' && url.pathname === '/atlas') {
+      let atlas = await env.WORLD.get(ATLAS);
+      if (!atlas) {
+        const now = Date.now();
+        const live = mergePlayerFiles(await allFiles(env.WORLD), now, WORLD_PLAYER_TTL_MS);
+        const regions = atlasOf(live);
+        if (regions.length === 0) return bare(204);
+        atlas = JSON.stringify({ v: 1, generatedAt: now, regions });
+        await env.WORLD.put(ATLAS, atlas);
+      }
+      return new Response(atlas, {
         headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
       });
     }
@@ -365,6 +327,7 @@ export default {
           'GET /world/<res6>',
           'GET /demographics',
           'GET /clan-codex',
+          'GET /atlas',
           'POST /kingdom-story',
           'POST /clan',
           'GET /clan/<id>',

@@ -121,6 +121,8 @@ export type {
   Standing,
 } from './demographics.js';
 export { clanMeasurables } from './clanDemographics.js';
+export { atlasOf } from './worldStats.js';
+export type { AtlasRegion } from './worldStats.js';
 export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
 export type { TradeOutcome } from './cityStateStore.js';
 export {
