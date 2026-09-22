@@ -52,8 +52,9 @@ export type CodexFetch =
   | { ok: true; text: string }
   | { ok: false; reason: 'empty' | 'unreachable' };
 
-/** `path` is `/demographics` (players) or `/clan-codex` (BRDC-CLAN-002) — same shape. */
-export async function fetchTable(path: '/demographics' | '/clan-codex'): Promise<CodexFetch> {
+/** `path` is `/demographics` (players), `/clan-codex` (BRDC-CLAN-002) or `/atlas`
+ *  (BRDC-ATLAS-001) — same three outcomes, different bodies once parsed. */
+export async function fetchTable(path: '/demographics' | '/clan-codex' | '/atlas'): Promise<CodexFetch> {
   try {
     const res = await fetch(`${WORLD_API}${path}`, { cache: 'no-store' });
     // 204 is the Worker saying "asked and answered: nothing yet". Anything else that is

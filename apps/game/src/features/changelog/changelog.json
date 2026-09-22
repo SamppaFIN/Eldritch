@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.51",
+    "date": "2026-09-22",
+    "notes": [
+      "Zoomed all the way out, your country now shows a filled outline per municipality instead of a scatter of dust-sized cells — the first piece of the Atlas."
+    ]
+  },
+  {
     "version": "0.6.50",
     "date": "2026-09-22",
     "notes": [

@@ -5,9 +5,9 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-SHARE-001, BRDC-CASTLE-001, BRDC-CLAIM-006 |
-| **Status** | `[~]` osittain — datakerros valmis ja todennettu, kartan piirto ja kamera-lento
-  vielä auki. 2026-09-22 (v0.6.50) |
-| **Valmius** | ~35 % — ks. "Tilanne 2026-09-22" alla |
+| **Status** | `[~]` osittain — datakerros ja kansallinen taso valmis ja todennettu,
+  kaupunkitaso, jatkuva zoomi, kamera-lento ja historia vielä auki. 2026-09-22 (v0.6.51) |
+| **Valmius** | ~50 % — ks. "Tilanne 2026-09-22" alla |
 | **Lähde** | Infinite 2026-08-31: *"tarkoitus on että lopulta näemme koko Suomen eri kaupungit ja niiden laajenemisen.. tavallaan niin kuin pelaisit Civilization vitosta kavereiden kanssa"* |
 
 ## 🔴 RED
@@ -25,18 +25,25 @@ lähemmäs 200 miljoonaa, koska ne ovat siellä pienempiä — Tampereella 1 622
 
 ## 🟢 GREEN
 
-- [ ] **Kolme mittakaavaa**, ja kartta vaihtaa niiden välillä zoomin mukaan — piirto
-      tekemättä, ks. "Tilanne 2026-09-22"
-- [ ] Kansallinen näkymä piirtää **kaupungit ja niiden rajat**, ei soluja — piirto
-      tekemättä; datapuoli (kuka hallitsee mitäkin kuntaa) on valmis ja todennettu
+- [~] **Kolme mittakaavaa** — kaksi on piirretty (kansallinen res 5, lähizoomi res 11);
+      keskimmäinen kaupunkitaso (res 8) puuttuu yhä, ks. "Tilanne 2026-09-22"
+- [x] Kansallinen näkymä piirtää **kaupungit ja niiden rajat**, ei soluja —
+      `nationLayer.ts`, väri sama kahden sävyn laki kuin lähizoomissa (§13: oma
+      `--cosmic-purple`, kaikki muut yksi kiinteä `--danger`, ei sävyä per kansa).
+      Todennettu: `nationLayer.test.ts` (6 testiä, puhdas GeoJSON-rakennus) +
+      `atlas.spec.ts` (Playwright, 360 px, kaksi mockattua kuntaa piirtyy oikein)
 - [ ] Laajeneminen näkyy **ajassa**: sama kaupunki viikko sitten ja nyt — vaatii
       historiasnapshotit, ei aloitettu
 - [ ] Siirtymä mittakaavojen välillä on **jatkuva**, ei kahden erillisen näytön vaihto
-      — piirto tekemättä
+      — tänään se on kova raja `NATION_MAXZOOM`illa (zoom 10): lähizoomin tasot saavat
+      `minzoom`, kansallinen taso `maxzoom`, sama luku. Vaihto on hetkellinen, ei liuku
 - [x] Kansallinen näkymä latautuu **yhdestä pienestä tiedostosta** eikä vaadi koko
       maailmaa — `GET /atlas`, sama kylmäkäynnistys-pelastus kuin `/demographics`illa
-- [ ] Piirtomäärä mitattu jokaisella tasolla; ei arvioitu — piirto tekemättä
-- [ ] Toimii 360 px:llä — se on peli, jota katsotaan puhelimesta — piirto tekemättä
+- [~] Piirtomäärä mitattu **kansallisella tasolla**: `atlas.spec.ts` todentaa
+      `queryRenderedFeatures`illa täsmälleen syötettyjen kuntien määrän, ei enempää —
+      ei vielä stressitestattu oikealla mittakaavalla (1 338 mahdollista kuntaa)
+- [x] Toimii 360 px:llä — `atlas.spec.ts` ajetaan `mobile-360`-projektilla
+      (360×780), molemmat testit vihreää
 
 ## Toteutus — mitattu resoluutiotaulukko
 
@@ -101,7 +108,12 @@ suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
       `GET /atlas` (`rebuild()`in yhteydessä kirjoitettu, sama kylmäkäynnistys-pelastus
       kuin `/demographics`/`clan-codex`illa). Todennettu käsin `wrangler dev`illä:
       kaksi pelaajaa eri kunnissa, oikea hallitseva pelaaja per alue, oikea pinta-ala
-- [ ] **Kartan piirto** — uusi res-5-taso, kolme mittakaavaa, jatkuva zoomi. Ei aloitettu
+- [~] **Kartan piirto** (v0.6.51): `nationLayer.ts` piirtää res-5-tason
+      (`nation-fill`/`nation-line`), `useNationLayer.ts` hakee `/atlas`in ja syöttää sen
+      sisään, `TerritoryLayer.ts`in lähizoomin tasot saivat `minzoom: NATION_MAXZOOM`
+      niin että raja on yksi luku molemmin puolin, ei kaksi joita voi unohtaa
+      synkronoida. Puuttuu yhä: keskimmäinen kaupunkitaso (res 8), ja siirtymä on kova
+      raja eikä jatkuva liuku — ks. GREEN yllä
 - [ ] **Kamera-lento naapurikansaan** — uusi imperatiivinen metodi `MapHandle`iin
       (`focusHere` osaa tänään vain paikallisen GPS-sijainnin). Ei aloitettu
 - [ ] **Laajeneminen ajassa** ("sama kaupunki viikko sitten ja nyt") — vaatisi

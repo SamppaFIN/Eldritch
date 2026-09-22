@@ -38,6 +38,11 @@ export const CELL_NEIGHBOUR_LAYER = 'cells-neighbour';
 export const CELL_STRENGTH_LAYER = 'cells-strength';
 export const CELL_ANOMALY_LAYER = 'cells-anomaly';
 
+/** The Atlas's own layers (BRDC-ATLAS-001) — one res-5 hex per municipality. */
+export const NATION_SOURCE = 'nation-regions';
+export const NATION_FILL_LAYER = 'nation-fill';
+export const NATION_LINE_LAYER = 'nation-line';
+
 /**
  * Below this, individual res-11 cells are smaller than a finger and stop being
  * information: a city block's worth collapses into a purple smudge. Shared here rather
@@ -45,3 +50,12 @@ export const CELL_ANOMALY_LAYER = 'cells-anomaly';
  * importing it back from there would be the cycle this file exists to avoid.
  */
 export const CELL_DETAIL_MINZOOM = 13;
+
+/**
+ * Below this, res-11 cells stop being a map and start being scattered dust — hundreds
+ * of hexes a few pixels wide, nowhere near what the RED calls "city borders"
+ * (BRDC-ATLAS-001). `cells-fill` and its kin hand off to the Atlas's own res-5 layer
+ * here; the Atlas layer's own `maxzoom` is the same number, so the swap is a boundary,
+ * not a gap or an overlap.
+ */
+export const NATION_MAXZOOM = 10;

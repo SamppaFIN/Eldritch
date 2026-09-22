@@ -39,8 +39,11 @@ import {
   CELL_FLAG_LAYER,
   CELL_ANOMALY_LAYER,
   CELL_DETAIL_MINZOOM,
+  NATION_MAXZOOM,
+  NATION_SOURCE,
 } from './layerIds.js';
 import { addMarkLayers } from './territoryMarks.js';
+import { addNationLayers } from './nationLayer.js';
 
 export {
   CELL_SOURCE,
@@ -57,6 +60,7 @@ export {
   CELL_FLAG_LAYER,
   CELL_ANOMALY_LAYER,
   CELL_DETAIL_MINZOOM,
+  NATION_MAXZOOM,
 } from './layerIds.js';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
@@ -64,6 +68,10 @@ const SHARED_PATTERN = 'cells-shared-pattern';
 
 // The fill stays visible below CELL_DETAIL_MINZOOM so a territory's shape still reads
 // from above; the per-cell strokes and marks go, which is most of the drawing cost.
+//
+// It stops at NATION_MAXZOOM, not at zero (BRDC-ATLAS-001): a phone-wide country has
+// hundreds of scattered res-11 hexes a few pixels each, which is dust, not a shape —
+// the Atlas's own res-5 layer takes over there, drawing municipalities instead of cells.
 
 /** Idempotent. Safe to call whenever the map becomes ready. */
 export function ensureTerritoryLayers(map: MapLibreMap): void {
@@ -74,6 +82,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   // its glyphs placed twice (BRDC-SIGIL-006).
   map.addSource(CELL_MARK_SOURCE, { type: 'geojson', data: cellMarksToGeoJson([], null) });
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
+  addNationLayers(map);
   /*
    * Terrain no longer covers the hex (Sigil §03: "Terrain never fills the hex; it tints
    * the iso plinth under whatever stands there. Empty ground keeps the map visible
@@ -92,6 +101,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_FILL_LAYER,
     type: 'fill',
     source: CELL_SOURCE,
+    minzoom: NATION_MAXZOOM,
     paint: {
       'fill-color': ['get', 'color'],
       /*
@@ -119,6 +129,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_SHARED_LAYER,
     type: 'fill',
     source: CELL_SOURCE,
+    minzoom: NATION_MAXZOOM,
     filter: ['get', 'shared'],
     paint: { 'fill-pattern': SHARED_PATTERN, 'fill-opacity': 0.75 },
   });
@@ -133,6 +144,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_BLIGHT_LAYER,
     type: 'fill',
     source: CELL_SOURCE,
+    minzoom: NATION_MAXZOOM,
     filter: ['>', ['get', 'blight'], 0.02],
     paint: {
       'fill-color': '#0a0612',
@@ -281,15 +293,19 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
   ]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
-  // Every layer still reading either cell source. The hand-kept list above had fallen
-  // several layers behind, and removeSource throws while any layer still reads it.
+  // Every layer still reading any of the three sources. The hand-kept list above had
+  // fallen several layers behind, and removeSource throws while any layer still reads it.
   for (const layer of map.getStyle()?.layers ?? []) {
-    if ('source' in layer && (layer.source === CELL_SOURCE || layer.source === CELL_MARK_SOURCE)) {
+    if (
+      'source' in layer &&
+      (layer.source === CELL_SOURCE || layer.source === CELL_MARK_SOURCE || layer.source === NATION_SOURCE)
+    ) {
       map.removeLayer(layer.id);
     }
   }
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);
   if (map.getSource(CELL_MARK_SOURCE)) map.removeSource(CELL_MARK_SOURCE);
+  if (map.getSource(NATION_SOURCE)) map.removeSource(NATION_SOURCE);
   if (map.hasImage(SHARED_PATTERN)) map.removeImage(SHARED_PATTERN);
   for (const id of BANNER_IDS) {
     if (map.hasImage(bannerSpriteId(id))) map.removeImage(bannerSpriteId(id));
