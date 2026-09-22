@@ -12,13 +12,12 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { watchRemoval } from '../map/mapLife.js';
 import { BANNER_IDS } from '../nation/nation.js';
-import type { BannerId } from '../nation/nation.js';
 import { bannerSpriteId, rasteriseBanners } from '../nation/bannerSprites.js';
 export { bannerSpriteId };
 import { TERRAIN_KINDS, rasteriseTerrain, terrainSpriteId } from './terrainSprites.js';
 import { BOUNTY_SPRITE_IDS, bountySpriteId, rasteriseBounty } from './bountySprites.js';
 import { WORLDSEED_BOUNTY_IDS, rasteriseWorldseedBounty, worldseedBountySpriteId } from './worldseedBountySprites.js';
-import { CELL_BOUNTY_LAYER, CELL_FLAG_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER } from './layerIds.js';
+import { CELL_BOUNTY_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER } from './layerIds.js';
 import { ENEMY_FILL, OWN_FILL } from './territoryFeatures.js';
 
 /**
@@ -89,13 +88,6 @@ export async function addBountySprites(map: MapLibreMap): Promise<void> {
   }
   if (map.getLayer(CELL_BOUNTY_LAYER)) {
     map.setLayoutProperty(CELL_BOUNTY_LAYER, 'visibility', 'visible');
-  }
-}
-
-/** Swap the flag layer's icon when the player picks a different banner in the Keep. */
-export function setFlagBanner(map: MapLibreMap, bannerId: BannerId): void {
-  if (map.getLayer(CELL_FLAG_LAYER)) {
-    map.setLayoutProperty(CELL_FLAG_LAYER, 'icon-image', bannerSpriteId(bannerId));
   }
 }
 

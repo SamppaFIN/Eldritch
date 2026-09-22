@@ -185,8 +185,12 @@ export interface Cell {
    * A Wager message or `world.json` carries the owner's nation, flag and the moment they
    * sealed it — the detail panel reads it as "held by X, as they saw it 3 days ago".
    * Set alongside `imported`. Additive, no migration.
+   *
+   * `castle`, when present, means this specific imported cell *is* that player's Keep
+   * (BRDC-HEX-003) — the one imported cell allowed to draw their banner, so the map does
+   * not grow a flag on every rival hex.
    */
-  importedFrom?: { name: string; banner?: string; seenAt: number };
+  importedFrom?: { name: string; banner?: string; seenAt: number; castle?: H3Index };
   /**
    * The Works standing on this cell (BRDC-BUILD-001, -007).
    *

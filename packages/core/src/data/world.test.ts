@@ -305,6 +305,7 @@ describe('extended cell metadata through a shard (BRDC-WAGER-JSON-004)', () => {
       name: 'The Pale March',
       banner: 'eye',
       seenAt: T0,
+      castle: cellAt(ORIGIN),
     });
     expect([...byH3.values()].every((c) => c.imported === true)).toBe(true);
   });
@@ -317,5 +318,23 @@ describe('extended cell metadata through a shard (BRDC-WAGER-JSON-004)', () => {
     expect(cells[0]?.importedFrom?.name).toBe('player-a');
     expect(cells[0]?.importedFrom?.banner).toBeUndefined();
     expect(cells[0]?.terrain).toBeUndefined();
+  });
+
+  it("marks the one cell that is the owner's Keep (BRDC-HEX-003)", () => {
+    const keepH3 = cellAt(ORIGIN);
+    const withKeep: WorldSource = {
+      ...rich,
+      castle: keepH3,
+      cells: [...rich.cells, toWireCell(cell(keepH3, 'pale'))],
+    };
+    const shard = [...buildShards([withKeep], T0).values()][0]!;
+    const parsed = parseWorld(encodeWorld(shard));
+    if (!parsed.ok) throw new Error('bad shard');
+    const byH3 = new Map(worldToCells(parsed.shard, 'me', T0).map((c) => [c.h3, c]));
+
+    expect(byH3.get(keepH3)?.importedFrom?.castle).toBe(keepH3);
+    // Every one of the owner's cells carries the same castle pointer — it is where the
+    // caller checks `cell.h3 === importedFrom.castle` that decides which one is it.
+    expect(byH3.get(h3s[0]!)?.importedFrom?.castle).toBe(keepH3);
   });
 });

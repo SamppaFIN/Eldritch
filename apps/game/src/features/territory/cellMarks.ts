@@ -112,10 +112,11 @@ export function cellMarksToGeoJson(
   home: H3Index | null = null,
   revealed: Readonly<Record<H3Index, number>> = {},
   places?: ReadonlySet<H3Index>,
+  myBanner = '',
 ): FeatureCollection<Point, CellProperties> {
   // Built from the polygons so the dedupe and the neighbour counting happen once, in
   // one place. Indexing `cells` here would desync the moment that dedupe drops one.
-  const polygons = cellsToGeoJson(cells, me, now, home, revealed, places);
+  const polygons = cellsToGeoJson(cells, me, now, home, revealed, places, myBanner);
   return {
     type: 'FeatureCollection',
     features: polygons.features.map((f) => {
@@ -144,11 +145,12 @@ export function cellToFeature(
   isBorder = false,
   revealed: Readonly<Record<H3Index, number>> = {},
   placeHere = false,
+  myBanner = '',
 ): Feature<Polygon, CellProperties> {
   return {
     type: 'Feature',
     id: cell.h3,
-    properties: cellProperties(cell, me, now, home, isBorder, revealed, placeHere),
+    properties: cellProperties(cell, me, now, home, isBorder, revealed, placeHere, myBanner),
     geometry: { type: 'Polygon', coordinates: [cellBoundary(cell.h3)] },
   };
 }
@@ -161,6 +163,9 @@ export function cellsToGeoJson(
   revealed: Readonly<Record<H3Index, number>> = {},
   /** Hexes a Temple or the Anchor stands on — no banner there (BRDC-SIGIL-006). */
   places?: ReadonlySet<H3Index>,
+  /** The local player's own chosen banner (BRDC-HEX-003) — threaded to every `mine`
+   *  feature; an imported cell already carries its owner's banner on itself. */
+  myBanner = '',
 ): FeatureCollection<Polygon, CellProperties> {
   // A border cell is one of mine with at least one neighbour I do not hold — the blight
   // creeps in from there, so it is drawn a little deeper (BRDC-BLIGHT-001).
@@ -184,7 +189,7 @@ export function cellsToGeoJson(
     type: 'FeatureCollection',
     features: unique.map((cell) => {
       const feature = cellToFeature(
-        cell, me, now, home, isBorder(cell), revealed, places?.has(cell.h3) ?? false,
+        cell, me, now, home, isBorder(cell), revealed, places?.has(cell.h3) ?? false, myBanner,
       );
       // Counted here rather than in `cellProperties`, which sees one cell and cannot know
       // what else you hold. `ownedH3` is already built above for the border test.

@@ -25,19 +25,28 @@ test('the You panel renames the player, and it sticks over a reopen', async ({ p
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Cornelius');
 });
 
+/**
+ * BRDC-HEX-003: `icon-image` is a data-driven expression now (`['concat', 'banner-',
+ * ['get', 'bannerId']]`), not a layout property `setFlagBanner` used to swap — the
+ * layer no longer holds an "icon" to read back. What actually decides the icon is the
+ * `bannerId` property on the flagged feature, read here the same way the paint
+ * expression does.
+ */
 test('a banner picked in the Keep reaches the map flag layer', async ({ page }) => {
   test.setTimeout(60_000);
   await openMap(page, HERE);
 
-  const flagIcon = () =>
+  const flagBanner = () =>
     page.evaluate(() => {
-      const map = (globalThis as unknown as { __esMap?: { getLayoutProperty: (l: string, p: string) => unknown } })
-        .__esMap;
-      return map?.getLayoutProperty('cells-flag', 'icon-image') ?? null;
+      const map = (globalThis as unknown as { __esMap?: import('maplibre-gl').Map }).__esMap;
+      const features = map?.querySourceFeatures('cell-marks', {
+        filter: ['!=', ['get', 'flag'], ''],
+      });
+      return (features?.[0]?.properties as { bannerId?: string } | undefined)?.bannerId ?? null;
     });
 
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
-  const before = await flagIcon();
+  const before = await flagBanner();
 
   // The flag button opens the picker; Triquetra is never the default (Vesica). Its own
   // name, not the raw id — "triquetra" read aloud is nothing, and BRDC-SIGIL-004 gave
@@ -48,8 +57,8 @@ test('a banner picked in the Keep reaches the map flag layer', async ({ page }) 
     .getByRole('button', { name: 'Triquetra' })
     .click();
 
-  await expect.poll(flagIcon).toBe('banner-triquetra');
-  expect(before).not.toBe('banner-triquetra');
+  await expect.poll(flagBanner).toBe('triquetra');
+  expect(before).not.toBe('triquetra');
 });
 
 /*
@@ -61,11 +70,13 @@ test('a generated realm mark reaches the map flag layer too', async ({ page }) =
   test.setTimeout(60_000);
   await openMap(page, HERE);
 
-  const flagIcon = () =>
+  const flagBanner = () =>
     page.evaluate(() => {
-      const map = (globalThis as unknown as { __esMap?: { getLayoutProperty: (l: string, p: string) => unknown } })
-        .__esMap;
-      return map?.getLayoutProperty('cells-flag', 'icon-image') ?? null;
+      const map = (globalThis as unknown as { __esMap?: import('maplibre-gl').Map }).__esMap;
+      const features = map?.querySourceFeatures('cell-marks', {
+        filter: ['!=', ['get', 'flag'], ''],
+      });
+      return (features?.[0]?.properties as { bannerId?: string } | undefined)?.bannerId ?? null;
     });
 
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
@@ -75,7 +86,7 @@ test('a generated realm mark reaches the map flag layer too', async ({ page }) =
   await expect(picker.getByRole('button')).toHaveCount(24);
 
   await picker.getByRole('button', { name: "Metatron's Cube" }).click();
-  await expect.poll(flagIcon).toBe('banner-metatrons-cube');
+  await expect.poll(flagBanner).toBe('metatrons-cube');
 
   // Its icon actually made it into the map's atlas, at its own hundred-unit geometry —
   // not silently missing, not the hand-drawn fallback.

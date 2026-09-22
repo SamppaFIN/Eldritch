@@ -282,8 +282,10 @@ export function worldToCells(
       name: string;
       banner?: string;
       seenAt: number;
+      castle?: H3Index;
     };
     if (player.banner) from.banner = player.banner;
+    if (player.castle) from.castle = player.castle;
     const ally = allies?.has(player.id) === true;
     for (const c of player.cells) {
       cells.push({

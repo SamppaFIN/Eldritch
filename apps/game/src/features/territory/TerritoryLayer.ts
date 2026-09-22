@@ -16,14 +16,7 @@ import { cellMarksToGeoJson, cellsToGeoJson } from './cellMarks.js';
 import type { CellProperties } from './territoryFeatures.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
-import {
-  addBannerSprites,
-  addBountySprites,
-  bannerSpriteId,
-  setFlagBanner,
-  sharedPatternImage,
-} from './territoryImages.js';
-export { setFlagBanner } from './territoryImages.js';
+import { addBannerSprites, addBountySprites, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
 
 // The names live in `layerIds.ts` so `territoryImages.ts` can read them without importing
 // this file back — one id string in two places is how a layer quietly stops being toggled.
@@ -260,15 +253,15 @@ export function setTerritoryData(
   places: readonly { h3: H3Index }[] = [],
 ): void {
   const placeCells = new Set(places.map((p) => p.h3));
+  const myBanner = bannerId ?? '';
   const source = map.getSource(CELL_SOURCE);
   (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
-    cellsToGeoJson(cells, me, now, home, revealed, placeCells),
+    cellsToGeoJson(cells, me, now, home, revealed, placeCells, myBanner),
   );
   const marks = map.getSource(CELL_MARK_SOURCE);
   (marks as { setData?: (d: FeatureCollection<Point, CellProperties>) => void })?.setData?.(
-    cellMarksToGeoJson(cells, me, now, home, revealed, placeCells),
+    cellMarksToGeoJson(cells, me, now, home, revealed, placeCells, myBanner),
   );
-  if (bannerId) setFlagBanner(map, bannerId);
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CITY_STATES, anomalyAt, cellAt, emptyCell, neighboursOf } from '@es3/core';
+import { CITY_STATES, anomalyAt, cellAt, neighboursOf } from '@es3/core';
 import type { Cell, TerrainKind } from '@es3/core';
 import {
   ALLY_FILL,
@@ -14,7 +14,6 @@ import {
   CITY_COLOUR,
   MAP_RESOURCE_COLOUR,
   RESOURCE_COLOUR,
-  withFogOfWar,
 } from './territoryFeatures.js';
 import { cellToFeature } from './cellMarks.js';
 
@@ -224,76 +223,46 @@ describe('terrain reads on every drawn cell (BRDC-MAP-003, reverted)', () => {
   });
 });
 
-describe('the map flag (BRDC-BANNER-001)', () => {
-  it('marks ground you hold that carries no building', () => {
-    expect(cellProperties(cell(ME, 200), ME).flag).toBe('◈');
+describe('the map flag (BRDC-BANNER-001, BRDC-HEX-003)', () => {
+  it('marks ground you hold that carries no building, with your own banner', () => {
+    const props = cellProperties(cell(ME, 200), ME, 0, null, false, {}, false, 'vesica');
+    expect(props.flag).toBe('◈');
+    expect(props.bannerId).toBe('vesica');
+  });
+
+  it('shows no flag at all if somehow asked with no banner chosen', () => {
+    expect(cellProperties(cell(ME, 200), ME).flag).toBe('');
   });
 
   it('yields to a building on the same cell', () => {
     const built = { ...cell(ME, 200), buildings: [{ id: 'sawmill' as const, builtAt: 0 }] };
-    expect(cellProperties(built, ME).flag).toBe('');
+    expect(cellProperties(built, ME, 0, null, false, {}, false, 'vesica').flag).toBe('');
   });
 
-  it("never flies over a rival's or an unclaimed cell", () => {
+  it("never flies over a rival's or an unclaimed cell that is not imported", () => {
     expect(cellProperties(cell(RIVAL, 200), ME).flag).toBe('');
     expect(cellProperties(cell(null, 0), ME).flag).toBe('');
   });
-});
 
-describe('withFogOfWar', () => {
-  it('keeps my cells and their neighbours, and nothing else', () => {
-    const owned = [cell(ME, 200, H3)];
-    const ring = neighboursOf(H3);
-    // A rival cell far enough away that it is neither mine nor a neighbour of mine.
-    const far = cellAt({ lat: 60.17, lng: 24.94 });
-    const all = [cell(ME, 200, H3), cell(RIVAL, 200, far)];
-
-    const shown = withFogOfWar(all, owned);
-    const shownH3 = new Set(shown.map((c) => c.h3));
-
-    expect(shownH3.has(H3)).toBe(true);
-    for (const n of ring) expect(shownH3.has(n)).toBe(true);
-    expect(shownH3.has(far)).toBe(false);
+  it("flies a rival's banner on the one imported cell that is their Keep", () => {
+    const keep = {
+      ...cell(RIVAL, 200),
+      imported: true,
+      importedFrom: { name: 'The Rook Guard', banner: 'eye', seenAt: 0, castle: H3 },
+    };
+    const props = cellProperties(keep, ME);
+    expect(props.flag).toBe('◈');
+    expect(props.bannerId).toBe('eye');
   });
 
-  /*
-   * BRDC-SPELL-002. Scrying writes nothing to the store, so this seam is the only place it
-   * can be seen at all — without it the Rite costs 55 mana and changes nothing on screen.
-   */
-  it('shows ground a Scrying is looking at, however far from home it is', () => {
-    const owned = [cell(ME, 200, H3)];
-    const far = cellAt({ lat: 60.17, lng: 24.94 });
-
-    expect(withFogOfWar([], owned).some((c) => c.h3 === far)).toBe(false);
-    expect(withFogOfWar([], owned, [emptyCell(far)]).some((c) => c.h3 === far)).toBe(true);
-  });
-
-  it('lets a real cell win over the scried stand-in for the same hex', () => {
-    const owned = [cell(ME, 200, H3)];
-    const rivalGround = cellAt({ lat: 60.17, lng: 24.94 });
-    const all = [cell(RIVAL, 200, rivalGround)];
-
-    const shown = withFogOfWar(all, owned, [emptyCell(rivalGround)]);
-    expect(shown.find((c) => c.h3 === rivalGround)?.ownerId).toBe(RIVAL);
-  });
-
-  it('synthesises an empty cell for a revealed neighbour with no stored cell', () => {
-    const owned = [cell(ME, 200, H3)];
-    const shown = withFogOfWar([cell(ME, 200, H3)], owned);
-    const neighbour = shown.find((c) => c.h3 !== H3);
-    expect(neighbour?.ownerId).toBeNull();
-    expect(neighbour?.strength).toBe(0);
-  });
-
-  it('an empty owned set reveals nothing', () => {
-    expect(withFogOfWar([cell(RIVAL, 200)], [])).toEqual([]);
-  });
-
-  it('draws every imported cell, however far, with no owned ground at all (BRDC-WAGER-JSON-006)', () => {
-    const far = cellAt({ lat: 60.17, lng: 24.94 });
-    const imported: Cell = { ...cell(RIVAL, 200, far), imported: true };
-    const shown = withFogOfWar([imported], []);
-    expect(shown.map((c) => c.h3)).toEqual([far]);
+  it("stays silent on the rival's other imported ground, even with a Keep elsewhere", () => {
+    const other = cellAt({ lat: 60.17, lng: 24.94 });
+    const notKeep = {
+      ...cell(RIVAL, 200, other),
+      imported: true,
+      importedFrom: { name: 'The Rook Guard', banner: 'eye', seenAt: 0, castle: H3 },
+    };
+    expect(cellProperties(notKeep, ME).flag).toBe('');
   });
 });
 

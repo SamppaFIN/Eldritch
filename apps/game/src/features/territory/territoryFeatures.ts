@@ -126,6 +126,9 @@ export interface CellProperties {
   blight: number;
   /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
   flag: string;
+  /** Which banner the flag draws (BRDC-HEX-003) — `''` alongside an empty `flag`. Yours
+   *  on your own Keep, theirs on an imported cell that is actually their Keep. */
+  bannerId: string;
   /** Both you and an imported Wager claim this cell (BRDC-WAGER-JSON-005) — `cell.shared`. */
   shared: boolean;
   /**
@@ -326,6 +329,10 @@ export function cellProperties(
   revealed: Readonly<Record<H3Index, number>> = EMPTY_REVEALED,
   /** A Temple or the Anchor Stone stands here (BRDC-SIGIL-006) — it is the structure. */
   placeHere = false,
+  /** The local player's own chosen banner (BRDC-HEX-003). An imported cell carries its
+   *  owner's banner on itself (`importedFrom.banner`); `mine` has nowhere else to keep
+   *  it, so it arrives as a parameter instead. */
+  myBanner = '',
 ): CellProperties {
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const ally = !mine && cell.ally === true;
@@ -340,6 +347,12 @@ export function cellProperties(
   const village = isCityState(cell.ownerId);
   const isLandmark = village || (newest !== undefined && LANDMARKS.has(newest.id));
   const mineRevealed = mine && revealed[cell.h3] !== undefined;
+  // A flag marks a Keep, not every hex someone holds (§12: geometry is a moment, not
+  // wallpaper) — yours where you stand and carry no building, theirs on the one
+  // imported cell that is actually their Keep (BRDC-HEX-003).
+  const isMyKeep = mine && works.length === 0 && !placeHere;
+  const isTheirKeep = !mine && cell.imported === true && cell.h3 === cell.importedFrom?.castle;
+  const bannerId = isMyKeep ? myBanner : isTheirKeep ? (cell.importedFrom?.banner ?? '') : '';
   return {
     strength: cell.strength,
     mine,
@@ -372,7 +385,8 @@ export function cellProperties(
     // Your flag on ground you hold — but not where a building already carries the mark.
     // Nor where a Temple or the Anchor stands: a place is the hex's structure, and a
     // banner in the same centre slot is the collision the slot table exists to prevent.
-    flag: mine && works.length === 0 && !placeHere ? FLAG_GLYPH : '',
+    flag: bannerId ? FLAG_GLYPH : '',
+    bannerId,
     shared: cell.shared !== undefined,
   };
 }

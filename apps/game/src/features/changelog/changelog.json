@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.49",
+    "date": "2026-09-22",
+    "notes": [
+      "A nation's Keep now flies its own banner on the map for everyone, not just its owner — the first piece of seeing other nations at a glance."
+    ]
+  },
+  {
     "version": "0.6.48",
     "date": "2026-09-22",
     "notes": [

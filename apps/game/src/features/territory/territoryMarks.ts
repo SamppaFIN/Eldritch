@@ -24,7 +24,6 @@ import {
   CELL_STRENGTH_LAYER,
 } from './layerIds.js';
 import { slotTranslate } from './cellMarks.js';
-import { bannerSpriteId } from './territoryImages.js';
 
 /**
  * The symbol layers — every mark that stands on a cell rather than filling it: the
@@ -210,11 +209,11 @@ export function addMarkLayers(map: MapLibreMap): void {
   });
 
   /*
-   * Your banner on ground you hold that carries no building (BRDC-BANNER-001). The one
-   * you picked in the Keep, drawn as an icon (field report 2026-09-06 — it used to be a
-   * fixed glyph that never changed). Takes the building's spot; the two are never on the
-   * same cell. `flag` is now just the presence marker the filter reads; the icon comes
-   * from `setFlagBanner`.
+   * A Keep's banner (BRDC-BANNER-001) — yours where you stand and carry no building,
+   * anyone else's on the one imported cell that is actually their Keep (BRDC-HEX-003).
+   * Data-driven: `bannerId` names the banner per feature, and `['concat', 'banner-',
+   * ...]` rebuilds the same id `bannerSpriteId()` would, because a paint expression
+   * cannot call a JS function. `flag` stays the presence marker the filter reads.
    */
   map.addLayer({
     id: CELL_FLAG_LAYER,
@@ -223,7 +222,7 @@ export function addMarkLayers(map: MapLibreMap): void {
     minzoom: CELL_DETAIL_MINZOOM,
     filter: ['!=', ['get', 'flag'], ''],
     layout: {
-      'icon-image': bannerSpriteId('vesica'),
+      'icon-image': ['concat', 'banner-', ['get', 'bannerId']],
       /*
        * Your banner stands where a Work would — the two never share a cell — so it takes
        * the same bottom anchor on the hex centre. 35% of the measured hex: 64 × size on
