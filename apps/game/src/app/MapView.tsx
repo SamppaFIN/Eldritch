@@ -47,6 +47,8 @@ import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { useShownCells } from '../features/territory/useShownCells.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
+import { TopStack } from '../features/hud/TopStack.js';
+import { GuideNews } from '../features/help/GuideNews.js';
 import { UnlockTeacher } from '../features/tutor/UnlockTeacher.js';
 import { WonderMoment } from '../features/wonder/WonderMoment.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
@@ -310,28 +312,16 @@ export function MapView({ onLeave }: MapViewProps) {
         onClose={inspect.close}
       />
 
-      <FirstLook
-        owned={territory.owned.length} works={inspect.build.myBuildings.length}
-        researched={inspect.build.researched.length} rivalCells={territory.cells.length}
-        rivalBearing={territory.rivalBearing}
-      />
+      <TopStack hidden={sheetOpen}>
+        <FirstLook
+          owned={territory.owned.length} works={inspect.build.myBuildings.length} researched={inspect.build.researched.length}
+          rivalCells={territory.cells.length} rivalBearing={territory.rivalBearing}
+        />
+        <GuideNews {...aside.guideNews} />
+        <MapNotices {...alerts} geo={geoTrouble(permission, status)} worldStirredMs={world.stirredMs} shifted={clock.shifted} offsetDays={clock.offsetDays} />
+      </TopStack>
 
       {discovery.wonderFound ? <WonderMoment id={discovery.wonderFound} onClose={discovery.clearWonder} /> : null}
-      <UnlockTeacher
-        repository={repository} paceMs={pace} onSee={aside.openHelp}
-        reach={{
-          owned: territory.owned.length,
-          researched: inspect.build.researched.length,
-          rivalCells: territory.cells.length,
-        }}
-        busy={aside.anyOpen || inspect.cell !== null || inspect.sanctum}
-        onPaid={() => void repository?.getResources(clock.now()).then(setResources)}
-      />
-
-      <MapNotices
-        {...alerts} geo={geoTrouble(permission, status)} worldStirredMs={world.stirredMs}
-        shifted={clock.shifted} offsetDays={clock.offsetDays}
-      />
 
       <Hud
         compact={sheetOpen}
@@ -365,6 +355,17 @@ export function MapView({ onLeave }: MapViewProps) {
         onOpenKeep={castle ? inspect.onCastleTap : undefined}
         onHelp={aside.openHelp}
         onOpenLog={aside.openLog}
+      />
+
+      <UnlockTeacher
+        repository={repository} paceMs={pace} onSee={aside.openHelp}
+        reach={{
+          owned: territory.owned.length,
+          researched: inspect.build.researched.length,
+          rivalCells: territory.cells.length,
+        }}
+        busy={aside.anyOpen || inspect.cell !== null || inspect.sanctum}
+        onPaid={() => void repository?.getResources(clock.now()).then(setResources)}
       />
 
       {aside.node}

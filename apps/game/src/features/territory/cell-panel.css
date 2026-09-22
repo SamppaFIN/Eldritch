@@ -20,7 +20,7 @@
      published by the HUD as it resizes — and scroll inside, so every row is reachable
      and nothing hides behind the glass (BRDC-MOBILE-001). */
   max-block-size: calc(
-    100dvh - var(--hud-height, 12rem) - max(var(--space-3), env(safe-area-inset-top)) - var(--space-3)
+    100dvh - var(--hud-height, 9rem) - max(var(--space-3), env(safe-area-inset-top)) - var(--space-3)
   );
   overflow-y: auto;
   overscroll-behavior: contain;

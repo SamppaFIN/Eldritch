@@ -7,7 +7,9 @@
  * behave like notices — a stack, a few seconds, and a tap to be rid of one sooner.
  *
  * What the notices *are* lives in `notices.ts`, pure and tested. This is the timing and
- * the DOM.
+ * the DOM. BRDC-MAP-005: no longer its own `position: fixed` column — that is
+ * `TopStack`'s now, shared with `FirstLook` and `GuideNews`, so this renders bare
+ * buttons and lets its parent place them.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { noticesFor } from './notices.js';
@@ -50,7 +52,7 @@ export function MapNotices(props: MapNoticesProps) {
   if (notices.length === 0) return null;
 
   return (
-    <div className="mapview__notices">
+    <>
       {notices.map((n) => (
         <button
           key={n.id}
@@ -64,6 +66,6 @@ export function MapNotices(props: MapNoticesProps) {
           {n.text}
         </button>
       ))}
-    </div>
+    </>
   );
 }

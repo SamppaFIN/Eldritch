@@ -13,7 +13,7 @@ import type { HelpView } from '../help/HelpPanel.js';
 import type { HelpTopic } from '../help/help.js';
 import { isDerived } from '../help/wikiPages.js';
 import type { WikiRef } from '../help/wikiPages.js';
-import { GuideNews } from '../help/GuideNews.js';
+import type { GuideNewsProps } from '../help/GuideNews.js';
 import { useEncountered } from '../help/useEncountered.js';
 import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
@@ -42,6 +42,9 @@ export interface MapAside {
   openHallOfFame: () => void;
   /** Create or join a clan (BRDC-CLAN-001). */
   openClan: () => void;
+  /** "The Guide has a new page" — rendered by the caller inside `TopStack`
+   *  (BRDC-MAP-005), not here, so it stacks with `FirstLook` and `MapNotices`. */
+  guideNews: GuideNewsProps;
   /** True while any of these sheets is covering the map (BRDC-HUD-005). */
   anyOpen: boolean;
   /** Close every aside — the MAP nav item's action (Sigil screen 02). */
@@ -125,7 +128,6 @@ export function useMapAside(
         onNavigate={setHelp}
         onClose={() => setHelp(null)}
       />
-      <GuideNews topic={news} onOpen={openTopic} onDismiss={dismissNews} />
       <LogPanel
         open={logOpen}
         entries={logEntries}
@@ -182,6 +184,7 @@ export function useMapAside(
     openGpx: () => setGpxOpen(true),
     openHallOfFame: () => setHallOpen(true),
     openClan: () => setClanOpen(true),
+    guideNews: { topic: news, onOpen: openTopic, onDismiss: dismissNews },
     landsGain,
     anyOpen:
       help !== null ||

@@ -1,26 +1,16 @@
-/* Top of the screen, under the menu row — the one strip on the map nothing else owns.
-   It was six lines of centred text floating over the middle of the map with no way to be
-   rid of it (BRDC-TUTOR-003); the map is the one thing this screen exists to show, so the
-   hint is a card at the edge now, on the same glass as `.mapview__warning`, and a tap
-   sends it away.
+/* The opening hint, a card on the same glass as `.mapview__warning`. It was six lines of
+   centred text floating over the middle of the map with no way to be rid of it
+   (BRDC-TUTOR-003); now it is a card, dismissed by a tap.
 
-   Not above the HUD, which is where it first moved: that strip is taken at both ends by
-   the attribution toggle and the recenter button, and a card there either covers them or
-   floats back over the middle of the map where the player's own marker is. A card that
-   takes taps must not sit where the taps are meant to land. */
+   Positioned by `.top-stack` now (BRDC-MAP-005) — it used to compute its own `top` as
+   "the menu row plus one notice row", a guess that broke the moment two notices, or
+   none, were actually above it. It is a stacked child now, so there is nothing left to
+   guess. */
 
 .first-look {
-  position: fixed;
-  z-index: var(--z-hud);
-  left: 0;
-  right: 0;
-  /* Below the menu button and a notice row, both of which live at the same top inset. */
-  top: calc(max(var(--space-3), env(safe-area-inset-top)) + var(--touch-min) + var(--space-2));
   display: flex;
   justify-content: center;
-  padding-inline: min(var(--space-3), 3vw);
-  /* The container passes taps through to the map; only the card itself takes them. */
-  pointer-events: none;
+  inline-size: 100%;
   animation: es-rise var(--dur-ritual) var(--ease-out) both;
 }
 

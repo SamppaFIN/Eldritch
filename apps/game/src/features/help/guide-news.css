@@ -1,10 +1,8 @@
+/* Positioned by `.top-stack` (BRDC-MAP-005) — this is a bare button now, one of the
+   column's stacked children. */
 .guide-news {
-  position: fixed;
-  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
-  inset-inline: max(var(--space-3), env(safe-area-inset-left))
-    max(var(--space-3), env(safe-area-inset-right));
-  z-index: var(--z-hud);
-  margin-inline: auto;
+  pointer-events: auto;
+  inline-size: 100%;
   max-inline-size: 26rem;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--glass-border);

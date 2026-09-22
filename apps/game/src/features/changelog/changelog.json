@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.46",
+    "date": "2026-09-22",
+    "notes": [
+      "The opening hint, a fresh Guide page and system notices now share one column at the top of the screen instead of guessing their own spot — opening a cell or the Keep clears it instead of drawing a hint over the card's own header."
+    ]
+  },
+  {
     "version": "0.6.45",
     "date": "2026-09-17",
     "notes": [

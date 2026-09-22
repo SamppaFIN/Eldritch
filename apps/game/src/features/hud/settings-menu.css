@@ -23,7 +23,7 @@
   inset-block-start: max(var(--space-3), env(safe-area-inset-top));
   margin-inline: auto;
   max-inline-size: 26rem;
-  max-block-size: calc(100dvh - var(--hud-height, 12rem) - var(--space-6));
+  max-block-size: calc(100dvh - var(--hud-height, 9rem) - var(--space-6));
   overflow-y: auto;
   overscroll-behavior: contain;
   display: flex;
