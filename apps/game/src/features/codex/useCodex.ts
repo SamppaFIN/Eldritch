@@ -1,8 +1,10 @@
 /**
- * The Codex of Dominion, fetched when it is opened (BRDC-CODEX-001).
+ * A demographics table, fetched when it is opened (BRDC-CODEX-001, BRDC-CLAN-002).
  *
  * Not on a timer and not at boot: it is a screen you visit, and the table only changes
- * when somebody publishes.
+ * when somebody publishes. Parameterized by `path` rather than copied — the Codex of
+ * Dominion and the clan league are the same table shape, the same three outcomes, and
+ * the same `placementIn`/`formatMetric` reading downstream; only the endpoint differs.
  *
  * `empty` and `unreachable` stay apart all the way to the screen. A player who has just
  * published and is told "no realm has published yet" learns something false about their
@@ -10,7 +12,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import type { Demographics } from '@es3/core';
-import { fetchDemographics } from '../../data/worldSource.js';
+import { fetchTable } from '../../data/worldSource.js';
 
 export type CodexState =
   | { status: 'idle' }
@@ -19,7 +21,10 @@ export type CodexState =
   | { status: 'empty' }
   | { status: 'unreachable' };
 
-export function useCodex(open: boolean): { state: CodexState; reload: () => void } {
+export function useCodex(
+  open: boolean,
+  path: '/demographics' | '/clan-codex' = '/demographics',
+): { state: CodexState; reload: () => void } {
   const [state, setState] = useState<CodexState>({ status: 'idle' });
   const [nonce, setNonce] = useState(0);
 
@@ -28,7 +33,7 @@ export function useCodex(open: boolean): { state: CodexState; reload: () => void
     let cancelled = false;
     setState({ status: 'loading' });
     void (async () => {
-      const result = await fetchDemographics();
+      const result = await fetchTable(path);
       if (cancelled) return;
       if (!result.ok) {
         setState({ status: result.reason });
@@ -50,7 +55,7 @@ export function useCodex(open: boolean): { state: CodexState; reload: () => void
     return () => {
       cancelled = true;
     };
-  }, [open, nonce]);
+  }, [open, path, nonce]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
   return { state, reload };

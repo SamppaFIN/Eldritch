@@ -22,6 +22,8 @@ import { LandsPanel } from '../lands/LandsPanel.js';
 import { GpxPanel } from '../gpx/GpxPanel.js';
 import { HallOfFamePanel } from '../hall/HallOfFamePanel.js';
 import { ClanPanel } from '../clan/ClanPanel.js';
+import { ClanCodexPanel } from '../clan/ClanCodexPanel.js';
+import { useClan } from '../clan/useClan.js';
 
 export interface MapAside {
   node: ReactNode;
@@ -42,6 +44,8 @@ export interface MapAside {
   openHallOfFame: () => void;
   /** Create or join a clan (BRDC-CLAN-001). */
   openClan: () => void;
+  /** Every clan measured against every other (BRDC-CLAN-002). */
+  openClanCodex: () => void;
   /** "The Guide has a new page" — rendered by the caller inside `TopStack`
    *  (BRDC-MAP-005), not here, so it stacks with `FirstLook` and `MapNotices`. */
   guideNews: GuideNewsProps;
@@ -79,6 +83,8 @@ export function useMapAside(
   const [gpxOpen, setGpxOpen] = useState(false);
   const [hallOpen, setHallOpen] = useState(false);
   const [clanOpen, setClanOpen] = useState(false);
+  const [clanCodexOpen, setClanCodexOpen] = useState(false);
+  const { clan: myClan } = useClan();
   const [meId, setMeId] = useState<string | null>(null);
   const { seen, news, dismissNews, note } = useEncountered(repository, version);
 
@@ -170,6 +176,11 @@ export function useMapAside(
         onClose={() => setHallOpen(false)}
       />
       <ClanPanel open={clanOpen} repository={repository} onClose={() => setClanOpen(false)} />
+      <ClanCodexPanel
+        open={clanCodexOpen}
+        myClanId={myClan.clanId || null}
+        onClose={() => setClanCodexOpen(false)}
+      />
     </>
   );
 
@@ -184,6 +195,7 @@ export function useMapAside(
     openGpx: () => setGpxOpen(true),
     openHallOfFame: () => setHallOpen(true),
     openClan: () => setClanOpen(true),
+    openClanCodex: () => setClanCodexOpen(true),
     guideNews: { topic: news, onOpen: openTopic, onDismiss: dismissNews },
     landsGain,
     anyOpen:
@@ -194,7 +206,8 @@ export function useMapAside(
       landsOpen ||
       gpxOpen ||
       hallOpen ||
-      clanOpen,
+      clanOpen ||
+      clanCodexOpen,
     /** Back to the map — what the document's MAP nav item does (Sigil screen 02). */
     closeAll: () => {
       setHelp(null);
@@ -205,6 +218,7 @@ export function useMapAside(
       setGpxOpen(false);
       setHallOpen(false);
       setClanOpen(false);
+      setClanCodexOpen(false);
     },
   };
 }

@@ -6,7 +6,7 @@
 | **Vaihe** | 3 — Sivilisaatio (multiplayer-sarja) |
 | **Effort** | M |
 | **Riippuvuudet** | `BRDC-CLAN-001` (`clanId` olemassa julkaisussa) |
-| **Status** | luonnos — käydään läpi ennen toteutusta |
+| **Status** | `done` — 2026-09-22 (v0.6.48) |
 
 ## 🔴 RED
 
@@ -19,36 +19,52 @@ tarvitsee yhden uuden asian: joukon jäsenten yhdistämisen **yhdeksi** synteett
 
 ## 🟢 GREEN
 
-- [ ] `packages/core/src/data/clanDemographics.ts` (uusi) — puhdas funktio
-      `clanMeasurables(sources: readonly WorldSource[]): Measurable[]`. Ryhmittelee
-      `clanId`:n mukaan (sivuuttaa `clanId === undefined`), summaa jäsenten `cells`,
-      käyttää klaanin **suurimman jäsenen tasoa** `level`-kenttänä (ei summaa — taso ei
-      ole additiivinen suure kenenkään yksittäisen mittarin merkityksessä) ja summaa
-      `leyM`. Nimi tulee `clan:<id>`in omasta nimestä (Worker liittää tämän, katso alla)
-- [ ] Worker: `rebuild()` kutsuu `clanMeasurables()`in tuloksen läpi olemassa olevan
-      `demographicsOf()`in — **ei uutta mittarikoneistoa**, sama `Metric`/`MetricId`
-      tyyppi kuin pelaaja-Codexilla. Tulos kirjoitetaan uuteen KV-avaimeen
-      `clan-codex` (sama kuvio kuin `CODEX`-avaimella, samassa `rebuild()`-ajossa —
-      ei ylimääräistä `kv.list`-kierrosta, `allFiles()` on jo muistissa)
-- [ ] Worker: `GET /clan-codex` palauttaa taulukon, sama vastausmuoto kuin
-      `/demographics`
-- [ ] Asiakas: `ClanCodexPanel` — sama arkkipohja kuin `CodexPanel.tsx` (rivi per
-      klaani, sijoitus, Best/Average/Worst), mutta lukee `/clan-codex`ia eikä
-      `/demographics`ia. Uudelleenkäyttää `useCodex`in kuviota parametrisoituna
-      URL-polulla, ei kopioi koko hookia
-- [ ] Oman klaanin rivi korostettu samalla `codex__row--titled`-tyylillä kuin
-      Codexin oma johtaja-rivi (`BRDC-CODEX-004`), jos oma klaani johtaa jotain mittaria
-- [ ] Portti: `lint:lines`, `tsc -b`, vitest — `clanMeasurables`in testit kokonaan
-      `packages/core`issa ilman Workeria (puhdas funktio, helpoin osa testata), `pnpm build`
+- [x] `packages/core/src/data/clanDemographics.ts` (uusi) — `clanMeasurables(sources:
+      readonly WorldSource[]): Measurable[]`. Ryhmittelee `clanId`:n mukaan (sivuuttaa
+      `clanId === undefined`), summaa jäsenten `cells`, käyttää klaanin **suurimman
+      jäsenen tasoa** (ei summaa), summaa `leyM`. `name` on tässä vielä `clanId` itse
+      — Worker korvaa sen oikealla nimellä, koska puhdas funktio näkee vain
+      `WorldSource`in, ei koskaan klaanin oikeaa nimeä
+- [x] Worker: uusi `clanCodexOf()`-apuri kutsuu `clanMeasurables()`in tuloksen läpi
+      olemassa olevan `demographicsOf()`in ja korvaa jokaisen rivin `name`-kentän
+      `clan:<id>`in oikealla nimellä (yksi KV-luku per läsnä oleva klaani). `rebuild()`
+      kirjoittaa tuloksen `clan-codex`-avaimeen samassa ajossa kuin pelaaja-Codexin
+- [x] Worker: `GET /clan-codex` — sama kylmäkäynnistys-pelastus kuin `/demographics`illa
+- [x] **Skoopin laajennus workerin sisällä:** `index.ts` oli jo 407 riviä ennen tätä
+      tikettiä. Erotettu `chronicle.ts` (BRDC-HALL-002:n AI-tarinalogiikka, ~70 riviä,
+      täysin oma huolensa) omaksi tiedostokseen ennen `clan-codex`in lisäämistä — ei
+      REDiä jonka pelaaja tuntisi, mutta rivibudjetin vapautus oli pakollinen ehto
+- [x] Asiakas: `useCodex`in signatuuri laajeni `(open, path = '/demographics')`iksi
+      (`fetchDemographics` → yleinen `fetchTable(path)`). Yksi rivi muuttui, ei uutta
+      hookia
+- [x] `ClanCodexPanel.tsx` (uusi, `features/clan/`) — sama arkkipohja kuin
+      `CodexPanel.tsx`, lukee `../codex/codex-panel.css`in ja `figures.ts`in
+      uudelleenkäyttäen; ei banneria/kansallisuutta (klaaneilla ei ole niitä)
+- [x] Oman klaanin rivi korostuu `codex__row--titled`-tyylillä täsmälleen samalla
+      logiikalla kuin pelaaja-Codexissa, `myClanId`illa (`useClan()`in `clan.clanId`)
+      pelaajan `id`:n sijaan
+- [x] ☰-valikkoon uusi kohde "Clan Codex", Clan-kohdan viereen
+- [x] Portti: `lint:lines`, `tsc -b`, **1632** vitest (+7: `clanDemographics.test.ts`),
+      `pnpm build`, `e2e/clan-codex.spec.ts` (uusi, 2/2). Workerin `/clan-codex`
+      todennettu käsin `wrangler dev`illä: kaksi klaania, eri jäsenmäärä ja taso,
+      oikea nimi (ei koodi) jokaisella rivillä, oikea järjestys jokaisella mittarilla
 
 ## Todennus
 
 `clanDemographics.test.ts`: kaksi klaania joilla eri määrä jäseniä ja soluja →
-`clanMeasurables`in tulos summaa solut oikein, käyttää suurinta tasoa; pelaaja ilman
-`clanId`:tä ei näy kummassakaan klaanissa; tyhjä syöte → tyhjä tulos, ei virhettä.
-Kokonaisketju (`clanMeasurables` → `demographicsOf`) tuottaa saman `Metric`-muodon kuin
-pelaaja-Codex, joten sama `placementIn`/`formatMetric`-koneisto UI:ssa toimii
-muuttamatta.
+`clanMeasurables`in tulos summaa solut ja ley-linjan oikein, käyttää suurinta tasoa
+(ei summaa), floorii puuttuvan tason 1:een samoin kuin `demographicsOf` tekisi
+yksittäiselle pelaajalle; pelaaja ilman `clanId`:tä ei näy kummassakaan klaanissa;
+tyhjä syöte → tyhjä tulos, ei virhettä. Kokonaisketju (`clanMeasurables` →
+`demographicsOf`) tuottaa saman `Metric`-muodon kuin pelaaja-Codex, todennettu
+suoraan: kuusisoluinen klaani voittaa yksisoluisen `land`-mittarissa.
+`e2e/clan-codex.spec.ts`: tyhjä maailma sanoo niin selkeästi; täytetty taulukko näyttää
+klaanien **nimet**, ei koskaan niiden raakaa koodia.
+
+**Käsin, oikeaa Workeria vasten:** kaksi klaania luotu, kaksi jäsentä eri klaaneista
+julkaissut eri määrän soluja ja eri tasoilla, `/clan-codex` palauttaa oikeat nimet
+(`"The Rook Guard"`, `"The Pale March"`, ei `"822J9N"`/`"2KDSEU"`) ja oikean
+järjestyksen jokaisella mittarilla.
 
 ## Ei tässä
 

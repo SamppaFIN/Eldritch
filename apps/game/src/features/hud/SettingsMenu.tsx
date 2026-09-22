@@ -45,6 +45,8 @@ export interface SettingsMenuProps {
   onOpenHallOfFame: () => void;
   /** Opens the clan screen — create, join, or leave (BRDC-CLAN-001). */
   onOpenClan: () => void;
+  /** Opens the clan league — every clan measured (BRDC-CLAN-002). */
+  onOpenClanCodex: () => void;
   /** Import a recorded walk (BRDC-GPX-001). */
   onOpenGpx: () => void;
   /** The Wager — a destination in the document's grid, not only a Keep button. */
@@ -89,6 +91,7 @@ export function SettingsMenu({
   onOpenLands,
   onOpenHallOfFame,
   onOpenClan,
+  onOpenClanCodex,
   onOpenGpx,
   onWager,
   onOpenEditor,
@@ -250,6 +253,7 @@ export function SettingsMenu({
                 {link('Codex', 'Where you stand', onOpenCodex, 'var(--sacred-gold)')}
                 {link('Hall of Fame', 'Kingdoms retired', onOpenHallOfFame, 'var(--sacred-gold)')}
                 {link('Clan', 'Join or start a friend circle', onOpenClan)}
+                {link('Clan Codex', 'Clans measured against each other', onOpenClanCodex)}
                 {onWager ? link('The Wager', 'Challenge a friend', onWager, 'var(--r-token)') : null}
               </div>
             </div>

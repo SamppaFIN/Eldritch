@@ -36,7 +36,8 @@ export async function fetchWorldShards(regions: readonly string[]): Promise<stri
 }
 
 /**
- * Fetch the Codex of Dominion — every realm the Worker holds, measured (BRDC-CODEX-001).
+ * Fetch a demographics table — every realm, or every clan (BRDC-CODEX-001,
+ * BRDC-CLAN-002), the Worker holds, measured.
  *
  * One request, not one per region: the Worker builds the table on write and serves it
  * from a single KV read.
@@ -51,9 +52,10 @@ export type CodexFetch =
   | { ok: true; text: string }
   | { ok: false; reason: 'empty' | 'unreachable' };
 
-export async function fetchDemographics(): Promise<CodexFetch> {
+/** `path` is `/demographics` (players) or `/clan-codex` (BRDC-CLAN-002) — same shape. */
+export async function fetchTable(path: '/demographics' | '/clan-codex'): Promise<CodexFetch> {
   try {
-    const res = await fetch(`${WORLD_API}/demographics`, { cache: 'no-store' });
+    const res = await fetch(`${WORLD_API}${path}`, { cache: 'no-store' });
     // 204 is the Worker saying "asked and answered: nothing yet". Anything else that is
     // not a success — 404 from a Worker without this endpoint, a 5xx — is unreachable.
     if (res.status === 204) return { ok: false, reason: 'empty' };

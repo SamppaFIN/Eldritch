@@ -120,6 +120,7 @@ export type {
   Placement,
   Standing,
 } from './demographics.js';
+export { clanMeasurables } from './clanDemographics.js';
 export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
 export type { TradeOutcome } from './cityStateStore.js';
 export {

@@ -35,10 +35,21 @@
  * their own file; `clan:<id>.kicked` overrides their own claim wherever the clan is
  * read (the roster, `/submit`'s response), which is what "kicked" has to mean when
  * nobody's own data can be altered by anyone else.
+ *
+ * BRDC-CLAN-002 adds `GET /clan-codex` — every clan measured against every other, the
+ * same `demographicsOf` the player Codex already uses, fed one synthetic realm per
+ * clan instead of one per player (`clanMeasurables`, `@es3/core/data`).
  */
-import { buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
-import type { PlayerFile } from '@es3/core/data';
+import {
+  buildShards,
+  clanMeasurables,
+  demographicsOf,
+  mergePlayerFiles,
+  parseSubmission,
+} from '@es3/core/data';
+import type { Demographics, Measurable, PlayerFile, WorldSource } from '@es3/core/data';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
+import { craftChronicle, isKingdomFacts } from './chronicle.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 interface KV {
@@ -64,6 +75,8 @@ const CLAN = 'clan:';
  * asks one question instead of one per region it happens to be looking at.
  */
 const CODEX = 'codex';
+/** Same shape, one row per clan instead of per player (BRDC-CLAN-002). */
+const CLAN_CODEX = 'clan-codex';
 /** One submission a minute per player. KV's own floor for an expiry is 60 s. */
 const COOLDOWN_S = 60;
 
@@ -102,6 +115,7 @@ async function allFiles(kv: KV): Promise<PlayerFile[]> {
 async function rebuild(kv: KV, now: number): Promise<number> {
   const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS);
   await kv.put(CODEX, JSON.stringify(demographicsOf(live, now)));
+  await kv.put(CLAN_CODEX, JSON.stringify(await clanCodexOf(kv, live, now)));
   const shards = buildShards(live, now);
   const kept = new Set<string>();
   for (const [region, shard] of shards) {
@@ -111,71 +125,6 @@ async function rebuild(kv: KV, now: number): Promise<number> {
   const { keys } = await kv.list({ prefix: SHARD });
   for (const key of keys) if (!kept.has(key.name)) await kv.delete(key.name);
   return shards.size;
-}
-
-/** The numbers a chronicle is written from — the parts of `HallOfFameEntry` worth prose. */
-interface KingdomFacts {
-  name: unknown;
-  level: unknown;
-  areaM2: unknown;
-  population: unknown;
-  provinces: unknown;
-  achievements: unknown;
-  wonders: unknown;
-  secretSites: unknown;
-  cipherShards: unknown;
-}
-
-function isKingdomFacts(v: unknown): v is KingdomFacts {
-  const f = v as Partial<KingdomFacts> | null;
-  return (
-    !!f &&
-    typeof f.name === 'string' &&
-    typeof f.level === 'number' &&
-    typeof f.areaM2 === 'number' &&
-    typeof f.population === 'number'
-  );
-}
-
-function chroniclePrompt(f: KingdomFacts): string {
-  return (
-    `Write a short (120-180 word) in-universe chronicle of a fallen kingdom in a ` +
-    `Lovecraftian cosmic-horror territory game, as if it were a passage from a historical ` +
-    `record. Tone: cosmic void, sacred geometry, awe rather than gore. Do not invent ` +
-    `named characters, battles or enemies not implied below — work only from these facts. ` +
-    `No title, no preamble, just the passage.\n\n` +
-    `Kingdom: ${f.name}\nConsciousness level reached: ${f.level}\n` +
-    `Ground held: ${f.areaM2} square metres across ${f.provinces} provinces\n` +
-    `Population: ${f.population}\nAchievements earned: ${f.achievements}\n` +
-    `Wonders found: ${f.wonders}\nSecret sites found: ${f.secretSites}\n` +
-    `Cipher shards gathered: ${f.cipherShards}`
-  );
-}
-
-/** One call to Claude Haiku — cheap and fast, right-sized for a paragraph of flavour text. */
-async function craftChronicle(env: Env, facts: KingdomFacts): Promise<string | null> {
-  if (!env.AI_API_KEY) return null;
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': env.AI_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: chroniclePrompt(facts) }],
-      }),
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { content?: { type: string; text?: string }[] };
-    const text = data.content?.find((b) => b.type === 'text')?.text;
-    return text && text.trim().length > 0 ? text.trim() : null;
-  } catch {
-    return null;
-  }
 }
 
 interface ClanRecord {
@@ -194,6 +143,24 @@ async function verifiedClan(kv: KV, id: string, founderToken: string): Promise<C
   if (!raw) return null;
   const record = JSON.parse(raw) as ClanRecord;
   return record.founderToken === founderToken ? record : null;
+}
+
+/**
+ * Every clan measured against every other (BRDC-CLAN-002). `clanMeasurables` only ever
+ * sees a `WorldSource`, which carries a clan's code, never its name — resolved here,
+ * one KV read per clan actually present, from the same `clan:<id>` record `verifiedClan`
+ * reads.
+ */
+async function clanCodexOf(kv: KV, live: WorldSource[], now: number): Promise<Demographics> {
+  const measurables = clanMeasurables(live);
+  const named: Measurable[] = await Promise.all(
+    measurables.map(async (m) => {
+      const raw = await kv.get(CLAN + m.id);
+      const name = raw ? (JSON.parse(raw) as ClanRecord).name : m.id;
+      return { ...m, name };
+    }),
+  );
+  return demographicsOf(named, now);
 }
 
 /** No 0/O/1/I/L — a code someone reads aloud over a phone call, not a password. */
@@ -271,6 +238,22 @@ export default {
         if (live.length === 0) return bare(204);
         codex = JSON.stringify(demographicsOf(live, now));
         await env.WORLD.put(CODEX, codex);
+      }
+      return new Response(codex, {
+        headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+      });
+    }
+
+    // Same cold-start rescue as `/demographics` above, same reason.
+    if (request.method === 'GET' && url.pathname === '/clan-codex') {
+      let codex = await env.WORLD.get(CLAN_CODEX);
+      if (!codex) {
+        const now = Date.now();
+        const live = mergePlayerFiles(await allFiles(env.WORLD), now, WORLD_PLAYER_TTL_MS);
+        const table = await clanCodexOf(env.WORLD, live, now);
+        if (table.players === 0) return bare(204);
+        codex = JSON.stringify(table);
+        await env.WORLD.put(CLAN_CODEX, codex);
       }
       return new Response(codex, {
         headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
@@ -381,6 +364,7 @@ export default {
           'POST /submit',
           'GET /world/<res6>',
           'GET /demographics',
+          'GET /clan-codex',
           'POST /kingdom-story',
           'POST /clan',
           'GET /clan/<id>',
