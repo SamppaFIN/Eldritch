@@ -39,7 +39,8 @@ import {
   CELL_FLAG_LAYER,
   CELL_ANOMALY_LAYER,
   CELL_DETAIL_MINZOOM,
-  NATION_MAXZOOM,
+  fadeAcrossBand,
+  NATION_FADE_START,
   NATION_SOURCE,
 } from './layerIds.js';
 import { addMarkLayers } from './territoryMarks.js';
@@ -69,9 +70,11 @@ const SHARED_PATTERN = 'cells-shared-pattern';
 // The fill stays visible below CELL_DETAIL_MINZOOM so a territory's shape still reads
 // from above; the per-cell strokes and marks go, which is most of the drawing cost.
 //
-// It stops at NATION_MAXZOOM, not at zero (BRDC-ATLAS-001): a phone-wide country has
-// hundreds of scattered res-11 hexes a few pixels each, which is dust, not a shape —
+// It fades out below NATION_MAXZOOM, not at zero (BRDC-ATLAS-001): a phone-wide country
+// has hundreds of scattered res-11 hexes a few pixels each, which is dust, not a shape —
 // the Atlas's own res-5 layer takes over there, drawing municipalities instead of cells.
+// The two cross-fade across NATION_FADE_START..NATION_FADE_END rather than swap at one
+// zoom, so the handoff is a zoom, not a screen change.
 
 /** Idempotent. Safe to call whenever the map becomes ready. */
 export function ensureTerritoryLayers(map: MapLibreMap): void {
@@ -101,7 +104,7 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_FILL_LAYER,
     type: 'fill',
     source: CELL_SOURCE,
-    minzoom: NATION_MAXZOOM,
+    minzoom: NATION_FADE_START,
     paint: {
       'fill-color': ['get', 'color'],
       /*
@@ -111,15 +114,14 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
        * It used to ramp with strength, which was the right call when nothing else said
        * how well a cell was held. The arc along the lower edges says it now, and better —
        * so the fill goes back to answering one question, which is whose ground this is.
+       *
+       * Fades in below NATION_MAXZOOM, so the Atlas's own res-5 layer is what a
+       * zoomed-out camera actually sees — this fill is only rising underneath it.
        */
-      'fill-opacity': [
-        'case',
-        ['get', 'mine'],
-        0.32,
-        ['==', ['get', 'color'], REVEAL_FILL],
-        0.04,
-        0.22,
-      ],
+      'fill-opacity': fadeAcrossBand(
+        0,
+        ['case', ['get', 'mine'], 0.32, ['==', ['get', 'color'], REVEAL_FILL], 0.04, 0.22],
+      ),
     },
   });
 
@@ -129,9 +131,9 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_SHARED_LAYER,
     type: 'fill',
     source: CELL_SOURCE,
-    minzoom: NATION_MAXZOOM,
+    minzoom: NATION_FADE_START,
     filter: ['get', 'shared'],
-    paint: { 'fill-pattern': SHARED_PATTERN, 'fill-opacity': 0.75 },
+    paint: { 'fill-pattern': SHARED_PATTERN, 'fill-opacity': fadeAcrossBand(0, 0.75) },
   });
 
   /*
@@ -144,11 +146,11 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     id: CELL_BLIGHT_LAYER,
     type: 'fill',
     source: CELL_SOURCE,
-    minzoom: NATION_MAXZOOM,
+    minzoom: NATION_FADE_START,
     filter: ['>', ['get', 'blight'], 0.02],
     paint: {
       'fill-color': '#0a0612',
-      'fill-opacity': ['*', ['get', 'blight'], 0.6],
+      'fill-opacity': fadeAcrossBand(0, ['*', ['get', 'blight'], 0.6]),
     },
   });
 

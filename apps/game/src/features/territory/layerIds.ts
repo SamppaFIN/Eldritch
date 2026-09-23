@@ -6,6 +6,8 @@
  * else is an import cycle. One id string written in two places is how a layer quietly
  * stops being the layer somebody meant to toggle.
  */
+import type { ExpressionSpecification } from 'maplibre-gl';
+
 export const CELL_SOURCE = 'cells';
 /**
  * The marks' own source: one Point per cell (BRDC-SIGIL-006).
@@ -59,6 +61,35 @@ export const CELL_DETAIL_MINZOOM = 13;
  * not a gap or an overlap.
  */
 export const NATION_MAXZOOM = 10;
+
+/**
+ * The band the Atlas and the ordinary cell layers cross-fade across, one either side of
+ * `NATION_MAXZOOM` (BRDC-ATLAS-001). A hard `minzoom`/`maxzoom` cut at one shared number
+ * meant one frame the country's shape was there, the next it was 460 tiny hexes — a
+ * screen-wide flash the RED never asked for ("jatkuva", not a swap). Both layer sets now
+ * paint through the whole band, opacity interpolated in opposite directions, so the
+ * handoff reads as one continuous zoom rather than two screens stitched together.
+ */
+export const NATION_FADE_START = NATION_MAXZOOM - 1;
+export const NATION_FADE_END = NATION_MAXZOOM + 1;
+
+/**
+ * A paint value that fades linearly across the band, from `atStart` at
+ * `NATION_FADE_START` to `atEnd` at `NATION_FADE_END`. Either end may itself be a
+ * data-driven expression (e.g. a `case` on `mine`) — MapLibre's style spec allows a
+ * `["zoom"]` read only as the direct input to a top-level `interpolate`/`step`, never
+ * nested inside an arithmetic expression like `["*", ...]`, so the fade has to be the
+ * outermost expression with the data-driven value folded into its stops, not the other
+ * way around (BRDC-ATLAS-001 field report, 2026-09-23: `["*", dataExpr, ["interpolate",
+ * ...]]` fails MapLibre's own style validation at `addLayer` and silently drops the
+ * layer — caught because every fill on the map vanished, not from the type checker).
+ */
+export function fadeAcrossBand(
+  atStart: number | ExpressionSpecification,
+  atEnd: number | ExpressionSpecification,
+): ExpressionSpecification {
+  return ['interpolate', ['linear'], ['zoom'], NATION_FADE_START, atStart, NATION_FADE_END, atEnd];
+}
 
 /** Where a tap on the Atlas flies the camera to: past `NATION_MAXZOOM` so the ordinary
  *  cell layers take over and draw whatever ground is actually there, short of

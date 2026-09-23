@@ -16,6 +16,14 @@ import { cellAreaM2, nationRegionOf } from '../geo/cells.js';
 import type { H3Index, PlayerId } from '../types/domain.js';
 import type { WorldSource } from './world.js';
 
+/** The name attached to a municipality's dominant holder — carried on both an
+ *  `AtlasRegion` and an `AtlasChange`, so the two never drift into two separate shapes
+ *  for what is the same fact. */
+export interface AtlasHolder {
+  id: PlayerId;
+  name: string;
+}
+
 export interface AtlasRegion {
   /** The res-5 municipality this row describes. */
   region: H3Index;
@@ -66,4 +74,46 @@ export function atlasOf(sources: readonly WorldSource[]): AtlasRegion[] {
     });
   }
   return regions;
+}
+
+/**
+ * A stable label for "this calendar week", so the Worker can keep one Atlas snapshot per
+ * week without a cron trigger — it only ever writes on `/submit`, so this is what lets it
+ * ask "have I already saved one for now?" (BRDC-ATLAS-001's "laajeneminen ajassa").
+ *
+ * Weeks since the Unix epoch, not an ISO week number: the only property this needs is
+ * "changes once every seven days", and ISO numbering's year-boundary rules would be
+ * complexity this has no use for.
+ */
+export function atlasWeekKey(now: number): string {
+  const days = Math.floor(now / 86_400_000);
+  return `week-${Math.floor(days / 7)}`;
+}
+
+export interface AtlasChange {
+  region: H3Index;
+  /** Null when the municipality had no recorded holder in that snapshot at all. */
+  from: AtlasHolder | null;
+  to: AtlasHolder | null;
+}
+
+/**
+ * Where a municipality's dominant holder differs between two snapshots — new ground
+ * taken, ground lost, or a region that has gone from contested to quiet (or back).
+ * A region absent from one side reads as `null`, not dropped from the diff: "nobody was
+ * here a week ago" is itself the change the RED asks to be able to see.
+ */
+export function atlasDiff(before: readonly AtlasRegion[], after: readonly AtlasRegion[]): AtlasChange[] {
+  const holderOf = (regions: readonly AtlasRegion[]) =>
+    new Map(regions.map((r): [H3Index, AtlasHolder] => [r.region, { id: r.dominant.id, name: r.dominant.name }]));
+  const beforeByRegion = holderOf(before);
+  const afterByRegion = holderOf(after);
+
+  const changes: AtlasChange[] = [];
+  for (const region of new Set([...beforeByRegion.keys(), ...afterByRegion.keys()])) {
+    const from = beforeByRegion.get(region) ?? null;
+    const to = afterByRegion.get(region) ?? null;
+    if (from?.id !== to?.id) changes.push({ region, from, to });
+  }
+  return changes;
 }

@@ -9,7 +9,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
-import { cellAt, cellCentre, nationRegionAt, QUEST_SITES, siteCell } from '@es3/core';
+import { cellAt, QUEST_SITES, siteCell } from '@es3/core';
 import { useEditorPaint } from '../editor/useEditorPaint.js';
 import type { Editor } from '../editor/useEditor.js';
 import type {
@@ -31,7 +31,8 @@ import { setTradeData } from './TradeLayer.js';
 import { CELL_FILL_LAYER, setTerritoryData } from '../territory/TerritoryLayer.js';
 import { setArcData } from '../territory/strengthArcs.js';
 import { useNationLayer } from '../territory/useNationLayer.js';
-import { NATION_FILL_LAYER, NATION_FLY_ZOOM } from '../territory/layerIds.js';
+import { AtlasCompareControl } from '../territory/AtlasCompareControl.js';
+import { NATION_FILL_LAYER } from '../territory/layerIds.js';
 import { useMapLayers } from './useMapLayers.js';
 import { useBuildingIcons } from './useBuildingIcons.js';
 import { PLACE_CORE_LAYER, PLACE_HALO_LAYER, setPlaceData } from '../territory/PlaceMarkers.js';
@@ -40,6 +41,7 @@ import { QUEST_MARK_LAYER, setQuestData } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
 import { useHearthTour } from './useHearthTour.js';
 import { useCameraFollow } from './useCameraFollow.js';
+import { useNationTap } from './useNationTap.js';
 import { useAccuracyRing } from './useAccuracyRing.js';
 import { CameraControl } from './CameraControl.js';
 import { useMap } from './useMap.js';
@@ -336,7 +338,11 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   useAwakening(map, ready, awakening);
 
   // The Atlas, zoomed all the way out: one small fetch, its own file (BRDC-ATLAS-001).
-  useNationLayer(map, ready, playerId);
+  const { visible: atlasVisible, compareAvailable, comparing, toggleCompare } = useNationLayer(
+    map,
+    ready,
+    playerId,
+  );
 
   // The founding tour: once, the camera walks the six hexes around a new Hearth.
   // The camera stops chasing the player while the map is being drawn on: the editor needs
@@ -346,39 +352,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   // The camera pin, and the ways back to the player (BRDC-MAP-004).
   const { following, recenter, focusHere, unfollow } = useCameraFollow({ map, ready, position, touring: held });
   useEditorPaint(map, ready, editor ?? null);
-
-  // Tapping a municipality on the Atlas flies out to it — a glance at a neighbour nation
-  // rather than a walk there (BRDC-ATLAS-001). unfollow first, or the next GPS fix would
-  // drag the camera straight back home mid-flight.
-  //
-  // The target comes from where the tap landed, not the tapped feature's own id: a
-  // GeoJSON source's string id does not survive MapLibre's vector-tile encoding intact,
-  // so `e.features[0].id` hands back a silently truncated number here — the same
-  // limitation `cellAt(e.lngLat)` already works around for an ordinary hex tap below.
-  useEffect(() => {
-    if (!map || !ready) return;
-    const onClick = (e: MapLayerMouseEvent) => {
-      if (!e.features?.length) return;
-      unfollow();
-      const region = nationRegionAt({ lat: e.lngLat.lat, lng: e.lngLat.lng });
-      const centre = cellCentre(region);
-      map.flyTo({ center: [centre.lng, centre.lat], zoom: NATION_FLY_ZOOM, essential: true });
-    };
-    const enter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const leave = () => {
-      map.getCanvas().style.cursor = '';
-    };
-    map.on('click', [NATION_FILL_LAYER], onClick);
-    map.on('mouseenter', [NATION_FILL_LAYER], enter);
-    map.on('mouseleave', [NATION_FILL_LAYER], leave);
-    return () => {
-      map.off('click', [NATION_FILL_LAYER], onClick);
-      map.off('mouseenter', [NATION_FILL_LAYER], enter);
-      map.off('mouseleave', [NATION_FILL_LAYER], leave);
-    };
-  }, [map, ready, unfollow]);
+  useNationTap(map, ready, unfollow);
 
   useImperativeHandle(ref, () => ({ focusHere }), [focusHere]);
 
@@ -394,6 +368,9 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     <>
       <div ref={containerRef} className="es-map" data-basemap={basemap} />
       <CameraControl following={following} onRecenter={recenter} />
+      {atlasVisible && compareAvailable && (
+        <AtlasCompareControl comparing={comparing} onToggle={toggleCompare} />
+      )}
     </>
   );
 });

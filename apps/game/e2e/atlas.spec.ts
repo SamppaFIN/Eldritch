@@ -79,6 +79,16 @@ async function unpinCamera(page: Page) {
   await expect(unpinned).toBeVisible();
 }
 
+/** A stationary player reads as "not walking" to the onboarding teacher (BRDC-TUTOR-001),
+ *  and these specs are idle long enough for a lesson card to come due and cover the map
+ *  — tutor.spec.ts's own way of clearing it. */
+async function dismissUnlockCard(page: Page): Promise<void> {
+  const card = page.locator('.unlock__card');
+  if (await card.isVisible().catch(() => false)) {
+    await card.getByRole('button', { name: 'Not now' }).click();
+  }
+}
+
 async function setZoom(page: Page, zoom: number) {
   await page.evaluate(
     (z) => (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap.setZoom(z),
@@ -105,6 +115,13 @@ const nationFeatureCount = (page: Page): Promise<number> =>
     return m.queryRenderedFeatures(undefined, { layers: ['nation-fill'] }).length;
   });
 
+const cellFeatureCount = (page: Page): Promise<number> =>
+  page.evaluate(() => {
+    const m = (window as unknown as { __esMap: import('maplibre-gl').Map }).__esMap;
+    if (!m.getLayer('cells-fill')) return -1;
+    return m.queryRenderedFeatures(undefined, { layers: ['cells-fill'] }).length;
+  });
+
 test('draws a municipality per region once zoomed out past the Atlas boundary', async ({ page }) => {
   await page.route('**/atlas', (route) =>
     route.fulfill({
@@ -122,12 +139,37 @@ test('draws a municipality per region once zoomed out past the Atlas boundary', 
   );
 
   await openMap(page);
-  // Still at walking zoom — the Atlas layer has a maxzoom and must not draw here.
+  // Still at walking zoom, well past the cross-fade band — the Atlas layer must not draw here.
   expect(await nationFeatureCount(page)).toBe(0);
 
   await unpinCamera(page);
   await setZoom(page, 4);
   await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(2);
+});
+
+test('cross-fades with the ordinary cell layers instead of swapping at one zoom', async ({ page }) => {
+  await page.route('**/atlas', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        v: 1,
+        generatedAt: Date.now(),
+        regions: [{ region: REGION_TAMPERE, dominant: { id: 'a', name: 'Alice' }, areaM2: 4865, players: 1 }],
+      }),
+    }),
+  );
+
+  await openMap(page);
+  await unpinCamera(page);
+
+  // Mid-band, where NATION_FADE_START..NATION_FADE_END overlap (BRDC-ATLAS-001): both the
+  // municipality and the player's own Hearth ring must render at once, opacity mid-fade.
+  // The old hard minzoom/maxzoom cut at one shared number made this pairing impossible —
+  // one or the other, never both, at any single zoom.
+  await setZoom(page, 10);
+  await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
+  expect(await cellFeatureCount(page)).toBeGreaterThan(0);
 });
 
 test('draws nothing when the Atlas has no data yet, not an error', async ({ page }) => {
@@ -161,13 +203,7 @@ test('tapping a municipality flies the camera out to it', async ({ page }) => {
   await setZoom(page, 4);
   await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(2);
 
-  // A stationary player reads as "not walking" to the onboarding teacher (BRDC-TUTOR-001),
-  // and this spec has been idle long enough for a lesson card to come due and cover the
-  // map — tutor.spec.ts's own way of clearing it.
-  const unlockCard = page.locator('.unlock__card');
-  if (await unlockCard.isVisible().catch(() => false)) {
-    await unlockCard.getByRole('button', { name: 'Not now' }).click();
-  }
+  await dismissUnlockCard(page);
 
   const point = await screenPointFor(page, HELSINKI_CENTRE.lng, HELSINKI_CENTRE.lat);
   // `map.project` returns coordinates relative to the map's own container, which is what
@@ -185,4 +221,79 @@ test('tapping a municipality flies the camera out to it', async ({ page }) => {
   // the tapped feature's own id does not survive MapLibre's tiling intact).
   expect(Math.abs(landed.lng - HELSINKI_CENTRE.lng)).toBeLessThan(0.05);
   expect(Math.abs(landed.lat - HELSINKI_CENTRE.lat)).toBeLessThan(0.05);
+});
+
+test('offers no "then vs now" toggle when no snapshot has been kept yet', async ({ page }) => {
+  await page.route('**/atlas', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        v: 1,
+        generatedAt: Date.now(),
+        regions: [{ region: REGION_TAMPERE, dominant: { id: 'a', name: 'Alice' }, areaM2: 4865, players: 1 }],
+      }),
+    }),
+  );
+  await page.route('**/atlas/history', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ weeks: [] }) }),
+  );
+
+  await openMap(page);
+  await unpinCamera(page);
+  await setZoom(page, 4);
+  await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(1);
+
+  await expect(page.getByRole('button', { name: /Compare the Atlas/ })).toHaveCount(0);
+});
+
+test('"then vs now" swaps the Atlas layer to a kept snapshot and back', async ({ page }) => {
+  await page.route('**/atlas', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        v: 1,
+        generatedAt: Date.now(),
+        regions: [{ region: REGION_TAMPERE, dominant: { id: 'a', name: 'Alice' }, areaM2: 4865, players: 1 }],
+      }),
+    }),
+  );
+  await page.route('**/atlas/history', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ weeks: ['week-1'] }) }),
+  );
+  await page.route('**/atlas/history/week-1', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        weekKey: 'week-1',
+        generatedAt: Date.now() - 7 * 86_400_000,
+        regions: [
+          { region: REGION_TAMPERE, dominant: { id: 'a', name: 'Alice' }, areaM2: 4865, players: 1 },
+          { region: REGION_HELSINKI, dominant: { id: 'b', name: 'Bob' }, areaM2: 1660, players: 1 },
+        ],
+      }),
+    }),
+  );
+
+  await openMap(page);
+  await unpinCamera(page);
+  await setZoom(page, 4);
+  await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(1);
+  await dismissUnlockCard(page);
+
+  const toggle = page.getByRole('button', { name: 'Compare the Atlas to a few weeks ago' });
+  await expect(toggle).toBeVisible();
+  await toggle.click();
+
+  await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(2);
+  await expect(
+    page.getByRole('button', { name: 'Showing the Atlas from a few weeks ago — tap to return to now' }),
+  ).toBeVisible();
+
+  await page
+    .getByRole('button', { name: 'Showing the Atlas from a few weeks ago — tap to return to now' })
+    .click();
+  await expect.poll(() => nationFeatureCount(page), { timeout: 10_000 }).toBe(1);
 });

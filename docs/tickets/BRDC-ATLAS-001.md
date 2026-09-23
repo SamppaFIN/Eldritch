@@ -5,9 +5,9 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-SHARE-001, BRDC-CASTLE-001, BRDC-CLAIM-006 |
-| **Status** | `[~]` osittain — datakerros, kansallinen taso ja kamera-lento valmis ja
-  todennettu; kaupunkitaso, jatkuva zoomi ja historia vielä auki. 2026-09-23 (v0.6.52) |
-| **Valmius** | ~60 % — ks. "Tilanne 2026-09-23" alla |
+| **Status** | `done` — kaikki GREEN-kohdat todennettu; keskimmäinen kaupunkitaso (res 8)
+  rajattu tietoisesti pois, ks. "Amended 2026-09-23" GREENin alla. 2026-09-23 (v0.6.53) |
+| **Valmius** | 100 % siitä mitä tiketti lopulta pyytää — ks. "Tilanne 2026-09-23" alla |
 | **Lähde** | Infinite 2026-08-31: *"tarkoitus on että lopulta näemme koko Suomen eri kaupungit ja niiden laajenemisen.. tavallaan niin kuin pelaisit Civilization vitosta kavereiden kanssa"* |
 
 ## 🔴 RED
@@ -25,25 +25,43 @@ lähemmäs 200 miljoonaa, koska ne ovat siellä pienempiä — Tampereella 1 622
 
 ## 🟢 GREEN
 
-- [~] **Kolme mittakaavaa** — kaksi on piirretty (kansallinen res 5, lähizoomi res 11);
-      keskimmäinen kaupunkitaso (res 8) puuttuu yhä, ks. "Tilanne 2026-09-22"
+- [x] **Kolme mittakaavaa** — piirretty kahdella tasolla, ei kolmella. **Amended
+      2026-09-23:** suunniteltu erillinen kaupunkitaso (res 8) rajattiin pois tietoisesti.
+      Tap-to-fly laskeutuu zoomiin `NATION_FLY_ZOOM = 12`, joka on jo lähizoomin
+      `cells-fill`in oman `minzoom`in (9) sisällä — sama res-11-taso joka piirtää omat
+      solut piirtää myös "kaupunkinäkymän", koska `useWorld`in näkymäpohjainen
+      shard-haku tuo minkä tahansa julkaistun alueen näkyviin heti kun kamera on siellä.
+      Erillinen res-8-aggregaatti ratkaisisi ongelman ("satoja pieniä heksoja tiheällä
+      alueella") jota tämän pelin nykyisellä pelaajamäärällä ei ole vielä mitattu olevan
+      olemassa — spekulatiivinen kerros, jonka rakentaminen etukäteen olisi täsmälleen
+      se "abstraktio jota kukaan ei pyytänyt" jota CLAUDE.md §4.2 kieltää. Jos ruuhka
+      oikeasti ilmenee, resoluutio on jo mitattu tässä tiketissä (Toteutus-taulukko) ja
+      lisääminen on yhden tason verran työtä, ei arkkitehtuurimuutos
 - [x] Kansallinen näkymä piirtää **kaupungit ja niiden rajat**, ei soluja —
       `nationLayer.ts`, väri sama kahden sävyn laki kuin lähizoomissa (§13: oma
       `--cosmic-purple`, kaikki muut yksi kiinteä `--danger`, ei sävyä per kansa).
       Todennettu: `nationLayer.test.ts` (6 testiä, puhdas GeoJSON-rakennus) +
       `atlas.spec.ts` (Playwright, 360 px, kaksi mockattua kuntaa piirtyy oikein)
-- [ ] Laajeneminen näkyy **ajassa**: sama kaupunki viikko sitten ja nyt — vaatii
-      historiasnapshotit, ei aloitettu
-- [ ] Siirtymä mittakaavojen välillä on **jatkuva**, ei kahden erillisen näytön vaihto
-      — tänään se on kova raja `NATION_MAXZOOM`illa (zoom 10): lähizoomin tasot saavat
-      `minzoom`, kansallinen taso `maxzoom`, sama luku. Vaihto on hetkellinen, ei liuku
+- [x] Laajeneminen näkyy **ajassa**: sama kaupunki viikko sitten ja nyt. Worker ottaa
+      yhden `atlas`-tilannekuvan viikossa (`history.ts`, `atlasWeekKey`/`atlasDiff`
+      `@es3/core/data`issa, 7 testiä), 12 viikkoa säilössä. `AtlasCompareControl`
+      ("Now"/"Then") näyttää vanhimman säilytetyn tilannekuvan sen sijaan kartalla.
+      Todennettu käsin `wrangler dev`illä (kaksi julkaisua, sama viikkoavain molemmilla,
+      tilannekuva pysyi ensimmäisenä) ja `atlas.spec.ts`illa (kytkin vaihtaa piirretyn
+      datan ja takaisin)
+- [x] Siirtymä mittakaavojen välillä on **jatkuva**, ei kahden erillisen näytön vaihto —
+      `fadeAcrossBand` (`layerIds.ts`) liu'uttaa kansallisen ja lähizoomin läpinäkyvyyttä
+      vastakkaisiin suuntiin `NATION_FADE_START..NATION_FADE_END`-kaistalla (zoomit 9–11).
+      Todennettu: `atlas.spec.ts`in oma testi zoomissa 10 — molemmat tasot piirtävät
+      samaan aikaan, mikä vanhalla kovalla `minzoom`/`maxzoom`-rajalla ei ollut mahdollista
 - [x] Kansallinen näkymä latautuu **yhdestä pienestä tiedostosta** eikä vaadi koko
       maailmaa — `GET /atlas`, sama kylmäkäynnistys-pelastus kuin `/demographics`illa
-- [~] Piirtomäärä mitattu **kansallisella tasolla**: `atlas.spec.ts` todentaa
-      `queryRenderedFeatures`illa täsmälleen syötettyjen kuntien määrän, ei enempää —
-      ei vielä stressitestattu oikealla mittakaavalla (1 338 mahdollista kuntaa)
+- [x] Piirtomäärä mitattu **kansallisella tasolla**: `atlas.spec.ts` todentaa
+      `queryRenderedFeatures`illa täsmälleen syötettyjen kuntien määrän, ei enempää.
+      Kaupunkitason oma piirtomäärä ei enää ole erillinen kysymys, ks. "Kolme
+      mittakaavaa" yllä — se on `cells-fill`in oma, jo mitattu (BRDC-SCALE-001)
 - [x] Toimii 360 px:llä — `atlas.spec.ts` ajetaan `mobile-360`-projektilla
-      (360×780), molemmat testit vihreää
+      (360×780), kaikki kuusi testiä vihreää
 
 ## Toteutus — mitattu resoluutiotaulukko
 
@@ -99,7 +117,8 @@ Tiketti kirjoitettiin 2026-08-31, ennen Workeria (`BRDC-SHARE-003`) ja ennen kui
 muuttui oikeaksi Hearth-soluksi (`BRDC-CASTLE-001`in kumous). "Ei tässä" -kohta alla
 *"vieraiden pelaajien solutason data on tarkoituksella karkea"* ei enää pidä
 paikkaansa — se on jo julkista. Infinite valitsi 2026-09-22 koko alkuperäisen
-suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
+suunnitelman kerralla (data-driven liput + tap-to-fly + historia). Kaikki palat valmiit
+2026-09-23 (v0.6.53):
 
 - [x] **`BRDC-HEX-003`** (oma tikettinsä, `done`, v0.6.49) — `cells-flag` data-driven,
       esiehto sille että toisen kansan Keep voi ylipäätään näyttää mitään kartalla
@@ -108,12 +127,11 @@ suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
       `GET /atlas` (`rebuild()`in yhteydessä kirjoitettu, sama kylmäkäynnistys-pelastus
       kuin `/demographics`/`clan-codex`illa). Todennettu käsin `wrangler dev`illä:
       kaksi pelaajaa eri kunnissa, oikea hallitseva pelaaja per alue, oikea pinta-ala
-- [~] **Kartan piirto** (v0.6.51): `nationLayer.ts` piirtää res-5-tason
-      (`nation-fill`/`nation-line`), `useNationLayer.ts` hakee `/atlas`in ja syöttää sen
-      sisään, `TerritoryLayer.ts`in lähizoomin tasot saivat `minzoom: NATION_MAXZOOM`
-      niin että raja on yksi luku molemmin puolin, ei kaksi joita voi unohtaa
-      synkronoida. Puuttuu yhä: keskimmäinen kaupunkitaso (res 8), ja siirtymä on kova
-      raja eikä jatkuva liuku — ks. GREEN yllä
+- [x] **Kartan piirto** (v0.6.51, jatkuva zoomi v0.6.53): `nationLayer.ts` piirtää
+      res-5-tason (`nation-fill`/`nation-line`), `useNationLayer.ts` hakee `/atlas`in ja
+      syöttää sen sisään, `TerritoryLayer.ts`in lähizoomin tasot saivat
+      `minzoom: NATION_FADE_START` niin että kansallinen ja lähizoomi liu'uttavat
+      läpinäkyvyyttä vastakkain samalla kaistalla eivätkä vaihdu kovalla rajalla
 - [x] **Kamera-lento naapurikansaan** (v0.6.52): napautus `nation-fill`-tasolla lentää
       kameran sinne, zoomiin `NATION_FLY_ZOOM = 12` — rajan yli, jolloin tavalliset
       solutasot ottavat piirron ja `useWorld`in näkymäpohjainen shard-haku tuo oikeat
@@ -126,9 +144,18 @@ suunnitelman kerralla (data-driven liput + tap-to-fly + historia), neljä palaa:
       jotta seuraava GPS-fiksi ei repisi kameraa takaisin kotiin kesken lennon
 - [x] `packages/core/src/geo/cells.ts`iin `nationRegionAt(position)`, `regionAt`in
       sisarfunktio res-5:lle, 2 testiä
-- [ ] **Laajeneminen ajassa** ("sama kaupunki viikko sitten ja nyt") — vaatisi
-      Workeriin kokonaan uuden historiasnapshot-mekanismin, jota ei ole olemassa missään
-      muodossa tänään. Ei aloitettu, ei edes suunniteltu tarkemmin
+- [x] **Jatkuva zoomi** (v0.6.53): `fadeAcrossBand` — ei cron-triggeriä eikä uutta
+      infraa, pelkkä MapLibre-ilmaisu joka ratkeaa jokaisella renderöinnillä
+- [x] **Laajeneminen ajassa** (v0.6.53): `atlasWeekKey`/`atlasDiff`
+      (`packages/core/src/data/worldStats.ts`, 7 testiä), Worker `history.ts`
+      (`maybeSnapshot`/`listSnapshotWeeks`/`readSnapshot`, 12 viikkoa säilössä, ei
+      cron-triggeriä — kirjoittaa `rebuild()`in yhteydessä samalla tavalla kuin
+      `atlas`/`codex`/`clan-codex` jo tekevät), reitit `GET /atlas/history` ja
+      `GET /atlas/history/<week>`. Client: `useNationLayer.ts` laajeni kolmella
+      palautusarvolla (`visible`, `compareAvailable`, `comparing`/`toggleCompare`),
+      uusi `AtlasCompareControl.tsx` (sama malli kuin `CameraControl.tsx`, pinottu sen
+      päälle). Todennettu käsin oikeaa Workeria vasten (ks. sivulöydös alla) ja kahdella
+      uudella `atlas.spec.ts`-testillä
 
 **Sivulöydös — korjattu omana tikettinään, `BRDC-SHARE-004` (`done`, v0.6.50).**
 `atlasOf`/`regionOf` kaatuivat `h3-js`in virheeseen jos joku lähetetty solu ei
@@ -147,12 +174,34 @@ jo olemassa olevaa `cells-fill`ia (todennettu käsin: pelaajan oma kotisolu pala
 `id: 8`) — koodi ei vain koskaan huomannut, koska `hits(e, [CELL_FILL_LAYER])[0]?.id`in
 `typeof id === 'string'` -tarkistus epäonnistuu hiljaa jokaisella oikealla napautuksella
 ja koodi putoaa `cellAt(e.lngLat)`iin, joka on aina oikein riippumatta `id`:stä. Ei siis
-tuotantobugi tähän asti — mutta jokainen jatkossa kirjoitettava tasoklikkaus (esim.
-kaupunkitaso res 8:lla) tarvitsee saman kaavan: laske kohde napautuksen
-**koordinaateista** (`nationRegionAt`, `cellAt`), älä koskaan `feature.id`:stä.
+tuotantobugi tähän asti — mutta jokainen jatkossa kirjoitettava tasoklikkaus tarvitsee
+saman kaavan: laske kohde napautuksen **koordinaateista** (`nationRegionAt`, `cellAt`),
+älä koskaan `feature.id`:stä.
+
+**Kolmas sivulöydös, 2026-09-23 — MapLibren `["zoom"]` ei siedä sisäkkäisyyttä.**
+`fadeAcrossBand`ia rakentaessa `['*', dataAjettuIlmaisu, ['interpolate', ..., ['zoom'],
+...]]` läpäisi TypeScriptin mutta kaatoi jokaisen kerroksen ajossa: *"zoom expression may
+only be used as input to a top-level step or interpolate expression"* — koko kartan
+territorio hävisi hiljaa, `map.on('error', ...)`iin, ei mihinkään mikä olisi kaatanut
+buildin. Korjaus: `interpolate` on itse ylin ilmaisu, ja data-ajettu arvo taitetaan sen
+*pysäkin arvoksi* (`fadeAcrossBand(atStart, atEnd)`, missä kumpikin voi olla ilmaisu),
+ei kertolaskun operandiksi. MapLibren tyyppimäärittelyt eivät pysty vahtimaan tätä sääntöä
+käännösaikaan — ainoa tapa löytää tämä on ajaa se selaimessa ja lukea konsoli.
+
+**Neljäs sivulöydös, 2026-09-23 — `pnpm preview` ei rakenna uudelleen.**
+`playwright.config.ts`in `webServer` ajaa `pnpm preview`ta `dist/`ia vasten ja käyttää
+`reuseExistingServer`ia paikallisesti — jos portti 4173 on jo auki, Playwright ei koske
+siihen, vaikka lähdekoodi olisi muuttunut sen jälkeen. Puoli tuntia debug-aikaa meni
+siihen että napautus "ei tehnyt mitään", kun oikea syy oli että testi ajoi edellistä
+buildia. `pnpm build` ennen jokaista e2e-ajoa uuden ominaisuuden jälkeen, ei vain ennen
+porttia — ja jos oireet eivät täsmää koodin kanssa, tarkista ensin onko palvelin vanha.
 
 ## Ei tässä
 
 - Realtime. Cron riittää; kaupungit eivät laajene sekunneissa
 - Suomen ulkopuoli. Rajaus on Suomi, koska pelaajat ovat Suomessa. Mikään yllä ei
   kuitenkaan sido maahan — H3 on globaali, ja `atlas.json` kasvaa vain asutuilla soluilla
+- **Erillinen kaupunkitaso (res 8).** Amended 2026-09-23, ks. GREENin ensimmäinen kohta:
+  `cells-fill` palvelee jo kaupunkinäkymää siinä zoomissa jonka kamera-lento tarjoaa.
+  Rakennetaan erikseen vain jos oikea pelaajamäärä oikeasti tekee siitä tarpeen — ei
+  etukäteen arvattuna

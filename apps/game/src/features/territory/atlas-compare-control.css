@@ -1,0 +1,47 @@
+/* "Then/now" toggle for the Atlas — stacked directly above the recenter button
+   (camera-control.css), same right-hand column, one touch target's gap higher. */
+.atlas-compare {
+  position: fixed;
+  inset-inline-end: max(var(--space-3), env(safe-area-inset-right));
+  inset-block-end: calc(var(--hud-height, 9rem) + var(--space-8) + var(--touch-min) + var(--space-3));
+  min-inline-size: var(--touch-min);
+  block-size: var(--touch-min);
+  padding-inline: var(--space-3);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  z-index: var(--z-hud);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.atlas-compare[data-comparing='true'] {
+  color: var(--sacred-gold);
+  border-color: color-mix(in oklch, var(--sacred-gold) 55%, transparent);
+}
+
+.atlas-compare:active {
+  transform: translateY(1px);
+}
+
+.atlas-compare:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-compare {
+    transition: none;
+  }
+}

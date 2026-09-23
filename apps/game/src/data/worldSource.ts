@@ -67,6 +67,35 @@ export async function fetchTable(path: '/demographics' | '/clan-codex' | '/atlas
   }
 }
 
+/**
+ * The weeks a stored Atlas snapshot exists for, oldest first — what a "compare to N
+ * weeks ago" toggle offers (BRDC-ATLAS-001). An empty list either way: no snapshot yet
+ * is not a fault, just nothing to compare against.
+ */
+export async function fetchAtlasHistoryWeeks(): Promise<string[]> {
+  try {
+    const res = await fetch(`${WORLD_API}/atlas/history`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = (await res.json().catch(() => null)) as { weeks?: string[] } | null;
+    return Array.isArray(data?.weeks) ? data.weeks : [];
+  } catch {
+    return [];
+  }
+}
+
+/** One named week's Atlas snapshot — same three outcomes as `fetchTable`, a dynamic
+ *  path being the only reason this is not simply another one of its cases. */
+export async function fetchAtlasSnapshot(weekKey: string): Promise<CodexFetch> {
+  try {
+    const res = await fetch(`${WORLD_API}/atlas/history/${weekKey}`, { cache: 'no-store' });
+    if (res.status === 204) return { ok: false, reason: 'empty' };
+    if (!res.ok) return { ok: false, reason: 'unreachable' };
+    return { ok: true, text: await res.text() };
+  } catch {
+    return { ok: false, reason: 'unreachable' };
+  }
+}
+
 export type PublishResult = 'ok' | 'rate-limited' | 'failed';
 
 export interface PublishOutcome {

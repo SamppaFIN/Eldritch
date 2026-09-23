@@ -17,7 +17,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { cellBoundary } from '@es3/core';
 import type { AtlasRegion, PlayerId } from '@es3/core';
 import { ENEMY_FILL, ENEMY_STROKE, OWN_FILL, OWN_STROKE } from './territoryFeatures.js';
-import { NATION_FILL_LAYER, NATION_LINE_LAYER, NATION_MAXZOOM, NATION_SOURCE } from './layerIds.js';
+import { fadeAcrossBand, NATION_FADE_END, NATION_FILL_LAYER, NATION_LINE_LAYER, NATION_SOURCE } from './layerIds.js';
 
 export interface NationProperties {
   mine: boolean;
@@ -61,13 +61,14 @@ export function addNationLayers(map: MapLibreMap): void {
     id: NATION_FILL_LAYER,
     type: 'fill',
     source: NATION_SOURCE,
-    maxzoom: NATION_MAXZOOM,
+    maxzoom: NATION_FADE_END,
     paint: {
       'fill-color': ['get', 'color'],
       // Same two figures the close-up fill uses for mine/theirs (REVEAL_FILL has no
       // equivalent here — a municipality with nobody's ground in it is not a feature
-      // at all, so there is no third tier to draw).
-      'fill-opacity': ['case', ['get', 'mine'], 0.32, 0.22],
+      // at all, so there is no third tier to draw), fading to 0 across the band where
+      // the ordinary cell layers take over.
+      'fill-opacity': fadeAcrossBand(['case', ['get', 'mine'], 0.32, 0.22], 0),
     },
   });
 
@@ -75,11 +76,11 @@ export function addNationLayers(map: MapLibreMap): void {
     id: NATION_LINE_LAYER,
     type: 'line',
     source: NATION_SOURCE,
-    maxzoom: NATION_MAXZOOM,
+    maxzoom: NATION_FADE_END,
     paint: {
       'line-color': ['case', ['get', 'mine'], OWN_STROKE, ENEMY_STROKE],
       'line-width': 1,
-      'line-opacity': 0.7,
+      'line-opacity': fadeAcrossBand(0.7, 0),
     },
   });
 }

@@ -43,6 +43,9 @@
  * BRDC-ATLAS-001 adds `GET /atlas` — one row per res-5 municipality with any player's
  * ground in it, naming whoever holds the most of it (`atlasOf`, `@es3/core/data`). The
  * country-wide view a phone can actually load: a few hundred rows, not 157M res-11 cells.
+ * `GET /atlas/history` and `GET /atlas/history/<week>` add "then" to that "now" — one
+ * snapshot taken (never a cron, only on `/submit`) at most once every seven days, kept
+ * twelve deep (`history.ts`).
  */
 import { atlasOf, buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
 import type { PlayerFile, WorldSource } from '@es3/core/data';
@@ -50,6 +53,7 @@ import { isOwnershipCell } from '@es3/core/geo';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
 import { craftChronicle, isKingdomFacts } from './chronicle.js';
 import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './clan.js';
+import { listSnapshotWeeks, maybeSnapshot, readSnapshot } from './history.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -136,6 +140,7 @@ async function rebuild(kv: KV, now: number): Promise<number> {
   await kv.put(CODEX, JSON.stringify(demographicsOf(live, now)));
   await kv.put(CLAN_CODEX, JSON.stringify(await clanCodexOf(kv, live, now)));
   await kv.put(ATLAS, JSON.stringify({ v: 1, generatedAt: now, regions: atlasOf(live) }));
+  await maybeSnapshot(kv, now, live);
   const shards = buildShards(live, now);
   const kept = new Set<string>();
   for (const [region, shard] of shards) {
@@ -239,6 +244,19 @@ export default {
       return new Response(atlas, {
         headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
       });
+    }
+
+    // The weeks a "compare to" picker can offer — oldest first, at most MAX_SNAPSHOTS of
+    // them (BRDC-ATLAS-001). Never a fault: no snapshots yet reads the same as none ever.
+    if (request.method === 'GET' && url.pathname === '/atlas/history') {
+      return send({ weeks: await listSnapshotWeeks(env.WORLD) });
+    }
+
+    if (request.method === 'GET' && url.pathname.startsWith('/atlas/history/')) {
+      const weekKey = url.pathname.slice('/atlas/history/'.length);
+      const snapshot = weekKey ? await readSnapshot(env.WORLD, weekKey) : null;
+      if (!snapshot) return bare(204);
+      return send(snapshot);
     }
 
     if (request.method === 'POST' && url.pathname === '/kingdom-story') {
@@ -347,6 +365,8 @@ export default {
           'GET /demographics',
           'GET /clan-codex',
           'GET /atlas',
+          'GET /atlas/history',
+          'GET /atlas/history/<week>',
           'POST /kingdom-story',
           'POST /clan',
           'GET /clan/<id>',
