@@ -159,8 +159,8 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | [BRDC-EVENT-001](BRDC-EVENT-001.md) | Tapahtumaketjut, anomaliat, pimeät ajat | M | REVEAL-001, HEX-001 |
 | [BRDC-QUEST-001](BRDC-QUEST-001.md) | Seikkailut: järvenpuhdistus ja dialogi | M | EVENT-001, ART-001 |
 | [BRDC-ATLAS-001](BRDC-ATLAS-001.md) | Koko Suomi: kaupungit, rajat ja laajeneminen | L | SHARE-001, CASTLE-001, SCALE-001 |
-| [BRDC-MODE-001](BRDC-MODE-001.md) | Reittimoodi vs. Seikkailumoodi: valinta, tallennus, portitus | M | — |
-| [BRDC-MODE-002](BRDC-MODE-002.md) | Reittimoodin oma sääntöpolku ja tulostaulu | L | MODE-001 |
+| [BRDC-MODE-001](BRDC-MODE-001.md) | ✅ Reittimoodi vs. Seikkailumoodi: valinta, tallennus, portitus | M | — |
+| [BRDC-MODE-002](BRDC-MODE-002.md) | ✅ Reittimoodin oma sääntöpolku ja tulostaulu | L | MODE-001 |
 
 **Pelaajalle näkyvä:**
 
@@ -493,3 +493,24 @@ ja se korjaantuu `BRDC-ECON-004`:n Resources-osiossa.
 
 Uusia status- tai yhteenvetodokumentteja **ei luoda**. Edistyminen merkitään tikettien
 `Status`- ja `Valmius`-kenttiin.
+
+---
+
+## Ideapankki — 2026-09-23
+
+Infiniten viesti MODE-002:n valmistuttua: *"Viimeistele niin paljon listatuista
+asioista samalla, minkä näet oleelliseksi. Tehdään sitten taas isompia muutoksia
+ensviikon alusta."* Neljä pyyntöä kirjattu tiketeiksi (kolme) tai tähän riviin
+(yksi liian pieni omaksi tiketiksi vielä), **ei aikataulutettu, ei toteutettu.**
+
+| ID | Nimi | Effort | Ydin |
+|---|---|:---:|---|
+| [BRDC-HALL-003](BRDC-HALL-003.md) | Chronicles: jaettu Hall of Fame, aikakaudella | M | `POST/GET /chronicle(s)`, `era?: string` vapaana tekstinä |
+| [BRDC-MODE-003](BRDC-MODE-003.md) | Seikkailumoodi pakottaa uuden kuningaskunnan kerran | M | avoin kysymys: koskeeko *kaikkia* nykyisiä tallennuksia heti — ratkaistava ennen toteutusta |
+| [BRDC-CLAIM-017](BRDC-CLAIM-017.md) | "Viimeisin käynti omistaa" — eri sääntösetti kuin piiritys | XL | ⚠️ ristiriidassa `claude.md` §11:n kanssa kirjaimellisesti; ei suunniteltu, vain kirjattu sanatarkasti |
+| — (ei vielä tikettiä) | Päivittäiset highscore-taulut eri edistymisistä | S–M | Infinite 2026-09-23, yhdellä lauseella — Codex/Route Ledger/Chronicles ovat kaikki elinikäisiä kumulatiivisia tauluja; tämä pyytää päivän-mittaisia. Tarkentamaton: mitkä mittarit, nollautuuko keskiyöllä vai rullaava 24 h |
+
+**CLAIM-017 on Infiniten oma sana "tärkein"**, mutta se on myös laajin ja eniten
+auki — kolme muuta pistettä osuvat kaikki siihen (Wager, MODE-002:n juuri annettu
+"ei rappiota/varastamista" -lupaus reittimoodille, anti-cheat). Ei aloiteta ilman
+että avoimet kysymykset tiketissä on käyty läpi ensin.
