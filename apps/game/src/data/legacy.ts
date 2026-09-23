@@ -9,8 +9,11 @@
 import type { HallOfFameEntry } from '@es3/core';
 import { WORLD_API } from './worldSource.js';
 
-export interface LegacyEntry extends HallOfFameEntry {
+/** A shared row. `xp` is optional: the Worker did not keep it at first, and a row it
+ *  holds from then still has to render (the Chronicles tab threw on exactly that). */
+export interface LegacyEntry extends Omit<HallOfFameEntry, 'xp'> {
   playerId: string;
+  xp?: number;
 }
 
 /** `true` only once the Worker actually accepted it — `HallOfFamePanel`'s "Share" button

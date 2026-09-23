@@ -17,6 +17,8 @@ export interface LegacyEntry {
   name: string;
   retiredAt: number;
   level: number;
+  /** Absent on rows published before this field was kept. */
+  xp?: number;
   cells: number;
   areaM2: number;
   population: number;
@@ -56,6 +58,7 @@ export async function publishLegacy(kv: KV, raw: unknown): Promise<LegacyEntry |
     name: raw.name.slice(0, MAX_TEXT),
     retiredAt: raw.retiredAt,
     level: raw.level,
+    ...(typeof raw.xp === 'number' ? { xp: raw.xp } : {}),
     cells: raw.cells ?? 0,
     areaM2: raw.areaM2,
     population: raw.population ?? 0,

@@ -68,6 +68,22 @@ test('the Chronicles tab shows kingdoms shared from every device', async ({ page
       cipherShards: 0,
       era: 'the Stone Age',
     },
+    // Rows the Worker took before it kept `xp` have none — the tab threw on exactly this.
+    {
+      id: 'k2',
+      playerId: 'p3',
+      name: 'Oldrow',
+      retiredAt: Date.now() - 1_000,
+      level: 2,
+      cells: 7,
+      areaM2: 11_000,
+      population: 280,
+      provinces: 1,
+      achievements: 0,
+      secretSites: 0,
+      wonders: 0,
+      cipherShards: 0,
+    },
   ];
   await page.route('**/legacy', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ entries }) }),
@@ -81,6 +97,7 @@ test('the Chronicles tab shows kingdoms shared from every device', async ({ page
 
   await expect(hall).toContainText('Farwalker');
   await expect(hall).toContainText('the Stone Age');
+  await expect(hall).toContainText('Oldrow');
   await expect(hall.getByRole('button', { name: /Reveal the chronicle/i })).toHaveCount(0);
 });
 

@@ -114,7 +114,8 @@ function legacyRow(entry: LegacyEntry, now: number) {
       </div>
       {entry.era ? <p className="hall__era">{entry.era}</p> : null}
       <p className="hall__level es-numeric">
-        Level {entry.level} · {entry.xp.toLocaleString()} XP
+        Level {entry.level}
+        {typeof entry.xp === 'number' ? ` · ${entry.xp.toLocaleString()} XP` : ''}
       </p>
       <dl className="hall__figures es-numeric">
         <div>
@@ -123,7 +124,7 @@ function legacyRow(entry: LegacyEntry, now: number) {
         </div>
         <div>
           <dt>Souls</dt>
-          <dd>{entry.population.toLocaleString()}</dd>
+          <dd>{(entry.population ?? 0).toLocaleString()}</dd>
         </div>
         <div>
           <dt>Provinces</dt>
