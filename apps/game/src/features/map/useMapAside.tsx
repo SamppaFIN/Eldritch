@@ -18,6 +18,7 @@ import { useEncountered } from '../help/useEncountered.js';
 import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
 import { CodexPanel } from '../codex/CodexPanel.js';
+import { RouteCodexPanel } from '../codex/RouteCodexPanel.js';
 import { LandsPanel } from '../lands/LandsPanel.js';
 import { GpxPanel } from '../gpx/GpxPanel.js';
 import { HallOfFamePanel } from '../hall/HallOfFamePanel.js';
@@ -36,6 +37,8 @@ export interface MapAside {
   openCharacter: () => void;
   /** The Codex of Dominion — every realm measured (BRDC-CODEX-001). */
   openCodex: () => void;
+  /** Route mode's own leaderboard — distance and hexes only (BRDC-MODE-002). */
+  openRouteCodex: () => void;
   /** The ledger of held ground (BRDC-LANDS-001). */
   openLands: () => void;
   /** Import a recorded walk (BRDC-GPX-001). */
@@ -77,6 +80,7 @@ export function useMapAside(
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [characterOpen, setCharacterOpen] = useState(false);
   const [codexOpen, setCodexOpen] = useState(false);
+  const [routeCodexOpen, setRouteCodexOpen] = useState(false);
   const [landsOpen, setLandsOpen] = useState(false);
   /** A payout earned on the ledger page, handed to the one toast the map owns. */
   const [landsGain, setLandsGain] = useState<Collected | null>(null);
@@ -150,6 +154,7 @@ export function useMapAside(
         onClose={() => setCharacterOpen(false)}
       />
       <CodexPanel open={codexOpen} me={meId} onClose={() => setCodexOpen(false)} />
+      <RouteCodexPanel open={routeCodexOpen} me={meId} onClose={() => setRouteCodexOpen(false)} />
       <LandsPanel
         open={landsOpen}
         repository={repository}
@@ -191,6 +196,7 @@ export function useMapAside(
     openLog: () => setLogOpen(true),
     openCharacter: () => setCharacterOpen(true),
     openCodex: () => setCodexOpen(true),
+    openRouteCodex: () => setRouteCodexOpen(true),
     openLands: () => setLandsOpen(true),
     openGpx: () => setGpxOpen(true),
     openHallOfFame: () => setHallOpen(true),
@@ -203,6 +209,7 @@ export function useMapAside(
       logOpen ||
       characterOpen ||
       codexOpen ||
+      routeCodexOpen ||
       landsOpen ||
       gpxOpen ||
       hallOpen ||
@@ -214,6 +221,7 @@ export function useMapAside(
       setLogOpen(false);
       setCharacterOpen(false);
       setCodexOpen(false);
+      setRouteCodexOpen(false);
       setLandsOpen(false);
       setGpxOpen(false);
       setHallOpen(false);

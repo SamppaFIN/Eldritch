@@ -14,10 +14,11 @@ import { cellToLatLng } from 'h3-js';
 import { cellsWithin, regionsCoveringBBox } from '../geo/cells.js';
 import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
-import { FORTRESS_REACH, fortified } from '../rules/aura.js';
+import { FORTRESS_REACH, fortified, loyaltyFactor, loyaltySourceCells } from '../rules/aura.js';
+import { readPlaces } from './keepStore.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
-import type { BBox, Cell, H3Index, Terrain } from '../types/domain.js';
+import type { BBox, Cell, H3Index, PlayerId, Terrain } from '../types/domain.js';
 
 export const CELL_PREFIX = 'cell:';
 
@@ -84,10 +85,12 @@ export async function sweepAndPersist(
   now: number,
   loyalty?: (cell: Cell) => number,
   home: H3Index | null = null,
+  /** The local route-mode player's own id (BRDC-MODE-002), or `null`. See `projectCell`. */
+  routeOwner: PlayerId | null = null,
 ): Promise<DecaySweep> {
   const lookup = new Map<H3Index, Cell>(cells.map((c) => [c.h3, c]));
   const underFortress = (c: Cell): boolean => fortified(lookup, c.h3);
-  let sweep = sweepDecay(cells, now, loyalty, home, underFortress);
+  let sweep = sweepDecay(cells, now, loyalty, home, underFortress, routeOwner);
 
   /*
    * A Fortress just outside `cells` still protects what is inside it (BRDC-BUILD-012). A
@@ -106,12 +109,25 @@ export async function sweepAndPersist(
         const cell = found[i];
         if (cell) lookup.set(h3, cell);
       });
-      sweep = sweepDecay(cells, now, loyalty, home, underFortress);
+      sweep = sweepDecay(cells, now, loyalty, home, underFortress, routeOwner);
     }
   }
 
   for (const h3 of sweep.released) await store.delete(K.cell(h3));
   return sweep;
+}
+
+/** A decay-multiplier resolver: <1 next to my Monuments or a place, else 1 (BRDC-BUILD-003).
+ *  Moved out of MockRepository, which was at its line ceiling (BRDC-MODE-002). */
+export async function loyaltyOver(
+  store: KeyValueStore,
+  me: PlayerId,
+  home: H3Index | null,
+  cells: readonly Cell[],
+): Promise<(cell: Cell) => number> {
+  const places = (await readPlaces(store, () => Promise.resolve(home))).map((p) => p.h3);
+  const sources = loyaltySourceCells(cells.filter((c) => c.ownerId === me), places);
+  return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
 }
 
 /**

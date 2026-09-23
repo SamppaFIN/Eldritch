@@ -179,14 +179,14 @@ export const CHALLENGE_VERSION = 4;
  */
 export const WORLD_VERSION = 2;
 
+/** Codex table shape versions, separate from `WORLD_VERSION` (BRDC-CODEX-001, BRDC-MODE-002). */
+export const CODEX_VERSION = 1;
+export const ROUTE_CODEX_VERSION = 1;
+
 /**
  * The build's own version, shown in the menu and headed each `changelog.json` block
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
- * feature. Kept in step with `package.json` and `claude.md` §2.
- */
-/** The Codex table's own shape version, separate from `WORLD_VERSION` (BRDC-CODEX-001). */
-export const CODEX_VERSION = 1;
-
+ * feature. Kept in step with `package.json` and `claude.md` §2. */
 export const APP_VERSION = '0.5.87';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;

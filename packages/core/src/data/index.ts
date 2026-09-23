@@ -120,6 +120,8 @@ export type {
   Placement,
   Standing,
 } from './demographics.js';
+export { routeCodexOf, routePlacementOf } from './routeCodex.js';
+export type { RouteCodex, RouteMeasurable, RoutePlacement, RouteStanding } from './routeCodex.js';
 export { clanMeasurables } from './clanDemographics.js';
 export { atlasDiff, atlasOf, atlasWeekKey } from './worldStats.js';
 export type { AtlasChange, AtlasHolder, AtlasRegion } from './worldStats.js';

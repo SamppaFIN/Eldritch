@@ -238,3 +238,33 @@ describe('the Hearth does not decay (BRDC-HEARTH-002)', () => {
     expect(projectCell(cell(BASE_STRENGTH, 'hearth'), days(60))).toBeNull();
   });
 });
+
+describe("a route-mode save's own ground does not decay (BRDC-MODE-002)", () => {
+  it('projectCell returns it unchanged 90 days on', () => {
+    const mine = cell(BASE_STRENGTH, 'a');
+    expect(projectCell(mine, days(90), 1, null, false, 'me')).toEqual(mine);
+  });
+
+  it('matches only the given owner, not everyone', () => {
+    const rival = { ...cell(BASE_STRENGTH, 'r'), ownerId: 'someone-else' };
+    expect(projectCell(rival, days(90), 1, null, false, 'me')).toBeNull();
+  });
+
+  it('without a routeOwner argument it decays like any cell — the guard is opt-in', () => {
+    expect(projectCell(cell(BASE_STRENGTH, 'a'), days(90))).toBeNull();
+  });
+
+  it('sweepDecay never weakens or releases the route-mode player’s own cells', () => {
+    const mine = cell(BASE_STRENGTH, 'mine');
+    const rival = { ...cell(BASE_STRENGTH, 'rival'), ownerId: 'someone-else' };
+    const sweep = sweepDecay([mine, rival], days(90), undefined, null, undefined, 'me');
+    expect(sweep.released).toEqual(['rival']);
+    expect(sweep.weakened).toEqual([]);
+    expect(sweep.cells).toEqual([mine]);
+  });
+
+  it('blightLevel is zero for a route-mode player’s own cell, however old', () => {
+    const old = hours(DECAY_GRACE_HOURS + BLIGHT_FULL_HOURS * 5);
+    expect(blightLevel(cell(BASE_STRENGTH, 'a'), old, null, false, 'me')).toBe(0);
+  });
+});

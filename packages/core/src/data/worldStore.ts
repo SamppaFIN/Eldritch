@@ -10,6 +10,7 @@ import { parseWorld, worldSourceFrom, worldToCells } from './world.js';
 import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
 import { leyLineM } from '../geo/paths.js';
 import { readPaths } from './pathStore.js';
+import { readRouteDistance } from './distanceStore.js';
 import { muster } from './wagerRepo.js';
 import type { MusterDeps } from './wagerRepo.js';
 import { K } from './keys.js';
@@ -69,5 +70,13 @@ export async function exportWorldSource(
   store: KeyValueStore,
 ): Promise<WorldSource> {
   const m = await muster(deps, now);
-  return worldSourceFrom(m.me, m.owned, m.castle, identity, leyLineM(await readPaths(store)));
+  const routeDistanceM = m.me.mode === 'route' ? await readRouteDistance(store) : 0;
+  return worldSourceFrom(
+    m.me,
+    m.owned,
+    m.castle,
+    identity,
+    leyLineM(await readPaths(store)),
+    routeDistanceM,
+  );
 }

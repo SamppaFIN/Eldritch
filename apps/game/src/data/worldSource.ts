@@ -52,9 +52,12 @@ export type CodexFetch =
   | { ok: true; text: string }
   | { ok: false; reason: 'empty' | 'unreachable' };
 
-/** `path` is `/demographics` (players), `/clan-codex` (BRDC-CLAN-002) or `/atlas`
- *  (BRDC-ATLAS-001) — same three outcomes, different bodies once parsed. */
-export async function fetchTable(path: '/demographics' | '/clan-codex' | '/atlas'): Promise<CodexFetch> {
+/** `path` is `/demographics` (players), `/clan-codex` (BRDC-CLAN-002), `/atlas`
+ *  (BRDC-ATLAS-001) or `/route-codex` (Route mode's own table, BRDC-MODE-002) — same
+ *  three outcomes, different bodies once parsed. */
+export async function fetchTable(
+  path: '/demographics' | '/clan-codex' | '/atlas' | '/route-codex',
+): Promise<CodexFetch> {
   try {
     const res = await fetch(`${WORLD_API}${path}`, { cache: 'no-store' });
     // 204 is the Worker saying "asked and answered: nothing yet". Anything else that is

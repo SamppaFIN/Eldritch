@@ -374,7 +374,9 @@ export function MapView({ onLeave }: MapViewProps) {
         // all sanctuary ceremony built around adventure stats a route-mode save never
         // has (BRDC-MODE-001).
         onRetireKingdom={isRoute ? undefined : () => setConfirming('retire')}
-        onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
+        onOpenLog={aside.openLog} onOpenLands={aside.openLands}
+        onOpenCodex={isRoute ? undefined : aside.openCodex}
+        onOpenRouteCodex={isRoute ? aside.openRouteCodex : undefined}
         onOpenHallOfFame={isRoute ? undefined : aside.openHallOfFame}
         onOpenClan={isRoute ? undefined : aside.openClan}
         onOpenClanCodex={isRoute ? undefined : aside.openClanCodex} onOpenGpx={aside.openGpx}

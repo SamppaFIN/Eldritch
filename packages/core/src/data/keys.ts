@@ -67,4 +67,7 @@ export const K = {
   /** Retired kingdoms, `HallOfFameEntry[]` — the one record `retireKingdom` keeps back
    *  from the wipe it otherwise does (BRDC-HALL-001). */
   hallOfFame: 'hall-of-fame',
+  /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
+   *  — unlike `Run.distanceM`, which starts over every time a run closes. */
+  routeDistanceM: 'route-distance-m',
 } as const;

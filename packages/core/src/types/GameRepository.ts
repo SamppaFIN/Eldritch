@@ -94,6 +94,10 @@ export interface GameRepository {
    */
   getWalkedPaths(): Promise<WalkedEdge[]>;
 
+  /** A route-mode save's lifetime distance, metres — never reset, unlike a `Run`'s own
+   *  (BRDC-MODE-002). Zero for an adventure-mode save, which never accumulates it. */
+  getRouteDistance(): Promise<number>;
+
   /** The action log, newest first — claims, builds, losses, Wagers (BRDC-LOG-001). */
   getLog(limit?: number): Promise<LogEntry[]>;
 

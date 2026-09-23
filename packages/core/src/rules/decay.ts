@@ -14,7 +14,7 @@
  * put the two out of step, and the golden-fixture tests would be right to fail.
  */
 import { isCityState } from './cityState.js';
-import type { Cell, H3Index } from '../types/domain.js';
+import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 import {
   BLIGHT_FULL_HOURS,
   DECAY_GRACE_HOURS,
@@ -49,12 +49,20 @@ export function projectCell(
   home: H3Index | null = null,
   /** A Fortress of its owner stands over it (BRDC-BUILD-012) — the caller knows, the cell does not. */
   underFortress = false,
+  /** The local route-mode player's own id (BRDC-MODE-002), or `null` when not applicable.
+   *  A route-mode save never decays its own ground — that promise is kept here, once,
+   *  rather than by giving every route-mode cell an unreachable strength. Never a rival's
+   *  cell: this only ever matches `cell.ownerId`, so someone else's ground still ages
+   *  normally in the same sweep. */
+  routeOwner: PlayerId | null = null,
 ): Cell | null {
   if (cell.ownerId === null) return cell;
 
   // The Hearth cannot be lost (BRDC-HEARTH-002). It is the cell the player agreed to
   // start from; the Void does not get to take it back, however long they stay away.
   if (home && cell.h3 === home) return cell;
+
+  if (routeOwner && cell.ownerId === routeOwner) return cell;
 
   // Ground under a Fortress does not decay (BRDC-BUILD-012). Infinite chose this knowing
   // what it costs: a siege becomes the only way it is ever lost, so `resolveCapture` has to
@@ -102,8 +110,15 @@ export function blightLevel(
   now: number,
   home: H3Index | null = null,
   underFortress = false,
+  routeOwner: PlayerId | null = null,
 ): number {
-  if (cell.ownerId === null || cell.imported || underFortress || (home && cell.h3 === home)) {
+  if (
+    cell.ownerId === null ||
+    cell.imported ||
+    underFortress ||
+    (home && cell.h3 === home) ||
+    (routeOwner && cell.ownerId === routeOwner)
+  ) {
     return 0;
   }
   const hours = Math.max(0, now - cell.lastVisitedAt - (cell.shelteredMs ?? 0)) / 3_600_000;
@@ -162,13 +177,17 @@ export function sweepDecay(
   home: H3Index | null = null,
   /** Which of these stand under a Fortress (BRDC-BUILD-012). Answering needs their neighbours. */
   isUnderFortress?: (cell: Cell) => boolean,
+  /** The local route-mode player's own id (BRDC-MODE-002), or `null`. See `projectCell`. */
+  routeOwner: PlayerId | null = null,
 ): DecaySweep {
   const kept: Cell[] = [];
   const weakened: string[] = [];
   const released: string[] = [];
 
   for (const cell of cells) {
-    const after = projectCell(cell, now, loyalty?.(cell) ?? 1, home, isUnderFortress?.(cell) ?? false);
+    const after = projectCell(
+      cell, now, loyalty?.(cell) ?? 1, home, isUnderFortress?.(cell) ?? false, routeOwner,
+    );
     if (after === null) {
       released.push(cell.h3);
       continue;

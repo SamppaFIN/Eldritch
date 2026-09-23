@@ -289,6 +289,58 @@ describe('resetAll', () => {
   });
 });
 
+describe("route-mode ground does not decay (BRDC-MODE-002)", () => {
+  it('a route-mode save keeps its ground where an adventure-mode save would lose it', async () => {
+    const routeRepo = makeRepo();
+    await routeRepo.setMode('route');
+    const id = await routeRepo.startRun(T0);
+    await routeRepo.submitTrail(id, walk());
+    const held = (await routeRepo.getOwnedCells(T0)).length;
+    expect(held).toBeGreaterThan(0);
+
+    // Sixty days on — long past anything's decay clock, adventure or route. The seeded
+    // rivals are not exempt and do age normally in the same sweep; only this save's own
+    // ground is the claim under test.
+    const later = T0 + 60 * 86_400_000;
+    expect(await routeRepo.getOwnedCells(later)).toHaveLength(held);
+    const mine = new Set((await routeRepo.getOwnedCells(later)).map((c) => c.h3));
+    const sweep = await routeRepo.runDecay(later);
+    expect(sweep.released.some((h3) => mine.has(h3))).toBe(false);
+    expect(sweep.weakened.some((h3) => mine.has(h3))).toBe(false);
+  });
+
+  it('the same walk, in adventure mode, loses ground by then', async () => {
+    const id = await repo.startRun(T0);
+    await repo.submitTrail(id, walk());
+    const held = (await repo.getOwnedCells(T0)).length;
+
+    const later = T0 + 60 * 86_400_000;
+    expect((await repo.getOwnedCells(later)).length).toBeLessThan(held);
+  });
+});
+
+describe('route-mode distance (BRDC-MODE-002)', () => {
+  it('accumulates across separate runs, never resetting when one ends', async () => {
+    const routeRepo = makeRepo();
+    await routeRepo.setMode('route');
+
+    const first = await routeRepo.startRun(T0);
+    const a = await routeRepo.submitTrail(first, walk());
+    expect(await routeRepo.getRouteDistance()).toBeCloseTo(a.distanceM, 3);
+
+    await routeRepo.endRun(first);
+    const second = await routeRepo.startRun(T0 + 10_000_000);
+    const b = await routeRepo.submitTrail(second, walk());
+    expect(await routeRepo.getRouteDistance()).toBeCloseTo(a.distanceM + b.distanceM, 3);
+  });
+
+  it('stays zero for an adventure-mode save', async () => {
+    const id = await repo.startRun(T0);
+    await repo.submitTrail(id, walk());
+    expect(await repo.getRouteDistance()).toBe(0);
+  });
+});
+
 describe('retireKingdom (BRDC-HALL-001)', () => {
   it('archives what was built, then wipes it exactly as resetAll does', async () => {
     const id = await repo.startRun(T0);

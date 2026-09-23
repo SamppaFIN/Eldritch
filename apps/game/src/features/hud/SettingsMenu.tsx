@@ -38,8 +38,12 @@ export interface SettingsMenuProps {
   onRetireKingdom?: (() => void) | undefined;
   /** Opens the action log (BRDC-LOG-001). */
   onOpenLog: () => void;
-  /** Opens the Codex of Dominion (BRDC-CODEX-001). */
-  onOpenCodex: () => void;
+  /** Opens the Codex of Dominion (BRDC-CODEX-001). Absent for a route-mode save, which
+   *  a Codex measuring consciousness and works never has anything to say about — it gets
+   *  `onOpenRouteCodex` instead (BRDC-MODE-002). */
+  onOpenCodex?: (() => void) | undefined;
+  /** Opens Route mode's own leaderboard — distance and hexes only (BRDC-MODE-002). */
+  onOpenRouteCodex?: (() => void) | undefined;
   /** Opens the ledger of held ground (BRDC-LANDS-001). */
   onOpenLands: () => void;
   /** Opens the Hall of Fame — kingdoms already retired (BRDC-HALL-001). Absent for a
@@ -92,6 +96,7 @@ export function SettingsMenu({
   onRetireKingdom,
   onOpenLog,
   onOpenCodex,
+  onOpenRouteCodex,
   onOpenLands,
   onOpenHallOfFame,
   onOpenClan,
@@ -254,7 +259,10 @@ export function SettingsMenu({
               <div className="settings__grid">
                 {link('Guide', 'How it plays', onOpenGuide)}
                 {link('Your lands', 'The ground you hold', onOpenLands)}
-                {link('Codex', 'Where you stand', onOpenCodex, 'var(--sacred-gold)')}
+                {onOpenCodex ? link('Codex', 'Where you stand', onOpenCodex, 'var(--sacred-gold)') : null}
+                {onOpenRouteCodex
+                  ? link('Route Ledger', 'Distance and hexes measured', onOpenRouteCodex, 'var(--sacred-gold)')
+                  : null}
                 {onOpenHallOfFame
                   ? link('Hall of Fame', 'Kingdoms retired', onOpenHallOfFame, 'var(--sacred-gold)')
                   : null}

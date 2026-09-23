@@ -20,7 +20,7 @@ import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { isOwnershipCell } from '../geo/cells.js';
 import { checksum, toWireCell } from './challenge.js';
 import type { WireCell } from './challenge.js';
-import type { Cell, H3Index, PlayerId } from '../types/domain.js';
+import type { Cell, GameMode, H3Index, PlayerId } from '../types/domain.js';
 
 export interface WorldPlayer {
   id: PlayerId;
@@ -39,6 +39,11 @@ export interface WorldPlayer {
    *  rather than as zero. */
   level?: number;
   leyM?: number;
+  /** Route mode's own figures (BRDC-MODE-002). Additive, like `level`/`leyM`: an older
+   *  submission, or an Adventure-mode one, carries neither. Absent `mode` reads as
+   *  Adventure — only an explicit `'route'` pulls a realm into the route Codex. */
+  mode?: GameMode;
+  routeDistanceM?: number;
 }
 
 export interface WorldShard {
@@ -83,6 +88,9 @@ export interface WorldSource {
   /** What the Codex ranks that the cells cannot answer (BRDC-CODEX-001). Both additive. */
   level?: number;
   leyM?: number;
+  /** Route mode's own figures (BRDC-MODE-002), additive like `level`/`leyM` above. */
+  mode?: GameMode;
+  routeDistanceM?: number;
 }
 
 /**
@@ -103,6 +111,8 @@ export interface WorldSubmission {
   cells: WireCell[];
   level?: number;
   leyM?: number;
+  mode?: GameMode;
+  routeDistanceM?: number;
   sum: string;
 }
 
@@ -126,6 +136,8 @@ export function buildSubmission(source: WorldSource): WorldSubmission {
     castle: source.castle,
     ...(source.level ? { level: source.level } : {}),
     ...(source.leyM ? { leyM: Math.round(source.leyM) } : {}),
+    ...(source.mode === 'route' ? { mode: source.mode } : {}),
+    ...(source.routeDistanceM ? { routeDistanceM: Math.round(source.routeDistanceM) } : {}),
     cells: [...source.cells]
       .sort((a, b) => b.strength - a.strength)
       .slice(0, MAX_SHARD_CELLS)
@@ -187,6 +199,8 @@ export function parseSubmission(text: string): SubmissionParse {
       castle: s.castle ?? null,
       ...(typeof s.level === 'number' ? { level: s.level } : {}),
       ...(typeof s.leyM === 'number' ? { leyM: s.leyM } : {}),
+      ...(s.mode === 'route' ? { mode: s.mode } : {}),
+      ...(typeof s.routeDistanceM === 'number' ? { routeDistanceM: s.routeDistanceM } : {}),
       cells: s.cells,
     },
   };
@@ -210,12 +224,14 @@ export interface WorldIdentity {
 
 /** Assemble the local player's own ground for publishing. Mirrors `exportChallengeFrom`. */
 export function worldSourceFrom(
-  me: { id: PlayerId; name: string; level?: number },
+  me: { id: PlayerId; name: string; level?: number; mode?: GameMode },
   owned: readonly Cell[],
   castle: H3Index | null,
   identity: WorldIdentity = {},
   /** Metres of distinct ground walked, for the Codex (BRDC-CODEX-001). */
   leyM = 0,
+  /** Route mode's lifetime distance, for its own Codex (BRDC-MODE-002). */
+  routeDistanceM = 0,
 ): WorldSource {
   return {
     id: me.id,
@@ -226,6 +242,8 @@ export function worldSourceFrom(
     castle,
     ...(me.level ? { level: me.level } : {}),
     ...(leyM > 0 ? { leyM: Math.round(leyM) } : {}),
+    ...(me.mode === 'route' ? { mode: me.mode } : {}),
+    ...(routeDistanceM > 0 ? { routeDistanceM: Math.round(routeDistanceM) } : {}),
     cells: owned.map(toWireCell),
   };
 }

@@ -7,6 +7,7 @@
  *   POST /submit        a sealed `WorldSubmission`; kept as this player's latest
  *   GET  /world/<res6>  the shard for one region, rebuilt on every submit
  *   GET  /demographics  the Codex of Dominion, every realm measured (BRDC-CODEX-001)
+ *   GET  /route-codex   Route mode's own table — distance and hexes only (BRDC-MODE-002)
  *
  * No key on the client and no account for the player. The Worker trusts `id` + checksum
  * exactly as far as the issue path did: it can tell a torn message from a whole one, and
@@ -47,13 +48,21 @@
  * snapshot taken (never a cron, only on `/submit`) at most once every seven days, kept
  * twelve deep (`history.ts`).
  */
-import { atlasOf, buildShards, demographicsOf, mergePlayerFiles, parseSubmission } from '@es3/core/data';
+import {
+  atlasOf,
+  buildShards,
+  demographicsOf,
+  mergePlayerFiles,
+  parseSubmission,
+  routeCodexOf,
+} from '@es3/core/data';
 import type { PlayerFile, WorldSource } from '@es3/core/data';
 import { isOwnershipCell } from '@es3/core/geo';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
 import { craftChronicle, isKingdomFacts } from './chronicle.js';
 import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './clan.js';
 import { listSnapshotWeeks, maybeSnapshot, readSnapshot } from './history.js';
+import { ROUTE_CODEX, splitByMode } from './routeCodex.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -99,6 +108,28 @@ const send = (body: unknown, status = 200, extra: Record<string, string> = {}) =
 
 const bare = (status: number) => new Response(null, { status, headers: CORS });
 
+/**
+ * Served from a single KV read, built once from stored files when the key is missing.
+ *
+ * A Worker that has just been deployed has players in KV but no table yet, and making the
+ * player publish again to see a screen they already earned is a bad first impression of a
+ * feature whose whole job is telling them where they stand — so the first reader builds
+ * it. After that it is kept current on every submit (`rebuild`). Shared by `/demographics`,
+ * `/route-codex`, `/clan-codex` and `/atlas`, which differ only in their key and table.
+ */
+async function cachedTable(kv: KV, key: string, build: (now: number) => Promise<unknown | null>) {
+  let body = await kv.get(key);
+  if (!body) {
+    const table = await build(Date.now());
+    if (table == null) return bare(204);
+    body = JSON.stringify(table);
+    await kv.put(key, body);
+  }
+  return new Response(body, {
+    headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+  });
+}
+
 /** Every player's latest file, torn rows skipped rather than failing the whole rebuild. */
 async function allFiles(kv: KV): Promise<PlayerFile[]> {
   const { keys } = await kv.list({ prefix: PLAYER });
@@ -137,7 +168,9 @@ async function liveSources(kv: KV, now: number): Promise<WorldSource[]> {
 /** Rebuild every region's shard from the players still inside the TTL. */
 async function rebuild(kv: KV, now: number): Promise<number> {
   const live = await liveSources(kv, now);
-  await kv.put(CODEX, JSON.stringify(demographicsOf(live, now)));
+  const { adventurers, routers } = splitByMode(live);
+  await kv.put(CODEX, JSON.stringify(demographicsOf(adventurers, now)));
+  await kv.put(ROUTE_CODEX, JSON.stringify(routeCodexOf(routers, now)));
   await kv.put(CLAN_CODEX, JSON.stringify(await clanCodexOf(kv, live, now)));
   await kv.put(ATLAS, JSON.stringify({ v: 1, generatedAt: now, regions: atlasOf(live) }));
   await maybeSnapshot(kv, now, live);
@@ -193,56 +226,32 @@ export default {
       });
     }
 
-    /*
-     * Served from a single KV read like the shards — with one exception. A Worker that has
-     * just been deployed has players in KV but no table yet, and making the player publish
-     * again to see a screen they already earned is a bad first impression of a feature
-     * whose whole job is telling them where they stand. So a missing key is built here,
-     * once, from files that are already stored. After that it is written on submit.
-     */
     if (request.method === 'GET' && url.pathname === '/demographics') {
-      let codex = await env.WORLD.get(CODEX);
-      if (!codex) {
-        const now = Date.now();
-        const live = await liveSources(env.WORLD, now);
-        if (live.length === 0) return bare(204);
-        codex = JSON.stringify(demographicsOf(live, now));
-        await env.WORLD.put(CODEX, codex);
-      }
-      return new Response(codex, {
-        headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+      return cachedTable(env.WORLD, CODEX, async (now) => {
+        const { adventurers } = splitByMode(await liveSources(env.WORLD, now));
+        return adventurers.length === 0 ? null : demographicsOf(adventurers, now);
       });
     }
 
-    // Same cold-start rescue as `/demographics` above, same reason.
+    // Route mode's own table, never the Adventure Codex with a filter (BRDC-MODE-002).
+    if (request.method === 'GET' && url.pathname === '/route-codex') {
+      return cachedTable(env.WORLD, ROUTE_CODEX, async (now) => {
+        const { routers } = splitByMode(await liveSources(env.WORLD, now));
+        return routers.length === 0 ? null : routeCodexOf(routers, now);
+      });
+    }
+
     if (request.method === 'GET' && url.pathname === '/clan-codex') {
-      let codex = await env.WORLD.get(CLAN_CODEX);
-      if (!codex) {
-        const now = Date.now();
-        const live = await liveSources(env.WORLD, now);
-        const table = await clanCodexOf(env.WORLD, live, now);
-        if (table.players === 0) return bare(204);
-        codex = JSON.stringify(table);
-        await env.WORLD.put(CLAN_CODEX, codex);
-      }
-      return new Response(codex, {
-        headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+      return cachedTable(env.WORLD, CLAN_CODEX, async (now) => {
+        const table = await clanCodexOf(env.WORLD, await liveSources(env.WORLD, now), now);
+        return table.players === 0 ? null : table;
       });
     }
 
-    // Same cold-start rescue as `/demographics` and `/clan-codex` above, same reason.
     if (request.method === 'GET' && url.pathname === '/atlas') {
-      let atlas = await env.WORLD.get(ATLAS);
-      if (!atlas) {
-        const now = Date.now();
-        const live = await liveSources(env.WORLD, now);
-        const regions = atlasOf(live);
-        if (regions.length === 0) return bare(204);
-        atlas = JSON.stringify({ v: 1, generatedAt: now, regions });
-        await env.WORLD.put(ATLAS, atlas);
-      }
-      return new Response(atlas, {
-        headers: { 'content-type': 'application/json', ...CORS, 'cache-control': 'public, max-age=30' },
+      return cachedTable(env.WORLD, ATLAS, async (now) => {
+        const regions = atlasOf(await liveSources(env.WORLD, now));
+        return regions.length === 0 ? null : { v: 1, generatedAt: now, regions };
       });
     }
 
@@ -363,6 +372,7 @@ export default {
           'POST /submit',
           'GET /world/<res6>',
           'GET /demographics',
+          'GET /route-codex',
           'GET /clan-codex',
           'GET /atlas',
           'GET /atlas/history',

@@ -15,6 +15,7 @@ import { cellsWithin } from '../geo/cells.js';
 import { awardClaims } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { recordWalk } from './walkWriter.js';
+import { addRouteDistance } from './distanceStore.js';
 import { cellsToLoad, planClaim } from './claiming.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -56,6 +57,9 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
   await d.seed(accepted[0] as TrailPoint);
 
   const profile = await d.getProfile();
+  // The Route's own leaderboard score, kept from the very same batch a Run's own
+  // distanceM is — but never reset when a run closes (BRDC-MODE-002).
+  if (profile.mode === 'route') await addRouteDistance(d.store, result.distanceM);
   const lastT = (accepted[accepted.length - 1] as TrailPoint).t;
 
   /*

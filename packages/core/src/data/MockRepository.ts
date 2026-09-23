@@ -13,7 +13,7 @@
 import { latLngToCell } from 'h3-js';
 import { readPlaces, readDwellFor, raiseAltarFor, type AltarOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
-import { allCells, cellsInBBox, setStoredTerrain, sweepAndPersist } from './cellStore.js';
+import { allCells, cellsInBBox, loyaltyOver, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import { markUnlockSeen, seenUnlocks } from './unlockStore.js';
 import { dailyOmenFor, encounterOnStepFor, takeEncounterChoiceFor } from './encounterRepo.js';
 import type { UnlockId } from '../rules/unlock.js';
@@ -31,10 +31,10 @@ import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools, type Con
 import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
 import { readRevealed, reconcileSeedReveals, revealAt, type RevealOutcome } from './revealStore.js';
 import { readPaths } from './pathStore.js';
+import { readRouteDistance } from './distanceStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges, type WalkedEdge } from '../geo/paths.js';
 import { neighboursOf } from '../geo/cells.js';
-import { loyaltyFactor, loyaltySourceCells } from '../rules/aura.js';
 import { layRouteAt, readRoutes, removeRouteAt, type RouteOutcome } from './tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
 import { castSpellAt, readSpells, type CastOutcome } from './spellStore.js';
@@ -115,6 +115,7 @@ export class MockRepository implements GameRepository {
   getTrailPoints = (runId: RunId): Promise<TrailPoint[]> => trailPointsOf(this.store, runId);
 
   getWalkedPaths = async (): Promise<WalkedEdge[]> => walkedEdges(await readPaths(this.store));
+  getRouteDistance = (): Promise<number> => readRouteDistance(this.store);
 
   /** The action log, newest first (BRDC-LOG-001). */
   getLog = async (limit = 100): Promise<LogEntry[]> =>
@@ -284,24 +285,20 @@ export class MockRepository implements GameRepository {
     const seen = new Set(inView.map((c) => c.h3));
     const away = (await allCells(this.store)).filter((c) => c.imported && !seen.has(c.h3));
     const all = away.length > 0 ? [...inView, ...away] : inView;
-    const loyalty = await this.loyaltyOver(all);
-    return (await sweepAndPersist(this.store, all, now, loyalty, await this.getHome())).cells;
+    const [me, home] = [await this.getProfile(), await this.getHome()];
+    const loyalty = await loyaltyOver(this.store, me.id, home, all);
+    // Route-owner: null for adventure, else the save's own id (BRDC-MODE-002).
+    const sweep = await sweepAndPersist(this.store, all, now, loyalty, home, me.mode === 'route' ? me.id : null);
+    return sweep.cells;
   }
 
   async getOwnedCells(now: number): Promise<Cell[]> {
     const me = await this.getProfile();
+    const home = await this.getHome();
     const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
-    const loyalty = await this.loyaltyOver(mine);
-    return (await sweepAndPersist(this.store, mine, now, loyalty, await this.getHome())).cells;
-  }
-
-  /** A decay-multiplier resolver: <1 for my cells next to my Monuments or a place, else 1.
-   *  Sources are read from `cells` themselves, so this stays a bounded read (BRDC-BUILD-003). */
-  private async loyaltyOver(cells: readonly Cell[]): Promise<(cell: Cell) => number> {
-    const me = (await this.getProfile()).id;
-    const places = (await this.getPlaces()).map((p) => p.h3);
-    const sources = loyaltySourceCells(cells.filter((c) => c.ownerId === me), places);
-    return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
+    const loyalty = await loyaltyOver(this.store, me.id, home, mine);
+    const sweep = await sweepAndPersist(this.store, mine, now, loyalty, home, me.mode === 'route' ? me.id : null);
+    return sweep.cells;
   }
 
   /* --- Encounters (BRDC-EVENT-002) --- */
@@ -341,8 +338,9 @@ export class MockRepository implements GameRepository {
 
   async runDecay(now: number): Promise<DecayResult> {
     const all = await allCells(this.store);
-    const loyalty = await this.loyaltyOver(all);
-    const sweep = await sweepAndPersist(this.store, all, now, loyalty, await this.getHome());
+    const [me, home] = [await this.getProfile(), await this.getHome()];
+    const loyalty = await loyaltyOver(this.store, me.id, home, all);
+    const sweep = await sweepAndPersist(this.store, all, now, loyalty, home, me.mode === 'route' ? me.id : null);
     const lost = sweep.released.length;
     if (lost > 0) await writeLogEntry(this.store, { at: now, kind: 'reclaim', count: lost });
     return { weakened: sweep.weakened, released: sweep.released };
