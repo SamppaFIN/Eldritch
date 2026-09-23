@@ -177,7 +177,7 @@ test('revealing shows what it paid, on any ground at all (BRDC-REVEAL-002)', asy
 
   await card.getByRole('button', { name: 'Reveal this ground' }).click();
 
-  const toast = page.locator('.pouch-gain');
+  const toast = page.locator('.gain');
   await expect(toast).toBeVisible({ timeout: 12_000 });
   await expect(toast).toContainText(/\+\d+/);
 });
