@@ -90,6 +90,9 @@ async function tapTheQuay(page: Page) {
 
     // The jump is synchronous but the frame it produces is not; let it land before tapping.
     await page.waitForTimeout(250);
+    // The onboarding card ("Understood · +10 wisdom") can sit over the map and swallow the
+    // tap — the same interceptor `map.spec.ts` dismisses.
+    await page.locator('.unlock__read').click({ force: true, timeout: 1_000 }).catch(() => undefined);
     await canvas.click({ position: { x: cx + nudge.x, y: cy + nudge.y } });
     // Wait for *a* card before asking whether it is the quay — under load the tap and the
     // panel are far enough apart that checking straight away reads the previous state.

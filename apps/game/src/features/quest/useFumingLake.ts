@@ -12,7 +12,7 @@ import { useAdventure } from './useAdventure.js';
 import type { AdventureBinding } from './useAdventure.js';
 import { useQuestFinds } from './useQuestFinds.js';
 import { useQuestWaypoint } from './useQuestWaypoint.js';
-import { atStageHex, questCellInfo } from './questCell.js';
+import { atSite, atStageHex, questCellInfo } from './questCell.js';
 import type { QuestCellInfo } from './questCell.js';
 import { questBoardEntries } from './questBoard.js';
 import type { QuestBoardEntry } from './questBoard.js';
@@ -69,7 +69,7 @@ export function useFumingLake(
     // Tapping the statue's action begins the tale and shows its first page in one step —
     // and only from the statue's own hex (BRDC-QUEST-003).
     openQuestHex: (h3: H3Index | null) => {
-      if (h3 && notStarted && h3 === siteCell('statue') && h3 === standingOn) {
+      if (h3 && notStarted && h3 === siteCell('statue') && atSite(h3, standingOn)) {
         adventures.onStart('fuming-lake');
       }
       setQuestHex(h3);

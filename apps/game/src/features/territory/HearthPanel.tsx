@@ -24,6 +24,7 @@ import { NationIdentity } from '../nation/NationIdentity.js';
 import { KeepResources } from '../keep/KeepResources.js';
 import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
+import { HearthGrowth } from '../keep/HearthGrowth.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
@@ -66,6 +67,8 @@ export interface HearthPanelProps {
   onPublish?: (() => Promise<PublishResult>) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
+  /** New ground appeared without a step — Hearth growth (BRDC-HEARTH-003). Redraw the map. */
+  onGrown?: (() => void) | undefined;
   onClose: () => void;
 }
 
@@ -83,6 +86,7 @@ export function HearthPanel({
   onWager,
   onPublish,
   onWeakest,
+  onGrown,
   onClose,
 }: HearthPanelProps) {
   const [tab, setTab] = useState<KeepTab>('mana');
@@ -196,6 +200,14 @@ export function HearthPanel({
       {tab === 'buildings' ? <KeepBuildingsPanel /> : null}
 
       {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
+
+      <HearthGrowth
+        repository={repository}
+        resources={resources}
+        now={now}
+        onPouch={onPouch}
+        onGrown={onGrown ?? (() => {})}
+      />
 
       <KeepRealm
         weakestH3={d.weakest?.h3 ?? null}

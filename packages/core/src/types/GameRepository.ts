@@ -41,6 +41,7 @@ import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
 import type { RouteOutcome } from '../data/tradeStore.js';
 import type { TradeRoute } from '../rules/trade.js';
+import type { HearthGrowth } from '../data/hearthGrowthStore.js';
 import type { CityState } from '../rules/cityState.js';
 import type { TradeOutcome } from '../data/cityStateStore.js';
 import type { Collected, Forecast } from '../data/pouch.js';
@@ -388,6 +389,10 @@ export interface GameRepository {
   getHallOfFame(): Promise<HallOfFameEntry[]>;
   /** Attach a chronicle to one archived kingdom, once revealed (BRDC-HALL-002). */
   setKingdomStory(id: string, story: string): Promise<void>;
+  /** The Hearth's ring: 1 as founded, out to `HEARTH_MAX_RING` (BRDC-HEARTH-003). */
+  hearthRing(): Promise<number>;
+  /** Pay food to take the next ring of free ground around the Hearth (BRDC-HEARTH-003). */
+  growHearth(now: number): Promise<HearthGrowth>;
   /** Mark an archived kingdom as shared to the Chronicles, after a successful publish
    *  (BRDC-HALL-003). */
   setKingdomShared(id: string, sharedAt: number): Promise<void>;

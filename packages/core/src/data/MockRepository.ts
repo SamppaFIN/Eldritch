@@ -59,6 +59,7 @@ import { exportWorldSource as sealWorld, mergeWorld } from './worldStore.js';
 import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
+import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
@@ -208,10 +209,9 @@ export class MockRepository implements GameRepository {
 
   /* --- The Hearth ------------------------------------------------------- */
 
-  /** Concurrent callers share one run — the founding effect fires twice (fresh `clock`,
-   *  Strict Mode). `claimHearth` and `assignCastle` are idempotent, and the stash is
-   *  *set*, not added — two concurrent calls both write `STARTER_STASH` and the pouch is
-   *  still one building's worth, not two (BRDC-ECON-007). */
+  /** The founding effect fires twice (fresh `clock`, Strict Mode): `claimHearth` and
+   *  `assignCastle` are idempotent and the stash is *set*, not added, so the pouch stays
+   *  one building's worth, not two (BRDC-ECON-007). */
   async setHome(position: LatLng, now: number): Promise<H3Index> {
     const profile = await this.getProfile();
     const h3 = await claimHearth(this.store, profile, position, now);
@@ -358,16 +358,17 @@ export class MockRepository implements GameRepository {
 
   /* --- Maintenance ------------------------------------------------------ */
 
-  async resetAll(): Promise<void> {
-    await this.store.clear();
-  }
+  resetAll = async (): Promise<void> => void (await this.store.clear());
   retireKingdom = async (now: number, era?: string): Promise<HallOfFameEntry> =>
     retireKingdom(this.store, await this.getProfile(), await this.getOwnedCells(now), now, this.newId, era);
   getHallOfFame = (): Promise<HallOfFameEntry[]> => readHallOfFame(this.store);
-  setKingdomStory = (id: string, story: string): Promise<void> =>
-    setKingdomStory(this.store, id, story);
-  setKingdomShared = (id: string, sharedAt: number): Promise<void> =>
-    setKingdomShared(this.store, id, sharedAt);
+  setKingdomStory = (id: string, story: string): Promise<void> => setKingdomStory(this.store, id, story);
+  setKingdomShared = (id: string, at: number): Promise<void> => setKingdomShared(this.store, id, at);
+
+  /* --- Growing the Hearth with food (BRDC-HEARTH-003) --------------------- */
+  hearthRing = (): Promise<number> => readHearthRing(this.store);
+  growHearth = async (now: number): Promise<HearthGrowth> =>
+    growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);
 
   /* --- Internals -------------------------------------------------------- */
 

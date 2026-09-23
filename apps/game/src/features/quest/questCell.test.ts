@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { siteCell } from '@es3/core';
+import { neighboursOf, siteCell } from '@es3/core';
 import type { AdventureView } from '@es3/core';
-import { atStageHex, questCellInfo } from './questCell.js';
+import { atSite, atStageHex, questCellInfo } from './questCell.js';
 
 const view = (over: Partial<AdventureView>): AdventureView => ({
   id: 'fuming-lake',
@@ -63,5 +63,29 @@ describe('atStageHex (BRDC-QUEST-003)', () => {
     expect(atStageHex(view({ stageId: 'death-by-fumes' }), null)).toBe(true);
     expect(atStageHex(view({ state: 'available' }), null)).toBe(true);
     expect(atStageHex(undefined, null)).toBe(true);
+  });
+});
+
+describe('atSite — GPS tolerance', () => {
+  const lake = siteCell('lake');
+
+  it('counts the site hex and its ring as being there', () => {
+    expect(atSite(lake, lake)).toBe(true);
+    for (const n of neighboursOf(lake)) expect(atSite(lake, n)).toBe(true);
+  });
+
+  it('does not count two hexes away, or no fix at all', () => {
+    const [ringOne] = neighboursOf(lake);
+    const twoAway = neighboursOf(ringOne as string).find(
+      (h) => h !== lake && !neighboursOf(lake).includes(h),
+    ) as string;
+    expect(atSite(lake, twoAway)).toBe(false);
+    expect(atSite(lake, null)).toBe(false);
+  });
+
+  it('lets a stage be acted on from the ring, not from across the map', () => {
+    const [near] = neighboursOf(lake);
+    expect(atStageHex(view({ stageId: 'lake' }), near as string)).toBe(true);
+    expect(atStageHex(view({ stageId: 'lake' }), siteCell('troll'))).toBe(false);
   });
 });

@@ -14,6 +14,7 @@
  */
 import { useEffect, useState } from 'react';
 import {
+  anchorCityStates,
   anchorQuestSites,
   cellCentre,
   load,
@@ -101,6 +102,7 @@ export function useBoot(now: () => number, clock: unknown): Boot {
    */
   useEffect(() => {
     anchorQuestSites(castle ? cellCentre(castle) : null);
+    anchorCityStates(castle ? cellCentre(castle) : null);
     if (!castle) return;
 
     /*

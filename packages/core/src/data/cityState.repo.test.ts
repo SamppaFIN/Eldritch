@@ -116,3 +116,43 @@ describe('trading through the repository', () => {
     expect((await repo.cityAt(doorCell(CITY)))?.name).toBe(CITY.name);
   });
 });
+
+/*
+ * BRDC-DIPLO-002. The village was one harbour in Tampere, so anybody living elsewhere had
+ * no city state to reach. It is carried to the player's own Hearth now, the way the Fuming
+ * Lake is — same distance and bearing from the origin, different ground.
+ */
+describe('a village carried to a Hearth outside Härmälä', () => {
+  const OULU = { lat: 65.0121, lng: 25.4651 };
+
+  async function ouluStore() {
+    const store = await storeWith();
+    const { cellAt } = await import('@es3/core');
+    await store.set(K.home, cellAt(OULU));
+    return store;
+  }
+
+  it('places the village near that Hearth, and its quay answers there', async () => {
+    const store = await ouluStore();
+    const { cityStates, anchorCityStates } = await import('@es3/core');
+    await placeCityStates(store, T0);
+
+    const [village] = cityStates();
+    const door = doorCell(village as (typeof CITY_STATES)[number]);
+    const { cellAt, hexDistance } = await import('@es3/core');
+    // 270 m from a Hearth is a handful of hexes, not 600 km.
+    expect(hexDistance(cellAt(OULU), door)).toBeLessThan(12);
+    expect((await store.get<Cell>(K.cell(door)))?.ownerId).toBe(CITY.owner);
+    expect((await cityAtDoor(store, door))?.id).toBe(CITY.id);
+
+    anchorCityStates(null);
+  });
+
+  it('leaves the real harbour alone for a Hearth already in Härmälä', async () => {
+    const store = await storeWith();
+    const { cellAt, cityStates } = await import('@es3/core');
+    await store.set(K.home, cellAt({ lat: 61.4729, lng: 23.7259 }));
+    await placeCityStates(store, T0);
+    expect(cityStates()[0]?.door).toEqual(CITY.door);
+  });
+});

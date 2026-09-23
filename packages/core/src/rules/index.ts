@@ -134,6 +134,15 @@ export type {
   TerrainKind,
   TerrainSource,
 } from './terrain.js';
+export {
+  HEARTH_FOOD_PER_HEX,
+  HEARTH_MAX_RING,
+  HEARTH_START_RING,
+  growHearth,
+  hearthRingCost,
+  hearthRingHexes,
+} from './hearthGrowth.js';
+export type { HearthGrowthRefusal, HearthGrowthResult } from './hearthGrowth.js';
 export { WARD_COST, WARD_STRENGTH, ward, wardsAffordable } from './ward.js';
 export type { WardRefusal, WardResult } from './ward.js';
 export { ACHIEVEMENTS, earnedNow } from './achievements.js';
@@ -189,8 +198,10 @@ export {
   CITY_STATES,
   TRADE_LOSS,
   TRADE_PARCEL,
+  anchorCityStates,
   cityStateById,
   cityStateOf,
+  cityStates,
   isCityState,
   stepsToDoor,
   trade,

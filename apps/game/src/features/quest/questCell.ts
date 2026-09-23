@@ -7,7 +7,15 @@
  * view and the secrets found — is there a step to take here, what does the button say,
  * and what has happened at this spot.
  */
-import { FUMING_PATH, QUEST_SITE_IDS, QUEST_SITES, SITE_VERB, STAGE_SITE, siteCell } from '@es3/core';
+import {
+  FUMING_PATH,
+  QUEST_SITE_IDS,
+  QUEST_SITES,
+  SITE_VERB,
+  STAGE_SITE,
+  hexDistance,
+  siteCell,
+} from '@es3/core';
 import type { AdventureView, H3Index, QuestSiteId } from '@es3/core';
 
 export interface QuestCellInfo {
@@ -22,6 +30,18 @@ export interface QuestCellInfo {
 
 const siteOf = (h3: string): QuestSiteId | null =>
   QUEST_SITE_IDS.find((id) => siteCell(id) === h3) ?? null;
+
+/**
+ * Whether the player is *at* a site: on its hex or the ring around it.
+ *
+ * A res-11 hex is ~46 m across and a phone's fix is good to 5–30 m, so demanding the exact
+ * hex turned "walk there" into "stand on one particular square and hope" — Infinite reached
+ * the Fuming Lake and could not activate it, while a friend on another phone could. One
+ * ring (~90 m) is still a walk to the place, without asking GPS for what it cannot give.
+ */
+export function atSite(site: H3Index, standingOn: H3Index | null): boolean {
+  return standingOn !== null && hexDistance(site, standingOn) <= 1;
+}
 
 const index = (site: QuestSiteId): number =>
   FUMING_PATH.indexOf(site as (typeof FUMING_PATH)[number]);
@@ -39,7 +59,7 @@ export function atStageHex(
 ): boolean {
   if (fuming?.state !== 'active') return true;
   const site = STAGE_SITE[fuming.stageId ?? ''];
-  return !site || siteCell(site) === standingOn;
+  return !site || atSite(siteCell(site), standingOn);
 }
 
 export function questCellInfo(
@@ -53,7 +73,7 @@ export function questCellInfo(
 
   const found = finds.includes(site);
   const state = fuming?.state;
-  const here = h3 === standingOn;
+  const here = atSite(h3, standingOn);
 
   // The statue starts the tale — until it is under way.
   if (site === 'statue' && (state === undefined || state === 'available')) {

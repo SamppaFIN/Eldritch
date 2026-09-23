@@ -20,6 +20,7 @@ export const K = {
   cell: (h3: string) => `cell:${regionOf(h3)}:${h3}`,
   dwell: 'dwell',
   home: 'home',
+  hearthRing: 'hearth-ring',
   castle: 'castle',
   defence: 'defence',
   lastReading: 'reading:last',

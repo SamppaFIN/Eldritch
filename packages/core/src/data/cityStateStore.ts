@@ -9,15 +9,26 @@
  * same stance `mergeWorld` takes for `world.json`. A city state is a neighbour, not a
  * land grab.
  */
-import { CITY_STATES, cityStateOf, trade } from '../rules/cityState.js';
+import { anchorCityStates, cityStateOf, cityStates, trade } from '../rules/cityState.js';
 import type { CityState, TradeResult } from '../rules/cityState.js';
 import type { ResourceKind } from '../rules/terrain.js';
-import { cellAt, cellsWithin } from '../geo/cells.js';
+import { cellAt, cellCentre, cellsWithin } from '../geo/cells.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index } from '../types/domain.js';
+
+/**
+ * Carry the villages to the Hearth the store already holds (BRDC-DIPLO-002).
+ *
+ * Read from the store rather than passed in, so a placement, a lookup and a trade can never
+ * disagree about where the quay is — the Hearth is the one fact all three share.
+ */
+async function anchorToHome(store: KeyValueStore): Promise<void> {
+  const home = await store.get<H3Index>(K.home);
+  anchorCityStates(home ? cellCentre(home) : null);
+}
 
 /** The quay — the one hex diplomacy happens at. */
 export function doorCell(city: CityState): H3Index {
@@ -38,8 +49,9 @@ export function cityCells(city: CityState): H3Index[] {
  * of the world. `projectCell` knows a city state by its owner instead.
  */
 export async function placeCityStates(store: KeyValueStore, now: number): Promise<number> {
+  await anchorToHome(store);
   let written = 0;
-  for (const city of CITY_STATES) {
+  for (const city of cityStates()) {
     for (const h3 of cityCells(city)) {
       if (await store.get<Cell>(K.cell(h3))) continue;
       const cell: Cell = {
@@ -58,6 +70,7 @@ export async function placeCityStates(store: KeyValueStore, now: number): Promis
 
 /** The city state whose quay this hex is, if any. */
 export async function cityAtDoor(store: KeyValueStore, h3: H3Index): Promise<CityState | null> {
+  await anchorToHome(store);
   const stored = await store.get<Cell>(K.cell(h3));
   const city = cityStateOf(stored?.ownerId ?? null);
   return city && doorCell(city) === h3 ? city : null;

@@ -266,7 +266,7 @@ export function MapView({ onLeave }: MapViewProps) {
           now={clock.now()} adventures={quest.adventures} repository={repository}
           onPouch={setResources} forecast={forecast}
           onPublish={settings.shareWorld ? world.publish : undefined}
-          onWeakest={inspect.onCellTap} onClose={inspect.close}
+          onWeakest={inspect.onCellTap} onGrown={() => void territory.refresh()} onClose={inspect.close}
         />
       ) : null}
 

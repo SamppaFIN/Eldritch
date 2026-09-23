@@ -273,6 +273,18 @@
   min-block-size: var(--touch-min);
 }
 
+/* Grow the Hearth (BRDC-HEARTH-003): the reach, the price on the button, what it did. */
+.hearth-panel__growth {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.hearth-panel__growth .es-btn {
+  min-block-size: var(--touch-min);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hearth-panel {
     animation: none;

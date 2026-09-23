@@ -20,6 +20,9 @@
 import { MAX_STRENGTH } from './constants.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 import { hexDistance } from '../geo/cells.js';
+import { bearing, destination } from '../geo/project.js';
+import { haversine } from '../geo/haversine.js';
+import { SEED_BOX } from './terrainSeed.js';
 import type { H3Index, LatLng, PlayerId } from '../types/domain.js';
 
 export type CityStateId = 'harmala-fishers';
@@ -59,13 +62,52 @@ export const CITY_STATES: readonly CityState[] = [
   },
 ];
 
+/**
+ * The point the authored table is measured from — the Statue of the Boy, the same origin
+ * the Fuming Lake's layout uses (`questSites.ts`). The village stands 270 m from it.
+ */
+const AUTHORED_ORIGIN: LatLng = { lat: 61.47290805294704, lng: 23.725882485862012 };
+
+/**
+ * Where the tale and the village are being walked. Null means where they were written.
+ *
+ * The village was one fixed harbour in Tampere, so nobody who lives anywhere else could
+ * ever reach a city state at all — Infinite: *"city statejen kanssa ei pystynyt
+ * toimimaan"*. It is now carried to a player's own Hearth the same way the Fuming Lake is
+ * (`anchorQuestSites`): the authored bearing and distance from the origin are kept exactly,
+ * only where they are walked changes. A Hearth already inside Härmälä (`SEED_BOX`) needs no
+ * carrying, so the real harbour stays the real harbour.
+ */
+let anchor: LatLng | null = null;
+
+export function anchorCityStates(home: LatLng | null): void {
+  const inside =
+    home !== null &&
+    home.lat >= SEED_BOX.south && home.lat <= SEED_BOX.north &&
+    home.lng >= SEED_BOX.west && home.lng <= SEED_BOX.east;
+  anchor = home && !inside ? home : null;
+}
+
+function carried(p: LatLng): LatLng {
+  return anchor
+    ? destination(anchor, bearing(AUTHORED_ORIGIN, p), haversine(AUTHORED_ORIGIN, p))
+    : p;
+}
+
+/** Every city state where it stands for this player — the table, carried to their Hearth. */
+export function cityStates(): readonly CityState[] {
+  return anchor
+    ? CITY_STATES.map((c) => ({ ...c, centre: carried(c.centre), door: carried(c.door) }))
+    : CITY_STATES;
+}
+
 export function cityStateById(id: CityStateId): CityState | undefined {
-  return CITY_STATES.find((c) => c.id === id);
+  return cityStates().find((c) => c.id === id);
 }
 
 /** The city state that owns this cell, by the owner id the cell carries. */
 export function cityStateOf(ownerId: PlayerId | null): CityState | undefined {
-  return ownerId ? CITY_STATES.find((c) => c.owner === ownerId) : undefined;
+  return ownerId ? cityStates().find((c) => c.owner === ownerId) : undefined;
 }
 
 /** True when this owner is a city state rather than a player — they are never rivals. */

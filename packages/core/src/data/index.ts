@@ -127,6 +127,7 @@ export { atlasDiff, atlasOf, atlasWeekKey } from './worldStats.js';
 export type { AtlasChange, AtlasHolder, AtlasRegion } from './worldStats.js';
 export { joinsWithCurrent, seasonDayKey, seasonStandingsOf } from './seasonStats.js';
 export type { SeasonJoin, SeasonJoinView, SeasonStanding } from './seasonStats.js';
+export type { HearthGrowth } from './hearthGrowthStore.js';
 export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
 export type { TradeOutcome } from './cityStateStore.js';
 export {
