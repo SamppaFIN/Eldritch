@@ -140,11 +140,12 @@ function kindForRegion(region: number): TerrainKind {
   if (region < 0.16) return 'coast';
   if (region < 0.27) return 'forest';
   // Hill against mountain is not an even split, because the demand is not even: stone is
-  // in twelve of the fifteen building costs and iron in two (BRDC-TERRAIN-004). Eleven
-  // per cent hill, four per cent mountain — supply shaped like the bill.
-  if (region < 0.38) return 'hill';
-  if (region < 0.42) return 'mountain';
-  if (region < 0.48) return 'market';
+  // in twelve of the fifteen building costs and iron in two (BRDC-TERRAIN-004). Twenty per
+  // cent hill, five per cent mountain — supply shaped like the bill. It was eleven and
+  // four until the six players' first week: *"kiveä ei ole juurikaan missään"* (BRDC-RES-003).
+  if (region < 0.47) return 'hill';
+  if (region < 0.52) return 'mountain';
+  if (region < 0.58) return 'market';
   return 'plain';
 }
 

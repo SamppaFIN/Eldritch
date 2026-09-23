@@ -95,6 +95,8 @@ test('joining publishes the player’s own current distance and hexes', async ({
   await season.getByRole('button', { name: 'Join the Weekly Tournament' }).click();
 
   await expect.poll(() => posted).not.toBeNull();
+  // …and it greets them, with the line they joined at.
+  await expect(season.getByRole('status', { name: 'Welcome' })).toContainText(/Welcome to the Weekly Tournament/);
   const body = posted as { id?: unknown; name?: unknown; distanceM?: unknown; hexes?: unknown };
   expect(typeof body.id).toBe('string');
   expect(typeof body.name).toBe('string');

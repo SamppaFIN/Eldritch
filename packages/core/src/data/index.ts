@@ -50,11 +50,13 @@ export {
   secretSiteAt,
   anchorQuestSites,
   pinQuestCells,
+  pinWeeklySecrets,
   questCellsPinned,
   questSiteAt,
   resolveQuestCells,
   siteCell,
   visibleQuestSites,
+  weekOf,
 } from './questSites.js';
 export type { QuestSiteId, SecretSiteId } from './questSites.js';
 export type {

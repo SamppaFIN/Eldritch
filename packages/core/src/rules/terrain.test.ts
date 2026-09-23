@@ -76,6 +76,13 @@ describe('terrainOf', () => {
     expect(share('hill')).toBeGreaterThan(0.05);
   });
 
+  // BRDC-RES-003. "kiveä ei ole juurikaan missään": at eleven per cent, a few blocks often
+  // held no stone at all and twelve of the fifteen Works could not be paid for.
+  it('gives stone country a fifth of the ground, not a tenth', () => {
+    const kinds = sample(2000).map(kindOf);
+    expect(kinds.filter((x) => x === 'hill').length / kinds.length).toBeGreaterThan(0.12);
+  });
+
   it('leaves most ground plain, so a producing cell is worth walking to', () => {
     const cells = sample();
     const producing = cells.filter((h3) => resourceOf(h3) !== null).length;

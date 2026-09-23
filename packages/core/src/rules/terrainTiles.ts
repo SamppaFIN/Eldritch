@@ -57,6 +57,10 @@ export function terrainFromTiles(features: readonly TileFeature[]): TerrainKind 
   if (any(({ p }) => has(['rock', 'bare_rock', 'scree', 'cliff', 'stone'], p.natural))) {
     return 'hill';
   }
+  // A quarry is where stone comes out of the ground, whatever the tiles call the rock.
+  if (any(({ p }) => has(['quarry'], p.landuse ?? p.class))) {
+    return 'hill';
+  }
   if (any(({ layer, p }) =>
     (layer === 'landcover' || layer === 'landuse') && has(['wood', 'forest'], p.class ?? p.subclass) ||
     has(['wood'], p.natural))) {

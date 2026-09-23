@@ -19,8 +19,10 @@ import {
   cellCentre,
   load,
   pinQuestCells,
+  pinWeeklySecrets,
   resolveQuestCells,
   saveNow,
+  weekOf,
 } from '@es3/core';
 import type { GameMode, GameRepository, H3Index, PlayerProfile, QuestSiteId } from '@es3/core';
 import { createRepository } from '../../data/createRepository.js';
@@ -127,11 +129,16 @@ export function useBoot(now: () => number, clock: unknown): Boot {
     const stored = load<Partial<Record<QuestSiteId, H3Index>>>('quest-cells-v2', {});
     if (Object.keys(stored).length > 0) {
       pinQuestCells(stored);
-      return;
+    } else {
+      const cells = resolveQuestCells();
+      pinQuestCells(cells);
+      saveNow('quest-cells-v2', cells);
     }
-    const cells = resolveQuestCells();
-    pinQuestCells(cells);
-    saveNow('quest-cells-v2', cells);
+
+    // The troll's hoard is re-hidden every week (BRDC-QUEST-007) — the three secrets only;
+    // the authored path above never moves. Written down per week so it holds until the next.
+    const hoard = load<Parameters<typeof pinWeeklySecrets>[1]>('quest-secrets-v1', null);
+    saveNow('quest-secrets-v1', pinWeeklySecrets(weekOf(now()), hoard));
   }, [castle]);
 
   return { repository, alerts, profile, setProfile, castle };

@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.62",
+    "date": "2026-09-24",
+    "notes": [
+      "Stone is far more common now, quarries count as hill country, and granite turns up more often. The troll's three hidden finds move to new places every week. Joining the Weekly Tournament greets you with your starting line, and the version number in the menu is finally the real one."
+    ]
+  },
+  {
     "version": "0.6.61",
     "date": "2026-09-24",
     "notes": [

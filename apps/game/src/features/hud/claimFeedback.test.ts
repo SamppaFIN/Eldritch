@@ -8,7 +8,7 @@ import { gainsLine, isRewardClaim, resourceGainsFor } from './claimFeedback.js';
  * well away from the Härmälä survey box (BRDC-TERRAIN-003) so the terrain here is the
  * hash and every resource kind actually turns up.
  */
-function sample(n = 400): string[] {
+function sample(n = 1500): string[] {
   const start = cellAt({ lat: 62.6, lng: 25.7 });
   const seen = new Set<string>([start]);
   const queue = [start];

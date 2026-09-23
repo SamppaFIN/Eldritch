@@ -35,13 +35,25 @@ export function useSeason(
   /** Joining is also consent to share: the caller turns "Share your realm" on, so the
    *  player's progress actually reaches the list (BRDC-SEASON-001). */
   onJoined?: () => void,
-): { state: SeasonState; reload: () => void; joining: boolean; join: () => void } {
+): {
+  state: SeasonState;
+  reload: () => void;
+  joining: boolean;
+  join: () => void;
+  /** Set once the player has just joined, with the starting line they joined at — what the
+   *  welcome screen reads out. Cleared by opening the panel afresh. */
+  welcome: { name: string; distanceM: number; hexes: number } | null;
+} {
+  const [welcome, setWelcome] = useState<{ name: string; distanceM: number; hexes: number } | null>(null);
   const [state, setState] = useState<SeasonState>({ status: 'idle' });
   const [joining, setJoining] = useState(false);
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setWelcome(null);
+      return;
+    }
     let cancelled = false;
     setState({ status: 'loading' });
 
@@ -95,11 +107,12 @@ export function useSeason(
       const ok = await publishSeasonJoin(profile.id, profile.name, distanceM, hexes);
       setJoining(false);
       if (ok) {
+        setWelcome({ name: profile.name, distanceM, hexes });
         onJoined?.();
         reload();
       }
     })();
   };
 
-  return { state, reload, joining, join };
+  return { state, reload, joining, join, welcome };
 }

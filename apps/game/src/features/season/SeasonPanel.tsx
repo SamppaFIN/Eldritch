@@ -24,7 +24,7 @@ export interface SeasonPanelProps {
 
 export function SeasonPanel({ open, me, repository, now, onJoined, onClose }: SeasonPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const { state, reload, joining, join } = useSeason(open, repository, onJoined);
+  const { state, reload, joining, join, welcome } = useSeason(open, repository, onJoined);
 
   useEffect(() => {
     if (!open) return;
@@ -54,6 +54,25 @@ export function SeasonPanel({ open, me, repository, now, onJoined, onClose }: Se
           <span aria-hidden>✕</span>
         </RitualButton>
       </div>
+
+      {welcome ? (
+        <section className="season__welcome" aria-label="Welcome" role="status">
+          <HexMandala size={44} />
+          <h3 className="season__welcome-title">Welcome to the Weekly Tournament, {welcome.name}.</h3>
+          <p>
+            A fresh challenge, and everyone starts from their own line. Yours is{' '}
+            <strong>{formatDistance(welcome.distanceM)}</strong> and{' '}
+            <strong>
+              {welcome.hexes} {welcome.hexes === 1 ? 'hex' : 'hexes'}
+            </strong>
+            , as of this moment — what you gain from here is what counts.
+          </p>
+          <p>
+            Your realm now shares itself as you walk, and the list below follows each walker’s
+            latest publish. Walk well.
+          </p>
+        </section>
+      ) : null}
 
       {state.status === 'loading' ? <p className="season__note">Reading the trail…</p> : null}
 

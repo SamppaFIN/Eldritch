@@ -129,8 +129,66 @@ export function questCellsPinned(): boolean {
   return QUEST_SITE_IDS.every((id) => pinnedCells[id] !== undefined);
 }
 
+/**
+ * The troll's hoard changes hands every week (BRDC-QUEST-007).
+ *
+ * Infinite: *"trollin aarteet arvotaan viikoittain"*. The three secrets — the trinket, the
+ * staff and the wisdom stone — are the only places on the tale nobody is told about, so
+ * they are the ones re-hidden: each week they turn up somewhere new around the statue,
+ * between `SECRET_MIN_M` and `SECRET_MIN_M + SECRET_SPREAD_M` from it. The authored path
+ * (statue, lake, hermit, troll, deep) never moves — a place the player walked to has to
+ * still be there tomorrow (`BRDC-QUEST-005`). `null` until the boot sets the week, and
+ * then only the secrets read it.
+ */
+let secretWeek: number | null = null;
+const SECRET_MIN_M = 100;
+const SECRET_SPREAD_M = 300;
+
+/** Monday-to-Sunday weeks since the epoch. Day 0 was a Thursday, hence the three. */
+export function weekOf(now: number): number {
+  return Math.floor((Math.floor(now / 86_400_000) + 3) / 7);
+}
+
+/** FNV-1a over a string to [0, 1) — the same cheap, stable spread `terrain.ts` uses. */
+function roll(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967296;
+}
+
+const isSecret = (id: QuestSiteId): id is SecretSiteId => (SECRET_SITES as readonly string[]).includes(id);
+
+/**
+ * Re-hide the secrets for `week`, and pin them there.
+ *
+ * `stored` is what the last boot wrote for the same week — reading it back is what keeps a
+ * week's hoard from wandering when the Hearth is re-assigned mid-week. A different week (or
+ * none) rolls afresh. Returns what to write down.
+ */
+export function pinWeeklySecrets(
+  week: number,
+  stored: { week: number; cells: Partial<Record<SecretSiteId, H3Index>> } | null,
+): { week: number; cells: Partial<Record<SecretSiteId, H3Index>> } {
+  secretWeek = week;
+  const cells: Partial<Record<SecretSiteId, H3Index>> =
+    stored?.week === week && SECRET_SITES.every((id) => stored.cells[id])
+      ? stored.cells
+      : Object.fromEntries(SECRET_SITES.map((id) => [id, cellAt(questSiteAt(id))]));
+  pinnedCells = { ...pinnedCells, ...cells };
+  return { week, cells };
+}
+
 /** Where a site stands — at the anchor if there is one, in Härmälä if there is not. */
 export function questSiteAt(id: QuestSiteId): LatLng {
+  if (secretWeek !== null && isSecret(id)) {
+    const from = anchor ?? QUEST_SITES.statue;
+    const deg = roll(`secret:${id}:${secretWeek}:bearing`) * 360;
+    const metres = SECRET_MIN_M + roll(`secret:${id}:${secretWeek}:metres`) * SECRET_SPREAD_M;
+    return destination(from, deg, metres);
+  }
   if (!anchor) return QUEST_SITES[id];
   const { bearing: deg, metres } = SHAPE[id];
   return metres === 0 ? anchor : destination(anchor, deg, metres);

@@ -122,12 +122,19 @@ interface WeightedCandidate {
   readonly weight: number;
 }
 
+/**
+ * Granite counts three times over on the ground it can lie under (BRDC-RES-003). It is the
+ * only bounty that pays a building material and stone was too scarce to build with, so it
+ * is drawn three times as often as the others rather than made a rarer thing to find.
+ */
+const GRANITE_WEIGHT = 3;
+
 /** The old ten, weighted evenly — this table never had a rarity concept. */
 function legacyCandidates(kind: TerrainKind): WeightedCandidate[] {
   return BOUNTY_IDS.filter((id) => BOUNTIES[id].terrain.includes(kind)).map((id) => ({
     id,
     pool: 'legacy',
-    weight: 1,
+    weight: id === 'granite' ? GRANITE_WEIGHT : 1,
   }));
 }
 

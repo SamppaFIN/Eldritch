@@ -56,4 +56,8 @@ describe('terrainFromTiles', () => {
     ];
     expect(terrainFromTiles(shoreline)).toBe('coast');
   });
+
+  it('reads a quarry as hill country — that is where stone comes out (BRDC-RES-003)', () => {
+    expect(terrainFromTiles([{ sourceLayer: 'landuse', properties: { class: 'quarry' } }])).toBe('hill');
+  });
 });

@@ -11,7 +11,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import { ironAdjacentTo, tavernInProvince } from './buildStore.js';
-import { regionOf } from '../geo/cells.js';
+import { cellsWithin, neighboursOf, regionOf } from '../geo/cells.js';
+import { terrainOf } from '../rules/terrain.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
 const T0 = Date.parse('2026-09-16T12:00:00Z');
@@ -24,11 +25,21 @@ const cell = (h3: H3Index, over: Partial<Cell> = {}): Cell => ({
   ...over,
 });
 
-/** Terrain: hill. One of its real neighbours (8b088a2d93b4fff) is terrain: mountain. */
-const HILL_NEAR_MOUNTAIN = '8b088a2d905afff' as H3Index;
+/**
+ * A hill hex with a real mountain neighbour and a real plain neighbour, found by search near
+ * the statue rather than pinned by index: the hash's thresholds have been retuned
+ * (BRDC-RES-003, stone) and a pinned index quietly stopped being what its comment said.
+ */
+const STATUE_AREA = '8b088a2d905afff' as H3Index;
+const HILL_NEAR_MOUNTAIN = cellsWithin(STATUE_AREA, 30).find((h) => {
+  const around = neighboursOf(h).map((n) => terrainOf(n).kind);
+  return terrainOf(h).kind === 'hill' && around.includes('mountain') && around.includes('plain');
+}) as H3Index;
 /** A different real neighbour of HILL_NEAR_MOUNTAIN, terrain: plain — isolates the
  *  "a Mine already stands here" path from the "this neighbour is mountain" path. */
-const PLAIN_NEIGHBOUR = '8b088a2d90edfff' as H3Index;
+const PLAIN_NEIGHBOUR = neighboursOf(HILL_NEAR_MOUNTAIN).find(
+  (n) => terrainOf(n).kind === 'plain',
+) as H3Index;
 /** The confirmed statue's own hex — none of its six real neighbours are mountain. */
 const NO_MOUNTAIN_NEARBY = '8b088a2dab1cfff' as H3Index;
 /** Kilometres from NO_MOUNTAIN_NEARBY — reusing MOUNTAIN_NEIGHBOUR would prove nothing
