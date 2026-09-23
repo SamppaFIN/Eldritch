@@ -48,6 +48,20 @@
   font-size: var(--text-sm);
 }
 
+/* This device / Chronicles (BRDC-HALL-003) — same two-button shape as ClanPanel's
+   create/join toggle. */
+.hall__tabs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.hall__era {
+  margin: 0;
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
 .hall__list {
   display: flex;
   flex-direction: column;
@@ -129,4 +143,15 @@
   font-style: italic;
   font-size: var(--text-sm);
   line-height: 1.55;
+}
+
+.hall__share {
+  align-self: flex-start;
+  min-block-size: var(--touch-min);
+}
+
+.hall__shared {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
 }

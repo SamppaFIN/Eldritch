@@ -10,9 +10,12 @@
  * call localStorage.clear()". A game that can put itself in a bad state and offers no
  * door out is a game people stop opening.
  */
+import { useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
 import { SAVE_VERSION, clearAll } from '@es3/core';
 import type { GameRepository } from '@es3/core';
+import { publishLegacy } from '../../data/legacy.js';
+import './sanctum.css';
 
 export interface WithdrawDialogProps {
   open: boolean;
@@ -145,9 +148,12 @@ export function SanctumDialogs({
       />
       <RetireDialog
         open={confirming === 'retire'}
-        onConfirm={() => {
+        onConfirm={(era) => {
           void (async () => {
-            await repository.retireKingdom(now());
+            const profile = await repository.getProfile();
+            const entry = await repository.retireKingdom(now(), era);
+            const shared = await publishLegacy(profile.id, entry);
+            if (shared) await repository.setKingdomShared(entry.id, now());
             clearAll();
             window.location.reload();
           })();
@@ -158,12 +164,22 @@ export function SanctumDialogs({
   );
 }
 
+export interface RetireDialogProps {
+  open: boolean;
+  onConfirm: (era: string) => void;
+  onCancel: () => void;
+}
+
 /**
  * Retiring on purpose (BRDC-HALL-001) — a different door out than Delete progress, next to
  * it in the Advanced list but not styled as a mistake to be talked out of. What it takes is
  * the same wipe; what makes it not the panic button is that this kingdom is kept first.
+ *
+ * The era field (BRDC-HALL-003) is free text, never required — a kingdom retires whether
+ * or not its player bothers naming the age it stood in.
  */
-export function RetireDialog({ open, onConfirm, onCancel }: ResetDialogProps) {
+export function RetireDialog({ open, onConfirm, onCancel }: RetireDialogProps) {
+  const [era, setEra] = useState('');
   return (
     <Modal
       open={open}
@@ -171,7 +187,11 @@ export function RetireDialog({ open, onConfirm, onCancel }: ResetDialogProps) {
       onClose={onCancel}
       footer={
         <>
-          <RitualButton variant="ghost" className="es-btn--quiet" onClick={onConfirm}>
+          <RitualButton
+            variant="ghost"
+            className="es-btn--quiet"
+            onClick={() => onConfirm(era)}
+          >
             Retire it
           </RitualButton>
           <RitualButton onClick={onCancel}>Keep building</RitualButton>
@@ -181,8 +201,19 @@ export function RetireDialog({ open, onConfirm, onCancel }: ResetDialogProps) {
       <p>
         Every warded cell, every ley-line and all consciousness gained will be unmade — but
         this kingdom&rsquo;s name, level, ground held and what it achieved join the Hall of
-        Fame first, kept there for good.
+        Fame first, kept there for good, and shared for every realm to see.
       </p>
+      <label className="sanctum__label" htmlFor="retire-era">
+        Name the age it stood in (optional)
+      </label>
+      <input
+        id="retire-era"
+        className="sanctum__input"
+        placeholder="e.g. the Stone Age"
+        value={era}
+        maxLength={60}
+        onChange={(e) => setEra(e.target.value)}
+      />
       <p>A new kingdom begins the moment you confirm.</p>
     </Modal>
   );

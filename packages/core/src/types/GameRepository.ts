@@ -381,10 +381,14 @@ export interface GameRepository {
   /** Dev only: refill the pouch (BRDC-ECON-002). Shown behind `import.meta.env.DEV`. */
   debugGrant(now: number): Promise<void>;
   /** Archives the current kingdom's figures, then wipes exactly as `resetAll` does — the
-   *  archive is the one thing that survives (BRDC-HALL-001). */
-  retireKingdom(now: number): Promise<HallOfFameEntry>;
+   *  archive is the one thing that survives (BRDC-HALL-001). `era` is a free label for
+   *  when it stood, e.g. "Stone Age" (BRDC-HALL-003). */
+  retireKingdom(now: number, era?: string): Promise<HallOfFameEntry>;
   /** Every kingdom retired on this device, oldest first. */
   getHallOfFame(): Promise<HallOfFameEntry[]>;
   /** Attach a chronicle to one archived kingdom, once revealed (BRDC-HALL-002). */
   setKingdomStory(id: string, story: string): Promise<void>;
+  /** Mark an archived kingdom as shared to the Chronicles, after a successful publish
+   *  (BRDC-HALL-003). */
+  setKingdomShared(id: string, sharedAt: number): Promise<void>;
 }

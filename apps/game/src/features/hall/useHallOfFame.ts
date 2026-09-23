@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { fallbackChronicle } from '@es3/core';
 import type { GameRepository, HallOfFameEntry } from '@es3/core';
 import { fetchKingdomStory } from '../../data/kingdomStory.js';
+import { publishLegacy } from '../../data/legacy.js';
 
 export interface HallOfFame {
   entries: readonly HallOfFameEntry[];
@@ -19,12 +20,16 @@ export interface HallOfFame {
   /** Ids currently fetching their chronicle. */
   revealing: ReadonlySet<string>;
   reveal: (id: string) => void;
+  /** Ids currently publishing to the Chronicles (BRDC-HALL-003). */
+  sharing: ReadonlySet<string>;
+  share: (id: string) => void;
 }
 
 export function useHallOfFame(repository: GameRepository | null, open: boolean): HallOfFame {
   const [entries, setEntries] = useState<readonly HallOfFameEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [revealing, setRevealing] = useState<ReadonlySet<string>>(new Set());
+  const [sharing, setSharing] = useState<ReadonlySet<string>>(new Set());
 
   useEffect(() => {
     if (!repository || !open) return;
@@ -57,5 +62,28 @@ export function useHallOfFame(repository: GameRepository | null, open: boolean):
     });
   };
 
-  return { entries, loading, revealing, reveal };
+  /** A kingdom retired before this feature existed, published on request rather than
+   *  automatically — the concrete case this shipped for (BRDC-HALL-003). */
+  const share = (id: string) => {
+    const entry = entries.find((e) => e.id === id);
+    if (!repository || !entry || sharing.has(id)) return;
+    setSharing((s) => new Set(s).add(id));
+
+    void (async () => {
+      const profile = await repository.getProfile();
+      const ok = await publishLegacy(profile.id, entry);
+      if (ok) {
+        const sharedAt = Date.now();
+        await repository.setKingdomShared(id, sharedAt);
+        setEntries((list) => list.map((e) => (e.id === id ? { ...e, sharedAt } : e)));
+      }
+      setSharing((s) => {
+        const next = new Set(s);
+        next.delete(id);
+        return next;
+      });
+    })();
+  };
+
+  return { entries, loading, revealing, reveal, sharing, share };
 }

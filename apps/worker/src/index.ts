@@ -16,37 +16,10 @@
  * Reads are the hot path, so shards are built when someone *writes* and served from a
  * single KV read. Writes are rare — one player, now and then.
  *
- * BRDC-HALL-002 adds one more, unrelated to the shared world: `POST /kingdom-story`
- * writes the one chronicle a retired kingdom gets, using an AI key that must live here
- * and never on the client. It is the sole exception to claude.md §6.9's "no keys yet" —
- * noted there directly, not just here.
- *
- * BRDC-CLAN-001 adds `POST /clan` (create) and `GET /clan/<id>` (look up before joining).
- * Same honesty as everything else here: a clan's `founderToken` is a bearer secret, not
- * a password behind an account — whoever holds it can act as the founder, exactly as
- * whoever holds a player `id` can already publish as that player.
- *
- * BRDC-CLAN-004 adds `GET /clan/<id>/roster` — every live member's id, name and Keep, so
- * a client can pull in a clanmate's ground regardless of where the camera is pointed
- * (`useWorld.ts`'s own fetch is otherwise strictly viewport-driven).
- *
- * BRDC-CLAN-003 adds `POST /clan/<id>/rename` and `POST /clan/<id>/kick`, both gated on
- * the founder's own `founderToken` — a bearer secret, not a password behind an account,
- * exactly as trusted as everything else here. A kicked player is never edited out of
- * their own file; `clan:<id>.kicked` overrides their own claim wherever the clan is
- * read (the roster, `/submit`'s response), which is what "kicked" has to mean when
- * nobody's own data can be altered by anyone else.
- *
- * BRDC-CLAN-002 adds `GET /clan-codex` — every clan measured against every other, the
- * same `demographicsOf` the player Codex already uses, fed one synthetic realm per
- * clan instead of one per player (`clanMeasurables`, `@es3/core/data`).
- *
- * BRDC-ATLAS-001 adds `GET /atlas` — one row per res-5 municipality with any player's
- * ground in it, naming whoever holds the most of it (`atlasOf`, `@es3/core/data`). The
- * country-wide view a phone can actually load: a few hundred rows, not 157M res-11 cells.
- * `GET /atlas/history` and `GET /atlas/history/<week>` add "then" to that "now" — one
- * snapshot taken (never a cron, only on `/submit`) at most once every seven days, kept
- * twelve deep (`history.ts`).
+ * Later routes are documented in the file that implements them, not repeated here:
+ * `POST /kingdom-story` (an AI key that must live here, never on the client — the sole
+ * exception to claude.md §6.9, `chronicle.ts`), the `/clan*` family (`clan.ts`), the
+ * `/atlas*` family (`atlasOf`/`history.ts`), and `/legacy*` (`legacy.ts`).
  */
 import {
   atlasOf,
@@ -63,6 +36,7 @@ import { craftChronicle, isKingdomFacts } from './chronicle.js';
 import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './clan.js';
 import { listSnapshotWeeks, maybeSnapshot, readSnapshot } from './history.js';
 import { ROUTE_CODEX, splitByMode } from './routeCodex.js';
+import { listLegacy, publishLegacy } from './legacy.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -283,6 +257,18 @@ export default {
       return send({ story });
     }
 
+    // A retired kingdom, published (BRDC-HALL-003) — same trust as `/submit`: no
+    // account, no key, just an id nobody else can already claim to be.
+    if (request.method === 'POST' && url.pathname === '/legacy') {
+      const entry = await publishLegacy(env.WORLD, await request.json().catch(() => null));
+      return entry ? send({ ok: true }) : send({ fault: 'invalid' }, 400);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/legacy') {
+      const entries = await listLegacy(env.WORLD);
+      return entries.length === 0 ? bare(204) : send({ v: 1, generatedAt: Date.now(), entries });
+    }
+
     if (request.method === 'POST' && url.pathname === '/clan') {
       const body = (await request.json().catch(() => null)) as
         | { name?: unknown; founderId?: unknown }
@@ -378,6 +364,8 @@ export default {
           'GET /atlas/history',
           'GET /atlas/history/<week>',
           'POST /kingdom-story',
+          'POST /legacy',
+          'GET /legacy',
           'POST /clan',
           'GET /clan/<id>',
           'GET /clan/<id>/roster',

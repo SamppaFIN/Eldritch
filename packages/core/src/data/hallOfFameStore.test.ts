@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { cellAt } from '../geo/cells.js';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
-import { readHallOfFame, retireKingdom, setKingdomStory } from './hallOfFameStore.js';
+import { readHallOfFame, retireKingdom, setKingdomShared, setKingdomStory } from './hallOfFameStore.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
 
 const cell = (lat: number, lng: number): Cell => ({
@@ -99,6 +99,23 @@ describe('retireKingdom', () => {
     const entry = await retireKingdom(new MemoryStore(), profile(0), [], 0, () => 'k');
     expect(entry.story).toBeUndefined();
   });
+
+  it('keeps a trimmed era, and omits it entirely when blank (BRDC-HALL-003)', async () => {
+    const withEra = await retireKingdom(new MemoryStore(), profile(0), [], 0, () => 'k', '  Stone Age  ');
+    expect(withEra.era).toBe('Stone Age');
+
+    const blank = await retireKingdom(new MemoryStore(), profile(0), [], 0, () => 'k', '   ');
+    expect(blank.era).toBeUndefined();
+
+    const omitted = await retireKingdom(new MemoryStore(), profile(0), [], 0, () => 'k');
+    expect(omitted.era).toBeUndefined();
+  });
+
+  it('caps an era at 60 characters rather than storing an essay', async () => {
+    const long = 'x'.repeat(100);
+    const entry = await retireKingdom(new MemoryStore(), profile(0), [], 0, () => 'k', long);
+    expect(entry.era).toHaveLength(60);
+  });
 });
 
 describe('setKingdomStory', () => {
@@ -119,5 +136,26 @@ describe('setKingdomStory', () => {
     await retireKingdom(store, profile(0), [], 0, () => 'k');
     await setKingdomStory(store, 'nope', 'text');
     expect((await readHallOfFame(store))[0]?.story).toBeUndefined();
+  });
+});
+
+describe('setKingdomShared', () => {
+  it('marks the matching entry as shared, leaving others untouched', async () => {
+    const store = new MemoryStore();
+    await retireKingdom(store, profile(100), [], 1_000, () => 'first');
+    await retireKingdom(store, profile(200), [], 2_000, () => 'second');
+
+    await setKingdomShared(store, 'first', 9_000);
+
+    const archive = await readHallOfFame(store);
+    expect(archive.find((e) => e.id === 'first')?.sharedAt).toBe(9_000);
+    expect(archive.find((e) => e.id === 'second')?.sharedAt).toBeUndefined();
+  });
+
+  it('is a no-op for an id that does not exist', async () => {
+    const store = new MemoryStore();
+    await retireKingdom(store, profile(0), [], 0, () => 'k');
+    await setKingdomShared(store, 'nope', 9_000);
+    expect((await readHallOfFame(store))[0]?.sharedAt).toBeUndefined();
   });
 });

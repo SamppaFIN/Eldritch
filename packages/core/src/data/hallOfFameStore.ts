@@ -34,10 +34,29 @@ export interface HallOfFameEntry {
    *  fallback if the Worker could not be reached. Absent until first revealed
    *  (BRDC-HALL-002), so revealing costs nothing for a kingdom nobody looks back at. */
   story?: string;
+  /** A free, player-written label for when this kingdom stood — "Stone Age", or
+   *  whatever they choose (BRDC-HALL-003). Purely flavour, never validated. */
+  era?: string;
+  /** When this entry was last published to the shared Chronicles, if ever
+   *  (BRDC-HALL-003) — lets `HallOfFamePanel` offer "Share" once, then "Shared". */
+  sharedAt?: number;
 }
 
 export async function readHallOfFame(store: KeyValueStore): Promise<HallOfFameEntry[]> {
   return (await store.get<HallOfFameEntry[]>(K.hallOfFame)) ?? [];
+}
+
+/** Mark one archived kingdom as shared to the Chronicles (BRDC-HALL-003) — a manual
+ *  action, not automatic, so a kingdom retired before this feature existed (or on a
+ *  device that stays offline) is only ever published when its player chooses to. */
+export async function setKingdomShared(
+  store: KeyValueStore,
+  id: string,
+  sharedAt: number,
+): Promise<void> {
+  const archive = await readHallOfFame(store);
+  const next = archive.map((e) => (e.id === id ? { ...e, sharedAt } : e));
+  await store.set(K.hallOfFame, next);
 }
 
 /** Attach a chronicle to one archived kingdom, once — read back on every later visit. */
@@ -63,6 +82,8 @@ export async function retireKingdom(
   owned: readonly Cell[],
   now: number,
   newId: () => string,
+  /** A free label for when this kingdom stood, e.g. "Stone Age" (BRDC-HALL-003). */
+  era?: string,
 ): Promise<HallOfFameEntry> {
   const buildings = buildingsOf(owned).length;
   const [achievements, secretSites, wonders, cipherShards] = await Promise.all([
@@ -86,6 +107,7 @@ export async function retireKingdom(
     secretSites,
     wonders,
     cipherShards,
+    ...(era?.trim() ? { era: era.trim().slice(0, 60) } : {}),
   };
 
   const archive = [...(await readHallOfFame(store)), entry];
