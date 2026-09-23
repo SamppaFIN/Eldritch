@@ -1,11 +1,8 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { load, loadWith, remove, saveNow } from '@es3/core';
-import type { GameMode, GameRepository, LatLng } from '@es3/core';
+import type { GameMode, LatLng } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
-import { WagerDialog } from '../features/wager/WagerDialog.js';
-import { createRepository } from '../data/createRepository.js';
-import { razedLine, staleRevealsLine } from '../features/hud/notices.js';
 import { Hearth } from '../features/hearth/Hearth.js';
 import { ModeSelect } from '../features/mode/ModeSelect.js';
 import './mapview.css';
@@ -65,17 +62,6 @@ function nextView(): View {
 export function App() {
   const [view, setView] = useState<View>('title');
   const [notice, setNotice] = useState<string | null>(null);
-  const [wager, setWager] = useState(false);
-  /*
-   * Opened lazily, and only for the Wager.
-   *
-   * MapView owns its own handle; this one exists because sealing a challenge is done
-   * from the title screen, where there is otherwise no repository at all. Two handles
-   * over the same IndexedDB is not a problem — the store is the shared thing, and both
-   * read and write through it.
-   */
-  const [repository, setRepository] = useState<GameRepository | null>(null);
-
   useEffect(() => {
     const { value, outcome } = loadWith<Session | null>('session', null);
 
@@ -108,17 +94,6 @@ export function App() {
     }
   }, []);
 
-  const openWager = useCallback(() => {
-    setWager(true);
-    if (repository) return;
-    void createRepository().then((handle) => {
-      setRepository(handle.repository);
-      // The migration's report is one-shot and this path consumes it too (PIVOT §6).
-      if (handle.razed.length > 0) setNotice(razedLine(handle.razed.length));
-      else if (handle.staleReveals.length > 0) setNotice(staleRevealsLine(handle.staleReveals.length));
-    });
-  }, [repository]);
-
   const begin = useCallback(() => {
     saveNow<Session>('session', { startedAt: Date.now() });
     // Someone who has already chosen a mode and accepted a Hearth is not asked again —
@@ -143,12 +118,9 @@ export function App() {
   }, []);
 
   if (view === 'title') {
-    return (
-      <>
-        <TitleScreen onBegin={begin} onWager={openWager} notice={notice} />
-        <WagerDialog open={wager} repository={repository} onClose={() => setWager(false)} />
-      </>
-    );
+    // The Wager's title-screen door is parked since BRDC-CLAIM-017 — `onWager` simply
+    // is not passed, and `TitleScreen`'s own guard hides the button.
+    return <TitleScreen onBegin={begin} notice={notice} />;
   }
 
   if (view === 'mode') return <ModeSelect onChoose={chooseMode} />;

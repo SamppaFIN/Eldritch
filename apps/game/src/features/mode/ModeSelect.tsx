@@ -26,8 +26,7 @@ export function ModeSelect({ onChoose }: ModeSelectProps) {
         <div className="mode-select__option">
           <h2 className="mode-select__name">Adventure</h2>
           <p className="mode-select__body">
-            Buildings, research, spells, quests, clans, the Wager — everything the
-            sanctuary holds.
+            Buildings, research, spells, quests, clans — everything the sanctuary holds.
           </p>
           <RitualButton className="mode-select__cta" onClick={() => onChoose('adventure')}>
             Begin the Adventure

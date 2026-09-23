@@ -60,7 +60,8 @@ export interface SettingsMenuProps {
   onOpenClanCodex?: (() => void) | undefined;
   /** Import a recorded walk (BRDC-GPX-001). */
   onOpenGpx: () => void;
-  /** The Wager — a destination in the document's grid, not only a Keep button. */
+  /** The Wager. Never passed since BRDC-CLAIM-017 parked it — kept optional rather than
+   *  removed so the card's own `{onWager ? ... : null}` guard still does the hiding. */
   onWager?: (() => void) | undefined;
   /** Dev only: the map editor (BRDC-MAP-EDIT-001). Absent in a player's build. */
   onOpenEditor?: (() => void) | undefined;

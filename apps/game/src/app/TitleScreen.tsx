@@ -12,7 +12,7 @@ import './title.css';
 
 export interface TitleScreenProps {
   onBegin?: () => void;
-  /** Opens the Wager. Absent until a repository exists to seal a challenge with. */
+  /** Opens the Wager. Never passed since BRDC-CLAIM-017 parked it. */
   onWager?: () => void;
   /** Shown when a save was rejected, so an empty sanctuary is never unexplained. */
   notice?: string | null;

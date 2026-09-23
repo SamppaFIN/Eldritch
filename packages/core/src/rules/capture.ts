@@ -45,6 +45,63 @@ export interface CaptureResult {
 }
 
 /**
+ * Resolve one step under the "last visitor owns it" ruleset (BRDC-CLAIM-017, Adventure
+ * mode only — Route mode keeps calling `resolveCapture` and never reaches here).
+ *
+ * Unclaimed ground and reinforcing your own both behave exactly as `resolveCapture` —
+ * the whole difference is the third case: a rival's ordinary ground changes hands on the
+ * first step, full strength, no siege, no multi-day wear-down. The Hearth
+ * (BRDC-HEARTH-002) and a standing Fortress (BRDC-BUILD-012) are the two promises this
+ * does not touch — "never actually taken" is said elsewhere in this codebase about both,
+ * and a claim this instant is not the same shape of claim as capturing either of them —
+ * so a protected cell still falls through to the old wear-down fight.
+ */
+export function resolveInstantCapture(
+  cell: Cell,
+  attacker: Attacker,
+  now: number,
+  defenderHome: H3Index | null = null,
+  holds = false,
+): CaptureResult {
+  const protectedGround = holds || (defenderHome !== null && cell.h3 === defenderHome);
+  if (cell.ownerId === null || cell.ownerId === attacker.id || protectedGround) {
+    return resolveCapture(cell, attacker, now, 0, defenderHome, holds);
+  }
+
+  const today = utcDay(now);
+  const previousOwner = cell.ownerId;
+  return {
+    cell: {
+      h3: cell.h3,
+      ownerId: attacker.id,
+      strength: BASE_STRENGTH,
+      lastVisitedAt: now,
+      visitDays: [today],
+      // A cell taken instantly keeps whoever first revealed it and its running days-held
+      // count, the same inheritance rule a worn-down siege already leaves in place.
+      ...(cell.finder !== undefined ? { finder: cell.finder } : {}),
+      ...(cell.revealedAt !== undefined ? { revealedAt: cell.revealedAt } : {}),
+      ...(cell.buildings !== undefined ? { buildings: cell.buildings } : {}),
+      ...(cell.terrain !== undefined ? { terrain: cell.terrain } : {}),
+      ownedDays: cell.ownedDays ?? 1,
+      history: appendChange(cell.history, {
+        to: attacker.id,
+        from: previousOwner,
+        at: now,
+        power: BASE_STRENGTH,
+      }),
+    },
+    outcome: {
+      h3: cell.h3,
+      kind: 'taken',
+      strengthBefore: cell.strength,
+      strengthAfter: BASE_STRENGTH,
+      previousOwner,
+    },
+  };
+}
+
+/**
  * Force brought to bear on an enemy cell.
  *
  * Capped neighbour bonus is deliberate: without it, a player with a large contiguous

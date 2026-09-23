@@ -2,7 +2,7 @@ export * from './constants.js';
 export { levelForXp, levelName, levelState, xpForLevel } from './level.js';
 export type { LevelState } from './level.js';
 export { daysBetween, previousDay, utcDay } from './day.js';
-export { attackPower, emptyCell, resolveCapture } from './capture.js';
+export { attackPower, emptyCell, resolveCapture, resolveInstantCapture } from './capture.js';
 export type { Attacker, CaptureResult } from './capture.js';
 export { appendChange } from './history.js';
 export type { OwnershipChange } from './history.js';

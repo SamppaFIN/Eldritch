@@ -4,11 +4,15 @@
  * The loop is the game's real mechanic and it is coming back behind a setting. Until it
  * is taught, territory grows one foot at a time: step into an unclaimed hex that touches
  * ground you already hold and it is yours. Your land spreads from its edges, never in
- * leaps, and never onto someone else's cell — that is still the loop's job, and a
- * siege's.
+ * leaps.
  *
- * Pure. The repository turns the returned h3 into a claimed cell with `resolveCapture`,
- * the same call the loop uses, so a step-claim and a loop-claim produce identical ground.
+ * This only decides *adjacency* — whether a rival's border cell is taken outright
+ * (Adventure mode, BRDC-CLAIM-017) or refused (Route mode, BRDC-MODE-002) is
+ * `stepStore.js`'s call, made from the profile the geometry here does not see.
+ *
+ * Pure. The repository turns the returned h3 into a claimed cell with `resolveCapture`
+ * or `resolveInstantCapture`, so a step-claim and a loop-claim over the same ground never
+ * disagree about who holds it.
  */
 import { neighboursOf } from '../geo/cells.js';
 import type { Cell, H3Index } from '../types/domain.js';

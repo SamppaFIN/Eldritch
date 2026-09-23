@@ -507,7 +507,7 @@ ensviikon alusta."* Neljä pyyntöä kirjattu tiketeiksi (kolme) tai tähän riv
 |---|---|:---:|---|
 | [BRDC-HALL-003](BRDC-HALL-003.md) | ✅ Chronicles: jaettu Hall of Fame, aikakaudella | M | `POST/GET /legacy`, `era?: string` vapaana tekstinä, + "Share to the Chronicles" -nappi vanhoille kuningaskunnille |
 | [BRDC-MODE-003](BRDC-MODE-003.md) | Seikkailumoodi pakottaa uuden kuningaskunnan kerran | M | avoin kysymys: koskeeko *kaikkia* nykyisiä tallennuksia heti — ratkaistava ennen toteutusta |
-| [BRDC-CLAIM-017](BRDC-CLAIM-017.md) | "Viimeisin käynti omistaa" — eri sääntösetti kuin piiritys | XL | ⚠️ ristiriidassa `claude.md` §11:n kanssa kirjaimellisesti; ei suunniteltu, vain kirjattu sanatarkasti |
+| [BRDC-CLAIM-017](BRDC-CLAIM-017.md) | ✅ "Viimeisin käynti omistaa" — korvaa piirityksen step-claimissa, Wager parkkeerattu | L | `claude.md` §11 päivitetty; laajuus supistui merkittävästi vahvistavien vastausten myötä |
 | [BRDC-SEASON-001](BRDC-SEASON-001.md) | 🔶 Viikon kilpailu, päivittäin seurattuna — seuranta tehty, kauden alku/tervetulo auki | M | "The Season" -paneeli molemmissa moodeissa; kauden virallinen alku vaatii Infiniten oman päätöksen |
 
 **CLAIM-017 on Infiniten oma sana "tärkein"**, mutta se on myös laajin ja eniten

@@ -264,14 +264,16 @@ export function MapView({ onLeave }: MapViewProps) {
           owned={territory.owned} resources={resources} places={places}
           level={levelState(profile?.xp ?? 0).level} levelName={levelState(profile?.xp ?? 0).name}
           now={clock.now()} adventures={quest.adventures} repository={repository}
-          onPouch={setResources} forecast={forecast} onWager={inspect.openWager}
+          onPouch={setResources} forecast={forecast}
           onPublish={settings.shareWorld ? world.publish : undefined}
           onWeakest={inspect.onCellTap} onClose={inspect.close}
         />
       ) : null}
 
+      {/* The Wager: parked since BRDC-CLAIM-017 (instant-capture ownership leaves its
+          siege duel nothing to settle), not deleted — nothing opens it any more. */}
       <WagerDialog
-        open={inspect.wager && !isRoute}
+        open={false}
         repository={repository}
         onClose={inspect.closeWager}
         onImported={territory.refresh}
@@ -380,7 +382,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onOpenHallOfFame={isRoute ? undefined : aside.openHallOfFame}
         onOpenClan={isRoute ? undefined : aside.openClan}
         onOpenClanCodex={isRoute ? undefined : aside.openClanCodex} onOpenGpx={aside.openGpx}
-        onWager={isRoute ? undefined : inspect.openWager} onOpenGuide={aside.openGuide}
+        onOpenGuide={aside.openGuide}
         onOpenEditor={EDITOR_AVAILABLE ? editor.toggle : undefined}
         repository={repository} position={point}
         onDebugGrant={() => void repository?.debugGrant(clock.now()).then(() => repository?.getResources(clock.now()).then(setResources))}

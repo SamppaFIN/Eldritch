@@ -2,76 +2,89 @@
 
 | | |
 |---|---|
-| **Alue** | `packages/core/src/rules/decay.ts`, `capture.ts`, `apps/worker/src/index.ts` (merge), `claude.md` §11 |
+| **Alue** | `packages/core/src/rules/capture.ts`, `step.ts`, `packages/core/src/data/stepStore.ts`, `claude.md` §11, Wagerin UI-ovet |
 | **Vaihe** | 3 — Sivilisaatio |
-| **Effort** | XL — muuttaa pelin ydinsäännön, ei yhtä tikettiä |
+| **Effort** | L (ei XL — laajuus supistui kolmen vastauksen myötä paljon alkuperäistä
+  pelkoa pienemmäksi, ks. Sivulöydökset) |
 | **Riippuvuudet** | — |
-| **Status** | `[ ]` ei aloitettu, **ei suunniteltu vielä** — kirjattu sanasta sanaan
-  2026-09-23. Infinite: *"tärkein... otetaan nyt sääntösetiksi"*, mutta samassa
-  viestissä: *"tehdään isompia muutoksia ensiviikon alusta"* — luen nämä yhdessä
-  päätökseksi jonka Infinite on tehnyt, mutta jonka toteutus alkaa ensi viikolla |
+| **Status** | `done` — 2026-09-23 (v0.6.58) |
 
 ## 🔴 RED
 
 Infinite 2026-09-23, sanatarkasti: *"tärkein, on että otetaan nyt sääntösetiksi niin
 että se, joka on viimeisenä käynyt alueella omistaa sen.. viimeisin kellonaika
-ratkaisee, uudet resurssit saa vain päivittää sen mukaan kuka omistaa maan. Vanha
-kartta tiedosto voi olla pohjana, mutta kulkija omistaa heti vanhan kuningaskunnan
-maat."*
+ratkaisee..."*
 
-Luen tämän kolmena osana:
+Ristiriidassa `claude.md` §11:n silloisen tekstin kanssa kirjaimellisesti: *"Siege
+model, not instant flip... Do not 'simplify' this back to a single comparison."*
+Kolme avointa kysymystä esitettiin ennen koodia (AskUserQuestion), ja Infinite vastasi:
 
-1. **Omistus ei enää ole piiritys/vahvuus vaan viimeisin käynti.** Se joka viimeksi
-   asteli heksalle omistaa sen — ei väliä kuinka vahva edellinen omistaja oli
-2. **Resurssien päivitys seuraa omistajuutta.** Uudet resurssit (tuotanto,
-   varastokatto — `ECON-001`in koko malli) kertyvät vain sille kellä on omistus
-   sillä hetkellä
-3. **Vanha `world.json` on pohja, ei totuus.** Kun tämä otetaan käyttöön, kukaan ei
-   automaattisesti omista mitään vanhan datan perusteella — ensimmäinen kulkija
-   jonka heksalle astuu, omistaa sen heti, vanha kartta vain kertoo mitä siellä on
-   (maasto, resurssit)
+1. **Laajuus: korvaa piiritysmallin kokonaan** Seikkailumoodissa — jokainen askel,
+   myös rivaalin aktiivisesti puolustamalle maalle, vaihtaa omistajan heti
+2. **Reittimoodi ei muutu** — pysyy ainoana "ei rappiota, ei varastamista" -moodina
+3. **Wager poistetaan käytöstä ja piilotetaan** — ei säilytetä rinnalla
 
-## ⚠️ Tämä on ristiriidassa `claude.md` §11:n kanssa, kirjaimellisesti
+## 🟢 GREEN
 
-> *"Siege model, not instant flip... Enemy cells take `strength -= attackPower`; they
-> only change owner when strength reaches 0... Taking someone's established home
-> block should require two or three separate walks on separate days. **Do not
-> "simplify" this back to a single comparison.**"*
+- [x] `packages/core/src/rules/capture.ts`: uusi `resolveInstantCapture(cell,
+      attacker, now, defenderHome?, holds?)` — vapaa maa ja oma maa käyttäytyvät
+      täsmälleen kuten `resolveCapture`; rivaalin **suojaamaton** maa vaihtaa
+      omistajaa heti täydellä vahvuudella, ei piiritysmatematiikkaa. Hearth
+      (`defenderHome`) ja Fortress (`holds`) putoavat läpi vanhaan
+      `resolveCapture`-kulumiseen — **oma tulkintani, ei erikseen kysytty**: nämä
+      kaksi ovat jo muualla koodikannassa omia "ei koskaan oikeasti vietävissä"
+      -lupauksiaan, eivät osa yleistä aluesääntöä. 6 Vitest-testiä
+      (`captureInstant.test.ts`, uusi sisar koska `capture.test.ts` on jo 324/400)
+- [x] `packages/core/src/data/stepStore.ts`in `claimStepAt`: haarautuu
+      `profile.mode`illa — `route` käyttää yhä `resolveCapture`ia ja vanhaa
+      "kieltäydy jos omistettu" -tarkistusta; muut (`adventure`) käyttävät
+      `resolveInstantCapture`ia. Lokirivi `corrupt` kun `outcome.kind === 'taken'`,
+      `awaken` muuten — sama jaottelu kuin lenkkipolulla jo on
+- [x] `packages/core/src/rules/step.ts`in dokumentaatio päivitetty — ei enää väitä
+      "never onto someone else's cell"
+- [x] `packages/core/src/data/step.repo.test.ts`: olemassa oleva testi *"will not
+      take a rival cell"* korvattu kahdella — yksi todistaa seikkailumoodin ottavan
+      rivaalin solun heti, toinen todistaa reittimoodin yhä kieltäytyvän
+- [x] **Wager parkkeerattu, ei poistettu.** Jokainen ovi (title screen, Keep,
+      SettingsMenu-kortti) lakkasi kutsumasta `openWager`ia — koodi
+      (`wagerBattle.ts`, `features/wager/`) koskematta. `App.tsx`ista poistettiin
+      tarpeeton `wager`/`repository`-tila ja `createRepository`-tuonti, jotka jäivät
+      käyttämättömiksi oman muutokseni seurauksena (§3 "poista mikä oma muutoksesi
+      teki tarpeettomaksi"). `wager.spec.ts` kokonaisuudessaan `test.describe.skip`,
+      ei poistettu — sama peruste kuin koodilla
+- [x] `ModeSelect.tsx`in Seikkailumoodin kuvaus ei enää mainitse Wageria
+- [x] `mode-select.spec.ts`in "adventure mode unchanged" -testi korjattu (odotti
+      ennen Wageria näkyväksi, nyt piilossa molemmissa moodeissa)
+- [x] `claude.md` §11 päivitetty paikan päällä (uusi sääntö, siege-malli säilyy
+      lenkille + Hearth/Fortress-poikkeuksille, Wagerin parkkeeraus mainittu)
+- [x] Portti: `lint:lines`, `tsc -b`, **1707** vitest, `pnpm build`. e2e:
+      `mode-select.spec.ts` + `wager.spec.ts` ajettu oikeasti — 10 läpi, 8 ohitettu
+      (Wager), ei epäonnistumisia
 
-Tämä tiketti pyytää täsmälleen sitä minkä §11 nimeltä kieltää. En ole muuttanut
-`claude.md`ia — se on totuuden lähde kunnes Infinite vahvistaa muutoksen kirjallisesti
-(`claude.md`in oma sääntö: "jos tämä tiedosto on eri mieltä [tikettien] kanssa, korjaa
-se tässä heti"). Tämä RED on se korjaus odottamassa vahvistusta, ei hiljainen ohitus.
+## Sivulöydökset
 
-## 🔴 Avoimet kysymykset — nämä on ratkaistava ennen kuin GREEN voidaan kirjoittaa
+- **Laajuus supistui merkittävästi kysymysten vastausten myötä.** Alkuperäinen pelko
+  ("suuri osa §11:n vakioista muuttuu merkityksettömäksi") osoittautui vääräksi:
+  `decay.ts` ja loppu `capture.ts` (piiritys lenkille, Hearth/Fortress) **eivät
+  muuttuneet ollenkaan**. `claimableStep` osoittautui jo aiemmin rajanneen
+  step-claimin vain vierekkäiseen maahan — muutos on yksi kohta yhdessä
+  funktiossa (`resolveInstantCapture`in "Someone else's"-haara) plus yksi
+  haarautuva `if` `stepStore.ts`ssa
+- **Anti-cheat-huoli (nopeusrajoitus kantaa nyt koko painon) ei muuttunut
+  todellisuudessa** — se oli jo ainoa suoja ennenkin step-claim-polulla, koska
+  piiritys ei koskaan toiminutkaan siinä (`claimStepAt` ei koskaan välittänyt
+  `defenderHome`/`holds`-parametreja `resolveCapture`ille edes ennen tätä tikettiä)
+- **"Uudet resurssit saa vain päivittää sen mukaan kuka omistaa maan"** ei vaatinut
+  mitään uutta koodia — `ECON-001`in tuotantomalli jo laskee vain nykyisen
+  omistajan tuoton, ja se on nyt vain ajallisesti tarkempi kun omistaja voi
+  vaihtua kesken päivän
 
-- **Korvaako tämä piiritysmallin kokonaan, vai vain uudella maalla / tietyssä
-  tilanteessa?** Jos korvaa kokonaan: `decay.ts` (rappio), koko `capture.ts`
-  (`attackPower`, `BASE_STRENGTH`/`MAX_STRENGTH`), `NEIGHBOUR_BONUS`, `ANCHOR_BONUS` —
-  suuri osa §11:n vakioista muuttuu merkityksettömäksi
-- **Mitä tapahtuu Wagerille** (`WAGER-JSON`/`WAGER-BATTLE`-sarja)? Se koko mekaniikka
-  on rakennettu piiritys/puolustus-mallin päälle (`Combatant`, `Defence`,
-  `wagerBattle.ts`). Jos omistus on aina "viimeisin käynti", mitä kaksintaistelu
-  enää ratkaisee?
-- **Koskeeko tämä myös reittimoodia?** `BRDC-MODE-002` (juuri pushattu tässä
-  sessiossa) rakensi täsmälleen päinvastaisen lupauksen reittimoodille: pelaajan oma
-  heksa ei koskaan rapaudu eikä sitä voi viedä *keneltäkään*, ei edes seikkailumoodin
-  rivaalilta. "Viimeisin käynti omistaa" kumoaisi tämän suoraan jos sitä sovelletaan
-  reittimoodiinkin. Oma tulkintani: tämä sääntö koskee vain Seikkailumoodia, koska
-  reittimoodin koko pointti on ettei sillä ole taistelua — mutta tämä pitää vahvistaa
-  ääneen, ei olettaa
-- **Anti-cheat-vaikutus** (§15): jos yksi askel riittää omistukseen, nopea
-  kävely/pyöräily rajan yli (jo rajoitettu `MAX_SPEED_MS`illa) muuttuu ainoaksi
-  hyökkäysvektoriksi — koko siirto-nopeuden validointi kantaa nyt koko
-  anti-cheatin painon, ei enää vain yhden kerroksen niistä monesta
-- **Mitä "uudet resurssit saa vain päivittää sen mukaan kuka omistaa maan"
-  tarkoittaa tarkkaan?** Tuoko tämä muuta muutosta `ECON-001`in tuotantomalliin kuin
-  sen mikä on jo totta (omistaja kerää oman maansa tuoton)? Vai onko kyse siitä että
-  edellisen omistajan varastoitunut tuotanto/rakennukset nollautuvat vaihdossa?
+## Ei tässä
 
-## Ei tässä (kunnes vahvistettu)
-
-- **Ei koodia tässä sessiossa.** Tämä on RED-tason kirjaus, ei suunnitelma —
-  Infiniten oma sana: isommat muutokset alkavat ensi viikolla
-- **Ei `claude.md` §11:n muokkausta ennen kuin yllä olevat kysymykset on käyty läpi**
-  Infiniten kanssa ja toteutuksen laajuus on selvä
+- **Ei muutoksia lenkki-polkuun** (`closeWalk`/`planClaim`) — pysyy vanhassa
+  piiritysmallissa, koska se on jo oletuksena pois päältä (`Settings.loopClosure`)
+- **Ei muutoksia `decay.ts`iin** — rappio hallitsee yhä hylätyn maan vapautumista,
+  orgaaninen ja koskematon
+- **`sim.mjs`** (käsin ajettava pelisessio, ei osa testiporttia) viittaa yhä
+  Wageriin eikä toimi enää sellaisenaan — ei korjattu, koska se ei ole CI:n eikä
+  `pnpm e2e`in osa

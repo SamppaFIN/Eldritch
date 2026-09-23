@@ -354,11 +354,32 @@ does nothing after the first. Consecutive days pay double. The game rewards rout
 the cell is released, not kept at a floor — "The Void reclaims". A maxed cell survives ~33 days
 untouched; a freshly claimed one ~12. This is what keeps the map alive with two players.
 
-**Siege model, not instant flip.** Attack power =
-`BASE_STRENGTH + level*LEVEL_STRENGTH_BONUS + neighbourBonus + anchorBonus`.
-Enemy cells take `strength -= attackPower`; they only change owner when strength reaches 0,
-and then reset to `BASE_STRENGTH`. Taking someone's established home block should require two
-or three separate walks on separate days. Do not "simplify" this back to a single comparison.
+**Last visitor owns it, for the step-claim path — reversed 2026-09-23 (`BRDC-CLAIM-017`).**
+The siege model below was this file's own rule until Infinite asked for exactly the
+"single comparison" it had told earlier assistants not to build: whoever steps onto a
+hex last owns it, immediately, full strength, no multi-day wear-down. This is what
+`resolveInstantCapture` (`packages/core/rules/capture.ts`) does for Adventure mode's
+step-claim (`stepStore.ts`'s `claimStepAt`) — Route mode is untouched and still refuses
+outright to take anyone else's cell (`BRDC-MODE-002`'s own promise, never reopened).
+
+Two things the instant rule does **not** touch, both pre-existing, narrower promises:
+the Hearth and a standing Fortress still fall only to the old wear-down fight below
+(`resolveInstantCapture` falls through to `resolveCapture` for either) — "never actually
+taken" is said elsewhere in this codebase about both, and this was Infinite's own
+narrower framing, not a blanket exception invented here. And the loop-closure path
+(off by default, `Settings.loopClosure`) still uses the old siege model unmodified —
+BRDC-CLAIM-017 scoped itself to the step-claim path, the one actually played by default.
+
+**The Wager is parked, not deleted, for the same reason** — a siege duel has nothing
+left to settle once a step already decides ownership. Its code
+(`packages/core/rules/wagerBattle.ts`, `apps/game/src/features/wager/`) is untouched;
+every door to it (title screen, the Keep) is simply never wired. `wager.spec.ts` is
+skipped whole, not removed.
+
+**The old siege model, still true for the loop and for the Hearth/Fortress exceptions
+above.** Attack power = `BASE_STRENGTH + level*LEVEL_STRENGTH_BONUS + neighbourBonus +
+anchorBonus`. Enemy cells take `strength -= attackPower`; they only change owner when
+strength reaches 0, and then reset to `BASE_STRENGTH`.
 
 Discovery constants come from v2 and live in the same file (spawn 150 m, collect 5 m,
 max 10 active, 5 min respawn; common 60%/50xp, uncommon 25%/100xp, rare 12%/150xp,

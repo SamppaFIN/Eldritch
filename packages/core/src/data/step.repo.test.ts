@@ -70,16 +70,41 @@ describe('claimStep', () => {
     expect(await repo.claimStep(near, T0)).toEqual({ claimed: null });
   });
 
-  it('will not take a rival cell, even one on your border', async () => {
+  it('takes a rival cell on your border outright — last visitor owns it (BRDC-CLAIM-017)', async () => {
     const other = neighboursOf(cellAt(ORIGIN))[3] as string;
     await store.set(K.cell(other), {
+      h3: other,
+      ownerId: 'them',
+      strength: 480,
+      lastVisitedAt: T0,
+      visitDays: [],
+    });
+    const result = await repo.claimStep(other, T0);
+    expect(result.claimed).toBe(other);
+    expect(result.claimed && result.outcome).toMatchObject({ kind: 'taken', previousOwner: 'them' });
+    const owned = await repo.getOwnedCells(T0);
+    expect(owned.some((c) => c.h3 === other && c.ownerId === 'me')).toBe(true);
+  });
+
+  it('route mode still will not take a rival cell — no direction (BRDC-MODE-002)', async () => {
+    // `setMode` only sets the mode on first creation (claude.md: the choice is
+    // permanent for the whole save) — it has to run before anything else reads the
+    // profile, so this cannot reuse `repoWithHearth`'s already-adventure repo.
+    const routeStore = new MemoryStore();
+    await routeStore.set(SCHEMA_KEY, SCHEMA_VERSION);
+    const routeRepo = new MockRepository({ store: routeStore, newId: () => 'me', seed: 3 });
+    await routeRepo.setMode('route');
+    await routeRepo.setHome(ORIGIN, T0);
+
+    const other = neighboursOf(cellAt(ORIGIN))[3] as string;
+    await routeStore.set(K.cell(other), {
       h3: other,
       ownerId: 'them',
       strength: 200,
       lastVisitedAt: T0,
       visitDays: [],
     });
-    expect(await repo.claimStep(other, T0)).toEqual({ claimed: null });
+    expect(await routeRepo.claimStep(other, T0)).toEqual({ claimed: null });
   });
 });
 

@@ -6,7 +6,14 @@ import { acceptHearth } from './hearth.js';
  * block of text carried between them by hand — which is what a player does with it.
  * Since -006 accepting a Wager is territory only: no duel, and the same message can be
  * accepted again.
+ *
+ * Skipped whole since BRDC-CLAIM-017 (2026-09-23): the title-screen and Keep doors this
+ * suite drives (`page.getByRole('button', { name: 'The Wager' })`) are no longer wired
+ * to anything — instant-capture ownership leaves the Wager's siege duel nothing to
+ * settle. Not deleted: the Wager's own code is untouched, and this suite is exactly
+ * right again the day a door reopens to it.
  */
+test.describe.skip('The Wager (parked, BRDC-CLAIM-017)', () => {
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
@@ -209,3 +216,5 @@ test('a damaged message says what to do about it', async ({ page }) => {
   // Not a stack trace and not silence: what the player should do next.
   await expect(page.getByText(/Copy the message again|not a challenge/i)).toBeVisible();
 });
+
+}); // end test.describe.skip('The Wager (parked, BRDC-CLAIM-017)')

@@ -60,7 +60,8 @@ export interface HearthPanelProps {
   onPouch: (pool: ResourcePool) => void;
   /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
   forecast: Forecast | null;
-  onWager: () => void;
+  /** Absent since BRDC-CLAIM-017 — see `KeepRealm`'s own comment on the same prop. */
+  onWager?: (() => void) | undefined;
   /** Publish your realm to the shared world — set only when the share toggle is on (BRDC-SHARE-002). */
   onPublish?: (() => Promise<PublishResult>) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
