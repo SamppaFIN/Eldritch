@@ -57,3 +57,20 @@ uuden kuningaskunnan — ja tarjoaa (ei pakota) vanhan merkitsemisen historiaan 
 - **Ei koske reittimoodia.** Reittimoodin tallennus jatkuu normaalisti
 - **Ei automaattista julkaisua ilman kysymistä** — pelaaja valitsee joka kerta, sama
   periaate kuin `BRDC-HALL-001`
+
+## 🟡 Sivulöydös 2026-09-23 — mahdollisesti tarpeeton, kuten `routeClaim.ts` oli
+
+`BRDC-HALL-003` valmistui tämän tiketin jälkeen, ja sen myötä "Retire this kingdom"
+-valikkotoiminto (jo olemassa, `BRDC-HALL-001`) tekee jo tarkalleen sen minkä tämä
+tiketti yritti pakottaa ohjelmallisesti: arkistoi kuningaskunnan (nyt valinnaisella
+aikakausimerkinnällä), julkaisee sen kaikille näkyväksi ("Share to the Chronicles"),
+ja aloittaa uuden. Ainoa ero on **pakko vs. pyyntö** — ja "meille 6 pelaajalle fresh
+haaste" -kontekstissa (Infiniten oma tunnettu kaveripiiri, ei tuntematon yleisö) ero
+pakotetun dialogin ja "Infinite pyytää kaveriporukkaa retiroimaan" -viestin välillä on
+käytännössä olematon, kun taas pakotetun version koodi kantaa mukanaan yllä olevan
+ratkaisemattoman "koskeeko kaikkia heti" -kysymyksen.
+
+**Suositus: ei toteuteta koodina.** Kausi 1 voi alkaa sillä, että Infinite pyytää
+kaikkia kuutta retiroimaan kuningaskuntansa (nappi + aikakausikenttä ovat jo olemassa)
+ennen kuin kausi lasketaan alkaneeksi — nolla uutta koodia. Jätetty auki tähän eikä
+poistettu, koska päätös on Infinitellä.
