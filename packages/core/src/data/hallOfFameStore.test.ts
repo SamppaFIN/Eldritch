@@ -23,6 +23,7 @@ const profile = (xp: number): PlayerProfile => ({
   colorHue: 0,
   level: 1,
   xp,
+  mode: 'adventure',
 });
 
 describe('readHallOfFame', () => {

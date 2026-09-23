@@ -9,6 +9,10 @@ import { acceptHearth, openMap as open } from './hearth.js';
  */
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 12 };
 const TILE_HOST = 'tiles.openfreemap.org';
+/** The shared-world Worker: `useNationLayer` (BRDC-ATLAS-001) fetches `/atlas` as soon
+ *  as the map is ready, deliberately not gated on the `shareWorld` setting — seeing
+ *  other nations' aggregate ground does not depend on this device publishing its own. */
+const WORLD_HOST = 'eldritch-world.es3-world-worker.workers.dev';
 
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
@@ -25,10 +29,26 @@ function mapState(page: Page): Promise<{ lng: number; lat: number; zoom: number 
   });
 }
 
+/** A stationary player reads as "not walking" to the onboarding teacher (BRDC-TUTOR-001),
+ *  and a spec idle long enough can find a lesson card covering the map — clear it the
+ *  way a player would, the same fix `atlas.spec.ts` needed for the same reason. */
+async function dismissUnlockCard(page: Page): Promise<void> {
+  const card = page.locator('.unlock__card');
+  if (await card.isVisible().catch(() => false)) {
+    // Forced: a second card can render mid-click on a machine slow enough, and this
+    // dismissal is not itself under test — only clicking it is faithful to a player,
+    // fighting Playwright's own actionability retry over it is not.
+    await card.getByRole('button', { name: 'Not now' }).click({ force: true }).catch(() => undefined);
+  }
+}
+
 /**
  * Move the camera by hand. A firm drag from the right edge is unambiguously a pan (well
  * past MapLibre's 3 px click tolerance), so it fires dragstart with an originalEvent and
  * is never taken for a cell tap. Escape clears anything a stray event may have opened.
+ *
+ * Dismisses an onboarding card first, and again each retry: a card that opens under the
+ * drag's own mousedown swallows it, and the drag never reaches the map at all.
  */
 async function panByHand(page: Page) {
   const vs = page.viewportSize();
@@ -37,6 +57,7 @@ async function panByHand(page: Page) {
   const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
+    await dismissUnlockCard(page);
     await page.mouse.move(sx, sy);
     await page.mouse.down();
     for (let i = 1; i <= 10; i += 1) {
@@ -158,11 +179,11 @@ test('actually fetches vector tiles — the worker is alive', async ({ page }) =
   await expect.poll(() => tiles.length, { timeout: 20_000 }).toBeGreaterThan(0);
 });
 
-test('contacts the tile host and nothing else', async ({ page }) => {
+test('contacts only the tile host and the shared world, nothing else', async ({ page }) => {
   const foreign = new Set<string>();
   page.on('request', (r) => {
     const host = new URL(r.url()).hostname;
-    if (host && host !== 'localhost' && host !== TILE_HOST) foreign.add(host);
+    if (host && host !== 'localhost' && host !== TILE_HOST && host !== WORLD_HOST) foreign.add(host);
   });
 
   await openMap(page);
@@ -177,6 +198,7 @@ test('survives with no tiles at all', async ({ page }) => {
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await page.getByRole('button', { name: 'Begin the Adventure' }).click();
   // The Hearth needs the sky, not the streets, so it works with no tiles at all.
   await acceptHearth(page, HERE);
 
@@ -255,6 +277,9 @@ test('the recenter button pins the camera back on the player (BRDC-MAP-004)', as
   await expect(recenter).toBeVisible();
   expect((await recenter.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
 
+  // A lesson card can come due between the pan settling and this click — the same
+  // idle-too-long window `panByHand` itself guards against, just later.
+  await dismissUnlockCard(page);
   await recenter.click();
   // Pinned again, by its label and by the marker returning to centre.
   await expect(page.getByRole('button', { name: 'Camera follows you' })).toBeVisible();
@@ -305,76 +330,5 @@ test('the menu reaches Retreat, thumb-sized and focusable, and it asks first', a
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
 
-test.describe('a browser that never answers (BRDC-GEO-001)', () => {
-  // No geolocation permission at all, so nothing here can lean on a granted fix.
-  test.use({ permissions: [] });
-
-  /**
-   * Straight to the map, past the Hearth flow.
-   *
-   * `acceptHearth` needs real fixes to nudge, and these tests are precisely about there
-   * being none — so the Hearth is seeded the way the game itself stores it and `begin()`
-   * routes to the map. `stub` replaces geolocation before any app code runs.
-   */
-  async function openWith(page: Page, stub: () => void) {
-    await page.addInitScript(stub);
-    await page.addInitScript(() => {
-      localStorage.setItem(
-        'es3:hearth',
-        JSON.stringify({ v: 1, d: { position: { lat: 61.4729, lng: 23.7259 }, at: Date.now() } }),
-      );
-    });
-    await page.goto('/');
-    await page.getByRole('button', { name: /begin|enter/i }).click();
-  }
-
-  test('the map still opens, rather than listening forever', async ({ page }) => {
-    /*
-     * The iPhone bug, reproduced. `getCurrentPosition` is allowed to call neither
-     * callback, and on iOS it routinely does: the spec's own `timeout` clock does not
-     * start until permission is granted, so an unanswered prompt or Location Services
-     * switched off for Safari leaves the page waiting forever. `settled` never turned
-     * true, MapView stayed on "Listening for the ground beneath you…", and tracking never
-     * started because it is gated on `settled`. One unanswered callback bricked the game.
-     */
-    await openWith(page, () => {
-      Object.defineProperty(navigator, 'geolocation', {
-        configurable: true,
-        value: {
-          // Neither callback, ever — exactly what WebKit does here.
-          getCurrentPosition: () => {},
-          watchPosition: () => 1,
-          clearWatch: () => {},
-        },
-      });
-    });
-
-    // The deadline is ours, not the browser's: 8 s plus a second of slack.
-    await expect(page.getByRole('region', { name: 'Map' })).toBeVisible({ timeout: 25_000 });
-    await expect(page.locator('.mapview--waiting')).toHaveCount(0);
-  });
-
-  test('and says what to do about it instead of just going quiet', async ({ page }) => {
-    await openWith(page, () => {
-      const refuse = (_ok: unknown, no?: (e: unknown) => void) => {
-        no?.({ code: 1, PERMISSION_DENIED: 1, TIMEOUT: 3 });
-      };
-      Object.defineProperty(navigator, 'geolocation', {
-        configurable: true,
-        value: {
-          getCurrentPosition: refuse,
-          watchPosition: (ok: unknown, no?: (e: unknown) => void) => {
-            refuse(ok, no);
-            return 1;
-          },
-          clearWatch: () => {},
-        },
-      });
-    });
-
-    // A refusal is a decision that can be reversed, so the notice names where the switch
-    // is — on iOS it is two menus deep and no page can see or ask about the outer one.
-    const advice = page.locator('.mapview__warning', { hasText: /Location Services/ });
-    await expect(advice).toBeVisible({ timeout: 25_000 });
-  });
-});
+// BRDC-GEO-001's own tests (a browser that never answers the location prompt) live in
+// geo-permission.spec.ts — split out when this file reached its line ceiling.

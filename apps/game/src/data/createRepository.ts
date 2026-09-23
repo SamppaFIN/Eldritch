@@ -6,7 +6,7 @@
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
 import { MemoryStore, MockRepository, enableTerrainSurvey, enableWorldseed } from '@es3/core';
-import type { BuildingId, GameRepository, H3Index } from '@es3/core';
+import type { BuildingId, GameMode, GameRepository, H3Index } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
 // The hand survey of the field-test area is client content, not a rule — on for the
@@ -31,11 +31,18 @@ export interface RepositoryHandle {
   staleReveals: H3Index[];
 }
 
-export async function createRepository(): Promise<RepositoryHandle> {
+/**
+ * `mode` (BRDC-MODE-001), if given, must be set before anything below touches the
+ * profile at all — `takeRazed` reads `getOwnedCells`, which reads `getProfile`, which
+ * creates one with the default mode the first time anything asks. A `setMode` call from
+ * the caller, after this function returns, would already be too late.
+ */
+export async function createRepository(mode?: GameMode): Promise<RepositoryHandle> {
   const durable = await idbAvailable();
   const store = durable ? new IdbStore() : new MemoryStore();
 
   const repository = new MockRepository({ store });
+  if (mode) await repository.setMode(mode);
   const reset = (await repository.schemaOutcome()) === 'reset';
   // Right after the schema gate, before anything reads the pouch: the migration's debt is
   // settled here or the player never hears about it.

@@ -37,6 +37,7 @@ test.beforeEach(async ({ page }) => {
 async function openMap(page: Page) {
   // No goto: this spec loads the page itself, with the clock already wound forward.
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await page.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(page, START);
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 60_000 });
 }

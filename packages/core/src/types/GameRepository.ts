@@ -15,6 +15,7 @@ import type {
   LatLng,
   ClaimResult,
   DecayResult,
+  GameMode,
   H3Index,
   PlayerId,
   PlayerProfile,
@@ -68,6 +69,9 @@ import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
   getProfile(): Promise<PlayerProfile>;
+  /** Only takes effect the moment a profile is first created; a no-op once one
+   *  already exists — the choice is permanent for the save (BRDC-MODE-001). */
+  setMode(mode: GameMode): Promise<void>;
   /** Rename the player. Trimmed, capped at 24; an empty string is ignored (BRDC-CHAR-001). */
   setPlayerName(name: string): Promise<PlayerProfile>;
   /** Every achievement with its unlock time, or `null` if still locked (BRDC-CHAR-001). */

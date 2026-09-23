@@ -35,6 +35,15 @@ test('the title screen has no automatable accessibility violations', async ({ pa
   expect(report(results.violations)).toBe('');
 });
 
+test('the mode-select screen has no automatable accessibility violations', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await expect(page.getByRole('heading', { name: 'Choose Your Path' })).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+  expect(report(results.violations)).toBe('');
+});
+
 test('the map screen has no automatable accessibility violations', async ({ page }) => {
   await openMap(page);
 
@@ -50,6 +59,8 @@ test('the map screen has no automatable accessibility violations', async ({ page
 test('an open dialog has no automatable accessibility violations', async ({ page }) => {
   await openMap(page);
   await page.getByRole('button', { name: 'Menu' }).click();
+  // Behind Advanced since the Sigil redesign (screen 01) — the pane above it fits a screen.
+  await page.getByRole('button', { name: /^Advanced/ }).click();
   await page.getByRole('button', { name: 'Retreat from the map' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
 
@@ -60,6 +71,7 @@ test('an open dialog has no automatable accessibility violations', async ({ page
 test('headings go h1 then h2, with nothing skipped', async ({ page }) => {
   await openMap(page);
   await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: /^Advanced/ }).click();
   await page.getByRole('button', { name: 'Retreat from the map' }).click();
 
   const levels = await page.evaluate(() =>
@@ -153,6 +165,7 @@ test('nothing shifts under the player as the map arrives', async ({ page }) => {
   // while a thumb is heading for it.
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await page.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(page, HERE);
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 

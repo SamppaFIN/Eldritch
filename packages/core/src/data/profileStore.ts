@@ -9,17 +9,25 @@
 import { levelForXp } from '../rules/level.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
-import type { PlayerProfile } from '../types/domain.js';
+import type { GameMode, PlayerProfile } from '../types/domain.js';
 
 const NAME_MAX = 24;
 
+/**
+ * `mode` only matters the moment a profile is first created — every later call, from
+ * anywhere, reads whatever mode that first call chose. It defaults to `'adventure'`
+ * so the many call sites that just want "the profile, whatever it is" (`addXpTo`,
+ * `setName`) never have to think about it; only `useBoot`'s own first read passes the
+ * player's actual choice (BRDC-MODE-001).
+ */
 export async function readProfile(
   store: KeyValueStore,
   newId: () => string,
+  mode: GameMode = 'adventure',
 ): Promise<PlayerProfile> {
   const existing = await store.get<PlayerProfile>(K.profile);
   if (existing) return existing;
-  const profile: PlayerProfile = { id: newId(), name: 'Seeker', colorHue: 285, level: 1, xp: 0 };
+  const profile: PlayerProfile = { id: newId(), name: 'Seeker', colorHue: 285, level: 1, xp: 0, mode };
   await store.set(K.profile, profile);
   return profile;
 }

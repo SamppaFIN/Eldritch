@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.54",
+    "date": "2026-09-23",
+    "notes": [
+      "A new choice at the very start: Adventure (everything the sanctuary holds) or the Route (just walk and claim ground, for its own leaderboard coming soon)."
+    ]
+  },
+  {
     "version": "0.6.53",
     "date": "2026-09-23",
     "notes": [

@@ -58,10 +58,22 @@ export async function acceptHearth(page: Page, at: Coords): Promise<void> {
   await page.context().setGeolocation(at);
 }
 
-/** Title screen, Hearth, map — the whole opening, in the order a player meets it. */
-export async function openMap(page: Page, at: Coords, ready = '.es-player__core'): Promise<void> {
+/**
+ * Title screen, mode choice, Hearth, map — the whole opening, in the order a player
+ * meets it. `mode` defaults to Adventure so every spec written before BRDC-MODE-001
+ * keeps testing exactly what it always has; a route-mode spec passes `'route'`.
+ */
+export async function openMap(
+  page: Page,
+  at: Coords,
+  ready = '.es-player__core',
+  mode: 'adventure' | 'route' = 'adventure',
+): Promise<void> {
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await page
+    .getByRole('button', { name: mode === 'route' ? 'Begin the Route' : 'Begin the Adventure' })
+    .click();
   await acceptHearth(page, at);
   await expect(page.locator(ready)).toBeVisible({ timeout: 20_000 });
 }

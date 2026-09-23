@@ -98,7 +98,7 @@ export interface MapCanvasProps {
   editor?: Editor | undefined;
   onPlaceTap?: (h3: string) => void; // an Anchor Stone or temple marker is tapped
   /** Called when the Keep marker is tapped — opens the nation panel. */
-  onCastleTap?: () => void;
+  onCastleTap?: (() => void) | undefined;
   /** Called when the viewport settles, so the caller can query that region. */
   onViewportChange?: (bbox: BBox) => void;
   /** Terrain resolved from the map's own tiles, for the caller to persist. */

@@ -21,7 +21,7 @@ import {
   resolveQuestCells,
   saveNow,
 } from '@es3/core';
-import type { GameRepository, H3Index, PlayerProfile, QuestSiteId } from '@es3/core';
+import type { GameMode, GameRepository, H3Index, PlayerProfile, QuestSiteId } from '@es3/core';
 import { createRepository } from '../../data/createRepository.js';
 import type { NoticeConditions } from '../hud/notices.js';
 
@@ -49,7 +49,17 @@ export function useBoot(now: () => number, clock: unknown): Boot {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const handle = await createRepository();
+      /*
+       * Read before the repository exists, and passed into its own creation — not set
+       * afterwards. `createRepository`'s internal setup (`takeRazed` → `getOwnedCells`
+       * → `getProfile`) touches the profile before this effect gets control back, so a
+       * `setMode` call made here, after `await createRepository()`, is already too
+       * late: the profile exists by then, at whatever mode `readProfile`'s own default
+       * gave it. A save from before BRDC-MODE-001 existed, or one already resumed,
+       * carries no mark and needs none — the default is `'adventure'` either way.
+       */
+      const modeMark = load<{ mode: GameMode } | null>('mode', null);
+      const handle = await createRepository(modeMark?.mode);
       if (cancelled) return;
       setRepository(handle.repository);
       setAlerts({

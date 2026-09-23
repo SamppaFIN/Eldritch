@@ -45,6 +45,7 @@ test('a challenge from another sanctuary lands on the map, and can be accepted a
   const sender = await senderCtx.newPage();
   await sender.goto('/');
   await sender.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await sender.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(sender, { ...HERE, longitude: HERE.longitude + 0.006 });
   await expect(sender.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
@@ -54,6 +55,8 @@ test('a challenge from another sanctuary lands on the map, and can be accepted a
    * lap, and means the Wager is reached after a walk rather than during one.
    */
   await sender.getByRole('button', { name: 'Menu' }).click();
+  // Behind Advanced since the Sigil redesign (screen 01) — the pane above it fits a screen.
+  await sender.getByRole('button', { name: /^Advanced/ }).click();
   await sender.getByRole('button', { name: 'Retreat from the map' }).click();
   await sender.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
   await expect(sender.getByRole('button', { name: 'The Wager' })).toBeVisible();
@@ -70,6 +73,7 @@ test('a challenge from another sanctuary lands on the map, and can be accepted a
   const receiver = await receiverCtx.newPage();
   await receiver.goto('/');
   await receiver.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await receiver.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(receiver, HERE);
   await expect(receiver.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
@@ -123,10 +127,12 @@ test('ground both a Wager and your own walking claim shows shared, and lands at 
   const sender = await senderCtx.newPage();
   await sender.goto('/');
   await sender.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await sender.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(sender, HERE);
   await expect(sender.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
   await sender.getByRole('button', { name: 'Menu' }).click();
+  await sender.getByRole('button', { name: /^Advanced/ }).click();
   await sender.getByRole('button', { name: 'Retreat from the map' }).click();
   await sender.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
   await expect(sender.getByRole('button', { name: 'The Wager' })).toBeVisible();
@@ -142,6 +148,7 @@ test('ground both a Wager and your own walking claim shows shared, and lands at 
   const receiver = await receiverCtx.newPage();
   await receiver.goto('/');
   await receiver.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await receiver.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(receiver, HERE);
   await expect(receiver.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 

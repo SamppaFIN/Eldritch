@@ -46,7 +46,7 @@ import { addXpTo, readProfile, setName } from './profileStore.js';
 import { achievementsFor } from './achievementRepo.js';
 import type { AchievementView } from './achievementStore.js';
 import type {
-  BBox, Cell, LatLng, RevealedPlace, ClaimResult, DecayResult, GameRepository,
+  BBox, Cell, LatLng, RevealedPlace, ClaimResult, DecayResult, GameMode, GameRepository,
   H3Index, PlayerId, PlayerProfile, Run, RunId, Terrain, TrailPoint,
 } from '../types/index.js';
 import { MemoryStore, type KeyValueStore } from './kv.js';
@@ -92,9 +92,9 @@ export class MockRepository implements GameRepository {
   schemaOutcome = (): Promise<SchemaOutcome> => this.store.schema();
 
   /* --- Profile and achievements — seams in profileStore.js / achievementRepo.js --- */
-  getProfile(): Promise<PlayerProfile> {
-    return readProfile(this.store, this.newId);
-  }
+  getProfile = (): Promise<PlayerProfile> => readProfile(this.store, this.newId);
+  // Only takes effect at first creation — `readProfile` no-ops otherwise (BRDC-MODE-001).
+  setMode = async (mode: GameMode): Promise<void> => void (await readProfile(this.store, this.newId, mode));
   addXp(amount: number): Promise<PlayerProfile> {
     return addXpTo(this.store, this.newId, amount);
   }

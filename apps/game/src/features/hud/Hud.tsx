@@ -72,7 +72,7 @@ export interface HudProps {
   onShowMap?: (() => void) | undefined;
   /** Opens the Keep — buildings and mana — from anywhere, not just its marker (BRDC-KEEP-003). */
   onOpenKeep?: (() => void) | undefined;
-  onOpenResearch?: () => void;
+  onOpenResearch?: (() => void) | undefined;
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
@@ -172,6 +172,12 @@ export function Hud({
 }: HudProps) {
   const { shown, fold: foldSheet } = useHudFold();
 
+  // Consciousness and XP are an adventure-only idea (BRDC-MODE-001) — a route-mode save
+  // never earns either, so the walking sheet says what it is instead of a level that
+  // never moves. The figure keeps its slot rather than disappearing: with only one figure
+  // left, `.hud__figures`'s `space-between` would strand "Warded" at the start instead
+  // of the end it reads correctly at today.
+  const isRoute = profile?.mode === 'route';
   const level = levelState(profile?.xp ?? 0);
   const q = quality(status, accuracyM);
 
@@ -257,9 +263,9 @@ export function Hud({
           */}
         <div className="hud__figures">
           <div className="hud__figure">
-            <span className="hud__label">Consciousness</span>
+            <span className="hud__label">{isRoute ? 'Route' : 'Consciousness'}</span>
             <span className="hud__value hud__value--level">
-              {level.level} · {level.name}
+              {isRoute ? 'Walking' : `${level.level} · ${level.name}`}
             </span>
           </div>
           <div className="hud__figure hud__figure--end">
@@ -304,16 +310,18 @@ export function Hud({
           </div>
         ) : null}
 
-        <div
-          className="hud__xp"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(level.progress * 100)}
-          aria-label={`Experience toward level ${level.level + 1}`}
-        >
-          <div className="hud__xp-fill" style={{ inlineSize: `${level.progress * 100}%` }} />
-        </div>
+        {isRoute ? null : (
+          <div
+            className="hud__xp"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(level.progress * 100)}
+            aria-label={`Experience toward level ${level.level + 1}`}
+          >
+            <div className="hud__xp-fill" style={{ inlineSize: `${level.progress * 100}%` }} />
+          </div>
+        )}
 
         {basemapVoid ? (
           <p className="hud__note" role="status">

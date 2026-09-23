@@ -91,6 +91,7 @@ test('a refused permission explains itself instead of freezing', async ({ browse
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await page.getByRole('button', { name: 'Begin the Adventure' }).click();
 
   await expect(page.getByRole('heading', { name: 'Your Hearth' })).toBeVisible();
   await expect(page.locator('.hearth__state')).toContainText(/refused|no location sensor/i, {
@@ -163,6 +164,7 @@ test('works with no tiles — airplane mode is a supported state', async ({ page
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+  await page.getByRole('button', { name: 'Begin the Adventure' }).click();
   await acceptHearth(page, START);
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 

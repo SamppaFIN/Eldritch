@@ -11,12 +11,18 @@ import type { CipherView, GameRepository, H3Index } from '@es3/core';
 
 const EMPTY: CipherView = { held: [], complete: false, fragments: [], inscription: null };
 
+export interface Cipher {
+  view: CipherView;
+  justFound: number | null;
+  dismiss: () => void;
+}
+
 export function useCipher(
   repository: GameRepository | null,
   standingOn: H3Index | null,
   now: () => number,
   version: number,
-): { view: CipherView; justFound: number | null; dismiss: () => void } {
+): Cipher {
   const [view, setView] = useState<CipherView>(EMPTY);
   const [justFound, setJustFound] = useState<number | null>(null);
   const seen = useRef<number | null>(null);

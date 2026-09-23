@@ -220,6 +220,14 @@ export interface Cell {
   anomaly?: { startedAt: number; stage?: number; done?: true };
 }
 
+/**
+ * Chosen once, at the very start of a save, and never changed after (BRDC-MODE-001).
+ * `route` strips the game to walking and claiming: no decay, no siege, no buildings,
+ * no quests — only distance walked and hexes held, for their own leaderboard
+ * (`BRDC-MODE-002`). `adventure` is everything the game has always been.
+ */
+export type GameMode = 'route' | 'adventure';
+
 export interface PlayerProfile {
   id: PlayerId;
   name: string;
@@ -227,6 +235,7 @@ export interface PlayerProfile {
   colorHue: number;
   level: number;
   xp: number;
+  mode: GameMode;
 }
 
 /** Why a GPS point was not accepted. Surfaced in the HUD, not swallowed. */

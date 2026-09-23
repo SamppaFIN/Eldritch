@@ -79,6 +79,7 @@ const run = async () => {
     // The context is fresh (browser.newContext), so storage starts empty — no wipe needed.
 
     await page.getByRole('button', { name: 'Begin the Awakening' }).click();
+    await page.getByRole('button', { name: 'Begin the Adventure' }).click();
     await acceptHearth(page);
     await page.locator('.es-player__core').waitFor({ state: 'visible', timeout: 20_000 });
     step('founded a Hearth', true);

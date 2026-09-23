@@ -1,12 +1,13 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { load, loadWith, remove, saveNow } from '@es3/core';
-import type { GameRepository, LatLng } from '@es3/core';
+import type { GameMode, GameRepository, LatLng } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { createRepository } from '../data/createRepository.js';
 import { razedLine, staleRevealsLine } from '../features/hud/notices.js';
 import { Hearth } from '../features/hearth/Hearth.js';
+import { ModeSelect } from '../features/mode/ModeSelect.js';
 import './mapview.css';
 
 /**
@@ -15,7 +16,7 @@ import './mapview.css';
  */
 const MapView = lazy(async () => ({ default: (await import('./MapView.js')).MapView }));
 
-type View = 'title' | 'hearth' | 'map';
+type View = 'title' | 'mode' | 'hearth' | 'map';
 
 interface Session {
   startedAt: number;
@@ -31,6 +32,27 @@ interface Session {
 interface HearthMark {
   position: LatLng;
   at: number;
+}
+
+/** The chosen mode, same shape of note as `HearthMark` — MapView's `useBoot` reads this
+ *  once to seed the profile through `setMode` (BRDC-MODE-001). Chosen before the
+ *  Hearth, since it changes nothing about the Hearth screen itself. */
+interface ModeMark {
+  mode: GameMode;
+}
+
+/**
+ * Where to go next, given only what has been agreed to so far.
+ *
+ * Mode comes before the Hearth: it changes nothing about founding one, so asking
+ * afterwards would just be a second interruption. Shared between resuming a session
+ * and starting fresh — both are "a session can outlive the question it never asked"
+ * (the Hearth's own reasoning below), now with two questions instead of one. A plain
+ * function, not a hook: it closes over nothing but localStorage, read fresh every call.
+ */
+function nextView(): View {
+  if (!load<ModeMark | null>('mode', null)) return 'mode';
+  return load<HearthMark | null>('hearth', null) ? 'map' : 'hearth';
 }
 
 /**
@@ -73,7 +95,7 @@ export function App() {
        * session from before the Hearth existed was never asked to accept one — they
        * landed on an empty map owning nothing, exactly as before.
        */
-      setView(load<HearthMark | null>('hearth', null) ? 'map' : 'hearth');
+      setView(nextView());
       return;
     }
 
@@ -99,9 +121,14 @@ export function App() {
 
   const begin = useCallback(() => {
     saveNow<Session>('session', { startedAt: Date.now() });
-    // Someone who has already accepted a Hearth is not asked again — they are walking
-    // back into a sanctuary that exists, not founding a new one.
-    setView(load<HearthMark | null>('hearth', null) ? 'map' : 'hearth');
+    // Someone who has already chosen a mode and accepted a Hearth is not asked again —
+    // they are walking back into a sanctuary that exists, not founding a new one.
+    setView(nextView());
+  }, []);
+
+  const chooseMode = useCallback((mode: GameMode) => {
+    saveNow<ModeMark>('mode', { mode });
+    setView(nextView());
   }, []);
 
   const acceptHearth = useCallback((position: LatLng) => {
@@ -123,6 +150,8 @@ export function App() {
       </>
     );
   }
+
+  if (view === 'mode') return <ModeSelect onChoose={chooseMode} />;
 
   if (view === 'hearth') return <Hearth onAccept={acceptHearth} />;
 

@@ -33,20 +33,24 @@ export interface SettingsMenuProps {
   onChange: (next: Settings) => void;
   onRetreat: () => void;
   onDeleteProgress: () => void;
-  /** Ends the current kingdom on purpose, archiving it first (BRDC-HALL-001). */
-  onRetireKingdom: () => void;
+  /** Ends the current kingdom on purpose, archiving it first (BRDC-HALL-001). Absent
+   *  for a route-mode save, which has no kingdom in that sense (BRDC-MODE-001). */
+  onRetireKingdom?: (() => void) | undefined;
   /** Opens the action log (BRDC-LOG-001). */
   onOpenLog: () => void;
   /** Opens the Codex of Dominion (BRDC-CODEX-001). */
   onOpenCodex: () => void;
   /** Opens the ledger of held ground (BRDC-LANDS-001). */
   onOpenLands: () => void;
-  /** Opens the Hall of Fame — kingdoms already retired (BRDC-HALL-001). */
-  onOpenHallOfFame: () => void;
-  /** Opens the clan screen — create, join, or leave (BRDC-CLAN-001). */
-  onOpenClan: () => void;
-  /** Opens the clan league — every clan measured (BRDC-CLAN-002). */
-  onOpenClanCodex: () => void;
+  /** Opens the Hall of Fame — kingdoms already retired (BRDC-HALL-001). Absent for a
+   *  route-mode save (BRDC-MODE-001). */
+  onOpenHallOfFame?: (() => void) | undefined;
+  /** Opens the clan screen — create, join, or leave (BRDC-CLAN-001). Absent for a
+   *  route-mode save (BRDC-MODE-001). */
+  onOpenClan?: (() => void) | undefined;
+  /** Opens the clan league — every clan measured (BRDC-CLAN-002). Absent for a
+   *  route-mode save (BRDC-MODE-001). */
+  onOpenClanCodex?: (() => void) | undefined;
   /** Import a recorded walk (BRDC-GPX-001). */
   onOpenGpx: () => void;
   /** The Wager — a destination in the document's grid, not only a Keep button. */
@@ -251,9 +255,13 @@ export function SettingsMenu({
                 {link('Guide', 'How it plays', onOpenGuide)}
                 {link('Your lands', 'The ground you hold', onOpenLands)}
                 {link('Codex', 'Where you stand', onOpenCodex, 'var(--sacred-gold)')}
-                {link('Hall of Fame', 'Kingdoms retired', onOpenHallOfFame, 'var(--sacred-gold)')}
-                {link('Clan', 'Join or start a friend circle', onOpenClan)}
-                {link('Clan Codex', 'Clans measured against each other', onOpenClanCodex)}
+                {onOpenHallOfFame
+                  ? link('Hall of Fame', 'Kingdoms retired', onOpenHallOfFame, 'var(--sacred-gold)')
+                  : null}
+                {onOpenClan ? link('Clan', 'Join or start a friend circle', onOpenClan) : null}
+                {onOpenClanCodex
+                  ? link('Clan Codex', 'Clans measured against each other', onOpenClanCodex)
+                  : null}
                 {onWager ? link('The Wager', 'Challenge a friend', onWager, 'var(--r-token)') : null}
               </div>
             </div>
@@ -301,13 +309,15 @@ export function SettingsMenu({
                 <button type="button" className="settings__action" onClick={() => run(onRetreat)}>
                   Retreat from the map
                 </button>
-                <button
-                  type="button"
-                  className="settings__action"
-                  onClick={() => run(onRetireKingdom)}
-                >
-                  Retire this kingdom
-                </button>
+                {onRetireKingdom ? (
+                  <button
+                    type="button"
+                    className="settings__action"
+                    onClick={() => run(onRetireKingdom)}
+                  >
+                    Retire this kingdom
+                  </button>
+                ) : null}
                 {onResetPouch ? (
                   <button
                     type="button"

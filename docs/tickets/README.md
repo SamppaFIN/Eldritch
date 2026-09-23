@@ -159,6 +159,8 @@ tikettien `Lähde`-riveille, jotta mitään ei katoa matkalla.
 | [BRDC-EVENT-001](BRDC-EVENT-001.md) | Tapahtumaketjut, anomaliat, pimeät ajat | M | REVEAL-001, HEX-001 |
 | [BRDC-QUEST-001](BRDC-QUEST-001.md) | Seikkailut: järvenpuhdistus ja dialogi | M | EVENT-001, ART-001 |
 | [BRDC-ATLAS-001](BRDC-ATLAS-001.md) | Koko Suomi: kaupungit, rajat ja laajeneminen | L | SHARE-001, CASTLE-001, SCALE-001 |
+| [BRDC-MODE-001](BRDC-MODE-001.md) | Reittimoodi vs. Seikkailumoodi: valinta, tallennus, portitus | M | — |
+| [BRDC-MODE-002](BRDC-MODE-002.md) | Reittimoodin oma sääntöpolku ja tulostaulu | L | MODE-001 |
 
 **Pelaajalle näkyvä:**
 

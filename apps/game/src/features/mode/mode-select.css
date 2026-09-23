@@ -1,0 +1,68 @@
+/* Mode-select screen layout. Same shape as title.css's own panel — a different screen
+   in the same opening sequence, not a new visual language. */
+
+.mode-select {
+  position: relative;
+  z-index: var(--z-hud);
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-items: center;
+  padding: max(min(var(--space-6), 5vw), env(safe-area-inset-top)) min(var(--space-4), 4vw)
+    max(min(var(--space-6), 5vw), env(safe-area-inset-bottom));
+}
+
+.mode-select__panel {
+  width: 100%;
+  max-width: 34rem;
+  min-width: 0;
+  padding: min(var(--space-8), 7vw) min(var(--space-6), 5vw);
+  text-align: center;
+  gap: var(--space-3);
+  animation: es-rise var(--dur-ritual) var(--ease-out) both;
+}
+
+.mode-select__title {
+  color: var(--text);
+  font-size: min(var(--text-h2), 8vw);
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.mode-select__intro {
+  margin-bottom: var(--space-2);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.mode-select__option {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.mode-select__name {
+  color: var(--text);
+  font-size: var(--text-h3);
+}
+
+.mode-select__body {
+  max-width: 34ch;
+  margin-inline: auto;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  text-wrap: balance;
+}
+
+.mode-select__cta {
+  justify-self: center;
+  max-width: 100%;
+  padding-inline: min(var(--space-8), 6vw);
+  white-space: normal;
+}
+
+.mode-select__divider {
+  color: var(--accent);
+  opacity: 0.4;
+  margin-block: var(--space-2);
+}

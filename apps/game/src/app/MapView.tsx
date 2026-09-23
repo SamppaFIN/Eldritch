@@ -25,13 +25,8 @@ import { ResearchDialog } from '../features/territory/ResearchDialog.js';
 import { useSelection } from '../features/territory/useSelection.js';
 import { usePouchPolling } from '../features/territory/usePouchPolling.js';
 import { useClaimSync } from '../features/territory/useClaimSync.js';
-import { DiscoveryModal } from '../features/territory/DiscoveryModal.js';
 import { useFumingLake } from '../features/quest/useFumingLake.js';
-import { QuestReveal } from '../features/quest/QuestReveal.js';
 import { useCipher } from '../features/cipher/useCipher.js';
-import { CipherReveal } from '../features/cipher/CipherReveal.js';
-import { AdventureDialog } from '../features/quest/AdventureDialog.js';
-import { EncounterDialog } from '../features/quest/EncounterDialog.js';
 import { useCellTerrain } from '../features/map/useCellTerrain.js';
 import { useStandingCell } from '../features/map/useStandingCell.js';
 import { useMapAside } from '../features/map/useMapAside.js';
@@ -50,7 +45,7 @@ import { FirstLook } from '../features/hud/FirstLook.js';
 import { TopStack } from '../features/hud/TopStack.js';
 import { GuideNews } from '../features/help/GuideNews.js';
 import { UnlockTeacher } from '../features/tutor/UnlockTeacher.js';
-import { WonderMoment } from '../features/wonder/WonderMoment.js';
+import { AdventureOverlays } from '../features/hud/AdventureOverlays.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { geoTrouble } from '../features/hud/notices.js';
 import { SettingsMenu } from '../features/hud/SettingsMenu.js';
@@ -80,6 +75,9 @@ export function MapView({ onLeave }: MapViewProps) {
   const { centre, settled, permission } = useInitialPosition();
 
   const { repository, alerts, profile, setProfile, castle } = useBoot(clock.now, clock);
+  // Chosen once at the start of the save and never changed (BRDC-MODE-001) — gates
+  // every screen that belongs to the full sanctuary and not to walking-and-claiming.
+  const isRoute = profile?.mode === 'route';
 
   const simulate = useSimulateKey();
   // Dev only, and compiled out of a player's build (BRDC-MAP-EDIT-001).
@@ -230,7 +228,9 @@ export function MapView({ onLeave }: MapViewProps) {
         awakening={awakening}
         initialZoom={openingZoom}
         buildingIcons={settings.buildingIcons}
-        bannerId={nation.bannerId}
+        // No nation identity to fly for a route-mode save — there is no Keep screen to
+        // set one from (BRDC-MODE-001).
+        bannerId={isRoute ? null : nation.bannerId}
         revealed={discovery.revealed}
         onBasemapChange={setBasemap}
         // While the editor is open the map belongs to it: a tap paints and must not also
@@ -238,54 +238,45 @@ export function MapView({ onLeave }: MapViewProps) {
         onCellTap={editor.on ? undefined : inspect.onCellTap}
         editor={EDITOR_AVAILABLE ? editor : undefined}
         onPlaceTap={inspect.onPlaceTap}
-        onCastleTap={inspect.onCastleTap}
+        // Route mode still marks the home cell on the map — it is just not a button
+        // (BRDC-MODE-001): there is no Keep screen behind it to open.
+        onCastleTap={isRoute ? undefined : inspect.onCastleTap}
         onViewportChange={onViewportChange}
         onCellTerrain={onCellTerrain}
       />
 
       <ClaimBurst claim={territory.lastClaim} />
       <MomentFx moments={moments} />
-      <DiscoveryModal
-        discovered={discovery.discovered}
+      <AdventureOverlays
+        isRoute={isRoute}
+        discovery={discovery}
         owned={territory.owned}
-        revealed={discovery.revealed}
         onOpenCell={inspect.onCellTap}
-        onReveal={discovery.onReveal}
+        quest={quest}
+        cipher={cipher}
+        settings={settings}
+        standingOn={standingOn}
       />
       <PlaceReveal revealed={trail.revealed} />
-      <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />
-      <CipherReveal found={cipher.justFound} view={cipher.view} settings={settings} onDismiss={cipher.dismiss} />
-      {quest.questHex ? (
-        <AdventureDialog binding={quest.adventures} onHex={quest.atStageHex} onClose={() => quest.openQuestHex(null)} />
-      ) : null}
-      <EncounterDialog encounter={discovery.encounter} standingOn={standingOn} onChoose={discovery.onEncounterChoice} />
 
-      {inspect.sanctum ? (
+      {inspect.sanctum && !isRoute ? (
         <HearthPanel
-          owned={territory.owned}
-          resources={resources}
-          places={places}
-          level={levelState(profile?.xp ?? 0).level}
-          levelName={levelState(profile?.xp ?? 0).name}
-          now={clock.now()}
-          adventures={quest.adventures}
-          repository={repository}
-          onPouch={setResources}
-          forecast={forecast}
-          onWager={inspect.openWager}
+          owned={territory.owned} resources={resources} places={places}
+          level={levelState(profile?.xp ?? 0).level} levelName={levelState(profile?.xp ?? 0).name}
+          now={clock.now()} adventures={quest.adventures} repository={repository}
+          onPouch={setResources} forecast={forecast} onWager={inspect.openWager}
           onPublish={settings.shareWorld ? world.publish : undefined}
-          onWeakest={inspect.onCellTap}
-          onClose={inspect.close}
+          onWeakest={inspect.onCellTap} onClose={inspect.close}
         />
       ) : null}
 
       <WagerDialog
-        open={inspect.wager}
+        open={inspect.wager && !isRoute}
         repository={repository}
         onClose={inspect.closeWager}
         onImported={territory.refresh}
       />
-      <ResearchDialog open={inspect.researchOpen} research={inspect.research} pool={resources} wisdomPerHour={forecast?.perHour.wisdom ?? 0} onClose={inspect.closeResearch} />
+      <ResearchDialog open={inspect.researchOpen && !isRoute} research={inspect.research} pool={resources} wisdomPerHour={forecast?.perHour.wisdom ?? 0} onClose={inspect.closeResearch} />
 
       <CellPanel
         cell={inspect.cell}
@@ -321,8 +312,6 @@ export function MapView({ onLeave }: MapViewProps) {
         <MapNotices {...alerts} geo={geoTrouble(permission, status)} worldStirredMs={world.stirredMs} shifted={clock.shifted} offsetDays={clock.offsetDays} />
       </TopStack>
 
-      {discovery.wonderFound ? <WonderMoment id={discovery.wonderFound} onClose={discovery.clearWonder} /> : null}
-
       <Hud
         compact={sheetOpen}
         profile={profile}
@@ -351,22 +340,26 @@ export function MapView({ onLeave }: MapViewProps) {
         waypoint={quest.waypoint}
         onWaypointSeen={quest.onWaypointSeen}
         onOpenCharacter={aside.openCharacter} onShowMap={aside.closeAll}
-        onOpenResearch={inspect.openResearch}
-        onOpenKeep={castle ? inspect.onCastleTap : undefined}
+        onOpenResearch={isRoute ? undefined : inspect.openResearch}
+        onOpenKeep={castle && !isRoute ? inspect.onCastleTap : undefined}
         onHelp={aside.openHelp}
         onOpenLog={aside.openLog}
       />
 
-      <UnlockTeacher
-        repository={repository} paceMs={pace} onSee={aside.openHelp}
-        reach={{
-          owned: territory.owned.length,
-          researched: inspect.build.researched.length,
-          rivalCells: territory.cells.length,
-        }}
-        busy={aside.anyOpen || inspect.cell !== null || inspect.sanctum}
-        onPaid={() => void repository?.getResources(clock.now()).then(setResources)}
-      />
+      {/* Teaches adventure mechanics progressively — nothing to teach a route-mode save
+          (BRDC-MODE-001). */}
+      {isRoute ? null : (
+        <UnlockTeacher
+          repository={repository} paceMs={pace} onSee={aside.openHelp}
+          reach={{
+            owned: territory.owned.length,
+            researched: inspect.build.researched.length,
+            rivalCells: territory.cells.length,
+          }}
+          busy={aside.anyOpen || inspect.cell !== null || inspect.sanctum}
+          onPaid={() => void repository?.getResources(clock.now()).then(setResources)}
+        />
+      )}
 
       {aside.node}
       {EDITOR_AVAILABLE ? <EditorPanel editor={editor} /> : null}
@@ -377,11 +370,15 @@ export function MapView({ onLeave }: MapViewProps) {
         onChange={onSettingsChange}
         onRetreat={() => setConfirming('withdraw')}
         onDeleteProgress={() => setConfirming('reset')}
-        onRetireKingdom={() => setConfirming('retire')}
+        // Clans, the Wager, retiring a kingdom, and the Hall of Fame it retires into are
+        // all sanctuary ceremony built around adventure stats a route-mode save never
+        // has (BRDC-MODE-001).
+        onRetireKingdom={isRoute ? undefined : () => setConfirming('retire')}
         onOpenLog={aside.openLog} onOpenCodex={aside.openCodex} onOpenLands={aside.openLands}
-        onOpenHallOfFame={aside.openHallOfFame} onOpenClan={aside.openClan}
-        onOpenClanCodex={aside.openClanCodex} onOpenGpx={aside.openGpx}
-        onWager={inspect.openWager} onOpenGuide={aside.openGuide}
+        onOpenHallOfFame={isRoute ? undefined : aside.openHallOfFame}
+        onOpenClan={isRoute ? undefined : aside.openClan}
+        onOpenClanCodex={isRoute ? undefined : aside.openClanCodex} onOpenGpx={aside.openGpx}
+        onWager={isRoute ? undefined : inspect.openWager} onOpenGuide={aside.openGuide}
         onOpenEditor={EDITOR_AVAILABLE ? editor.toggle : undefined}
         repository={repository} position={point}
         onDebugGrant={() => void repository?.debugGrant(clock.now()).then(() => repository?.getResources(clock.now()).then(setResources))}
