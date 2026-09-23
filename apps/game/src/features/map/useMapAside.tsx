@@ -19,6 +19,7 @@ import { LogPanel } from '../log/LogPanel.js';
 import { CharacterPanel } from '../character/CharacterPanel.js';
 import { CodexPanel } from '../codex/CodexPanel.js';
 import { RouteCodexPanel } from '../codex/RouteCodexPanel.js';
+import { SeasonPanel } from '../season/SeasonPanel.js';
 import { LandsPanel } from '../lands/LandsPanel.js';
 import { GpxPanel } from '../gpx/GpxPanel.js';
 import { HallOfFamePanel } from '../hall/HallOfFamePanel.js';
@@ -39,6 +40,9 @@ export interface MapAside {
   openCodex: () => void;
   /** Route mode's own leaderboard — distance and hexes only (BRDC-MODE-002). */
   openRouteCodex: () => void;
+  /** Distance and hexes gained since the trail began, for the week's challenge
+   *  (BRDC-SEASON-001). Open to both modes, unlike the Codex/Route Ledger split. */
+  openSeason: () => void;
   /** The ledger of held ground (BRDC-LANDS-001). */
   openLands: () => void;
   /** Import a recorded walk (BRDC-GPX-001). */
@@ -81,6 +85,7 @@ export function useMapAside(
   const [characterOpen, setCharacterOpen] = useState(false);
   const [codexOpen, setCodexOpen] = useState(false);
   const [routeCodexOpen, setRouteCodexOpen] = useState(false);
+  const [seasonOpen, setSeasonOpen] = useState(false);
   const [landsOpen, setLandsOpen] = useState(false);
   /** A payout earned on the ledger page, handed to the one toast the map owns. */
   const [landsGain, setLandsGain] = useState<Collected | null>(null);
@@ -155,6 +160,7 @@ export function useMapAside(
       />
       <CodexPanel open={codexOpen} me={meId} onClose={() => setCodexOpen(false)} />
       <RouteCodexPanel open={routeCodexOpen} me={meId} onClose={() => setRouteCodexOpen(false)} />
+      <SeasonPanel open={seasonOpen} me={meId} onClose={() => setSeasonOpen(false)} />
       <LandsPanel
         open={landsOpen}
         repository={repository}
@@ -197,6 +203,7 @@ export function useMapAside(
     openCharacter: () => setCharacterOpen(true),
     openCodex: () => setCodexOpen(true),
     openRouteCodex: () => setRouteCodexOpen(true),
+    openSeason: () => setSeasonOpen(true),
     openLands: () => setLandsOpen(true),
     openGpx: () => setGpxOpen(true),
     openHallOfFame: () => setHallOpen(true),
@@ -210,6 +217,7 @@ export function useMapAside(
       characterOpen ||
       codexOpen ||
       routeCodexOpen ||
+      seasonOpen ||
       landsOpen ||
       gpxOpen ||
       hallOpen ||
@@ -222,6 +230,7 @@ export function useMapAside(
       setCharacterOpen(false);
       setCodexOpen(false);
       setRouteCodexOpen(false);
+      setSeasonOpen(false);
       setLandsOpen(false);
       setGpxOpen(false);
       setHallOpen(false);

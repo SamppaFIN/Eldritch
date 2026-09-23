@@ -1,0 +1,52 @@
+/**
+ * One season snapshot a day, so six friends can watch a week's trail take shape
+ * (BRDC-SEASON-001). Same shape as `history.ts`'s weekly Atlas snapshots, daily instead
+ * — no cron trigger, written opportunistically on `/submit`, guarded by `seasonDayKey` so
+ * it only actually writes once every 24 hours no matter how often anyone publishes.
+ */
+import { seasonDayKey, seasonStandingsOf } from '@es3/core/data';
+import type { SeasonStanding, WorldSource } from '@es3/core/data';
+import type { KV } from './index.js';
+
+const SNAPSHOT_PREFIX = 'season:day:';
+/** ~2 months of daily snapshots — a season is a week; this is room for several. */
+const MAX_DAYS = 60;
+
+export interface SeasonSnapshot {
+  dayKey: string;
+  generatedAt: number;
+  standings: SeasonStanding[];
+}
+
+const snapshotKey = (dayKey: string) => SNAPSHOT_PREFIX + dayKey;
+
+/** Every stored snapshot's day key, oldest first — sorted numerically, not as text:
+ *  `seasonDayKey` does not zero-pad, so "day-100" would otherwise sort before "day-99". */
+export async function listSeasonDays(kv: KV): Promise<string[]> {
+  const { keys } = await kv.list({ prefix: SNAPSHOT_PREFIX });
+  return keys
+    .map((k) => k.name.slice(SNAPSHOT_PREFIX.length))
+    .sort((a, b) => Number(a.slice('day-'.length)) - Number(b.slice('day-'.length)));
+}
+
+export async function readSeasonDay(kv: KV, dayKey: string): Promise<SeasonSnapshot | null> {
+  const raw = await kv.get(snapshotKey(dayKey));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as SeasonSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+export async function maybeSnapshotSeason(kv: KV, now: number, live: readonly WorldSource[]): Promise<void> {
+  const dayKey = seasonDayKey(now);
+  if (await kv.get(snapshotKey(dayKey))) return;
+
+  const snapshot: SeasonSnapshot = { dayKey, generatedAt: now, standings: seasonStandingsOf(live) };
+  await kv.put(snapshotKey(dayKey), JSON.stringify(snapshot));
+
+  const days = await listSeasonDays(kv);
+  const excess = days.length - MAX_DAYS;
+  if (excess > 0) for (const stale of days.slice(0, excess)) await kv.delete(snapshotKey(stale));
+}

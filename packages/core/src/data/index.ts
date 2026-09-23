@@ -125,6 +125,8 @@ export type { RouteCodex, RouteMeasurable, RoutePlacement, RouteStanding } from 
 export { clanMeasurables } from './clanDemographics.js';
 export { atlasDiff, atlasOf, atlasWeekKey } from './worldStats.js';
 export type { AtlasChange, AtlasHolder, AtlasRegion } from './worldStats.js';
+export { seasonDayKey, seasonStandingsOf } from './seasonStats.js';
+export type { SeasonStanding } from './seasonStats.js';
 export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
 export type { TradeOutcome } from './cityStateStore.js';
 export {

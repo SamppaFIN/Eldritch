@@ -2,13 +2,14 @@
 
 | | |
 |---|---|
-| **Alue** | `apps/worker/src/` (uusi, `history.ts`in kaava), `packages/core/src/data/` |
+| **Alue** | `apps/worker/src/season.ts`, `packages/core/src/data/seasonStats.ts`, `apps/game/src/features/season/` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Riippuvuudet** | `BRDC-MODE-003` (pakotettu resetti), `BRDC-HALL-003` (Chronicles —
-  sama arkistokonsepti), `BRDC-ATLAS-001`in `history.ts` (sama snapshot-kaava, tiheämpi tahti) |
-| **Status** | `[ ]` ei aloitettu — kirjattu 2026-09-23. Infinite: *"ei liikaa tarvi
-  puuttua pelimekaiikoihin, voi arvata jos tarvii"* — lupa tulkita yksityiskohtia |
+| **Riippuvuudet** | `BRDC-HALL-003` (Chronicles — sama arkistokonsepti, `done`),
+  `BRDC-ATLAS-001`in `history.ts` (sama snapshot-kaava, tiheämpi tahti) |
+| **Status** | `[~]` osittain — 2026-09-23 (v0.6.57). Päivittäinen seuranta koodattu,
+  testattu ja pushattu. Kauden alku/loppu-rajaus, pakotettu legacy-arkistointi ja
+  tervetuliaisviesti **eivät** — ks. alla miksi |
 
 ## 🔴 RED
 
@@ -18,47 +19,55 @@ Infinite 2026-09-23, jatkona edelliseen "päivittäiset highscore-taulut" -huoma
 meille 6 pelaajalle fresh haaste, ja siihen hyvät tervetuliaistoivotukset."*
 
 Tämä ei ole "highscore joka nollautuu keskiyöllä" vaan oma kokonaisuus: **kausi on
-viikko, seuranta on päivittäistä sen sisällä.** Kaikki nykyiset taulut (Codex, Route
-Ledger, tuleva Chronicles) ovat elinikäisiä kumulatiivisia lukuja — tämä on eri asia:
-kuusi tuttua pelaajaa haluavat yhteisen, rajatun, uuden haasteen, jonka etenemistä voi
-seurata päivä päivältä viikon ajan.
+viikko, seuranta on päivittäistä sen sisällä.**
 
-## Kolme osaa
+## 🟢 GREEN — päivittäinen seuranta (tehty)
 
-1. **Kauden alku on nollaraja.** Nykyinen tila ("vanhoista") arkistoituu
-   legacy-dataksi — sama ele kuin `BRDC-HALL-003`in Chronicles ja `BRDC-MODE-003`in
-   pakotettu resetti, mutta tässä **koko kuuden pelaajan porukalle kerralla**, ei
-   yksittäisen pelaajan omana valintana. Todennäköisesti Infiniten oma, käsin
-   laukaisema askel (kuten `wrangler deploy`), ei automaattinen
-2. **Päivittäinen seuranta kauden sisällä.** Yksi kevyt snapshot/pelaaja/päivä —
-   sama mekaaninen kaava kuin Atlasin `maybeSnapshot`/`listSnapshotWeeks`
-   (`apps/worker/src/history.ts`), mutta viikon eikä kuukausien tahdilla ja
-   pelaajakohtaisilla luvuilla (esim. matka, heksat — samat kuin Route Ledger jo
-   laskee) viikon eikä kaupungin tason sijaan
-3. **Tervetuliaisviesti kauden alkaessa.** Kuusi tuttua pelaajaa, yksi yhteinen hetki
-   — kertaluontoinen "Kausi alkaa" -ruutu tai vastaava kun kausi käynnistyy, ei
-   toistuva ilmoitus
+- [x] `packages/core/src/data/seasonStats.ts`: puhdas `seasonStandingsOf(sources)` —
+      lukee `routeDistanceM`in (reittimoodi) tai `leyM`in (seikkailumoodi, jolla ei ole
+      omaa matkalaskuria) + `cells.length`in jokaiselta live-lähteeltä, moodista
+      riippumatta. `seasonDayKey(now)` — sama kaava kuin `atlasWeekKey`, päivän eikä
+      viikon tarkkuudella. 7 Vitest-testiä
+- [x] `apps/worker/src/season.ts`: `maybeSnapshotSeason` samalla kaavalla kuin
+      Atlasin `maybeSnapshot` — yksi snapshot/päivä, ei cronia, kirjoitetaan
+      `rebuild()`in yhteydessä. 60 päivän säilytys. `listSeasonDays`/`readSeasonDay`,
+      `GET /season/history` + `GET /season/history/<day>`
+- [x] **Sivulöydös: `listSeasonDays`in järjestys korjattu numeeriseksi**, ei
+      merkkijonolajitteluksi — `seasonDayKey` ei nollatäytä, joten "day-100" olisi
+      lajittunut ennen "day-99"ia. Sama piilevä bugi on jo `history.ts`in
+      viikko-versiossa (~2900-luvun viikkonumerot ovat toistaiseksi saman
+      pituisia, joten ei ole vielä oireillut) — ei korjattu siellä, liittymätön
+      tähän tikettiin
+- [x] `apps/game/src/data/worldSource.ts`: `fetchSeasonDays`/`fetchSeasonDay`, sama
+      kuvio kuin `fetchAtlasHistoryWeeks`/`fetchAtlasSnapshot`
+- [x] Uusi `SeasonPanel.tsx` + `useSeason.ts` — lukee vanhimman ja uusimman
+      snapshotin, laskee "saatu sitten" -erotuksen matkalle ja heksoille, järjestää
+      eniten kasvaneen mukaan. Auki ☰-valikosta ("The Season"), näkyy **molemmissa**
+      moodeissa toisin kuin Codex/Route Ledger. e2e: 2/2 `season.spec.ts`ssa, oikeasti
+      ajettu (mockatut kaksi päivä-snapshotia, tarkistettu "+4 km"/"+10 hexes" -rivi)
+- [x] Portti: `lint:lines`, `tsc -b`, **1700** vitest, `pnpm build`
 
-## 🟢 Rajattu heti pois (Infiniten oma sana: ei liikaa pelimekaniikkoihin)
+## 🔴 Ei tehty tässä — ja miksi
 
-- **Ei muutoksia decay/capture/siege-sääntöihin.** Tämä on näyttö/seuranta päälle,
-  ei uusi tapa omistaa maata — eri asia kuin `BRDC-CLAIM-017`
-- **Playback-toisto ("voi vaikka sit myöhemmin") on nimenomaan myöhemmin**, ei tämän
-  tiketin GREEN. Data tallennetaan niin että se olisi mahdollista rakentaa
-  (aikaleimoin varustetut päivittäiset snapshotit riittävät), mutta itse
-  toistin/viewer on oma, tuleva tiketti
-- **Ei arvausta mittareista tässä RED:ssä** — Infinite antoi luvan arvata
-  toteutuksessa, joten tarkat mittarit (matka? heksat? molemmat?) päätetään
-  toteutushetkellä, ei lyödä lukkoon nyt
+Kolme alkuperäisen RED:n osaa jäivät tarkoituksella auki, koska ne vaativat
+Infiniten oman päätöksen jota ei vielä ole tehty (milloin kausi 1 oikeasti alkaa):
 
-## 🔴 Avoin ennen toteutusta
-
-- Onko "kausi" tekninen käsite (esim. Worker-KV-avain jonka Infinite nollaa käsin)
-  vai pitääkö sille rakentaa oma hallintanäkymä? Kuudelle tutulle pelaajalle
-  käsin-laukaistu riittänee — kysytään vasta jos osoittautuu vaivalloiseksi
+1. **Kauden alku/loppu-raja.** Rakennettu vain "vanhin tallennettu snapshot vs uusin"
+   — ei mitään käsitettä "kausi alkoi tässä, päättyy tuossa". Kun Infinite on valmis
+   aloittamaan Kauden 1:n oikeasti kuuden pelaajan kanssa, tämä on nopea lisäys päälle
+2. **Pakotettu legacy-arkistointi kauden alkaessa.** `BRDC-HALL-003`in
+   "Share to the Chronicles" -nappi ja era-kenttä ovat jo olemassa ja käytettävissä
+   — Infinite voi jo tänään pyytää kaikkia kuutta retiroimaan kuningaskuntansa
+   ennen kauden alkua, ilman uutta koodia. Ei siis este, vain ei-automatisoitu
+3. **Tervetuliaisviesti.** Ei rakennettu, koska ilman kauden alku-käsitettä ei ole
+   luotettavaa signaalia "uusi kausi alkoi juuri" vs "vain seuraava päivä" — sama
+   syy kuin kohta 1
 
 ## Ei tässä
 
-- Playback/toistin-UI — oma tiketti myöhemmin, ei tässä
+- Playback/toistin-UI — data on aikaleimattu ja säilyy, mutta toistin on oma,
+  tuleva tiketti
 - Muutokset elinikäisiin tauluihin (Codex, Route Ledger, Chronicles) — pysyvät
   ennallaan kausien rinnalla
+- Muutokset decay/capture/siege-sääntöihin — tämä on näyttö päälle, ei uusi tapa
+  omistaa maata (eri asia kuin `BRDC-CLAIM-017`)

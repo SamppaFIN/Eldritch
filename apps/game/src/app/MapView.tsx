@@ -376,7 +376,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onRetireKingdom={isRoute ? undefined : () => setConfirming('retire')}
         onOpenLog={aside.openLog} onOpenLands={aside.openLands}
         onOpenCodex={isRoute ? undefined : aside.openCodex}
-        onOpenRouteCodex={isRoute ? aside.openRouteCodex : undefined}
+        onOpenRouteCodex={isRoute ? aside.openRouteCodex : undefined} onOpenSeason={aside.openSeason}
         onOpenHallOfFame={isRoute ? undefined : aside.openHallOfFame}
         onOpenClan={isRoute ? undefined : aside.openClan}
         onOpenClanCodex={isRoute ? undefined : aside.openClanCodex} onOpenGpx={aside.openGpx}

@@ -44,6 +44,9 @@ export interface SettingsMenuProps {
   onOpenCodex?: (() => void) | undefined;
   /** Opens Route mode's own leaderboard — distance and hexes only (BRDC-MODE-002). */
   onOpenRouteCodex?: (() => void) | undefined;
+  /** Opens the Season — distance and hexes gained since the trail began, for the
+   *  week's challenge (BRDC-SEASON-001). Open to both modes. */
+  onOpenSeason: () => void;
   /** Opens the ledger of held ground (BRDC-LANDS-001). */
   onOpenLands: () => void;
   /** Opens the Hall of Fame — kingdoms already retired (BRDC-HALL-001). Absent for a
@@ -97,6 +100,7 @@ export function SettingsMenu({
   onOpenLog,
   onOpenCodex,
   onOpenRouteCodex,
+  onOpenSeason,
   onOpenLands,
   onOpenHallOfFame,
   onOpenClan,
@@ -263,6 +267,7 @@ export function SettingsMenu({
                 {onOpenRouteCodex
                   ? link('Route Ledger', 'Distance and hexes measured', onOpenRouteCodex, 'var(--sacred-gold)')
                   : null}
+                {link('The Season', 'Gained since the trail began', onOpenSeason, 'var(--r-token)')}
                 {onOpenHallOfFame
                   ? link('Hall of Fame', 'Kingdoms retired', onOpenHallOfFame, 'var(--sacred-gold)')
                   : null}

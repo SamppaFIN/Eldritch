@@ -99,6 +99,31 @@ export async function fetchAtlasSnapshot(weekKey: string): Promise<CodexFetch> {
   }
 }
 
+/** The days a season snapshot exists for, oldest first (BRDC-SEASON-001) — same shape
+ *  as `fetchAtlasHistoryWeeks`, daily instead of weekly. */
+export async function fetchSeasonDays(): Promise<string[]> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/history`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = (await res.json().catch(() => null)) as { days?: string[] } | null;
+    return Array.isArray(data?.days) ? data.days : [];
+  } catch {
+    return [];
+  }
+}
+
+/** One named day's season snapshot — same three outcomes as `fetchTable`. */
+export async function fetchSeasonDay(dayKey: string): Promise<CodexFetch> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/history/${dayKey}`, { cache: 'no-store' });
+    if (res.status === 204) return { ok: false, reason: 'empty' };
+    if (!res.ok) return { ok: false, reason: 'unreachable' };
+    return { ok: true, text: await res.text() };
+  } catch {
+    return { ok: false, reason: 'unreachable' };
+  }
+}
+
 export type PublishResult = 'ok' | 'rate-limited' | 'failed';
 
 export interface PublishOutcome {

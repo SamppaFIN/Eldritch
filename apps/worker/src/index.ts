@@ -19,7 +19,8 @@
  * Later routes are documented in the file that implements them, not repeated here:
  * `POST /kingdom-story` (an AI key that must live here, never on the client — the sole
  * exception to claude.md §6.9, `chronicle.ts`), the `/clan*` family (`clan.ts`), the
- * `/atlas*` family (`atlasOf`/`history.ts`), and `/legacy*` (`legacy.ts`).
+ * `/atlas*` family (`atlasOf`/`history.ts`), `/legacy*` (`legacy.ts`) and `/season*`
+ * (`season.ts`) — a daily trail of distance and hexes for BRDC-SEASON-001's six players.
  */
 import {
   atlasOf,
@@ -37,6 +38,7 @@ import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './c
 import { listSnapshotWeeks, maybeSnapshot, readSnapshot } from './history.js';
 import { ROUTE_CODEX, splitByMode } from './routeCodex.js';
 import { listLegacy, publishLegacy } from './legacy.js';
+import { listSeasonDays, maybeSnapshotSeason, readSeasonDay } from './season.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -148,6 +150,7 @@ async function rebuild(kv: KV, now: number): Promise<number> {
   await kv.put(CLAN_CODEX, JSON.stringify(await clanCodexOf(kv, live, now)));
   await kv.put(ATLAS, JSON.stringify({ v: 1, generatedAt: now, regions: atlasOf(live) }));
   await maybeSnapshot(kv, now, live);
+  await maybeSnapshotSeason(kv, now, live);
   const shards = buildShards(live, now);
   const kept = new Set<string>();
   for (const [region, shard] of shards) {
@@ -238,6 +241,18 @@ export default {
     if (request.method === 'GET' && url.pathname.startsWith('/atlas/history/')) {
       const weekKey = url.pathname.slice('/atlas/history/'.length);
       const snapshot = weekKey ? await readSnapshot(env.WORLD, weekKey) : null;
+      if (!snapshot) return bare(204);
+      return send(snapshot);
+    }
+
+    // Same shape as `/atlas/history`, daily instead of weekly (BRDC-SEASON-001).
+    if (request.method === 'GET' && url.pathname === '/season/history') {
+      return send({ days: await listSeasonDays(env.WORLD) });
+    }
+
+    if (request.method === 'GET' && url.pathname.startsWith('/season/history/')) {
+      const dayKey = url.pathname.slice('/season/history/'.length);
+      const snapshot = dayKey ? await readSeasonDay(env.WORLD, dayKey) : null;
       if (!snapshot) return bare(204);
       return send(snapshot);
     }
@@ -363,6 +378,8 @@ export default {
           'GET /atlas',
           'GET /atlas/history',
           'GET /atlas/history/<week>',
+          'GET /season/history',
+          'GET /season/history/<day>',
           'POST /kingdom-story',
           'POST /legacy',
           'GET /legacy',
