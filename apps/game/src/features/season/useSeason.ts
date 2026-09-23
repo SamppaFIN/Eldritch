@@ -1,15 +1,21 @@
 /**
- * The season's trail, read as "since tracking began vs today" (BRDC-SEASON-001).
+ * The Season, read against each player's own starting line (BRDC-SEASON-001).
  *
- * The Worker keeps one daily snapshot per player; this reads the oldest and the newest
- * of them and turns the pair into a gained-since-then figure, the same "then vs now"
- * shape `AtlasCompareControl` already uses for the country map. A full day-by-day chart
- * is future work (the ticket's own "Ei tässä") — this is the trend a phone screen and a
- * six-player group actually needs first: who is moving, and by how much.
+ * "Join the Weekly Tournament" publishes a player's current distance and hexes as their
+ * personal baseline (Infinite, 2026-09-23: *"valitset liity viikkoturnaukseen ja sen
+ * jälkeen saat sen hetken tilanteen listoille.. päivittyy kerran päivässä"*). This reads
+ * that baseline back against the most recent daily snapshot and ranks everyone who has
+ * joined by what they gained since *they* opted in — not since one fixed calendar date,
+ * so six friends joining on six different days all see an honest "since I joined" figure.
  */
 import { useEffect, useState } from 'react';
-import type { SeasonStanding } from '@es3/core';
-import { fetchSeasonDay, fetchSeasonDays } from '../../data/worldSource.js';
+import type { GameRepository, SeasonJoin } from '@es3/core';
+import {
+  fetchSeasonDay,
+  fetchSeasonDays,
+  fetchSeasonJoins,
+  publishSeasonJoin,
+} from '../../data/worldSource.js';
 
 export interface SeasonRow {
   id: string;
@@ -18,33 +24,35 @@ export interface SeasonRow {
   hexes: number;
   distanceGained: number;
   hexesGained: number;
+  joinedAt: number;
 }
 
 export type SeasonState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'ready'; sinceDayKey: string; rows: readonly SeasonRow[] }
+  | { status: 'ready'; rows: readonly SeasonRow[] }
   | { status: 'empty' }
   | { status: 'unreachable' };
 
 interface DaySnapshot {
-  dayKey: string;
-  standings: SeasonStanding[];
+  standings: SeasonJoin[];
 }
 
 function parseDay(text: string): DaySnapshot | null {
   try {
     const data = JSON.parse(text) as Partial<DaySnapshot>;
-    return Array.isArray(data.standings) && typeof data.dayKey === 'string'
-      ? (data as DaySnapshot)
-      : null;
+    return Array.isArray(data.standings) ? (data as DaySnapshot) : null;
   } catch {
     return null;
   }
 }
 
-export function useSeason(open: boolean): { state: SeasonState; reload: () => void } {
+export function useSeason(
+  open: boolean,
+  repository: GameRepository | null,
+): { state: SeasonState; reload: () => void; joining: boolean; join: () => void } {
   const [state, setState] = useState<SeasonState>({ status: 'idle' });
+  const [joining, setJoining] = useState(false);
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
@@ -53,50 +61,42 @@ export function useSeason(open: boolean): { state: SeasonState; reload: () => vo
     setState({ status: 'loading' });
 
     void (async () => {
-      const days = await fetchSeasonDays();
+      const [joins, days] = await Promise.all([fetchSeasonJoins(), fetchSeasonDays()]);
       if (cancelled) return;
-      if (days.length === 0) {
+      if (joins === null) {
+        setState({ status: 'unreachable' });
+        return;
+      }
+      if (joins.length === 0) {
         setState({ status: 'empty' });
         return;
       }
 
-      const latestKey = days[days.length - 1] as string;
-      const oldestKey = days[0] as string;
-      const latestRes = await fetchSeasonDay(latestKey);
-      if (cancelled) return;
-      if (!latestRes.ok) {
-        setState({ status: latestRes.reason });
-        return;
-      }
-      const latest = parseDay(latestRes.text);
-      if (!latest) {
-        setState({ status: 'unreachable' });
-        return;
-      }
-
-      let oldest = latest;
-      if (oldestKey !== latestKey) {
-        const oldestRes = await fetchSeasonDay(oldestKey);
+      let latest: SeasonJoin[] = [];
+      if (days.length > 0) {
+        const latestKey = days[days.length - 1] as string;
+        const res = await fetchSeasonDay(latestKey);
         if (cancelled) return;
-        if (oldestRes.ok) oldest = parseDay(oldestRes.text) ?? latest;
+        if (res.ok) latest = parseDay(res.text)?.standings ?? [];
       }
+      const latestById = new Map(latest.map((s) => [s.id, s]));
 
-      const before = new Map(oldest.standings.map((s) => [s.id, s]));
-      const rows: SeasonRow[] = [...latest.standings]
-        .map((s) => {
-          const b = before.get(s.id);
+      const rows: SeasonRow[] = joins
+        .map((j) => {
+          const now = latestById.get(j.id) ?? j;
           return {
-            id: s.id,
-            name: s.name,
-            distanceM: s.distanceM,
-            hexes: s.hexes,
-            distanceGained: s.distanceM - (b?.distanceM ?? s.distanceM),
-            hexesGained: s.hexes - (b?.hexes ?? s.hexes),
+            id: j.id,
+            name: j.name,
+            distanceM: now.distanceM,
+            hexes: now.hexes,
+            distanceGained: Math.max(0, now.distanceM - j.distanceM),
+            hexesGained: Math.max(0, now.hexes - j.hexes),
+            joinedAt: j.joinedAt,
           };
         })
         .sort((a, b) => b.distanceGained - a.distanceGained);
 
-      setState({ status: 'ready', sinceDayKey: oldestKey, rows });
+      setState({ status: 'ready', rows });
     })();
 
     return () => {
@@ -105,5 +105,20 @@ export function useSeason(open: boolean): { state: SeasonState; reload: () => vo
   }, [open, nonce]);
 
   const reload = () => setNonce((n) => n + 1);
-  return { state, reload };
+
+  const join = () => {
+    if (!repository || joining) return;
+    setJoining(true);
+    void (async () => {
+      const profile = await repository.getProfile();
+      const source = await repository.exportWorldSource(Date.now(), {});
+      const distanceM = Math.round(source.routeDistanceM ?? source.leyM ?? 0);
+      const hexes = source.cells.length;
+      const ok = await publishSeasonJoin(profile.id, profile.name, distanceM, hexes);
+      setJoining(false);
+      if (ok) reload();
+    })();
+  };
+
+  return { state, reload, joining, join };
 }

@@ -7,66 +7,75 @@
 | **Effort** | M |
 | **Riippuvuudet** | `BRDC-HALL-003` (Chronicles — sama arkistokonsepti, `done`),
   `BRDC-ATLAS-001`in `history.ts` (sama snapshot-kaava, tiheämpi tahti) |
-| **Status** | `[~]` osittain — 2026-09-23 (v0.6.57). Päivittäinen seuranta koodattu,
-  testattu ja pushattu. Kauden alku/loppu-rajaus, pakotettu legacy-arkistointi ja
-  tervetuliaisviesti **eivät** — ks. alla miksi |
+| **Status** | `done` — 2026-09-23 (v0.6.59) |
 
 ## 🔴 RED
 
-Infinite 2026-09-23, jatkona edelliseen "päivittäiset highscore-taulut" -huomautukseen:
-*"siis viikon kilpailu, päivittäinen seuranta.. vanhoista muodostetaan legacy
-'historia' data, jota voi vaikka sit myöhemmin playbackata playerillä tms... lähinnä
-meille 6 pelaajalle fresh haaste, ja siihen hyvät tervetuliaistoivotukset."*
+Infinite 2026-09-23: *"siis viikon kilpailu, päivittäinen seuranta.. vanhoista
+muodostetaan legacy 'historia' data... lähinnä meille 6 pelaajalle fresh haaste, ja
+siihen hyvät tervetuliaistoivotukset."* Tarkennus samana päivänä, kun kysyttiin miten
+kausi oikeasti alkaa: *"voit joo valita liity viikkoturnaukseen ja sen jälkeen saat
+sen hetken tilanteen listoille.. päivittyy kerran päivässä."*
 
-Tämä ei ole "highscore joka nollautuu keskiyöllä" vaan oma kokonaisuus: **kausi on
-viikko, seuranta on päivittäistä sen sisällä.**
+Tämä tarkennus ratkaisi tiketin alkuperäisen suurimman avoimen kysymyksen (milloin
+"kausi" alkaa) täysin toisin kuin ensimmäinen luonnos oletti: ei yhtä globaalia
+kalenteripäivää kaikille kuudelle, vaan **jokainen pelaaja liittyy erikseen, omana
+hetkenään** — "Join the Weekly Tournament" julkaisee juuri sillä hetkellä vallitsevan
+matkan ja heksamäärän tämän pelaajan omaksi lähtöviivaksi, ja tästä eteenpäin nähdään
+mitä hän on *sen jälkeen* kerännyt.
 
-## 🟢 GREEN — päivittäinen seuranta (tehty)
+## 🟢 GREEN
 
-- [x] `packages/core/src/data/seasonStats.ts`: puhdas `seasonStandingsOf(sources)` —
-      lukee `routeDistanceM`in (reittimoodi) tai `leyM`in (seikkailumoodi, jolla ei ole
-      omaa matkalaskuria) + `cells.length`in jokaiselta live-lähteeltä, moodista
-      riippumatta. `seasonDayKey(now)` — sama kaava kuin `atlasWeekKey`, päivän eikä
-      viikon tarkkuudella. 7 Vitest-testiä
-- [x] `apps/worker/src/season.ts`: `maybeSnapshotSeason` samalla kaavalla kuin
-      Atlasin `maybeSnapshot` — yksi snapshot/päivä, ei cronia, kirjoitetaan
-      `rebuild()`in yhteydessä. 60 päivän säilytys. `listSeasonDays`/`readSeasonDay`,
-      `GET /season/history` + `GET /season/history/<day>`
-- [x] **Sivulöydös: `listSeasonDays`in järjestys korjattu numeeriseksi**, ei
-      merkkijonolajitteluksi — `seasonDayKey` ei nollatäytä, joten "day-100" olisi
-      lajittunut ennen "day-99"ia. Sama piilevä bugi on jo `history.ts`in
-      viikko-versiossa (~2900-luvun viikkonumerot ovat toistaiseksi saman
-      pituisia, joten ei ole vielä oireillut) — ei korjattu siellä, liittymätön
-      tähän tikettiin
-- [x] `apps/game/src/data/worldSource.ts`: `fetchSeasonDays`/`fetchSeasonDay`, sama
-      kuvio kuin `fetchAtlasHistoryWeeks`/`fetchAtlasSnapshot`
-- [x] Uusi `SeasonPanel.tsx` + `useSeason.ts` — lukee vanhimman ja uusimman
-      snapshotin, laskee "saatu sitten" -erotuksen matkalle ja heksoille, järjestää
-      eniten kasvaneen mukaan. Auki ☰-valikosta ("The Season"), näkyy **molemmissa**
-      moodeissa toisin kuin Codex/Route Ledger. e2e: 2/2 `season.spec.ts`ssa, oikeasti
-      ajettu (mockatut kaksi päivä-snapshotia, tarkistettu "+4 km"/"+10 hexes" -rivi)
-- [x] Portti: `lint:lines`, `tsc -b`, **1700** vitest, `pnpm build`
+- [x] `packages/core/src/data/seasonStats.ts`: `seasonStandingsOf(sources)` — lukee
+      `routeDistanceM`in (reittimoodi) tai `leyM`in (seikkailumoodi) + `cells.length`in
+      jokaiselta live-lähteeltä. `seasonDayKey(now)` — sama kaava kuin `atlasWeekKey`,
+      päivän tarkkuudella. Uusi `SeasonJoin`-tyyppi (`SeasonStanding` + `joinedAt`)
+- [x] `apps/worker/src/season.ts`: `maybeSnapshotSeason` (yksi snapshot/päivä,
+      `rebuild()`in yhteydessä, 60 päivän säilytys, `GET /season/history[/day]`) +
+      **uusi `publishSeasonJoin`/`listSeasonJoins`** (`season:join:<playerId>`, yksi
+      rivi per pelaaja, ylikirjoittuu jos liittyy uudelleen — tarkoituksellista,
+      uudelleenliittyminen nollaa oman lähtöviivan). `POST /season/join`,
+      `GET /season/joins`
+- [x] `apps/game/src/data/worldSource.ts`: `fetchSeasonDays`/`fetchSeasonDay`/
+      `publishSeasonJoin`/`fetchSeasonJoins`, sama kolmen-tuloksen kuvio kuin muualla
+- [x] `useSeason.ts` kirjoitettu uusiksi liittymis-mallille: hakee kaikkien
+      liittyneiden omat lähtöviivat (`/season/joins`) + uusimman päivä-snapshotin,
+      laskee jokaiselle *oman* kasvun heidän *omasta* liittymishetkestään, järjestää
+      eniten kasvaneen mukaan. `join()`-toiminto lukee pelaajan nykyisen tilanteen
+      `repository.exportWorldSource`illa (sama polku kuin `/submit`) ja julkaisee sen
+- [x] `SeasonPanel.tsx`: "Join the Weekly Tournament" -nappi näkyy kunnes pelaaja on
+      listalla; sen jälkeen rivi näyttää "joined N days ago" jokaiselle. Auki
+      ☰-valikosta, näkyy **molemmissa** moodeissa
+- [x] Portti: `lint:lines`, `tsc -b`, **1711** vitest (+8 tätä osaa varten:
+      4 `worldSource.test.ts`ssa liittymiselle), `pnpm build`. e2e: 6/6
+      `season.spec.ts`ssa, oikeasti ajettu — järjestys kahdella eri liittymispäivällä,
+      "ei vielä ketään" -tila, ja koko liittymis-POST tarkistettu asti (id/name/
+      distanceM/hexes oikeaa tyyppiä)
+- [x] **Sivulöydös aiemmasta:** `listSeasonDays`in lajittelu numeeriseksi, ei
+      merkkijonoksi — jäi voimaan, katso alempi Sivulöydökset-kohta
 
-## 🔴 Ei tehty tässä — ja miksi
+## Sivulöydökset
 
-Kolme alkuperäisen RED:n osaa jäivät tarkoituksella auki, koska ne vaativat
-Infiniten oman päätöksen jota ei vielä ole tehty (milloin kausi 1 oikeasti alkaa):
-
-1. **Kauden alku/loppu-raja.** Rakennettu vain "vanhin tallennettu snapshot vs uusin"
-   — ei mitään käsitettä "kausi alkoi tässä, päättyy tuossa". Kun Infinite on valmis
-   aloittamaan Kauden 1:n oikeasti kuuden pelaajan kanssa, tämä on nopea lisäys päälle
-2. **Pakotettu legacy-arkistointi kauden alkaessa.** `BRDC-HALL-003`in
-   "Share to the Chronicles" -nappi ja era-kenttä ovat jo olemassa ja käytettävissä
-   — Infinite voi jo tänään pyytää kaikkia kuutta retiroimaan kuningaskuntansa
-   ennen kauden alkua, ilman uutta koodia. Ei siis este, vain ei-automatisoitu
-3. **Tervetuliaisviesti.** Ei rakennettu, koska ilman kauden alku-käsitettä ei ole
-   luotettavaa signaalia "uusi kausi alkoi juuri" vs "vain seuraava päivä" — sama
-   syy kuin kohta 1
+- **`worker/src/index.ts` tarvitsi jaon tämän ja `/season/join`-reittien myötä.**
+  Viisi `/clan*`-reittiä (382 riviä yhteensä) siirrettiin `clan.ts`iin uutena
+  `handleClanRoute(request, url, kv, send, bare, liveSources)`-funktiona,
+  `send`/`bare`/`liveSources` välitettynä parametreina kiertäen kehämäisen
+  moduulituonnin `index.ts`in ja `clan.ts`in välillä. `index.ts` 417 → 342 riviä
+- **Kauden alku ei enää ole tekninen "milloin joku Worker-avain nollataan"
+  -kysymys** — jokainen pelaaja omistaa oman lähtöviivansa. Tämä myös ratkaisi
+  `BRDC-MODE-003`in ja tämän tiketin päällekkäisyyden itsestään: ei tarvita mitään
+  pakotettua "aloita alusta" -dialogia, koska liittyminen EI vaadi kuningaskunnan
+  nollaamista — pelaaja jatkaa normaalisti, vain hänen kasvunsa mitataan liittymisestä
+  eteenpäin. `BRDC-HALL-003`in retirointi (jos joku HALUAA puhtaan pöydän) on yhä
+  oma, erillinen valintansa
 
 ## Ei tässä
 
 - Playback/toistin-UI — data on aikaleimattu ja säilyy, mutta toistin on oma,
   tuleva tiketti
+- Tervetuliaisviesti liittymisen yhteydessä — nappi ja sen välitön vaikutus
+  (näkyy heti listalla) ovat oma, riittävä vahvistuksensa; erillinen
+  toivotusruutu ei ollut enää tarpeen kun "kausi alkaa" muuttui henkilökohtaiseksi
 - Muutokset elinikäisiin tauluihin (Codex, Route Ledger, Chronicles) — pysyvät
   ennallaan kausien rinnalla
 - Muutokset decay/capture/siege-sääntöihin — tämä on näyttö päälle, ei uusi tapa

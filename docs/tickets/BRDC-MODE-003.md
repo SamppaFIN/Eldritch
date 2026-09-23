@@ -6,8 +6,10 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
 | **Riippuvuudet** | `BRDC-MODE-001`, `BRDC-MODE-002`, `BRDC-HALL-003` (jaettu arkisto) |
-| **Status** | `[ ]` ei aloitettu — kirjattu 2026-09-23, Infinite: *"tehdään isompia muutoksia
-  ensiviikon alusta"* — tämä on sitä työtä, ei tätä sessiota |
+| **Status** | `superseded` — 2026-09-23. Ei toteutettu; `BRDC-SEASON-001`in liittymis-malli
+  ("Join the Weekly Tournament", jokaisella oma lähtöviiva) ja `BRDC-HALL-003`in
+  vapaaehtoinen retirointi kattavat käytännössä saman tarpeen ilman pakotettua
+  dialogia — ks. alla Sivulöydös 2026-09-23 |
 
 ## 🔴 RED
 

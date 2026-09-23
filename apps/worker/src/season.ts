@@ -5,12 +5,14 @@
  * it only actually writes once every 24 hours no matter how often anyone publishes.
  */
 import { seasonDayKey, seasonStandingsOf } from '@es3/core/data';
-import type { SeasonStanding, WorldSource } from '@es3/core/data';
+import type { SeasonJoin, SeasonStanding, WorldSource } from '@es3/core/data';
 import type { KV } from './index.js';
 
 const SNAPSHOT_PREFIX = 'season:day:';
 /** ~2 months of daily snapshots — a season is a week; this is room for several. */
 const MAX_DAYS = 60;
+const JOIN_PREFIX = 'season:join:';
+const MAX_TEXT = 60;
 
 export interface SeasonSnapshot {
   dayKey: string;
@@ -49,4 +51,50 @@ export async function maybeSnapshotSeason(kv: KV, now: number, live: readonly Wo
   const days = await listSeasonDays(kv);
   const excess = days.length - MAX_DAYS;
   if (excess > 0) for (const stale of days.slice(0, excess)) await kv.delete(snapshotKey(stale));
+}
+
+function isSeasonJoin(v: unknown): v is SeasonJoin {
+  const j = v as Partial<SeasonJoin> | null;
+  return (
+    !!j &&
+    typeof j.id === 'string' &&
+    typeof j.name === 'string' &&
+    typeof j.distanceM === 'number' &&
+    typeof j.hexes === 'number'
+  );
+}
+
+/**
+ * One player's own starting line, published by "Join the Weekly Tournament"
+ * (BRDC-SEASON-001). One row per player, overwritten on a re-join — choosing to join
+ * again resets that player's own gained-since-then figure, which is the point of
+ * letting them press it more than once.
+ */
+export async function publishSeasonJoin(kv: KV, raw: unknown, now: number): Promise<SeasonJoin | null> {
+  if (!isSeasonJoin(raw)) return null;
+  const join: SeasonJoin = {
+    id: raw.id,
+    name: raw.name.slice(0, MAX_TEXT),
+    distanceM: Math.round(raw.distanceM),
+    hexes: raw.hexes,
+    joinedAt: now,
+  };
+  await kv.put(JOIN_PREFIX + join.id, JSON.stringify(join));
+  return join;
+}
+
+export async function listSeasonJoins(kv: KV): Promise<SeasonJoin[]> {
+  const { keys } = await kv.list({ prefix: JOIN_PREFIX });
+  const out: SeasonJoin[] = [];
+  for (const key of keys) {
+    const raw = await kv.get(key.name);
+    if (!raw) continue;
+    try {
+      const join = JSON.parse(raw) as unknown;
+      if (isSeasonJoin(join)) out.push(join);
+    } catch {
+      /* a row that will not parse is one player missing, not a broken tournament */
+    }
+  }
+  return out;
 }

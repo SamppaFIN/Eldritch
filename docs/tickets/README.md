@@ -506,9 +506,9 @@ ensviikon alusta."* Neljä pyyntöä kirjattu tiketeiksi (kolme) tai tähän riv
 | ID | Nimi | Effort | Ydin |
 |---|---|:---:|---|
 | [BRDC-HALL-003](BRDC-HALL-003.md) | ✅ Chronicles: jaettu Hall of Fame, aikakaudella | M | `POST/GET /legacy`, `era?: string` vapaana tekstinä, + "Share to the Chronicles" -nappi vanhoille kuningaskunnille |
-| [BRDC-MODE-003](BRDC-MODE-003.md) | Seikkailumoodi pakottaa uuden kuningaskunnan kerran | M | avoin kysymys: koskeeko *kaikkia* nykyisiä tallennuksia heti — ratkaistava ennen toteutusta |
+| [BRDC-MODE-003](BRDC-MODE-003.md) | ⏭️ Seikkailumoodi pakottaa uuden kuningaskunnan kerran — superseded | M | ei toteutettu: SEASON-001:n liittymis-malli ja HALL-003:n vapaaehtoinen retirointi kattavat saman tarpeen |
 | [BRDC-CLAIM-017](BRDC-CLAIM-017.md) | ✅ "Viimeisin käynti omistaa" — korvaa piirityksen step-claimissa, Wager parkkeerattu | L | `claude.md` §11 päivitetty; laajuus supistui merkittävästi vahvistavien vastausten myötä |
-| [BRDC-SEASON-001](BRDC-SEASON-001.md) | 🔶 Viikon kilpailu, päivittäin seurattuna — seuranta tehty, kauden alku/tervetulo auki | M | "The Season" -paneeli molemmissa moodeissa; kauden virallinen alku vaatii Infiniten oman päätöksen |
+| [BRDC-SEASON-001](BRDC-SEASON-001.md) | ✅ Viikon kilpailu — "Join the Weekly Tournament", oma lähtöviiva per pelaaja, päivittäin seurattuna | M | "The Season" -paneeli molemmissa moodeissa; jokainen liittyy omana hetkenään |
 
 **CLAIM-017 on Infiniten oma sana "tärkein"**, mutta se on myös laajin ja eniten
 auki — kolme muuta pistettä osuvat kaikki siihen (Wager, MODE-002:n juuri annettu

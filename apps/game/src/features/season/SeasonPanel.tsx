@@ -1,11 +1,13 @@
 /**
- * The Season — distance and hexes gained since the trail started being tracked
- * (BRDC-SEASON-001). A week's competition for six known players, read the same way
- * `RouteCodexPanel` reads Route mode's lifetime table: a flat ranking, no per-measure
- * detail. The difference is what it counts — gained-since-then, not ever.
+ * The Season — distance and hexes gained since each player chose to join
+ * (BRDC-SEASON-001). Read the same way `RouteCodexPanel` reads Route mode's lifetime
+ * table: a flat ranking, no per-measure detail. The difference is what it counts —
+ * gained since *you* joined, not a fixed calendar date every player is measured against.
  */
 import { useEffect, useRef } from 'react';
-import { GlassPanel, RitualButton } from '@es3/ui';
+import type { GameRepository } from '@es3/core';
+import { EmptyState, GlassPanel, HexMandala, RitualButton } from '@es3/ui';
+import { relativeTime } from '../log/describe.js';
 import { formatDistance } from '../codex/figures.js';
 import { useSeason } from './useSeason.js';
 import './season-panel.css';
@@ -13,20 +15,14 @@ import './season-panel.css';
 export interface SeasonPanelProps {
   open: boolean;
   me: string | null;
+  repository: GameRepository | null;
+  now: () => number;
   onClose: () => void;
 }
 
-/** "day-20345" → a rough "N days" span against today, without pulling in a date library
- *  for one subtraction. */
-function daysSince(dayKey: string): number {
-  const day = Number(dayKey.slice('day-'.length));
-  const today = Math.floor(Date.now() / 86_400_000);
-  return Math.max(0, today - day);
-}
-
-export function SeasonPanel({ open, me, onClose }: SeasonPanelProps) {
+export function SeasonPanel({ open, me, repository, now, onClose }: SeasonPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const { state, reload } = useSeason(open);
+  const { state, reload, joining, join } = useSeason(open, repository);
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +36,14 @@ export function SeasonPanel({ open, me, onClose }: SeasonPanelProps) {
 
   if (!open) return null;
 
+  const joined = state.status === 'ready' && state.rows.some((r) => r.id === me);
+
+  const joinButton = (
+    <RitualButton variant="ghost" disabled={joining || !repository} onClick={join}>
+      {joining ? 'Joining…' : 'Join the Weekly Tournament'}
+    </RitualButton>
+  );
+
   return (
     <GlassPanel as="section" ref={panelRef} className="season" aria-label="The Season" tabIndex={-1}>
       <div className="season__bar">
@@ -52,10 +56,15 @@ export function SeasonPanel({ open, me, onClose }: SeasonPanelProps) {
       {state.status === 'loading' ? <p className="season__note">Reading the trail…</p> : null}
 
       {state.status === 'empty' ? (
-        <p className="season__note">
-          No trail yet — the Worker keeps one snapshot a day, so this fills in once anyone
-          has published on two different days.
-        </p>
+        <>
+          <EmptyState
+            mark={<HexMandala size={56} />}
+            ink="var(--r-token)"
+            title="Nobody has joined yet"
+            body="Join the Weekly Tournament and your own distance and hexes from right now become your starting line — everyone sees what you gain from here, once a day."
+          />
+          {joinButton}
+        </>
       ) : null}
 
       {state.status === 'unreachable' ? (
@@ -73,8 +82,9 @@ export function SeasonPanel({ open, me, onClose }: SeasonPanelProps) {
       {state.status === 'ready' ? (
         <>
           <p className="season__note">
-            Gained over the last {daysSince(state.sinceDayKey)}{' '}
-            {daysSince(state.sinceDayKey) === 1 ? 'day' : 'days'}.
+            {joined
+              ? 'Gained since you joined. Updates once a day.'
+              : 'Join to put your own starting line on this list.'}
           </p>
           <ol className="season__list es-numeric">
             {state.rows.map((r, i) => (
@@ -87,12 +97,14 @@ export function SeasonPanel({ open, me, onClose }: SeasonPanelProps) {
                 </span>
                 <span className="season__name">{r.name}</span>
                 <span className="season__figure">
-                  +{formatDistance(Math.max(0, r.distanceGained))} · +
-                  {Math.max(0, r.hexesGained)} {r.hexesGained === 1 ? 'hex' : 'hexes'}
+                  +{formatDistance(r.distanceGained)} · +{r.hexesGained}{' '}
+                  {r.hexesGained === 1 ? 'hex' : 'hexes'}
                 </span>
+                <span className="season__joined">joined {relativeTime(r.joinedAt, now())}</span>
               </li>
             ))}
           </ol>
+          {joined ? null : joinButton}
           <RitualButton variant="ghost" onClick={reload}>
             Read again
           </RitualButton>

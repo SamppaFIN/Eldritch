@@ -7,7 +7,7 @@
  * swallowed: the game is fully playable without a single shard.
  */
 import { buildSubmission, encodeSubmission } from '@es3/core';
-import type { WorldSource } from '@es3/core';
+import type { SeasonJoin, WorldSource } from '@es3/core';
 
 /** The Worker (BRDC-SHARE-003). Overridable per deploy; the default is the live one. */
 export const WORLD_API =
@@ -121,6 +121,38 @@ export async function fetchSeasonDay(dayKey: string): Promise<CodexFetch> {
     return { ok: true, text: await res.text() };
   } catch {
     return { ok: false, reason: 'unreachable' };
+  }
+}
+
+/**
+ * "Join the Weekly Tournament" (BRDC-SEASON-001) — a player's own starting line,
+ * published on demand. `true` only once the Worker actually accepted it, the same
+ * "never claim success it did not confirm" rule `publishLegacy` follows.
+ */
+export async function publishSeasonJoin(id: string, name: string, distanceM: number, hexes: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/join`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id, name, distanceM, hexes }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Every player who has joined the week's challenge, in no particular order —
+ *  the caller ranks them. `null` only when the Worker could not be reached at all. */
+export async function fetchSeasonJoins(): Promise<SeasonJoin[] | null> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/joins`, { cache: 'no-store' });
+    if (res.status === 204) return [];
+    if (!res.ok) return null;
+    const data = (await res.json().catch(() => null)) as { joins?: SeasonJoin[] } | null;
+    return Array.isArray(data?.joins) ? data.joins : [];
+  } catch {
+    return null;
   }
 }
 

@@ -160,7 +160,13 @@ export function useMapAside(
       />
       <CodexPanel open={codexOpen} me={meId} onClose={() => setCodexOpen(false)} />
       <RouteCodexPanel open={routeCodexOpen} me={meId} onClose={() => setRouteCodexOpen(false)} />
-      <SeasonPanel open={seasonOpen} me={meId} onClose={() => setSeasonOpen(false)} />
+      <SeasonPanel
+        open={seasonOpen}
+        me={meId}
+        repository={repository}
+        now={now}
+        onClose={() => setSeasonOpen(false)}
+      />
       <LandsPanel
         open={landsOpen}
         repository={repository}

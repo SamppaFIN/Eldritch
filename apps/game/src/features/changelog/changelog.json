@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.59",
+    "date": "2026-09-23",
+    "notes": [
+      "You can now join the Weekly Tournament from The Season: your distance and hexes at that moment become your own starting line, and the list shows what everyone has gained since they joined. Updates once a day."
+    ]
+  },
+  {
     "version": "0.6.58",
     "date": "2026-09-23",
     "notes": [

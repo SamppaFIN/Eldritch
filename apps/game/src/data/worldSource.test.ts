@@ -6,7 +6,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WorldSource } from '@es3/core';
 import {
   WORLD_API,
+  fetchSeasonJoins,
   fetchWorldShards,
+  publishSeasonJoin,
   publishSubmission,
   worldSubmissionUrl,
 } from './worldSource.js';
@@ -85,6 +87,58 @@ describe('publishSubmission', () => {
       }),
     );
     expect(await publishSubmission(SOURCE)).toEqual({ status: 'failed', kicked: false });
+  });
+});
+
+describe('publishSeasonJoin (BRDC-SEASON-001)', () => {
+  it('POSTs the starting line and reports success', async () => {
+    const fetch = vi.fn(async () => ({ ok: true, status: 200 }) as Response);
+    vi.stubGlobal('fetch', fetch);
+
+    expect(await publishSeasonJoin('p1', 'Seeker', 1_200, 5)).toBe(true);
+    const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`${WORLD_API}/season/join`);
+    expect(JSON.parse(String(init.body))).toEqual({ id: 'p1', name: 'Seeker', distanceM: 1_200, hexes: 5 });
+  });
+
+  it('is false, never a throw, for a bad response or the network being down', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 }) as Response));
+    expect(await publishSeasonJoin('p1', 'Seeker', 0, 0)).toBe(false);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    );
+    expect(await publishSeasonJoin('p1', 'Seeker', 0, 0)).toBe(false);
+  });
+});
+
+describe('fetchSeasonJoins (BRDC-SEASON-001)', () => {
+  it('returns the joined players', async () => {
+    const joins = [{ id: 'p1', name: 'Seeker', distanceM: 1_200, hexes: 5, joinedAt: 1_000 }];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ joins }) }) as Response),
+    );
+    expect(await fetchSeasonJoins()).toEqual(joins);
+  });
+
+  it('tells nobody-joined-yet apart from an unreachable Worker', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 204 }) as Response));
+    expect(await fetchSeasonJoins()).toEqual([]);
+
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 }) as Response));
+    expect(await fetchSeasonJoins()).toBeNull();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    );
+    expect(await fetchSeasonJoins()).toBeNull();
   });
 });
 

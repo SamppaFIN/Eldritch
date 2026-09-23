@@ -32,6 +32,18 @@ export function seasonStandingsOf(sources: readonly WorldSource[]): SeasonStandi
 }
 
 /**
+ * One player's personal starting line for the week's challenge — their own figures at
+ * the moment they chose to join, not a fixed calendar date. "Join the Weekly Tournament"
+ * publishes one of these; the daily snapshot above is read against it to say what a
+ * joined player has gained since *they* opted in, not since the season's own oldest
+ * recorded day (Infinite, 2026-09-23: *"valitset liity viikkoturnaukseen ja sen jälkeen
+ * saat sen hetken tilanteen listoille"*).
+ */
+export interface SeasonJoin extends SeasonStanding {
+  joinedAt: number;
+}
+
+/**
  * Days since the Unix epoch, so the Worker can keep one snapshot per day without a cron
  * trigger — it only ever writes on `/submit`. Same shape as `atlasWeekKey`, daily instead
  * of weekly, and the same reason: the only property this needs is "changes once every

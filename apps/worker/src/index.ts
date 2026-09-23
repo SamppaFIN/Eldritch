@@ -34,11 +34,17 @@ import type { PlayerFile, WorldSource } from '@es3/core/data';
 import { isOwnershipCell } from '@es3/core/geo';
 import { WORLD_PLAYER_TTL_MS } from '@es3/core/rules';
 import { craftChronicle, isKingdomFacts } from './chronicle.js';
-import { CLAN, type ClanRecord, clanCodexOf, newClanId, verifiedClan } from './clan.js';
+import { CLAN, type ClanRecord, clanCodexOf, handleClanRoute } from './clan.js';
 import { listSnapshotWeeks, maybeSnapshot, readSnapshot } from './history.js';
 import { ROUTE_CODEX, splitByMode } from './routeCodex.js';
 import { listLegacy, publishLegacy } from './legacy.js';
-import { listSeasonDays, maybeSnapshotSeason, readSeasonDay } from './season.js';
+import {
+  listSeasonDays,
+  listSeasonJoins,
+  maybeSnapshotSeason,
+  publishSeasonJoin,
+  readSeasonDay,
+} from './season.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -257,6 +263,18 @@ export default {
       return send(snapshot);
     }
 
+    // "Join the Weekly Tournament" (BRDC-SEASON-001) — a player's own starting line,
+    // published on demand rather than fixed to a calendar day.
+    if (request.method === 'POST' && url.pathname === '/season/join') {
+      const join = await publishSeasonJoin(env.WORLD, await request.json().catch(() => null), Date.now());
+      return join ? send({ ok: true }) : send({ fault: 'invalid' }, 400);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/season/joins') {
+      const joins = await listSeasonJoins(env.WORLD);
+      return joins.length === 0 ? bare(204) : send({ joins });
+    }
+
     if (request.method === 'POST' && url.pathname === '/kingdom-story') {
       const facts = await request.json().catch(() => null);
       if (!isKingdomFacts(facts)) return send({ fault: 'invalid' }, 400);
@@ -284,86 +302,11 @@ export default {
       return entries.length === 0 ? bare(204) : send({ v: 1, generatedAt: Date.now(), entries });
     }
 
-    if (request.method === 'POST' && url.pathname === '/clan') {
-      const body = (await request.json().catch(() => null)) as
-        | { name?: unknown; founderId?: unknown }
-        | null;
-      const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 40) : '';
-      const founderId = typeof body?.founderId === 'string' ? body.founderId : '';
-      if (!name || !founderId) return send({ fault: 'invalid' }, 400);
-
-      const id = await newClanId(env.WORLD);
-      if (!id) return send({ fault: 'unavailable' }, 503);
-
-      const record: ClanRecord = {
-        id,
-        name,
-        founderId,
-        founderToken: crypto.randomUUID(),
-        createdAt: Date.now(),
-      };
-      await env.WORLD.put(CLAN + id, JSON.stringify(record));
-      return send({ id: record.id, founderToken: record.founderToken });
-    }
-
-    if (request.method === 'GET' && url.pathname.endsWith('/roster')) {
-      const id = url.pathname.slice('/clan/'.length, -'/roster'.length).toUpperCase();
-      if (!id) return bare(404);
-      // No need to check `clan:<id>` exists first — a clan with nobody currently
-      // publishing under it and one with a typo'd id look identical: an empty roster.
-      const live = await liveSources(env.WORLD, Date.now());
-      const raw = await env.WORLD.get(CLAN + id);
-      const kicked = raw ? ((JSON.parse(raw) as ClanRecord).kicked ?? []) : [];
-      const members = live
-        .filter((p) => p.clanId === id && !kicked.includes(p.id))
-        .map((p) => ({ id: p.id, name: p.nation ?? p.name, castle: p.castle }));
-      return send({ members });
-    }
-
-    if (request.method === 'POST' && url.pathname.endsWith('/rename')) {
-      const id = url.pathname.slice('/clan/'.length, -'/rename'.length).toUpperCase();
-      const body = (await request.json().catch(() => null)) as
-        | { founderToken?: unknown; name?: unknown }
-        | null;
-      const founderToken = typeof body?.founderToken === 'string' ? body.founderToken : '';
-      const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 40) : '';
-      if (!id || !founderToken || !name) return send({ fault: 'invalid' }, 400);
-
-      const record = await verifiedClan(env.WORLD, id, founderToken);
-      if (!record) return send({ fault: 'forbidden' }, 403);
-
-      record.name = name;
-      await env.WORLD.put(CLAN + id, JSON.stringify(record));
-      return send({ ok: true });
-    }
-
-    if (request.method === 'POST' && url.pathname.endsWith('/kick')) {
-      const id = url.pathname.slice('/clan/'.length, -'/kick'.length).toUpperCase();
-      const body = (await request.json().catch(() => null)) as
-        | { founderToken?: unknown; playerId?: unknown }
-        | null;
-      const founderToken = typeof body?.founderToken === 'string' ? body.founderToken : '';
-      const playerId = typeof body?.playerId === 'string' ? body.playerId : '';
-      if (!id || !founderToken || !playerId) return send({ fault: 'invalid' }, 400);
-
-      const record = await verifiedClan(env.WORLD, id, founderToken);
-      if (!record) return send({ fault: 'forbidden' }, 403);
-
-      const kicked = record.kicked ?? [];
-      if (!kicked.includes(playerId)) kicked.push(playerId);
-      record.kicked = kicked;
-      await env.WORLD.put(CLAN + id, JSON.stringify(record));
-      return send({ ok: true });
-    }
-
-    if (request.method === 'GET' && url.pathname.startsWith('/clan/')) {
-      const id = url.pathname.slice('/clan/'.length).toUpperCase();
-      const raw = id ? await env.WORLD.get(CLAN + id) : null;
-      if (!raw) return bare(404);
-      const record = JSON.parse(raw) as ClanRecord;
-      // The join screen needs to know a code is real and its name — never the
-      // founder's token, which the founder's own device already holds.
-      return send({ id: record.id, name: record.name });
+    // POST /clan, GET/POST /clan/<id>[/roster|/rename|/kick] — moved to clan.ts once
+    // BRDC-SEASON-001's own routes pushed this file back over 400 lines.
+    if (url.pathname === '/clan' || url.pathname.startsWith('/clan/')) {
+      const clanResponse = await handleClanRoute(request, url, env.WORLD, send, bare, liveSources);
+      if (clanResponse) return clanResponse;
     }
 
     if (request.method === 'GET' && url.pathname === '/') {
@@ -380,6 +323,8 @@ export default {
           'GET /atlas/history/<week>',
           'GET /season/history',
           'GET /season/history/<day>',
+          'POST /season/join',
+          'GET /season/joins',
           'POST /kingdom-story',
           'POST /legacy',
           'GET /legacy',

@@ -268,7 +268,7 @@ export function SettingsMenu({
                 {onOpenRouteCodex
                   ? link('Route Ledger', 'Distance and hexes measured', onOpenRouteCodex, 'var(--sacred-gold)')
                   : null}
-                {link('The Season', 'Gained since the trail began', onOpenSeason, 'var(--r-token)')}
+                {link('The Season', 'Join the week’s challenge', onOpenSeason, 'var(--r-token)')}
                 {onOpenHallOfFame
                   ? link('Hall of Fame', 'Kingdoms retired', onOpenHallOfFame, 'var(--sacred-gold)')
                   : null}
