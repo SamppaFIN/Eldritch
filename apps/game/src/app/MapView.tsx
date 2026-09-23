@@ -137,8 +137,8 @@ export function MapView({ onLeave }: MapViewProps) {
     repository,
     clock.now,
     laps,
-    (h3) => inspect.onCellTap(h3),
-    () => void territory.refresh(),
+    (h3) => inspect.onCellTap(h3), () => void territory.refresh(),
+    () => onSettingsChange({ ...settings, shareWorld: true }),
   );
 
   const onViewportChange = useCallback((next: BBox) => setBbox(next), []);

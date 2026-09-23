@@ -7,7 +7,7 @@
  * swallowed: the game is fully playable without a single shard.
  */
 import { buildSubmission, encodeSubmission } from '@es3/core';
-import type { SeasonJoin, WorldSource } from '@es3/core';
+import type { SeasonJoinView, WorldSource } from '@es3/core';
 
 /** The Worker (BRDC-SHARE-003). Overridable per deploy; the default is the live one. */
 export const WORLD_API =
@@ -144,12 +144,12 @@ export async function publishSeasonJoin(id: string, name: string, distanceM: num
 
 /** Every player who has joined the week's challenge, in no particular order —
  *  the caller ranks them. `null` only when the Worker could not be reached at all. */
-export async function fetchSeasonJoins(): Promise<SeasonJoin[] | null> {
+export async function fetchSeasonJoins(): Promise<SeasonJoinView[] | null> {
   try {
     const res = await fetch(`${WORLD_API}/season/joins`, { cache: 'no-store' });
     if (res.status === 204) return [];
     if (!res.ok) return null;
-    const data = (await res.json().catch(() => null)) as { joins?: SeasonJoin[] } | null;
+    const data = (await res.json().catch(() => null)) as { joins?: SeasonJoinView[] } | null;
     return Array.isArray(data?.joins) ? data.joins : [];
   } catch {
     return null;

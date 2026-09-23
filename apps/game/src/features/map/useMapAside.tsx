@@ -74,6 +74,8 @@ export function useMapAside(
   onShowCell: (h3: string) => void,
   /** Ground changed without a step — an imported walk (BRDC-GPX-001). Redraw the map. */
   onWorldChanged: () => void = () => {},
+  /** Joining the Weekly Tournament also turns sharing on (BRDC-SEASON-001). */
+  onJoinedSeason?: () => void,
 ): MapAside {
   const showCell = useRef(onShowCell);
   showCell.current = onShowCell;
@@ -165,6 +167,7 @@ export function useMapAside(
         me={meId}
         repository={repository}
         now={now}
+        {...(onJoinedSeason ? { onJoined: onJoinedSeason } : {})}
         onClose={() => setSeasonOpen(false)}
       />
       <LandsPanel

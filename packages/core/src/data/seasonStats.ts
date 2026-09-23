@@ -43,6 +43,31 @@ export interface SeasonJoin extends SeasonStanding {
   joinedAt: number;
 }
 
+/** A join read back with the player's *current* published figures beside it. */
+export interface SeasonJoinView extends SeasonJoin {
+  current?: { distanceM: number; hexes: number };
+}
+
+/**
+ * Each join laid against whoever is live right now (Infinite, 2026-09-23: names and
+ * standings should follow the player's latest publish, not freeze at the moment they
+ * joined). The name is the live one when there is one — a rename reaches the list on the
+ * next publish — and `current` is absent for a player whose file has expired, so the
+ * caller reads that as "no progress yet" rather than inventing a zero.
+ */
+export function joinsWithCurrent(
+  joins: readonly SeasonJoin[],
+  live: readonly SeasonStanding[],
+): SeasonJoinView[] {
+  const byId = new Map(live.map((s) => [s.id, s]));
+  return joins.map((j) => {
+    const now = byId.get(j.id);
+    return now
+      ? { ...j, name: now.name, current: { distanceM: now.distanceM, hexes: now.hexes } }
+      : { ...j };
+  });
+}
+
 /**
  * Days since the Unix epoch, so the Worker can keep one snapshot per day without a cron
  * trigger — it only ever writes on `/submit`. Same shape as `atlasWeekKey`, daily instead

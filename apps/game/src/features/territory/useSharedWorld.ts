@@ -5,7 +5,7 @@
  * a no-op; when it is on, `useWorld` pulls the shards for the viewport and `publish` POSTs
  * the player's own ground to the Worker — one request, no tab, no account.
  */
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { BBox, GameRepository, WorldIdentity } from '@es3/core';
 import { useWorld } from './useWorld.js';
 import { publishSubmission } from '../../data/worldSource.js';
@@ -13,6 +13,11 @@ import type { PublishResult } from '../../data/worldSource.js';
 import { readNation } from '../nation/nation.js';
 import { leaveClan, readClan } from '../clan/clan.js';
 import { useClan } from '../clan/useClan.js';
+
+/** How often a sharing player re-publishes on their own, and how often it checks whether
+ *  their name (or nation, banner, clan) changed and so should go out sooner. */
+const AUTO_PUBLISH_MS = 10 * 60_000;
+const AUTO_CHECK_MS = 20_000;
 
 export interface UseSharedWorldOptions {
   repository: GameRepository | null;
@@ -55,6 +60,39 @@ export function useSharedWorld({
     if (outcome.kicked) leaveClan();
     return outcome.status;
   }, [repository, now]);
+
+  /*
+   * Publishing on its own (BRDC-SEASON-001). The only caller used to be the Keep's "Raise
+   * your banner" button — so nobody's figures reached the Worker unless they pressed it,
+   * and Route mode, which has no Keep, could never publish at all. While sharing is on
+   * this sends the realm shortly after opening the map, every ten minutes after that, and
+   * at once when the player's name, nation, banner or clan changes (Infinite: a rename
+   * should reach the lists). A `429` from the Worker's own minute cooldown is simply
+   * retried on the next check.
+   */
+  const publishRef = useRef(publish);
+  publishRef.current = publish;
+  const last = useRef<{ at: number; key: string } | null>(null);
+  useEffect(() => {
+    if (!enabled || !repository) return;
+    let stopped = false;
+    const check = async () => {
+      const profile = await repository.getProfile();
+      const n = readNation();
+      const key = [profile.name, n.name, n.bannerId, readClan().clanId].join('|');
+      const due =
+        !last.current || last.current.key !== key || Date.now() - last.current.at >= AUTO_PUBLISH_MS;
+      if (!due || stopped) return;
+      if ((await publishRef.current()) === 'ok') last.current = { at: Date.now(), key };
+    };
+    const first = setTimeout(() => void check(), 3_000);
+    const every = setInterval(() => void check(), AUTO_CHECK_MS);
+    return () => {
+      stopped = true;
+      clearTimeout(first);
+      clearInterval(every);
+    };
+  }, [enabled, repository]);
 
   return { stirredMs: enabled ? stirred : null, publish };
 }

@@ -26,9 +26,11 @@ import {
   atlasOf,
   buildShards,
   demographicsOf,
+  joinsWithCurrent,
   mergePlayerFiles,
   parseSubmission,
   routeCodexOf,
+  seasonStandingsOf,
 } from '@es3/core/data';
 import type { PlayerFile, WorldSource } from '@es3/core/data';
 import { isOwnershipCell } from '@es3/core/geo';
@@ -271,8 +273,11 @@ export default {
     }
 
     if (request.method === 'GET' && url.pathname === '/season/joins') {
+      // Each join beside the player's *latest published* figures and name, so a rename
+      // or a fresh walk shows up without waiting for the daily snapshot.
       const joins = await listSeasonJoins(env.WORLD);
-      return joins.length === 0 ? bare(204) : send({ joins });
+      const live = seasonStandingsOf(await liveSources(env.WORLD, Date.now()));
+      return joins.length === 0 ? bare(204) : send({ joins: joinsWithCurrent(joins, live) });
     }
 
     if (request.method === 'POST' && url.pathname === '/kingdom-story') {

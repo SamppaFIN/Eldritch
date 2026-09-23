@@ -17,12 +17,14 @@ export interface SeasonPanelProps {
   me: string | null;
   repository: GameRepository | null;
   now: () => number;
+  /** Joining turns "Share your realm" on — see `useSeason`. */
+  onJoined?: () => void;
   onClose: () => void;
 }
 
-export function SeasonPanel({ open, me, repository, now, onClose }: SeasonPanelProps) {
+export function SeasonPanel({ open, me, repository, now, onJoined, onClose }: SeasonPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const { state, reload, joining, join } = useSeason(open, repository);
+  const { state, reload, joining, join } = useSeason(open, repository, onJoined);
 
   useEffect(() => {
     if (!open) return;
@@ -61,7 +63,7 @@ export function SeasonPanel({ open, me, repository, now, onClose }: SeasonPanelP
             mark={<HexMandala size={56} />}
             ink="var(--r-token)"
             title="Nobody has joined yet"
-            body="Join the Weekly Tournament and your own distance and hexes from right now become your starting line — everyone sees what you gain from here, once a day."
+            body="Join the Weekly Tournament and your distance and hexes from right now become your starting line. Joining also turns on Share your realm, so what you gain reaches the list."
           />
           {joinButton}
         </>
@@ -83,7 +85,7 @@ export function SeasonPanel({ open, me, repository, now, onClose }: SeasonPanelP
         <>
           <p className="season__note">
             {joined
-              ? 'Gained since you joined. Updates once a day.'
+              ? 'Gained since you joined. Follows each player’s latest publish.'
               : 'Join to put your own starting line on this list.'}
           </p>
           <ol className="season__list es-numeric">

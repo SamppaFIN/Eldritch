@@ -4,6 +4,7 @@ import type { GameMode, LatLng } from '@es3/core';
 import { GlassPanel } from '@es3/ui';
 import { TitleScreen } from './TitleScreen.js';
 import { Hearth } from '../features/hearth/Hearth.js';
+import { loadSettings, saveSettings } from '../features/hud/settings.js';
 import { ModeSelect } from '../features/mode/ModeSelect.js';
 import './mapview.css';
 
@@ -103,6 +104,9 @@ export function App() {
 
   const chooseMode = useCallback((mode: GameMode) => {
     saveNow<ModeMark>('mode', { mode });
+    // Route mode exists for its leaderboard, and a leaderboard needs the player's figures
+    // to reach the Worker — so choosing it starts with sharing on (BRDC-SEASON-001).
+    if (mode === 'route') saveSettings({ ...loadSettings(), shareWorld: true });
     setView(nextView());
   }, []);
 

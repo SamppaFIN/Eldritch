@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | `BRDC-HALL-003` (Chronicles — sama arkistokonsepti, `done`),
   `BRDC-ATLAS-001`in `history.ts` (sama snapshot-kaava, tiheämpi tahti) |
-| **Status** | `done` — 2026-09-23 (v0.6.59) |
+| **Status** | `done` — 2026-09-23 (v0.6.60) |
 
 ## 🔴 RED
 
@@ -80,3 +80,25 @@ mitä hän on *sen jälkeen* kerännyt.
   ennallaan kausien rinnalla
 - Muutokset decay/capture/siege-sääntöihin — tämä on näyttö päälle, ei uusi tapa
   omistaa maata (eri asia kuin `BRDC-CLAIM-017`)
+
+## Jälkikorjaus v0.6.60 — julkaisu oli aina käsin
+
+Infiniten testauksessa selvisi, että **peli ei koskaan julkaissut itsestään**: ainoa
+`publish`-kutsu oli Keepin "Raise your banner" -nappi (ja vain kun "Share your realm"
+on päällä). Reittimoodilla ei Keepiä ole, joten sen pelaaja ei voinut julkaista
+lainkaan — Route Ledger (MODE-002) ja Season jäivät hänen osaltaan tyhjiksi.
+
+- [x] `useSharedWorld` julkaisee itse kun jakaminen on päällä: ~3 s kartan avaamisen
+      jälkeen, sen jälkeen 10 min välein, ja heti kun nimi/kansakunta/lippu/klaani
+      vaihtuu (tarkistus 20 s välein). Workerin minuutin jäähdytyksen 429 yritetään
+      uudelleen seuraavalla tarkistuksella
+- [x] "Join the Weekly Tournament" laittaa "Share your realm" päälle (`onJoined` →
+      `MapView`), ja paneeli sanoo sen ääneen. Reittimoodin valinta aloittaa
+      jakaminen päällä — omat, tietoiset valintani, kirjattu tähän
+- [x] `GET /season/joins` palauttaa jokaisen liittymisen rinnalla pelaajan
+      *viimeksi julkaistut* luvut ja nimen (`joinsWithCurrent`, 3 Vitest-testiä) —
+      Season ei enää odota päivän snapshotia, ja nimenvaihto näkyy listalla
+      seuraavan julkaisun jälkeen. Päivä-snapshotit jäävät historiaksi
+- [x] e2e: liittyminen → julkaisu ilman nappia → nimenvaihto lähtee Workerille;
+      `**/submit` mockataan season- ja mode-select-spekeissä, ettei testi
+      julkaise oikeaan maailmaan

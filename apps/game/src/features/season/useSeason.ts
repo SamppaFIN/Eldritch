@@ -4,18 +4,13 @@
  * "Join the Weekly Tournament" publishes a player's current distance and hexes as their
  * personal baseline (Infinite, 2026-09-23: *"valitset liity viikkoturnaukseen ja sen
  * jälkeen saat sen hetken tilanteen listoille.. päivittyy kerran päivässä"*). This reads
- * that baseline back against the most recent daily snapshot and ranks everyone who has
+ * that baseline back against each player's latest published figures and ranks everyone who has
  * joined by what they gained since *they* opted in — not since one fixed calendar date,
  * so six friends joining on six different days all see an honest "since I joined" figure.
  */
 import { useEffect, useState } from 'react';
-import type { GameRepository, SeasonJoin } from '@es3/core';
-import {
-  fetchSeasonDay,
-  fetchSeasonDays,
-  fetchSeasonJoins,
-  publishSeasonJoin,
-} from '../../data/worldSource.js';
+import type { GameRepository } from '@es3/core';
+import { fetchSeasonJoins, publishSeasonJoin } from '../../data/worldSource.js';
 
 export interface SeasonRow {
   id: string;
@@ -34,22 +29,12 @@ export type SeasonState =
   | { status: 'empty' }
   | { status: 'unreachable' };
 
-interface DaySnapshot {
-  standings: SeasonJoin[];
-}
-
-function parseDay(text: string): DaySnapshot | null {
-  try {
-    const data = JSON.parse(text) as Partial<DaySnapshot>;
-    return Array.isArray(data.standings) ? (data as DaySnapshot) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function useSeason(
   open: boolean,
   repository: GameRepository | null,
+  /** Joining is also consent to share: the caller turns "Share your realm" on, so the
+   *  player's progress actually reaches the list (BRDC-SEASON-001). */
+  onJoined?: () => void,
 ): { state: SeasonState; reload: () => void; joining: boolean; join: () => void } {
   const [state, setState] = useState<SeasonState>({ status: 'idle' });
   const [joining, setJoining] = useState(false);
@@ -61,7 +46,9 @@ export function useSeason(
     setState({ status: 'loading' });
 
     void (async () => {
-      const [joins, days] = await Promise.all([fetchSeasonJoins(), fetchSeasonDays()]);
+      // The Worker lays each join beside the player's latest published figures and
+      // name, so the list follows every publish — no waiting for a daily snapshot.
+      const joins = await fetchSeasonJoins();
       if (cancelled) return;
       if (joins === null) {
         setState({ status: 'unreachable' });
@@ -72,18 +59,9 @@ export function useSeason(
         return;
       }
 
-      let latest: SeasonJoin[] = [];
-      if (days.length > 0) {
-        const latestKey = days[days.length - 1] as string;
-        const res = await fetchSeasonDay(latestKey);
-        if (cancelled) return;
-        if (res.ok) latest = parseDay(res.text)?.standings ?? [];
-      }
-      const latestById = new Map(latest.map((s) => [s.id, s]));
-
       const rows: SeasonRow[] = joins
         .map((j) => {
-          const now = latestById.get(j.id) ?? j;
+          const now = j.current ?? j;
           return {
             id: j.id,
             name: j.name,
@@ -116,7 +94,10 @@ export function useSeason(
       const hexes = source.cells.length;
       const ok = await publishSeasonJoin(profile.id, profile.name, distanceM, hexes);
       setJoining(false);
-      if (ok) reload();
+      if (ok) {
+        onJoined?.();
+        reload();
+      }
     })();
   };
 

@@ -8,6 +8,12 @@ import { openMap as open } from './hearth.js';
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
+// Route mode starts with sharing on and publishes by itself (BRDC-SEASON-001) — not to
+// the live world from a test.
+test.beforeEach(async ({ page }) => {
+  await page.route('**/submit', (route) => route.fulfill({ status: 200, body: '{"ok":true}' }));
+});
+
 test('the mode-select screen appears before the Hearth, and offers both paths', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
