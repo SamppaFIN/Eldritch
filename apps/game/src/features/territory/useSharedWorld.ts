@@ -16,8 +16,10 @@ import { useClan } from '../clan/useClan.js';
 
 /** How often a sharing player re-publishes on their own, and how often it checks whether
  *  their name (or nation, banner, clan) changed and so should go out sooner. */
-const AUTO_PUBLISH_MS = 10 * 60_000;
-const AUTO_CHECK_MS = 20_000;
+const AUTO_PUBLISH_MS = 60 * 60_000;
+const AUTO_CHECK_MS = 60_000;
+/** After a publish that did not go through (429, no network, quota), leave the Worker alone. */
+const RETRY_AFTER_FAIL_MS = 15 * 60_000;
 
 export interface UseSharedWorldOptions {
   repository: GameRepository | null;
@@ -65,18 +67,20 @@ export function useSharedWorld({
    * Publishing on its own (BRDC-SEASON-001). The only caller used to be the Keep's "Raise
    * your banner" button — so nobody's figures reached the Worker unless they pressed it,
    * and Route mode, which has no Keep, could never publish at all. While sharing is on
-   * this sends the realm shortly after opening the map, every ten minutes after that, and
-   * at once when the player's name, nation, banner or clan changes (Infinite: a rename
-   * should reach the lists). A `429` from the Worker's own minute cooldown is simply
-   * retried on the next check.
+   * this sends the realm shortly after opening the map, hourly after that, and at once
+   * when the player's name, nation, banner or clan changes (Infinite: a rename should
+   * reach the lists). A publish that fails is not retried for fifteen minutes — retrying
+   * every check hammered the Worker into its quota.
    */
   const publishRef = useRef(publish);
   publishRef.current = publish;
   const last = useRef<{ at: number; key: string } | null>(null);
+  const retryAt = useRef(0);
   useEffect(() => {
     if (!enabled || !repository) return;
     let stopped = false;
     const check = async () => {
+      if (Date.now() < retryAt.current) return;
       const profile = await repository.getProfile();
       const n = readNation();
       const key = [profile.name, n.name, n.bannerId, readClan().clanId].join('|');
@@ -84,6 +88,7 @@ export function useSharedWorld({
         !last.current || last.current.key !== key || Date.now() - last.current.at >= AUTO_PUBLISH_MS;
       if (!due || stopped) return;
       if ((await publishRef.current()) === 'ok') last.current = { at: Date.now(), key };
+      else retryAt.current = Date.now() + RETRY_AFTER_FAIL_MS;
     };
     const first = setTimeout(() => void check(), 3_000);
     const every = setInterval(() => void check(), AUTO_CHECK_MS);

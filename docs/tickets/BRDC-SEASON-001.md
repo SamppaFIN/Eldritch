@@ -89,9 +89,10 @@ on päällä). Reittimoodilla ei Keepiä ole, joten sen pelaaja ei voinut julkai
 lainkaan — Route Ledger (MODE-002) ja Season jäivät hänen osaltaan tyhjiksi.
 
 - [x] `useSharedWorld` julkaisee itse kun jakaminen on päällä: ~3 s kartan avaamisen
-      jälkeen, sen jälkeen 10 min välein, ja heti kun nimi/kansakunta/lippu/klaani
-      vaihtuu (tarkistus 20 s välein). Workerin minuutin jäähdytyksen 429 yritetään
-      uudelleen seuraavalla tarkistuksella
+      jälkeen, sen jälkeen tunnin välein, ja kun nimi/kansakunta/lippu/klaani
+      vaihtuu (tarkistus minuutin välein). Epäonnistunut julkaisu (429, kiintiö,
+      ei verkkoa) yritetään uudelleen vasta 15 min päästä — alkuperäinen 10 min /
+      20 s / heti-uudelleen-yritys kuormitti Cloudflaren jumiin (2026-09-24)
 - [x] "Join the Weekly Tournament" laittaa "Share your realm" päälle (`onJoined` →
       `MapView`), ja paneeli sanoo sen ääneen. Reittimoodin valinta aloittaa
       jakaminen päällä — omat, tietoiset valintani, kirjattu tähän

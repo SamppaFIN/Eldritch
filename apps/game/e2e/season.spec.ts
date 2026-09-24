@@ -105,7 +105,7 @@ test('joining publishes the player’s own current distance and hexes', async ({
 });
 
 test('joining turns sharing on, publishes by itself, and a rename follows (BRDC-SEASON-001)', async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   const names: string[] = [];
   await page.route('**/submit', async (route) => {
     names.push((route.request().postDataJSON() as { name: string }).name);
@@ -131,7 +131,7 @@ test('joining turns sharing on, publishes by itself, and a rename follows (BRDC-
   await expect.poll(() => names.length, { timeout: 20_000 }).toBeGreaterThan(0);
   const before = names.length;
 
-  // A new name reaches the Worker on the next check, not ten minutes later.
+  // A new name reaches the Worker on the next check (a minute), not an hour later.
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'You', exact: true }).click();
   const you = page.getByRole('region', { name: 'You' });
@@ -139,6 +139,6 @@ test('joining turns sharing on, publishes by itself, and a rename follows (BRDC-
   await field.fill('Renamed Seeker');
   await field.press('Enter');
   await expect
-    .poll(() => names.slice(before).includes('Renamed Seeker'), { timeout: 60_000 })
+    .poll(() => names.slice(before).includes('Renamed Seeker'), { timeout: 100_000 })
     .toBe(true);
 });
