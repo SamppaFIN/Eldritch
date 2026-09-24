@@ -7,8 +7,7 @@
  */
 import { bountyOn, revealOf } from '@es3/core';
 import type { Cell, H3Index } from '@es3/core';
-import { RitualButton } from '@es3/ui';
-import { UNSEEN_BOUNTY, bountyPickGlyph, bountyPickLine } from './bounty.js';
+import { bountyPickGlyph, bountyPickLine } from './bounty.js';
 
 const TIER: Readonly<Record<ReturnType<typeof revealOf>, string>> = {
   common: 'Common ground — nothing hidden here.',
@@ -19,26 +18,12 @@ const TIER: Readonly<Record<ReturnType<typeof revealOf>, string>> = {
 
 export interface RevealControlProps {
   h3: H3Index;
-  revealed: boolean;
   /** The cell itself, so a revealed hex can name what is on it (BRDC-BOUNTY-001). */
   cell?: Cell;
-  onReveal: (h3: H3Index) => void;
 }
 
-export function RevealControl({ h3, revealed, cell, onReveal }: RevealControlProps) {
-  if (!revealed) {
-    return (
-      <>
-        <RitualButton className="cell-panel__expand" onClick={() => onReveal(h3)}>
-          Reveal this ground
-        </RitualButton>
-        {/* Revealing was a one-off payout; a bounty makes it discovery, so the button
-            says there is something to discover (BRDC-BOUNTY-001). */}
-        <p className="cell-panel__note">{UNSEEN_BOUNTY}</p>
-      </>
-    );
-  }
-
+/** What a revealed hex turned out to be. The Reveal button itself is in the card's action row. */
+export function RevealControl({ h3, cell }: RevealControlProps) {
   const bounty = cell ? bountyOn(cell) : null;
   return (
     <>

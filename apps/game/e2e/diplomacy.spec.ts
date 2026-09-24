@@ -97,7 +97,7 @@ async function tapTheQuay(page: Page) {
     // Wait for *a* card before asking whether it is the quay — under load the tap and the
     // panel are far enough apart that checking straight away reads the previous state.
     await sheet.first().waitFor({ state: 'visible', timeout: 8_000 }).catch(() => undefined);
-    if (await page.locator('.trade').isVisible().catch(() => false)) break;
+    if (await page.getByRole('button', { name: 'Trade post' }).isVisible().catch(() => false)) break;
   }
 
   const card = page.getByRole('region', { name: 'Selected cell' });
@@ -147,6 +147,6 @@ test('a village hex says where its quay is', async ({ page }) => {
   // not the quay, it says how far the quay is.
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toContainText('Härmälänranta');
-  const onQuay = await page.locator('.trade').isVisible().catch(() => false);
+  const onQuay = await page.getByRole('button', { name: 'Trade post' }).isVisible().catch(() => false);
   if (!onQuay) await expect(card).toContainText(/quay is .* from here|quay is the next hex/);
 });

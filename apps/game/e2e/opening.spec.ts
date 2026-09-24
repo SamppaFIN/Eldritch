@@ -49,6 +49,7 @@ test('and it can be spent on the building it is sized for', async ({ page }) => 
   // The build menu judges affordability from the same pouch copy the HUD shows, so while
   // that copy was empty every building read "Cannot afford" and the section said nothing
   // could be built here at all.
+  await card.getByRole('button', { name: 'Works', exact: true }).click();
   await expect(card).toContainText('Monument');
   const build = card.getByRole('button', { name: 'Build', exact: true }).first();
   await expect(build).toBeEnabled();
@@ -187,6 +188,7 @@ test('ground says what it is for, even when you cannot build it yet', async ({ p
   await page.getByRole('button', { name: 'Here', exact: true }).click();
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 15_000 });
+  await card.getByRole('button', { name: 'Works', exact: true }).click();
 
   // What belongs on this hex but is out of reach is named, with the reason.
   await expect(card).toContainText(/This ground (also )?holds/i, { timeout: 15_000 });

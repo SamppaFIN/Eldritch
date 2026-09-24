@@ -128,6 +128,7 @@ const run = async () => {
     const stoneBefore = await pouchStone(page);
     // Reveal the locked rows too — a beat after founding the Monument can still read as
     // not-yet-buildable while the pouch propagates to the panel's props.
+    await card.getByRole('button', { name: 'Works', exact: true }).click().catch(() => {});
     await card.getByRole('button', { name: /more$/ }).click().catch(() => {});
     const monRow = card.locator('.cell-panel__build-row', { hasText: 'Monument' });
     const buildBtn = monRow.getByRole('button', { name: 'Build', exact: true });

@@ -6,24 +6,24 @@
 import {
   ANCHOR_THRESHOLD_MS,
   MAX_STRENGTH,
-  MAX_TEMPLE_EXPANSION,
   TEMPLE_THRESHOLD_MS,
   WARD_COST,
-  canAfford,
   shortOf,
-  expansionCost,
   revealProgress,
 } from '@es3/core';
 import type { Cell, PlayerId, ResourcePool, WardRefusal } from '@es3/core';
-import { useEffect, useRef } from 'react';
-import { GlassPanel, RitualButton } from '@es3/ui';
+import { useEffect, useRef, useState } from 'react';
+import { GlassPanel } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BuildPanel } from './BuildPanel.js';
 import { CellHeader } from './CellHeader.js';
 import { CellIncome } from './CellIncome.js';
 import { CellOn } from './CellOn.js';
 import { CellWorth } from './CellWorth.js';
-import { ConsecratePanel } from './ConsecratePanel.js';
+import { CellActions } from './CellActions.js';
+import { cellActions } from './hexActions.js';
+import type { ActionId } from './hexActions.js';
+import { cellOffer } from './cellOffer.js';
 import { ImportedNote } from './ImportedNote.js';
 import { OwnershipNote, isSharedGround } from './OwnershipNote.js';
 import { RevealControl } from './RevealControl.js';
@@ -40,7 +40,7 @@ import type { BuildBinding, PlaceBinding, ResearchBinding, TradeBinding } from '
 import type { SpellBinding } from './useSpells.js';
 import type { CityBinding } from './useDiplomacy.js';
 import { historyLine } from './cellHistory.js';
-import { EXPAND_REFUSAL, costLine, shortNote } from './gateNote.js';
+import { EXPAND_REFUSAL, shortNote } from './gateNote.js';
 import type { WikiRef } from '../help/wikiPages.js';
 import './cell-panel.css';
 
@@ -137,6 +137,8 @@ export function CellPanel({
   // Above the early return: hooks cannot be conditional, and `h3` already carries whether
   // there is a card open at all.
   useEscape(h3 !== null, onClose);
+  const [open, setOpen] = useState<ActionId | null>(null);
+  useEffect(() => setOpen(null), [h3]);
 
   if (!cell) return null;
 
@@ -147,7 +149,7 @@ export function CellPanel({
   const wood = resources?.wood ?? 0;
   const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
   /*
-   * Why not, said beside the button (BRDC-UI-002). A hex walked for weeks sits at full
+   * Why not, said under the row (BRDC-UI-002). A hex walked for weeks sits at full
    * strength, and Ward was simply grey there — which reads as a broken button, not as
    * "this ground could not be any safer".
    */
@@ -156,9 +158,33 @@ export function CellPanel({
     : cell.strength >= MAX_STRENGTH
       ? 'Already at full strength — a ward would add nothing.'
       : shortNote(shortOf(resources, WARD_COST));
-  const nextCost = place.kind === 'temple' ? expansionCost(place.expansion + 1) : {};
-  const canExpand = resources !== null && canAfford(resources, nextCost);
-  const expandGate = canExpand ? null : shortNote(shortOf(resources, nextCost));
+  const isRevealed = revealed?.[cell.h3] !== undefined;
+  const offer = cellOffer({
+    mine,
+    resources,
+    place,
+    canWard,
+    wardGate,
+    quest: quest ?? null,
+    reveal: mine && Boolean(onReveal) && !isRevealed,
+    school: mine && place.kind === 'temple' && Boolean(research),
+    works: mine && Boolean(me && build),
+    rites: Boolean(spell),
+    trade: mine && Boolean(trade),
+    city: Boolean(city?.city),
+    anomaly: mine && Boolean(anomaly?.current),
+  });
+  const status = [refusal ? REFUSAL[refusal] : null, place.refusal ? EXPAND_REFUSAL[place.refusal] : null].filter(
+    (x): x is string => x !== null,
+  );
+  const press = (id: ActionId) => {
+    if (id === 'quest') onQuestOpen?.();
+    else if (id === 'reveal') onReveal?.(cell.h3);
+    else if (id === 'ward') onWard(cell.h3);
+    else if (id === 'consecrate') place.onConsecrate(cell.h3);
+    else if (id === 'expand') place.onExpand(cell.h3);
+    else setOpen((o) => (o === id ? null : id));
+  };
 
   return (
     <GlassPanel
@@ -170,20 +196,46 @@ export function CellPanel({
     >
       <CellHeader cell={cell} mine={mine} here={here} onClose={onClose} />
 
-      {/* An adventure waiting on this exact hex outranks everything else the card could
-          say — Infinite, field report 2026-09-16: "if there's an adventure point on the
-          hex, show that button first." It used to sit after trade, tribute and every
-          building row, at the very bottom of a card that can run well past one screen. */}
-      {quest ? <QuestCellPanel info={quest} onOpen={onQuestOpen ?? (() => {})} /> : null}
+      {/* Every action this hex offers, in one row at the top — nothing to scroll for with
+          one thumb while walking (BRDC-DETAIL-003). */}
+      <CellActions actions={cellActions(offer)} open={open} onPress={press} status={status} />
+
+      {open === 'works' && me && build ? (
+        <BuildPanel
+          cell={cell}
+          me={me}
+          resources={resources}
+          researched={build.researched}
+          myBuildings={build.myBuildings}
+          onBuild={build.onBuild}
+          onDemolish={build.onDemolish}
+          onWiki={onWiki ? (id) => onWiki(`work:${id}`) : undefined}
+          refusal={build.refusal}
+        />
+      ) : null}
+      {open === 'school' && research ? (
+        <TempleSchoolPanel
+          h3={cell.h3}
+          school={research.schools[cell.h3] ?? null}
+          research={research}
+          pool={resources}
+          wisdomPerHour={wisdomPerHour}
+        />
+      ) : null}
+      {open === 'rites' && spell ? (
+        <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} />
+      ) : null}
+      {open === 'trade' && trade ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
+      {open === 'city' && city?.city ? (
+        <TradePost city={city.city} resources={resources} refusal={city.refusal} onTrade={city.onTrade} />
+      ) : null}
+      {open === 'anomaly' && anomaly?.current ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
+
+      {quest ? <QuestCellPanel info={quest} /> : null}
 
       {/* What stands here, then what it pays, then who held it and when — the order a
           player standing on the hex actually asks in (BRDC-DETAIL-002). */}
-      <CellOn
-        cell={cell}
-        revealed={revealed?.[cell.h3] !== undefined}
-        place={{ kind: place.kind, rank: place.rank }}
-      />
-
+      <CellOn cell={cell} revealed={isRevealed} place={{ kind: place.kind, rank: place.rank }} />
 
       {mine ? (
         <CellIncome
@@ -197,14 +249,14 @@ export function CellPanel({
       {cell.importedFrom && showDetail ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
       {isSharedGround(cell) ? <OwnershipNote cell={cell} me={me} /> : null}
 
-      {history ? (
-        <p className="cell-panel__history">
-          {history}
-
-        </p>
-      ) : null}
+      {history ? <p className="cell-panel__history">{history}</p> : null}
 
       <CellWorth cell={cell} now={now} showDetail={showDetail} fortified={build?.fortified ?? false} />
+      {mine ? (
+        <p className="cell-panel__note">
+          A ward adds strength. It does not reset the clock — only your feet do that.
+        </p>
+      ) : null}
 
       {/* A named place says what it produces — "where mana comes from" is readable here,
           per source (BRDC-MANA-001); the HUD carries the total. */}
@@ -214,27 +266,6 @@ export function CellPanel({
             {place.kind === 'anchor' ? 'Anchor Stone' : `Temple · rank ${place.rank}`}
             <span className="es-numeric"> · Mana +{place.manaPerHour}/h</span>
           </p>
-          {place.kind === 'temple' && place.expansion < MAX_TEMPLE_EXPANSION ? (
-            <>
-              <RitualButton
-                className="cell-panel__expand"
-                disabled={!canExpand}
-                onClick={() => place.onExpand(cell.h3)}
-              >
-                Expand · {costLine(nextCost)}
-              </RitualButton>
-              {expandGate ? (
-                <p className="cell-panel__why" role="status">
-                  {expandGate}
-                </p>
-              ) : null}
-            </>
-          ) : null}
-          {place.refusal ? (
-            <p className="cell-panel__refusal" role="status">
-              {EXPAND_REFUSAL[place.refusal]}
-            </p>
-          ) : null}
         </div>
       ) : null}
 
@@ -259,73 +290,7 @@ export function CellPanel({
         </>
       ) : null}
 
-      {mine ? (
-        <>
-          <RitualButton className="cell-panel__ward" disabled={!canWard} onClick={() => onWard(cell.h3)}>
-            Ward · {WARD_COST.wood} timber
-          </RitualButton>
-          {wardGate ? (
-            <p className="cell-panel__why" role="status">
-              {wardGate}
-            </p>
-          ) : null}
-          {/* Warding holds ground without walking to it — its limit sits by the button. */}
-          <p className="cell-panel__note">
-            A ward adds strength. It does not reset the clock — only your feet do that.
-          </p>
-          {onReveal ? (
-            <RevealControl
-              h3={cell.h3}
-              revealed={revealed?.[cell.h3] !== undefined}
-              cell={cell}
-              onReveal={onReveal}
-            />
-          ) : null}
-          {place.kind === null ? (
-            <ConsecratePanel
-              cell={cell}
-              resources={resources}
-              dwellMs={place.dwellMs}
-              onConsecrate={place.onConsecrate}
-            />
-          ) : null}
-          {place.kind === 'temple' && research ? (
-            <TempleSchoolPanel
-              h3={cell.h3}
-              school={research.schools[cell.h3] ?? null}
-              research={research}
-              pool={resources}
-              wisdomPerHour={wisdomPerHour}
-            />
-          ) : null}
-          {me && build ? (
-            <BuildPanel
-              cell={cell}
-              me={me}
-              resources={resources}
-              researched={build.researched}
-              myBuildings={build.myBuildings}
-              onBuild={build.onBuild}
-              onDemolish={build.onDemolish}
-              onWiki={onWiki ? (id) => onWiki(`work:${id}`) : undefined}
-              refusal={build.refusal}
-            />
-          ) : null}
-        </>
-      ) : null}
-
-      {spell ? <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} /> : null}
-
-      {trade && mine ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
-      {anomaly?.current && mine ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
-      {city?.city ? (
-        <TradePost
-          city={city.city}
-          resources={resources}
-          refusal={city.refusal}
-          onTrade={city.onTrade}
-        />
-      ) : null}
+      {mine && isRevealed ? <RevealControl h3={cell.h3} cell={cell} /> : null}
       {city?.village ? <VillageNote city={city.village.city} steps={city.village.steps} /> : null}
 
       {questBoard ? (
@@ -343,12 +308,6 @@ export function CellPanel({
             <p className="cell-panel__note">Nothing under way.</p>
           )}
         </div>
-      ) : null}
-
-      {refusal ? (
-        <p className="cell-panel__refusal" role="status">
-          {REFUSAL[refusal]}
-        </p>
       ) : null}
     </GlassPanel>
   );

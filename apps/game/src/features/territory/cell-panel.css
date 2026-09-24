@@ -162,9 +162,22 @@
   font-size: var(--text-sm);
 }
 
-.cell-panel__ward {
+/* Every action on the hex, one row at the top (BRDC-DETAIL-003). Wraps at 360 px. */
+.cell-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cell-actions__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.cell-actions__btn {
   min-block-size: var(--touch-min);
-  margin-block-start: var(--space-1);
+  flex: 1 1 auto;
 }
 
 .cell-panel__note,

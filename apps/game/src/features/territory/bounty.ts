@@ -46,9 +46,6 @@ export function bountyLine(id: BountyId): string {
   return `${BOUNTY_NAME[id]} · +${b.perHour} ${RESOURCE_WORD[b.resource]} / h`;
 }
 
-/** What the card says on a hex nobody has looked at yet. */
-export const UNSEEN_BOUNTY = 'Reveal this ground to see what is on it.';
-
 /**
  * A Worldseed find with no icon of its own yet — `BRDC-RES-002` draws the other 28. One
  * shared placeholder rather than 28 invented glyphs this ticket has no art direction for.

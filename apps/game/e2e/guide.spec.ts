@@ -50,6 +50,7 @@ test('a build-menu row opens the building page (BRDC-WIKI-004)', async ({ page }
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 8_000 });
 
+  await card.getByRole('button', { name: 'Works', exact: true }).click();
   await card.getByRole('button', { name: 'Monument', exact: true }).click();
   const page2 = page.getByRole('region', { name: 'Monument' });
   await expect(page2).toBeVisible();
