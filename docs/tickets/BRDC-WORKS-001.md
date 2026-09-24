@@ -6,7 +6,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
 | **Status** | `draft` — speksi kirjoitettu 2026-09-24, ei aloitettu (testitauko) |
-| **Riippuvuudet** | `BRDC-WORKS-002` (puumoottori), `BRDC-WORKS-003` (sisältö), `BRDC-UI-001` (jaettu arkki, jos valmis) |
+| **Riippuvuudet** | `BRDC-WORKS-002` (puumoottori), `BRDC-WORKS-003` (sisältö), `BRDC-DETAIL-003` (toimintorivi), `BRDC-UI-001` (jaettu arkki, jos valmis) |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-pelin uusi design systeemi.pdf` — "Eldritch · Works Codex", 9 rakennussivua |
 
 ## 🔴 RED
@@ -29,6 +29,9 @@ lukee yhdellä silmäyksellä.
 
 1. **Yläpalkki:** `‹ WORKS` (takaisin) vasemmalla, `LEVEL n / 5` oikealla.
    Taso = opittujen tasojen (tier) määrä, ei solmujen määrä.
+1b. **Heksan toimintorivi** (`CellActions`, BRDC-DETAIL-003) heti yläpalkin alla: kaikki
+   tämän heksan omat toiminnot (Ward, Reveal, Demolish…) yhdessä rivissä. Rakennuksen
+   Research-CTA ei kuulu tähän, se pysyy alareunassa (kohta 12).
 2. **Kuva:** rakennuksen sprite (`buildingSprites.ts`) isona, rakennuksen oma
    sävy (`hue`, OKLCH) taustahehkuna. Eksplisiittinen `width`/`height` (§14 CLS).
 3. **Nimi** (Cinzel, `--text-h2`), **alaotsikko**: suomenkielinen nimi · rakentamissääntö

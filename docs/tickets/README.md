@@ -214,6 +214,7 @@ jako) → SEED-004 (HexSeed) → loput rinnakkain.
 | [BRDC-WORKS-001](BRDC-WORKS-001.md) | ⬜ Luonnos: rakennuksen oma sivu (Works Codex -PDF) | L | WORKS-002, WORKS-003 |
 | [BRDC-WORKS-002](BRDC-WORKS-002.md) | ⬜ Luonnos: rakennuksen tutkimuspuu — tyypitetty malli ja säännöt | L | — |
 | [BRDC-WORKS-003](BRDC-WORKS-003.md) | ⬜ Luonnos: yhdeksän rakennuksen sisältö, 57 solmua | M | WORKS-002 |
+| [BRDC-DETAIL-003](BRDC-DETAIL-003.md) | ⬜ Luonnos: heksan toiminnot yläreunaan, yhteen riviin | M | DETAIL-002 |
 | [BRDC-WONDER-002](BRDC-WONDER-002.md) | 🔶 Härmälän 9 ihmettä: perusta + sijoitus (5/9), vaikutukset auki | L | SEED-003, TERRAIN-005, LANDMARK-001 |
 | [BRDC-WONDER-003](BRDC-WONDER-003.md) | ⬜ Luonnos: ihmeen oma bonus maksaa vihdoin (yhteinen perusta) | S | WONDER-001, WONDER-002 |
 | [BRDC-WONDER-004](BRDC-WONDER-004.md) | ⬜ Luonnos: Thousand Masks Road | S | WONDER-003 |
