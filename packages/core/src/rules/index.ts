@@ -236,3 +236,21 @@ export {
 export { UNLOCK_IDS, UNLOCK_REWARD, nextUnlock, unlockedBy, walked } from './unlock.js';
 export type { Reach, UnlockId } from './unlock.js';
 export { localShare } from './share.js';
+export { WORKS_DEFS, WORKS_KINDS } from './works/defs/index.js';
+export {
+  WIRED,
+  activeEffects,
+  canResearch as canResearchWork,
+  cellsInRings,
+  isDormant,
+  isWired,
+  nodeById,
+  nodeCount,
+  nodeState,
+  reachRings,
+  researchNode,
+  worksLevel,
+} from './works/tree.js';
+export type { NodeState, WorksRefusal } from './works/tree.js';
+export { worksBonus, worksCapBonus } from './works/bonus.js';
+export type { BuildingDef, Effect, EffectKind, SpecialId, WorksKind, WorksNode, WorksTier } from './works/types.js';

@@ -60,6 +60,7 @@ import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
 import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
+import { worksApi, type WorksApi } from './worksStore.js';
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
@@ -209,9 +210,8 @@ export class MockRepository implements GameRepository {
 
   /* --- The Hearth ------------------------------------------------------- */
 
-  /** The founding effect fires twice (fresh `clock`, Strict Mode): `claimHearth` and
-   *  `assignCastle` are idempotent and the stash is *set*, not added, so the pouch stays
-   *  one building's worth, not two (BRDC-ECON-007). */
+  /** Fires twice (fresh `clock`, Strict Mode): `claimHearth`/`assignCastle` are idempotent
+   *  and the stash is *set*, not added — one building's worth, not two (BRDC-ECON-007). */
   async setHome(position: LatLng, now: number): Promise<H3Index> {
     const profile = await this.getProfile();
     const h3 = await claimHearth(this.store, profile, position, now);
@@ -277,9 +277,8 @@ export class MockRepository implements GameRepository {
   }
 
   /* --- Territory -------------------------------------------------------- */
-  /** Cells in view, aged to `now` (a render projection, never written back except a
-   *  release — a cell at zero strength is genuinely unowned). Imported ground (a Wager
-   *  or world.json) is added wherever it sits, not only in view (BRDC-WAGER-JSON-006). */
+  /** Cells in view, aged to `now` (a projection, written back only on a release). Imported
+   *  ground is added wherever it sits, not only in view (BRDC-WAGER-JSON-006). */
   async getCells(bbox: BBox, now: number): Promise<Cell[]> {
     const inView = await cellsInBBox(this.store, bbox);
     const seen = new Set(inView.map((c) => c.h3));
@@ -365,7 +364,8 @@ export class MockRepository implements GameRepository {
   setKingdomStory = (id: string, story: string): Promise<void> => setKingdomStory(this.store, id, story);
   setKingdomShared = (id: string, at: number): Promise<void> => setKingdomShared(this.store, id, at);
 
-  /* --- Growing the Hearth with food (BRDC-HEARTH-003) --------------------- */
+  /* --- Growing the Hearth with food (BRDC-HEARTH-003), building pages (WORKS-002) --- */
+  readonly works: WorksApi = worksApi(() => this.store, async () => (await this.getProfile()).id, (t) => this.getOwnedCells(t));
   hearthRing = (): Promise<number> => readHearthRing(this.store);
   growHearth = async (now: number): Promise<HearthGrowth> =>
     growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);

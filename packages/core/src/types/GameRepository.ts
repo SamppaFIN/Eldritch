@@ -66,6 +66,7 @@ import type { SecretSiteId } from '../data/questSites.js';
 import type { AchievementView } from '../data/achievementStore.js';
 import type { CipherView } from '../data/cipherStore.js';
 import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
+import type { WorksApi } from '../data/worksStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -381,19 +382,18 @@ export interface GameRepository {
   resetAll(): Promise<void>;
   /** Dev only: refill the pouch (BRDC-ECON-002). Shown behind `import.meta.env.DEV`. */
   debugGrant(now: number): Promise<void>;
-  /** Archives the current kingdom's figures, then wipes exactly as `resetAll` does — the
-   *  archive is the one thing that survives (BRDC-HALL-001). `era` is a free label for
-   *  when it stood, e.g. "Stone Age" (BRDC-HALL-003). */
+  /** Archives the kingdom's figures, then wipes as `resetAll` does (BRDC-HALL-001); `era`
+   *  is a free label for when it stood, e.g. "Stone Age" (BRDC-HALL-003). */
   retireKingdom(now: number, era?: string): Promise<HallOfFameEntry>;
-  /** Every kingdom retired on this device, oldest first. */
-  getHallOfFame(): Promise<HallOfFameEntry[]>;
+  getHallOfFame(): Promise<HallOfFameEntry[]>; // oldest first
   /** Attach a chronicle to one archived kingdom, once revealed (BRDC-HALL-002). */
   setKingdomStory(id: string, story: string): Promise<void>;
   /** The Hearth's ring: 1 as founded, out to `HEARTH_MAX_RING` (BRDC-HEARTH-003). */
   hearthRing(): Promise<number>;
   /** Pay food to take the next ring of free ground around the Hearth (BRDC-HEARTH-003). */
   growHearth(now: number): Promise<HearthGrowth>;
-  /** Mark an archived kingdom as shared to the Chronicles, after a successful publish
-   *  (BRDC-HALL-003). */
+  /** Mark an archived kingdom shared to the Chronicles (BRDC-HALL-003). */
   setKingdomShared(id: string, sharedAt: number): Promise<void>;
+  /** Building pages and their research trees (BRDC-WORKS-002). */
+  readonly works: WorksApi;
 }

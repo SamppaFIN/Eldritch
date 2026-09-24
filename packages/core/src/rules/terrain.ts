@@ -111,6 +111,10 @@ export const TRICKLE_PER_HOUR = 2;
  */
 export const BASE_STORAGE_CAP = 500;
 
+/** One ceiling for every resource, or one each — research raises some alone (BRDC-WORKS-002). */
+export type StorageCap = number | Readonly<Record<ResourceKind, number>>;
+export const capOf = (cap: StorageCap, k: ResourceKind): number => (typeof cap === 'number' ? cap : cap[k]);
+
 /** Milliseconds of no visit before a cell stops producing. Same clock as decay. */
 export const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
@@ -297,7 +301,7 @@ export function settleResources(
   state: ResourceState,
   owned: readonly Cell[],
   now: number,
-  cap: number = BASE_STORAGE_CAP,
+  cap: StorageCap = BASE_STORAGE_CAP,
   bonusPerHour: Partial<ResourcePool> = {},
   bonusPerDay: Partial<ResourcePool> = {},
   /** A dark-time multiplier on everything produced (BRDC-EVENT-001). 1 the rest of the year. */
@@ -337,13 +341,13 @@ export function settleResources(
     const hours = paidHourMs / SETTLE_MS;
     for (const k of RESOURCE_KINDS) {
       const raw = earned[k] + (bonusPerHour[k] ?? 0) * hours;
-      pool[k] = Math.min(cap, pool[k] + Math.floor(raw * factor));
+      pool[k] = Math.max(0, Math.min(capOf(cap, k), pool[k] + Math.floor(raw * factor)));
     }
   }
   if (paidDayMs > 0) {
     const days = paidDayMs / SETTLE_DAY_MS;
     for (const k of RESOURCE_KINDS) {
-      pool[k] = Math.min(cap, pool[k] + Math.floor((bonusPerDay[k] ?? 0) * days * factor));
+      pool[k] = Math.max(0, Math.min(capOf(cap, k), pool[k] + Math.floor((bonusPerDay[k] ?? 0) * days * factor)));
     }
   }
 

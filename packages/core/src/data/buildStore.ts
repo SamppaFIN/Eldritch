@@ -19,6 +19,7 @@ import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
+import { forgetTree } from './worksTrees.js';
 
 /**
  * The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — a mountain within one ring, or
@@ -130,6 +131,7 @@ export async function demolishOn(
   if (left.length > 0) bare.buildings = left;
   else delete bare.buildings;
   await store.set(K.cell(h3), bare);
+  await forgetTree(store, h3);
   await writeLogEntry(store, { at: now, kind: 'demolish', ref: removed });
   return { ok: true, cell: bare };
 }

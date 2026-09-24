@@ -71,4 +71,7 @@ export const K = {
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',
+  /** Each building's learned research, `Record<h3, nodeId[]>` — the tree belongs to the
+   *  cell, so it passes to whoever holds it next (BRDC-WORKS-002). */
+  worksTree: 'works-tree',
 } as const;
