@@ -78,6 +78,8 @@ export function useCameraFollow({
     }
     const key = fixKey(position);
     if (key === centredOn.current) return;
+    // Coming back from a tour or a hand-driven camera: centre exactly, however close.
+    const resync = centredOn.current === '';
     centredOn.current = key;
 
     const center: [number, number] = [position.lng, position.lat];
@@ -86,7 +88,7 @@ export function useCameraFollow({
       // a moveend, and every moveend was a viewport re-read and a map rebuild (BRDC-PERF-002).
       const here = map.project(map.getCenter());
       const there = map.project(center);
-      if (Math.hypot(here.x - there.x, here.y - there.y) < FOLLOW_DEADZONE_PX) return;
+      if (!resync && Math.hypot(here.x - there.x, here.y - there.y) < FOLLOW_DEADZONE_PX) return;
       map.easeTo({ center, duration: 900 });
       return;
     }
