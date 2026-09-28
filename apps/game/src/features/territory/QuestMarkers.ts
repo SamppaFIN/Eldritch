@@ -37,7 +37,8 @@ export function questSitesToGeoJson(ids: readonly string[]): FeatureCollection<P
         return {
           type: 'Feature',
           id,
-          properties: { label: QUEST_SITES[id].label.toUpperCase() },
+          // `key` survives as the tap's id through `promoteId` (BRDC-MAP-007).
+          properties: { key: id, label: QUEST_SITES[id].label.toUpperCase() },
           geometry: { type: 'Point', coordinates: [at.lng, at.lat] },
         };
       }),
@@ -47,7 +48,7 @@ export function questSitesToGeoJson(ids: readonly string[]): FeatureCollection<P
 export function ensureQuestLayers(map: MapLibreMap): void {
   if (map.getSource(QUEST_SOURCE)) return;
 
-  map.addSource(QUEST_SOURCE, { type: 'geojson', data: questSitesToGeoJson([]) });
+  map.addSource(QUEST_SOURCE, { type: 'geojson', data: questSitesToGeoJson([]), promoteId: 'key' });
 
   map.addLayer({
     id: QUEST_HALO_LAYER,

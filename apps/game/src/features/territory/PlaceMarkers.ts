@@ -52,6 +52,9 @@ function toGeoJson(places: readonly RevealedPlace[]): FeatureCollection<Point> {
       type: 'Feature',
       id: place.h3,
       properties: {
+        // The id a tap reads back: MapLibre turns a string feature id into a number, and
+        // `promoteId` hands this property back whole (BRDC-MAP-007).
+        key: place.h3,
         kind: place.kind,
         color: place.kind === 'anchor' ? ANCHOR : TEMPLE,
         label: place.kind === 'anchor' ? 'ANCHOR STONE' : `TEMPLE ${place.rank}`,
@@ -65,7 +68,7 @@ function toGeoJson(places: readonly RevealedPlace[]): FeatureCollection<Point> {
 export function ensurePlaceLayers(map: MapLibreMap): void {
   if (map.getSource(PLACE_SOURCE)) return;
 
-  map.addSource(PLACE_SOURCE, { type: 'geojson', data: toGeoJson([]) });
+  map.addSource(PLACE_SOURCE, { type: 'geojson', data: toGeoJson([]), promoteId: 'key' });
 
   // A soft glow, so a place reads as lit rather than pinned.
   map.addLayer({

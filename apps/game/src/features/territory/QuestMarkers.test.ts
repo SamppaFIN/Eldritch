@@ -41,3 +41,10 @@ describe('quest markers', () => {
     expect(feature?.geometry.coordinates).not.toEqual([drifted.lng, drifted.lat]);
   });
 });
+
+describe('quest marker ids (BRDC-MAP-007)', () => {
+  it('every marker carries its site id as a property a tap can read back', () => {
+    const fc = questSitesToGeoJson(['statue', 'lake']);
+    for (const f of fc.features) expect(f.properties?.['key']).toBe(f.id);
+  });
+});
