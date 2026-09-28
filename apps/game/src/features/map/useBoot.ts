@@ -82,7 +82,7 @@ export function useBoot(now: () => number, clock: unknown): Boot {
 
   // Write the accepted Hearth through once — a claimed cell and an Anchor Stone. Guarded
   // on `getHome` so a save that already has one is never overwritten; `setHome` itself is
-  // idempotent under a double call (the effect re-fires on every fresh `clock`).
+  // idempotent under a double call (Strict Mode fires the effect twice).
   useEffect(() => {
     if (!repository) return;
     const mark = load<{ position: { lat: number; lng: number } } | null>('hearth', null);

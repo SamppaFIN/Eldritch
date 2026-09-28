@@ -8,7 +8,7 @@
  * The offset is not a toy. Phase 2's acceptance gate ends with "wind the clock twenty
  * days and watch the ground be released", and without this that check costs twenty days.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { load, saveNow } from '@es3/core';
 
 const KEY = 'clock-offset';
@@ -60,11 +60,10 @@ export function useGameClock(): GameClock {
 
   const now = useCallback(() => Date.now() + offsetMs, [offsetMs]);
 
-  return {
-    now,
-    offsetDays: Math.round(offsetMs / 86_400_000),
-    travel,
-    reset,
-    shifted: offsetMs > 0,
-  };
+  // One object per clock change, not per render: anything that depends on `clock` would
+  // otherwise re-run on every render of the map (BRDC-PERF-002).
+  return useMemo(
+    () => ({ now, offsetDays: Math.round(offsetMs / 86_400_000), travel, reset, shifted: offsetMs > 0 }),
+    [now, offsetMs, travel, reset],
+  );
 }

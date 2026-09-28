@@ -118,7 +118,9 @@ export function useMap({ centre, zoom = ZOOM_WALKING }: UseMapOptions): UseMapRe
      */
     const onError = (e: ErrorEvent & { sourceId?: string }) => {
       const message = e.error?.message ?? '';
-      if (e.sourceId === 'openmaptiles' || /tile|glyph|sprite|source/i.test(message)) {
+      // Only the basemap's own trouble: a failing game source (a bad diff on `cells`) must
+      // not turn the streets off (BRDC-PERF-002).
+      if (e.sourceId === 'openmaptiles' || (e.sourceId === undefined && /tile|glyph|sprite/i.test(message))) {
         setBasemap('void');
         setReady(true);
         return;

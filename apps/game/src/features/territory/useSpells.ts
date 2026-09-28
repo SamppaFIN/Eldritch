@@ -9,6 +9,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import type { ActiveSpell, CastRefusal, GameRepository, H3Index, SpellId, TechId } from '@es3/core';
+import { keepIfSame } from '../map/keepIfSame.js';
 
 export interface SpellBinding {
   active: readonly ActiveSpell[];
@@ -38,7 +39,7 @@ export function useSpells(
     let alive = true;
     // Re-read as the trail grows so an expired spell drops from the panel on its own.
     void repository.getActiveSpells(now()).then((s) => {
-      if (alive) setActive(s);
+      if (alive) setActive((prev) => keepIfSame(prev, s));
     });
     return () => {
       alive = false;

@@ -27,6 +27,22 @@ export interface UseTerrainResolverOptions {
   onResolved: (updates: TerrainUpdate[]) => void;
 }
 
+/** Cells sampled per idle slice — one long synchronous loop was a start-up spike (BRDC-PERF-002). */
+export const RESOLVE_CHUNK = 40;
+
+const idle = (f: () => void): (() => void) => {
+  const w = globalThis as unknown as {
+    requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(f, { timeout: 1_000 });
+    return () => w.cancelIdleCallback?.(id);
+  }
+  const id = setTimeout(f, 50);
+  return () => clearTimeout(id);
+};
+
 export function useTerrainResolver({
   map,
   ready,
@@ -40,17 +56,27 @@ export function useTerrainResolver({
     const pending = cells.filter((c) => !c.terrain && !tried.current.has(c.h3));
     if (pending.length === 0) return;
 
-    const id = setTimeout(() => {
+    // Ask the basemap only — not the game's own hexes, icons and arcs drawn over it.
+    const basemap = (map.getStyle()?.layers ?? [])
+      .filter((l) => 'source' in l && l.source === 'openmaptiles')
+      .map((l) => l.id);
+    let cancel = () => {};
+    const slice = (from: number) => {
       const updates: TerrainUpdate[] = [];
-      for (const cell of pending) {
+      for (const cell of pending.slice(from, from + RESOLVE_CHUNK)) {
         tried.current.add(cell.h3);
         const { lat, lng } = cellCentre(cell.h3);
-        const kind = terrainFromTiles(map.queryRenderedFeatures(map.project([lng, lat])));
+        const kind = terrainFromTiles(map.queryRenderedFeatures(map.project([lng, lat]), { layers: basemap }));
         if (kind) updates.push({ h3: cell.h3, terrain: { kind, source: 'tiles' } });
       }
       if (updates.length > 0) onResolved(updates);
-    }, 400);
+      if (from + RESOLVE_CHUNK < pending.length) cancel = idle(() => slice(from + RESOLVE_CHUNK));
+    };
+    const start = setTimeout(() => (cancel = idle(() => slice(0))), 400);
 
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(start);
+      cancel();
+    };
   }, [map, ready, cells, onResolved]);
 }

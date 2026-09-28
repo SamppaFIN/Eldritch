@@ -6,7 +6,7 @@
  * waiting ten seconds for the next tick would make the game feel broken at the exact
  * moment it is supposed to feel good.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { bearing, cellAreaM2, cellBoundary, fortified, hoursUntilReleased, totalAreaM2 } from '@es3/core';
 import type { BBox, CaptureOutcome, Cell, GameRepository, RunId } from '@es3/core';
 
@@ -89,8 +89,11 @@ export function useTerritory({
   const refresh = useCallback(async () => {
     if (!repository || !bbox) return;
     const at = now();
-    setCells(await repository.getCells(bbox, at));
-    setOwned(await repository.getOwnedCells(at));
+    // Both at once, and state only when something changed: an unchanged re-read used to
+    // hand the map two fresh arrays and a full rebuild of every hex (BRDC-PERF-002).
+    const [nextCells, nextOwned] = await Promise.all([repository.getCells(bbox, at), repository.getOwnedCells(at)]);
+    setCells((prev) => (sameCells(prev, nextCells) ? prev : nextCells));
+    setOwned((prev) => (sameCells(prev, nextOwned) ? prev : nextOwned));
   }, [repository, bbox, now]);
 
   // `refresh` is read through a ref below so priming does not depend on its identity —
@@ -175,10 +178,11 @@ export function useTerritory({
       const sweep = await repository.runDecay(now());
       if (sweep.released.length > 0) {
         setReleased(sweep.released);
-        await refresh();
+        await refreshRef.current();
       }
     })();
-  }, [repository, trailVersion, refresh, now]);
+    // Through the ref: `refresh` changes with the viewport, and a pan is not a reason to sweep.
+  }, [repository, trailVersion, now]);
 
   /*
    * What is about to be lost.
@@ -188,35 +192,50 @@ export function useTerritory({
    * Saturday's route is fading goes for a walk. This is the single most useful number
    * in the HUD once someone holds any ground at all.
    */
-  const at = now();
-  let fadingInHours: number | null = null;
-  let fading = 0;
-
-  const ownedByH3 = new Map(owned.map((c) => [c.h3, c]));
-  for (const cell of owned) {
-    if (cell.h3 === home) continue; // the Hearth cannot fade (BRDC-HEARTH-002)
-    if (fortified(ownedByH3, cell.h3)) continue; // nor can ground under a Fortress (BRDC-BUILD-012)
-    const elapsed = (at - cell.lastVisitedAt) / 3_600_000;
-    const remaining = hoursUntilReleased(cell.strength) - elapsed;
-    if (remaining <= FADING_WARNING_HOURS) {
-      fading++;
-      if (fadingInHours === null || remaining < fadingInHours) fadingInHours = remaining;
+  // Worked out when the ground changes, not on every render of the map (BRDC-PERF-002).
+  const fade = useMemo(() => {
+    const at = now();
+    let fadingInHours: number | null = null;
+    let fading = 0;
+    const ownedByH3 = new Map(owned.map((c) => [c.h3, c]));
+    for (const cell of owned) {
+      if (cell.h3 === home) continue; // the Hearth cannot fade (BRDC-HEARTH-002)
+      if (fortified(ownedByH3, cell.h3)) continue; // nor can ground under a Fortress (BRDC-BUILD-012)
+      const elapsed = (at - cell.lastVisitedAt) / 3_600_000;
+      const remaining = hoursUntilReleased(cell.strength) - elapsed;
+      if (remaining <= FADING_WARNING_HOURS) {
+        fading++;
+        if (fadingInHours === null || remaining < fadingInHours) fadingInHours = remaining;
+      }
     }
-  }
+    return { fading, fadingInHours };
+  }, [owned, home, now]);
+  const ownedAreaM2 = useMemo(() => totalAreaM2(owned.map((c) => c.h3)), [owned]);
+  const strongest = useMemo(() => owned.reduce((max, c) => Math.max(max, c.strength), 0), [owned]);
+  const rivalBearing = useMemo(() => nearestRivalBearing(cells, owned, position), [cells, owned, position]);
 
   return {
     cells,
     owned,
-    rivalBearing: nearestRivalBearing(cells, owned, position),
-    ownedAreaM2: totalAreaM2(owned.map((c) => c.h3)),
-    strongest: owned.reduce((max, c) => Math.max(max, c.strength), 0),
+    rivalBearing,
+    ownedAreaM2,
+    strongest,
     lastClaim,
     recordClaim: setLastClaim,
-    fading,
-    fadingInHours,
+    fading: fade.fading,
+    fadingInHours: fade.fadingInHours,
     released,
     refresh,
   };
+}
+
+/** Same cells, same content — a re-read that changed nothing keeps the old array. */
+export function sameCells(a: readonly Cell[], b: readonly Cell[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i] && JSON.stringify(a[i]) !== JSON.stringify(b[i])) return false;
+  }
+  return true;
 }
 
 /** Which way the nearest ground somebody else holds actually lies. */

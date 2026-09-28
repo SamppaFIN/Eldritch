@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { GameRepository, H3Index, RouteRefusal, TradeRoute } from '@es3/core';
 import type { TradeBinding } from './useSelection.js';
+import { keepIfSame } from '../map/keepIfSame.js';
 
 type RouteFail = RouteRefusal | 'no-such-route';
 
@@ -31,7 +32,7 @@ export function useTradeRoutes(
     if (!repository) return;
     let alive = true;
     void repository.getTradeRoutes().then((r) => {
-      if (alive) setRoutes(r);
+      if (alive) setRoutes((prev) => keepIfSame(prev, r));
     });
     return () => {
       alive = false;

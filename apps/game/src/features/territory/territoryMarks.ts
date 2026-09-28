@@ -25,6 +25,9 @@ import {
 } from './layerIds.js';
 import { slotTranslate } from './cellMarks.js';
 
+/** A banner is legible from about zoom 15; below it, it was only work for the GPU. */
+export const FLAG_MINZOOM = 15;
+
 /**
  * The symbol layers — every mark that stands on a cell rather than filling it: the
  * ground tile, the terrain glyph fallback, a Work, a bounty, a landmark, your flag,
@@ -219,7 +222,8 @@ export function addMarkLayers(map: MapLibreMap): void {
     id: CELL_FLAG_LAYER,
     type: 'symbol',
     source: CELL_MARK_SOURCE,
-    minzoom: CELL_DETAIL_MINZOOM,
+    // Not from 13: every bare held hex drew a banner a few pixels high (BRDC-PERF-002).
+    minzoom: FLAG_MINZOOM,
     filter: ['!=', ['get', 'flag'], ''],
     layout: {
       'icon-image': ['concat', 'banner-', ['get', 'bannerId']],

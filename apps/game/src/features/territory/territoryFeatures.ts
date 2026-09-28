@@ -263,7 +263,9 @@ export function withFogOfWar(
   /** A running Scrying lifts the fog where it looks, and only while it runs. */
   scried: readonly Cell[] = [],
 ): Cell[] {
-  const byH3 = new Map(all.map((c) => [c.h3, c]));
+  // Owned first, so a held cell outside the viewport read never draws as bare ground and
+  // then flicks purple when the next refresh lands (BRDC-PERF-002).
+  const byH3 = new Map([...owned, ...all].map((c) => [c.h3, c]));
   const visible = new Set<string>();
   for (const cell of owned) {
     visible.add(cell.h3);

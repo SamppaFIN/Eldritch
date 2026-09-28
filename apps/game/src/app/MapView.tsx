@@ -36,6 +36,7 @@ import { EDITOR_AVAILABLE, useEditor } from '../features/editor/useEditor.js';
 import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
+import { useMinuteNow } from '../features/time/useMinuteNow.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING } from '../features/map/useMap.js';
 import { Hud } from '../features/hud/Hud.js';
 import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
@@ -52,6 +53,8 @@ import { SettingsMenu } from '../features/hud/SettingsMenu.js';
 import { useSettings } from '../features/hud/useSettings.js';
 import { useNation } from '../features/nation/useNation.js';
 import { useSharedWorld } from '../features/territory/useSharedWorld.js';
+import { keepIfSame } from '../features/map/keepIfSame.js';
+import { nextLoaded } from '../features/map/viewportHysteresis.js';
 import './mapview.css';
 
 export interface MapViewProps {
@@ -70,13 +73,13 @@ export function MapView({ onLeave }: MapViewProps) {
   const keepAlive = useKeepAlive();
 
   const clock = useGameClock();
+  const minuteNow = useMinuteNow(clock.now);
 
   // Only the opening camera position; live permission state is usePositionSource's job.
   const { centre, settled, permission } = useInitialPosition();
 
   const { repository, alerts, profile, setProfile, castle } = useBoot(clock.now, clock);
-  // Chosen once at the start of the save and never changed (BRDC-MODE-001) — gates
-  // every screen that belongs to the full sanctuary and not to walking-and-claiming.
+  // Chosen once per save (BRDC-MODE-001); gates every screen beyond walking-and-claiming.
   const isRoute = profile?.mode === 'route';
 
   const simulate = useSimulateKey();
@@ -93,14 +96,14 @@ export function MapView({ onLeave }: MapViewProps) {
   useEffect(() => {
     if (!repository || !point) return;
     void repository.seedAround(point, clock.now());
-  }, [repository, point, clock]);
+  }, [repository, point, clock.now]);
 
   const trail = useTrail({ repository, point, collecting: true });
 
   // Places re-read on a reveal, and once at start so a returning player's Anchor is there.
   useEffect(() => {
     if (!repository || !trail.ready) return;
-    void repository.getPlaces().then(setPlaces);
+    void repository.getPlaces().then((p) => setPlaces((q) => keepIfSame(q, p)));
   }, [repository, trail.ready, trail.revealed]);
 
   const territory = useTerritory({
@@ -123,10 +126,8 @@ export function MapView({ onLeave }: MapViewProps) {
     enabled: settings.shareWorld,
   });
 
-  // Stable primitives, not a fresh `clock` object each render (BRDC-ECON-003 field bug).
-  // `castle` is here because the Hearth founds *after* the repository exists (BRDC-ECON-008):
-  // the first read saw an empty pouch and nothing asked again, so the HUD and the build menu
-  // — which judges affordability from this same copy — both went stale for a minute.
+  // Stable primitives (BRDC-ECON-003). `castle`: the Hearth founds *after* the repository
+  // exists, and the first read saw an empty pouch that nothing re-asked (BRDC-ECON-008).
   const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length, castle];
   const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
   const [collected, setCollected] = useState<Collected | null>(null);
@@ -141,7 +142,7 @@ export function MapView({ onLeave }: MapViewProps) {
     () => onSettingsChange({ ...settings, shareWorld: true }),
   );
 
-  const onViewportChange = useCallback((next: BBox) => setBbox(next), []);
+  const onViewportChange = useCallback((next: BBox) => setBbox((prev) => nextLoaded(prev, next)), []);
   const onCellTerrain = useCellTerrain(repository, territory.refresh);
 
   // Selection, the panels it opens, the one action they offer. Lifted out of MapView.
@@ -224,12 +225,11 @@ export function MapView({ onLeave }: MapViewProps) {
         places={places}
         questSites={quest.questSites}
         castle={castle}
-        now={clock.now()}
+        now={minuteNow}
         awakening={awakening}
         initialZoom={openingZoom}
         buildingIcons={settings.buildingIcons}
-        // No nation identity to fly for a route-mode save — there is no Keep screen to
-        // set one from (BRDC-MODE-001).
+        // No nation identity for a route-mode save: no Keep screen sets one (BRDC-MODE-001).
         bannerId={isRoute ? null : nation.bannerId}
         revealed={discovery.revealed}
         onBasemapChange={setBasemap}

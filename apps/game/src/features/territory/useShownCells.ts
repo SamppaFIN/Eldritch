@@ -32,9 +32,12 @@ export interface UseShownCellsOptions {
 }
 
 export function useShownCells({ cells, owned, active, xp, now }: UseShownCellsOptions): Cell[] {
+  // The level, not the XP: every step's few XP used to hand the map a fresh array and a
+  // full rebuild, and only the level changes what a Scrying sees (BRDC-PERF-002).
+  const level = levelState(xp).level;
   return useMemo(
-    () => withFogOfWar(cells, owned, scriedCells(active, levelState(xp).level, now())),
+    () => withFogOfWar(cells, owned, scriedCells(active, level, now())),
     // `now` is a function identity, stable for the session; the real triggers are above it.
-    [cells, owned, active, xp, now],
+    [cells, owned, active, level, now],
   );
 }

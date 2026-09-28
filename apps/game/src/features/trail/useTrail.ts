@@ -16,6 +16,7 @@ import type {
   TrailPoint,
   WalkedEdge,
 } from '@es3/core';
+import { keepIfSame } from '../map/keepIfSame.js';
 
 export interface TrailState {
   runId: RunId | null;
@@ -151,7 +152,7 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
       unobservedMs: s.unobservedMs + result.unobservedMs,
       // Replaced, not appended: this is "what is news right now", and an empty batch
       // clearing it is what lets the reveal fire again for the next place.
-      revealed: result.revealed,
+      revealed: keepIfSame(s.revealed, result.revealed),
     }));
   }, [repository]);
 

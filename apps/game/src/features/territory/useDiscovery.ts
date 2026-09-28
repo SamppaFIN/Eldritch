@@ -19,6 +19,7 @@ import type {
   StepClaimOutcome,
   WonderId,
 } from '@es3/core';
+import { keepIfSame } from '../map/keepIfSame.js';
 
 export interface Discovery {
   h3: H3Index;
@@ -111,7 +112,7 @@ export function useDiscovery(
   }, [repository]);
 
   const refreshRevealed = useCallback(() => {
-    void repository?.getRevealed().then(setRevealed);
+    void repository?.getRevealed().then((r) => setRevealed((prev) => keepIfSame(prev, r)));
   }, [repository]);
   useEffect(refreshRevealed, [refreshRevealed]);
 

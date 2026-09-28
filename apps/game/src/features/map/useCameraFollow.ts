@@ -13,6 +13,9 @@ import type { LatLng } from '@es3/core';
 import { ZOOM_WALKING } from './useMap.js';
 import { flashStandingHex } from './StandingFlash.js';
 
+/** How far the player may drift from the centre, in screen pixels, before the camera follows. */
+export const FOLLOW_DEADZONE_PX = 32;
+
 const prefersReduced = (): boolean =>
   typeof window !== 'undefined' &&
   !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -79,6 +82,11 @@ export function useCameraFollow({
 
     const center: [number, number] = [position.lng, position.lat];
     if (arrived.current) {
+      // A fix a few steps from the centre does not move the camera: every easeTo ended in
+      // a moveend, and every moveend was a viewport re-read and a map rebuild (BRDC-PERF-002).
+      const here = map.project(map.getCenter());
+      const there = map.project(center);
+      if (Math.hypot(here.x - there.x, here.y - there.y) < FOLLOW_DEADZONE_PX) return;
       map.easeTo({ center, duration: 900 });
       return;
     }
