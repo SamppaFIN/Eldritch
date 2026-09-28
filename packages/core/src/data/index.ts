@@ -131,6 +131,7 @@ export { joinsWithCurrent, seasonDayKey, seasonStandingsOf } from './seasonStats
 export type { SeasonJoin, SeasonJoinView, SeasonStanding } from './seasonStats.js';
 export type { HearthGrowth } from './hearthGrowthStore.js';
 export type { WorksApi, WorksResearchOutcome, WorksView } from './worksStore.js';
+export { cellCache } from './cellCache.js';
 export { cityAtDoor, cityCells, doorCell, placeCityStates, tradeAt } from './cityStateStore.js';
 export type { TradeOutcome } from './cityStateStore.js';
 export {

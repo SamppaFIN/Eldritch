@@ -28,7 +28,7 @@
  * between two stops is wrong everywhere between them (at zoom 17 it put a slot 145 px out
  * on a hex whose real radius there is 87).
  */
-import { cellBoundary, cellCentre, fortified, neighboursOf } from '@es3/core';
+import { cellCentreLngLat, cellNeighbours, cellRing, fortified } from '@es3/core';
 import { cellProperties } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
@@ -116,16 +116,21 @@ export function cellMarksToGeoJson(
 ): FeatureCollection<Point, CellProperties> {
   // Built from the polygons so the dedupe and the neighbour counting happen once, in
   // one place. Indexing `cells` here would desync the moment that dedupe drops one.
-  const polygons = cellsToGeoJson(cells, me, now, home, revealed, places, myBanner);
+  return marksFromPolygons(cellsToGeoJson(cells, me, now, home, revealed, places, myBanner));
+}
+
+/** The points for a set of polygons already built — so a caller that has both builds once. */
+export function marksFromPolygons(
+  polygons: FeatureCollection<Polygon, CellProperties>,
+): FeatureCollection<Point, CellProperties> {
   return {
     type: 'FeatureCollection',
     features: polygons.features.map((f) => {
-      const centre = cellCentre(f.id as H3Index);
       return {
         type: 'Feature' as const,
         id: f.id,
         properties: f.properties,
-        geometry: { type: 'Point' as const, coordinates: [centre.lng, centre.lat] },
+        geometry: { type: 'Point' as const, coordinates: cellCentreLngLat(f.id as H3Index) as [number, number] },
       };
     }),
   };
@@ -151,7 +156,8 @@ export function cellToFeature(
     type: 'Feature',
     id: cell.h3,
     properties: cellProperties(cell, me, now, home, isBorder, revealed, placeHere, myBanner),
-    geometry: { type: 'Polygon', coordinates: [cellBoundary(cell.h3)] },
+    // A closed ring, computed once per hex for the session (BRDC-PERF-003).
+    geometry: { type: 'Polygon', coordinates: [cellRing(cell.h3) as [number, number][]] },
   };
 }
 
@@ -184,7 +190,7 @@ export function cellsToGeoJson(
   const ownedH3 = new Set(unique.filter((c) => c.ownerId === me).map((c) => c.h3));
   const byH3 = new Map(unique.map((c) => [c.h3, c]));
   const isBorder = (c: Cell): boolean =>
-    c.ownerId === me && neighboursOf(c.h3).some((n) => !ownedH3.has(n));
+    c.ownerId === me && cellNeighbours(c.h3).some((n) => !ownedH3.has(n));
   return {
     type: 'FeatureCollection',
     features: unique.map((cell) => {
@@ -194,7 +200,7 @@ export function cellsToGeoJson(
       // Counted here rather than in `cellProperties`, which sees one cell and cannot know
       // what else you hold. `ownedH3` is already built above for the border test.
       const neighbours =
-        cell.ownerId === me ? neighboursOf(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
+        cell.ownerId === me ? cellNeighbours(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
       // Ground under a Fortress does not decay, so the Void's stain has no business on it
       // (BRDC-BUILD-012). Decided here, because only this sees the neighbours.
       const blight = fortified(byH3, cell.h3) ? 0 : feature.properties.blight;

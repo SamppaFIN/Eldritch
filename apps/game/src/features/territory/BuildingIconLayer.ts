@@ -18,6 +18,7 @@ import { SPRITE_PX, rasteriseSprites, spriteId } from './buildingSprites.js';
 import { watchRemoval } from '../map/mapLife.js';
 import { BUILDING_ROLE } from './buildingGlyphs.js';
 import type { BuildingId } from '@es3/core';
+import { keyed, syncSource } from './territorySync.js';
 
 export const WORK_ICON_SOURCE = 'work-icons';
 export const WORK_PLINTH_LAYER = 'work-plinth';
@@ -57,7 +58,7 @@ export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): voi
     setBuildingIconsVisible(map, visible);
     return;
   }
-  map.addSource(WORK_ICON_SOURCE, { type: 'geojson', data: EMPTY });
+  map.addSource(WORK_ICON_SOURCE, { type: 'geojson', data: EMPTY, promoteId: 'h3' });
   /*
    * The plinth (Sigil §03).
    *
@@ -144,10 +145,7 @@ export function setBuildingIconData(
   cells: readonly Cell[],
   me: string | null,
 ): void {
-  const source = map.getSource(WORK_ICON_SOURCE);
-  (
-    source as { setData?: (d: FeatureCollection<Point, BuildingIconProps>) => void } | undefined
-  )?.setData?.(buildingIconFeatures(cells, me));
+  syncSource(map, WORK_ICON_SOURCE, keyed(buildingIconFeatures(cells, me)));
 }
 
 /**

@@ -5,7 +5,7 @@
  * directly. In Phase 3 this is where SupabaseRepository appears behind an environment
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
-import { MemoryStore, MockRepository, enableTerrainSurvey, enableWorldseed } from '@es3/core';
+import { MemoryStore, MockRepository, cellCache, enableTerrainSurvey, enableWorldseed } from '@es3/core';
 import type { BuildingId, GameMode, GameRepository, H3Index } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
@@ -39,7 +39,8 @@ export interface RepositoryHandle {
  */
 export async function createRepository(mode?: GameMode): Promise<RepositoryHandle> {
   const durable = await idbAvailable();
-  const store = durable ? new IdbStore() : new MemoryStore();
+  // Cells held in memory after the first read: no full scan per settle (BRDC-PERF-003).
+  const store = durable ? cellCache(new IdbStore()) : new MemoryStore();
 
   const repository = new MockRepository({ store });
   if (mode) await repository.setMode(mode);

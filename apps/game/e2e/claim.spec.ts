@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { enableLoopClosure, openMap as open } from './hearth.js';
+import { seedRealm } from './seedRealm.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -219,75 +220,30 @@ test('claimed ground survives a reload', async ({ page }) => {
 });
 
 test('five thousand hexagons do not stall the main thread', async ({ page }) => {
-  // CLAIM-006. An evening of walking is a few hundred cells; five thousand is a
-  // month of them, and the reason this is cheap is that it is one GeoJSON source
-  // rather than five thousand DOM nodes.
-  //
-  // BRDC-SCALE-001's audit of this test: it timed only the synchronous setData() call,
-  // never waited for the map to actually finish drawing (`idle`), and left every symbol
-  // layer empty — cells-icon, the most text-shaping-heavy of the eight `cells-*` layers,
-  // never rendered a single glyph. All three are fixed below: every cell carries an
-  // icon, and the clock runs until MapLibre says it is done, not until setData returns.
-  test.setTimeout(120_000);
+  // CLAIM-006, then BRDC-PERF-003: this used to hand 5 000 synthetic polygons straight to
+  // `setData`, which skipped every step that is actually slow — the store read, the
+  // GeoJSON builders, the marks, the arcs and React. Now it holds 5 000 real hexes
+  // (seeded, then reloaded) and times the app drawing them until MapLibre is idle.
+  test.setTimeout(240_000);
   await openMap(page);
+  const seeded = await seedRealm(page, { at: START, count: 5_000 });
+  await page.reload();
+  await expect
+    .poll(async () => Number.parseInt(await page.locator('.hud__value--warded').innerText(), 10) || 0, { timeout: 120_000 })
+    .toBeGreaterThanOrEqual(Math.floor(seeded * 0.9));
 
-  const elapsed = await page.evaluate(async () => {
-    const map = (
-      globalThis as unknown as {
-        __esMap?: {
-          getSource: (id: string) => { setData?: (d: unknown) => void };
-          getCenter: () => { lat: number; lng: number };
-          once: (event: 'idle', cb: () => void) => void;
-        };
-      }
-    ).__esMap;
-    if (!map) return -1;
-
-    const c = map.getCenter();
-    // A rough hex lattice; the exact geometry does not matter, the count does. Every
-    // property the eight cells-* layers read is present, so all of them draw — not
-    // just fill and line.
-    const features = Array.from({ length: 5000 }, (_, i) => {
-      const row = Math.floor(i / 70);
-      const col = i % 70;
-      const lat = c.lat + row * 0.00035;
-      const lng = c.lng + col * 0.0007 + (row % 2) * 0.00035;
-      const r = 0.00018;
-      const ring = Array.from({ length: 7 }, (_, k) => {
-        const a = (Math.PI / 3) * k;
-        return [lng + r * Math.cos(a) * 2, lat + r * Math.sin(a)];
-      });
-      return {
-        type: 'Feature',
-        properties: {
-          strength: 100,
-          mine: true,
-          contested: false,
-          color: '#4a1a5c',
-          icon: '♣',
-          iconColor: '#00d4ff',
-          building: '',
-          buildingColor: '',
-          flag: '',
-          anomaly: '',
-          blight: 0,
-        },
-        geometry: { type: 'Polygon', coordinates: [ring] },
-      };
-    });
-
-    const started = performance.now();
-    map.getSource('cells')?.setData?.({ type: 'FeatureCollection', features });
-    await new Promise<void>((resolve) => map.once('idle', resolve));
-    return performance.now() - started;
-  });
+  const elapsed = await page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        const map = (globalThis as unknown as { __esMap?: { once: (e: 'idle', cb: () => void) => void } }).__esMap;
+        const started = performance.now();
+        if (!map) resolve(-1);
+        else map.once('idle', () => resolve(performance.now() - started));
+      }),
+  );
 
   expect(elapsed).toBeGreaterThanOrEqual(0);
-  // Generous next to the old 400 ms: that budget only ever covered handing the data to
-  // the worker, not the symbol layout and paint that now run inside the window too — and
-  // this file's other tests are real GPS walks, so a parallel run shares the CPU with them.
   expect(elapsed).toBeLessThan(6_000);
-
   await expect(page.locator('.es-player__core')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Menu' })).toBeEnabled();
 });

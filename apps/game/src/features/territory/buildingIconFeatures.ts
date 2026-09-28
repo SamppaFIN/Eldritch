@@ -37,6 +37,8 @@ export function buildingIconFeatures(
     works.forEach((work, slot) => {
       features.push({
         type: 'Feature',
+        // One id per Work on the hex, for the diff sync (BRDC-PERF-003).
+        id: `${cell.h3}#${slot}`,
         geometry: { type: 'Point', coordinates: [lng, lat] },
         properties: {
           sprite: spriteId(work.id),

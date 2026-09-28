@@ -16,6 +16,7 @@ import { MAX_STRENGTH, fortified, hoursUntilReleased, isCityState, strengthArc }
 import type { Cell } from '@es3/core';
 import type { FeatureCollection, LineString } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
+import { keyed, syncSource } from './territorySync.js';
 
 export const ARC_SOURCE = 'cell-arcs';
 export const ARC_LAYER = 'cell-arcs-line';
@@ -65,6 +66,7 @@ export function ensureArcLayer(map: MapLibreMap, beneath?: string): void {
   map.addSource(ARC_SOURCE, {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
+    promoteId: 'h3',
   });
   map.addLayer(
     {
@@ -93,10 +95,6 @@ export function setArcData(
   me: string | null,
   now: number,
 ): void {
-  const source = map.getSource(ARC_SOURCE);
-  if (source && 'setData' in source) {
-    (source as { setData: (d: FeatureCollection<LineString>) => void }).setData(
-      arcsToGeoJson(cells, me, now),
-    );
-  }
+  // Geometry is compared too: an arc's length is the cell's strength (BRDC-PERF-003).
+  syncSource(map, ARC_SOURCE, keyed(arcsToGeoJson(cells, me, now)), true);
 }

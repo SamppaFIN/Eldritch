@@ -27,3 +27,4 @@ export {
 export { bankEdges, prunePaths, tierOf, trailEdges, walkedEdges } from './paths.js';
 export type { PathSegment, PathTier, WalkedEdge } from './paths.js';
 export * from './strengthArc.js';
+export { GEOMETRY_CACHE_MAX, cellCentreLngLat, cellNeighbours, cellRing, geometryWork } from './cellGeometry.js';

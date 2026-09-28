@@ -8,12 +8,10 @@
  * Every decision — who gets which colour, when a cell counts as contested — lives in
  * territoryFeatures.ts, where it can be tested without a browser.
  */
-import type { FeatureCollection, Point, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
 import { ALLY_STROKE, CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territoryFeatures.js';
-import { cellMarksToGeoJson, cellsToGeoJson } from './cellMarks.js';
-import type { CellProperties } from './territoryFeatures.js';
+import { cellMarksToGeoJson, cellsToGeoJson, marksFromPolygons } from './cellMarks.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
 import { addBannerSprites, addBountySprites, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
@@ -63,6 +61,7 @@ export {
   CELL_DETAIL_MINZOOM,
   NATION_MAXZOOM,
 } from './layerIds.js';
+import { keyed, syncSource } from './territorySync.js';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
 const SHARED_PATTERN = 'cells-shared-pattern';
@@ -80,10 +79,10 @@ const SHARED_PATTERN = 'cells-shared-pattern';
 export function ensureTerritoryLayers(map: MapLibreMap): void {
   if (map.getSource(CELL_SOURCE)) return;
 
-  map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null) });
+  map.addSource(CELL_SOURCE, { type: 'geojson', data: cellsToGeoJson([], null), promoteId: 'h3' });
   // The marks ride their own point source, so a hexagon wider than a tile cannot have
   // its glyphs placed twice (BRDC-SIGIL-006).
-  map.addSource(CELL_MARK_SOURCE, { type: 'geojson', data: cellMarksToGeoJson([], null) });
+  map.addSource(CELL_MARK_SOURCE, { type: 'geojson', data: cellMarksToGeoJson([], null), promoteId: 'h3' });
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
   addNationLayers(map);
   /*
@@ -268,14 +267,10 @@ export function setTerritoryData(
 ): void {
   const placeCells = new Set(places.map((p) => p.h3));
   const myBanner = bannerId ?? '';
-  const source = map.getSource(CELL_SOURCE);
-  (source as { setData?: (d: FeatureCollection<Polygon, CellProperties>) => void })?.setData?.(
-    cellsToGeoJson(cells, me, now, home, revealed, placeCells, myBanner),
-  );
-  const marks = map.getSource(CELL_MARK_SOURCE);
-  (marks as { setData?: (d: FeatureCollection<Point, CellProperties>) => void })?.setData?.(
-    cellMarksToGeoJson(cells, me, now, home, revealed, placeCells, myBanner),
-  );
+  // Built once; the points are the polygons' centres. Sent as diffs (BRDC-PERF-003).
+  const polygons = cellsToGeoJson(cells, me, now, home, revealed, placeCells, myBanner);
+  syncSource(map, CELL_SOURCE, keyed(polygons));
+  syncSource(map, CELL_MARK_SOURCE, keyed(marksFromPolygons(polygons)));
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
