@@ -53,7 +53,9 @@ async function dismissUnlockCard(page: Page): Promise<void> {
 async function panByHand(page: Page) {
   const vs = page.viewportSize();
   const sx = (vs?.width ?? 360) - 20;
-  const sy = (vs?.height ?? 640) / 2;
+  // A third of the way down, not half: the camera button sits on the right, a HUD's
+  // height up from the bottom, and once the pouch row shows it reaches mid-screen.
+  const sy = (vs?.height ?? 640) * 0.33;
   const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -109,7 +111,9 @@ async function waitForCameraStill(page: Page, timeoutMs = 25_000) {
   const started = Date.now();
   let last = await mapState(page);
   while (Date.now() - started < timeoutMs) {
-    await page.waitForTimeout(400);
+    // Longer than the tour's 650 ms dwell over each hex (useHearthTour): two reads inside
+    // one dwell look like rest, and the tour then carries on under the test.
+    await page.waitForTimeout(1_000);
     const next = await mapState(page);
     if (next.lng === last.lng && next.lat === last.lat && next.zoom === last.zoom) return;
     last = next;
@@ -325,8 +329,10 @@ test('the menu reaches Retreat, thumb-sized and focusable, and it asks first', a
   // Behind Advanced since the Sigil redesign (screen 01) — the pane above it fits a screen.
   await page.getByRole('button', { name: /^Advanced/ }).click();
   await page.getByRole('button', { name: 'Retreat from the map' }).click();
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await page.getByRole('dialog').getByRole('button', { name: 'Withdraw' }).click();
+  // By name: an onboarding card is a dialog too, and can be up at the same moment.
+  const confirm = page.getByRole('dialog', { name: 'Withdraw from the walk?' });
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole('button', { name: 'Withdraw' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
 
