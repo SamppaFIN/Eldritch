@@ -27,6 +27,7 @@ import { BugReport } from '../report/BugReport.js';
 import { PouchResetDialog } from './Sanctum.js';
 import type { Settings } from './settings.js';
 import './settings-menu.css';
+import { seedThousand } from '../dev/seedRealm.js';
 
 export interface SettingsMenuProps {
   settings: Settings;
@@ -364,6 +365,15 @@ export function SettingsMenu({
                     onClick={() => run(onDebugGrant)}
                   >
                     Debug · +200 every resource
+                  </button>
+                ) : null}
+                {import.meta.env.DEV ? (
+                  <button
+                    type="button"
+                    className="settings__action settings__action--dev"
+                    onClick={() => void seedThousand().then(() => location.reload())}
+                  >
+                    Debug · seed 1000 hexes
                   </button>
                 ) : null}
               </div>

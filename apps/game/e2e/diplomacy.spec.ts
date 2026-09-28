@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { cellAt, cellCentre } from '@es3/core/geo';
 import { openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
@@ -11,6 +12,8 @@ import type { Page } from '@playwright/test';
  */
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 const QUAY = { lat: 61.4753, lng: 23.7272 };
+// The quay hex's own centre, worked out here rather than by loading h3-js from a CDN in the page.
+const QUAY_CENTRE = cellCentre(cellAt(QUAY));
 
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
@@ -79,14 +82,12 @@ async function tapTheQuay(page: Page) {
     // Clear the previous miss at the *start*, so the last attempt leaves its card open.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
-    await page.evaluate(async (at: { lat: number; lng: number }) => {
-      const h3 = await import(/* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/h3-js@4.1.0/+esm');
-      const [lat, lng] = h3.cellToLatLng(h3.latLngToCell(at.lat, at.lng, 11)) as [number, number];
+    await page.evaluate(({ lat, lng }: { lat: number; lng: number }) => {
       const map = (globalThis as unknown as {
         __esMap?: { jumpTo: (o: { center: [number, number]; zoom: number }) => void };
       }).__esMap;
       map?.jumpTo({ center: [lng, lat], zoom: 18 });
-    }, QUAY);
+    }, QUAY_CENTRE);
 
     // The jump is synchronous but the frame it produces is not; let it land before tapping.
     await page.waitForTimeout(250);

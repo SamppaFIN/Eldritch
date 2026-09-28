@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { openMap as open } from './hearth.js';
+import { seedRealm } from './seedRealm.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -70,41 +71,6 @@ test('a row takes you to that hex, and ESC closes the ledger', async ({ page }) 
   await expect(again).toHaveCount(0);
 });
 
-/** Claim a wide ring and reveal all of it, so finds are certain rather than lucky. */
-async function seedRevealedRealm(page: Page, rings: number): Promise<number> {
-  return page.evaluate(async (r: number) => {
-    const h3 = await import(/* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/h3-js@4.1.0/+esm');
-    const home = h3.latLngToCell(61.47290805, 23.72588249, 11);
-    const cells: string[] = h3.gridDisk(home, r);
-    const now = Date.now();
-    const me = await new Promise<string>((res) => {
-      const req = indexedDB.open('es3');
-      req.onsuccess = () => {
-        const g = req.result.transaction('kv', 'readonly').objectStore('kv').get('profile');
-        g.onsuccess = () => res((g.result as { id: string }).id);
-      };
-    });
-    await new Promise<void>((res) => {
-      const req = indexedDB.open('es3');
-      req.onsuccess = () => {
-        const tx = req.result.transaction('kv', 'readwrite');
-        const st = tx.objectStore('kv');
-        const revealed: Record<string, number> = {};
-        for (const c of cells) {
-          st.put(
-            { h3: c, ownerId: me, strength: 300, lastVisitedAt: now, visitDays: [], ownedDays: 2 },
-            `cell:${h3.cellToParent(c, 6)}:${c}`,
-          );
-          revealed[c] = now;
-        }
-        st.put(revealed, 'revealed');
-        tx.oncomplete = () => res();
-      };
-    });
-    return cells.length;
-  }, rings);
-}
-
 test('revealed ground names what is on it (BRDC-BOUNTY-001)', async ({ page }) => {
   /*
    * Bounties are Civilization's bonus resources in this game's shape: one hex in eight has
@@ -115,7 +81,7 @@ test('revealed ground names what is on it (BRDC-BOUNTY-001)', async ({ page }) =
   await open(page, HERE);
   await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 25_000 });
 
-  const count = await seedRevealedRealm(page, 6);
+  const count = await seedRealm(page, { at: HERE, rings: 6, reveal: true });
   await page.reload();
   await page.getByRole('button', { name: 'Menu' }).click();
   await page.getByRole('button', { name: 'Your lands' }).click();
