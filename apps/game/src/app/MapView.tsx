@@ -104,7 +104,7 @@ export function MapView({ onLeave }: MapViewProps) {
   useEffect(() => {
     if (!repository || !trail.ready) return;
     void repository.getPlaces().then((p) => setPlaces((q) => keepIfSame(q, p)));
-  }, [repository, trail.ready, trail.revealed]);
+  }, [repository, trail.ready, trail.revealed, castle]); // castle: the Hearth may land after the first read
 
   const territory = useTerritory({
     repository,
