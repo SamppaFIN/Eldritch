@@ -64,6 +64,8 @@ export {
 import { keyed, syncSource } from './territorySync.js';
 import { ensureRealmOutline, removeRealmOutline, setRealmOutline } from './realmOutlineLayer.js';
 
+export const CELL_FADING_LAYER = 'cells-fading';
+
 /** The `map.addImage` id for the shared-ground checkerboard. */
 const SHARED_PATTERN = 'cells-shared-pattern';
 
@@ -253,6 +255,17 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     },
   });
 
+  // Your own ground inside the fading window: a second stroke in your own colour, which
+  // `useSpecialPulse` brings to life while it is on screen (BRDC-FX-003).
+  map.addLayer({
+    id: CELL_FADING_LAYER,
+    type: 'line',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['get', 'fading'],
+    paint: { 'line-color': OWN_STROKE, 'line-width': 2.5, 'line-opacity': 0.8 },
+  });
+
   addMarkLayers(map);
 }
 
@@ -279,6 +292,7 @@ export function setTerritoryData(
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
   removeRealmOutline(map);
+  if (map.getLayer(CELL_FADING_LAYER)) map.removeLayer(CELL_FADING_LAYER);
   for (const id of [
     CELL_ANOMALY_LAYER,
     CELL_FLAG_LAYER,

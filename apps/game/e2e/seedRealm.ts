@@ -18,6 +18,10 @@ export interface SeedOptions {
   count?: number;
   /** Also mark every cell revealed. */
   reveal?: boolean;
+  /** How long ago each cell was last walked — old enough and it is fading. */
+  visitedAgoMs?: number;
+  /** Strength to seed at. */
+  strength?: number;
 }
 
 /** The h3 cells a seed covers, nearest first. Exported so a spec can reason about them. */
@@ -34,8 +38,9 @@ export async function seedRealm(page: Page, opts: SeedOptions): Promise<number> 
   const cells = realmCells(opts);
   const rows = cells.map((h3) => [h3, `cell:${regionOf(h3)}:${h3}`] as const);
   await page.evaluate(
-    async ({ rows, reveal }: { rows: (readonly [string, string])[]; reveal: boolean }) => {
+    async ({ rows, reveal, ago, strength }: { rows: (readonly [string, string])[]; reveal: boolean; ago: number; strength: number }) => {
       const now = Date.now();
+      const walked = now - ago;
       const db = await new Promise<IDBDatabase>((res, rej) => {
         const req = indexedDB.open('es3');
         req.onsuccess = () => res(req.result);
@@ -51,7 +56,7 @@ export async function seedRealm(page: Page, opts: SeedOptions): Promise<number> 
         const revealed: Record<string, number> = {};
         for (const [h3, key] of rows) {
           st.put(
-            { h3, ownerId: me, strength: 300, claimedAt: now, lastVisitedAt: now, lastReinforcedAt: now, visitDays: [], ownedDays: 2 },
+            { h3, ownerId: me, strength, claimedAt: walked, lastVisitedAt: walked, lastReinforcedAt: walked, visitDays: [], ownedDays: 2 },
             key,
           );
           revealed[h3] = now;
@@ -62,7 +67,7 @@ export async function seedRealm(page: Page, opts: SeedOptions): Promise<number> 
       });
       db.close();
     },
-    { rows: rows as (readonly [string, string])[], reveal: opts.reveal ?? false },
+    { rows: rows as (readonly [string, string])[], reveal: opts.reveal ?? false, ago: opts.visitedAgoMs ?? 0, strength: opts.strength ?? 300 },
   );
   return cells.length;
 }

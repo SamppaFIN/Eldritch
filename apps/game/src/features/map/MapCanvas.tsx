@@ -52,6 +52,8 @@ import { useTerrainResolver } from './useTerrainResolver.js';
 import type { TerrainUpdate } from './useTerrainResolver.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
+import { useSpecialPulse } from './useSpecialPulse.js';
+import { useFocusFloat } from './useFocusFloat.js';
 
 /** Stable defaults, so an absent prop does not re-fire the terrain resolver each render. */
 const NO_CELLS: readonly Cell[] = [];
@@ -187,6 +189,8 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   }, [map, ready, initialCentre]);
 
   useMapLayers(map, ready);
+  useSpecialPulse(map, ready, cells);
+  useFocusFloat(map, ready, position, cells ?? null);
 
   useBuildingIcons(map, ready, cells, playerId, buildingIcons);
 

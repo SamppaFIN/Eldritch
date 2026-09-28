@@ -30,7 +30,7 @@ import './gift-reveal.css';
 function flyGains(map: MapLibreMap, cells: readonly H3Index[]): void {
   const container = map.getCanvasContainer();
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-  for (const h3 of cells) {
+  for (const h3 of onScreen(map, cells)) {
     const res = resourceOf(h3);
     if (!res) continue;
     const c = cellCentre(h3);
@@ -45,6 +45,21 @@ function flyGains(map: MapLibreMap, cells: readonly H3Index[]): void {
     el.addEventListener('animationend', () => el.remove());
     setTimeout(() => el.remove(), 2500);
   }
+}
+
+/** DOM effects per claimed cell, at most this many — a big loop was hundreds of nodes (BRDC-FX-003). */
+export const AWAKENING_DOM_MAX = 40;
+
+/** The cells a DOM effect is worth making for: in view, and no more than the cap. */
+export function onScreen(map: MapLibreMap, cells: readonly H3Index[]): H3Index[] {
+  const bounds = map.getBounds();
+  const out: H3Index[] = [];
+  for (const h3 of cells) {
+    if (out.length >= AWAKENING_DOM_MAX) break;
+    const c = cellCentre(h3);
+    if (bounds.contains([c.lng, c.lat])) out.push(h3);
+  }
+  return out;
 }
 
 /** Six points of a hexagon at `r`, rotated `rot` degrees, in the sigil's 100×100 box. */
@@ -94,8 +109,9 @@ export function useAwakening(
 
     // Each sigil is timed to its cell's place in the ripple — the delay `awakening.js`
     // already worked out for the gold layer.
+    const shown = new Set(onScreen(map, awakening.cells));
     const feats = awakeningFeatures(awakening.cells);
-    const timers = feats.features.map((f) => {
+    const timers = feats.features.filter((f) => shown.has(f.id as H3Index)).map((f) => {
       const wait = reduced ? 0 : Math.round(((f.properties?.delay as number) ?? 0) * AWAKENING_MS);
       return window.setTimeout(() => spawnSigil(map, f.id as H3Index, reduced), wait);
     });

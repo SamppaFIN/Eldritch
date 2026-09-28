@@ -6,8 +6,8 @@
 | **Vaihe** | Läpileikkaava — uusi grafiikka |
 | **Effort** | M |
 | **Riippuvuudet** | BRDC-ART-006, BRDC-PERF-003 (`feature-state` vaatii id:t) |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `[~]` — toteutettu ja todennettu 2026-09-29; kellunta vain jalkojen alla olevalle solulle, uusi grafiikka odottaa ART-006:ta |
+| **Valmius** | 85 % |
 | **Lähde** | Infinite 2026-09-28: animaatiot *"vain erikoissoluille"* |
 
 ## 🔴 RED
@@ -27,22 +27,26 @@ Sykkeen pääkäyttö on **rapautuminen**.
 
 ## 🟢 GREEN
 
-- [ ] Yksi rAF-silmukka, noin 10 fps, kutsuu `setPaintProperty(…'line-opacity')`
-      suodatetuille kiistelty- ja rapautumisikkunatasoille. Mallina `useAwakening.ts:109-118`
-      ja `StandingFlash.ts:81-88`
-- [ ] Silmukka käy vain, kun tällaisia soluja on näkyvissä, ja pysähtyy kun `document.hidden`,
-      `prefers-reduced-motion` tai Daylight-tila
-- [ ] Fokussolun (valittu tai jalkojen alla) rakennus kelluu yhtenä DOM-`Marker`ina:
-      transform-animaatio, leivottu kuva. Symbolitasolta sama rakennus piilotetaan
-      `feature-state`lla, ei `setFilter`illä
-- [ ] Muut rakennukset ovat staattisia. Kartalla ei ole solukohtaisia CSS- tai SVG-animaatioita
-- [ ] `useAwakening`in DOM-solmut rajattu noin 40:een viewportissa
-- [ ] E2e: kun näkyvissä ei ole erikoissoluja, kartta ei piirrä jatkuvasti uudelleen
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` vihreä, `pnpm e2e` vihreä
-
-## Todennus
-
-_Kirjataan toteutuksen jälkeen._
+- [x] Yksi silmukka (`features/map/useSpecialPulse.ts`), noin 10 fps, liikuttaa
+      `line-opacity`a kahdella tasolla: kiistelty (`cells-contested`, katkoviiva) ja uusi
+      `cells-fading` (oma violetti viiva solulle, joka on HUD:n 48 tunnin rapautumisikkunassa;
+      sama sääntö kuin HUD:n "fading", Hearth ja Fortressin suoja pois). Käyrä 0,3–0,9,
+      jakso 1,6 s (`pulseOpacity`, testattu)
+- [x] Silmukka käy vain, kun `queryRenderedFeatures` löytää näiltä tasoilta jotain ruudulta
+      (`moveend`, `idle`, solujen muutos). Se pysähtyy ja palauttaa lepo-opasiteetin, kun
+      `document.hidden`, `prefers-reduced-motion` tai `[data-daylight]`
+- [~] Kellunta: yksi DOM-`Marker` (`features/map/useFocusFloat.ts`), rakennuksen oma sprite,
+      pelkkä transform-animaatio (5 s, reduced motion → ei animaatiota). Symbolitasolta
+      sama rakennus piilotetaan `feature-state`lla (`icon-opacity`). **Vain jalkojen alla
+      oleva solu** — valittu solu ei ole `MapCanvas`in tiedossa ilman `MapView`n muutosta
+      (399 riviä). Kuva on nykyinen sprite, kunnes ART-006 tuo uudet
+- [x] Muut rakennukset ovat staattisia; kartalla ei ole solukohtaisia animaatioita
+- [x] `useAwakening`in DOM-efektit (lentävät "+10" ja sigilit) rajattu 40:een, vain
+      näkyvissä oleville soluille (`AWAKENING_DOM_MAX`)
+- [x] E2e `fx-pulse.spec.ts` (molemmat projektit): tavallisella maalla alle 5 `render`iä
+      3 s:ssa; rapautuvalla maalla yli 10; reduced motion → alle 5
+- [x] `pnpm test` (1 816) · `typecheck` · `lint:lines`; `map.spec` 26/26, `sigil:31` punainen
+      jo ennestään
 
 ## Ei tässä
 

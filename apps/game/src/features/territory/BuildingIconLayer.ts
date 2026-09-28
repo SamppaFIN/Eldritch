@@ -136,7 +136,8 @@ export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): voi
     },
     paint: {
       // A rival's Work is dimmed, not recoloured — the sprite already carries its role.
-      'icon-opacity': ['case', ['get', 'mine'], 1, 0.7],
+      // Hidden where `useFocusFloat` draws the same building floating (BRDC-FX-003).
+      'icon-opacity': ['case', ['boolean', ['feature-state', 'focus'], false], 0, ['get', 'mine'], 1, 0.7],
     },
   });
 }

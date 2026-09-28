@@ -28,13 +28,14 @@
  * between two stops is wrong everywhere between them (at zoom 17 it put a slot 145 px out
  * on a hex whose real radius there is 87).
  */
-import { cellCentreLngLat, cellNeighbours, cellRing, fortified } from '@es3/core';
+import { cellCentreLngLat, cellNeighbours, cellRing, fortified, hoursUntilReleased } from '@es3/core';
 import { cellProperties } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
 import type { Feature, FeatureCollection, Point, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { CELL_NEIGHBOUR_DISC_LAYER } from './layerIds.js';
+import { FADING_WARNING_HOURS } from './useTerritory.js';
 
 /**
  * Where a mark stands, as a fraction of the hex's radius.
@@ -203,8 +204,13 @@ export function cellsToGeoJson(
         cell.ownerId === me ? cellNeighbours(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
       // Ground under a Fortress does not decay, so the Void's stain has no business on it
       // (BRDC-BUILD-012). Decided here, because only this sees the neighbours.
-      const blight = fortified(byH3, cell.h3) ? 0 : feature.properties.blight;
-      return { ...feature, properties: { ...feature.properties, neighbours, blight } };
+      const sheltered = fortified(byH3, cell.h3);
+      const blight = sheltered ? 0 : feature.properties.blight;
+      // The HUD's own fading rule, so the pulse and the warning count the same cells.
+      const fading =
+        cell.ownerId === me && cell.h3 !== home && !sheltered &&
+        hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000 <= FADING_WARNING_HOURS;
+      return { ...feature, properties: { ...feature.properties, neighbours, blight, fading } };
     }),
   };
 }

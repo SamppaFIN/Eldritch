@@ -124,6 +124,8 @@ export interface CellProperties {
   bountyColor: string;
   /** Blight, 0..1 (BRDC-BLIGHT-001) — how far the Void has crept in. Rendering only. */
   blight: number;
+  /** Yours and within the HUD's fading window of release — it pulses (BRDC-FX-003). */
+  fading: boolean;
   /** Your flag on ground you hold that carries no building (BRDC-BANNER-001), else `''`. */
   flag: string;
   /** Which banner the flag draws (BRDC-HEX-003) — `''` alongside an empty `flag`. Yours
@@ -384,6 +386,7 @@ export function cellProperties(
     bounty: mineRevealed ? (bountyOn(cell)?.id ?? '') : '',
     bountyColor: bountyInk(mineRevealed ? bountyOn(cell) : null),
     blight: Math.min(1, blightLevel(cell, now, home) * (isBorder ? BLIGHT_EDGE_FACTOR : 1)),
+    fading: false, // decided in `cellsToGeoJson`, which knows what a Fortress shelters
     // Your flag on ground you hold — but not where a building already carries the mark.
     // Nor where a Temple or the Anchor stands: a place is the hex's structure, and a
     // banner in the same centre slot is the collision the slot table exists to prevent.

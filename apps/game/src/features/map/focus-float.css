@@ -1,0 +1,22 @@
+/* The one floating building (BRDC-FX-003): transform only, so it never repaints the map. */
+.focus-float {
+  pointer-events: none;
+  animation: focus-float-bob 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes focus-float-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-float {
+    animation: none;
+  }
+}
