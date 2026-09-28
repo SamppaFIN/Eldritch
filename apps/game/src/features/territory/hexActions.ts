@@ -5,7 +5,7 @@
  */
 
 /** Pressing does it at once. */
-export type PressId = 'quest' | 'reveal' | 'ward' | 'consecrate' | 'expand';
+export type PressId = 'quest' | 'reveal' | 'ward' | 'page' | 'consecrate' | 'expand';
 /** Pressing opens its own section under the row — it needs a choice first. */
 export type SectionId = 'works' | 'school' | 'rites' | 'trade' | 'city' | 'anomaly';
 export type ActionId = PressId | SectionId;
@@ -32,6 +32,7 @@ export const ACTION_ORDER: readonly ActionId[] = [
   'quest',
   'reveal',
   'ward',
+  'page',
   'works',
   'consecrate',
   'expand',
@@ -42,7 +43,7 @@ export const ACTION_ORDER: readonly ActionId[] = [
   'anomaly',
 ];
 
-const PRESS: ReadonlySet<ActionId> = new Set<ActionId>(['quest', 'reveal', 'ward', 'consecrate', 'expand']);
+const PRESS: ReadonlySet<ActionId> = new Set<ActionId>(['quest', 'reveal', 'ward', 'page', 'consecrate', 'expand']);
 
 export function cellActions(offer: CellOffer): CellAction[] {
   const out: CellAction[] = [];

@@ -11,7 +11,11 @@ import {
   shortOf,
   revealProgress,
 } from '@es3/core';
-import type { Cell, PlayerId, ResourcePool, WardRefusal } from '@es3/core';
+import { WORKS_DEFS, terrainForCell } from '@es3/core';
+import type { Cell, GameRepository, PlayerId, ResourcePool, WardRefusal } from '@es3/core';
+import { WorksPage } from '../works/WorksPage.js';
+import { useWorksPage } from '../works/useWorksPage.js';
+import { GROUND_NAME } from './names.js';
 import { useEffect, useRef, useState } from 'react';
 import { GlassPanel } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
@@ -82,6 +86,9 @@ export interface CellPanelProps {
   /** Show a rival cell's full detail — strength, decay, where it was seen from
    *  (BRDC-WAGER-JSON-007). Off leaves it as "held by another" and the red ring. */
   revealRivals?: boolean;
+  /** For the building page and its research (BRDC-WORKS-001). */
+  repository?: GameRepository | null;
+  onPouch?: (pool: ResourcePool) => void;
   onClose: () => void;
 }
 
@@ -125,6 +132,8 @@ export function CellPanel({
   wisdomPerHour = 0,
   revealRivals = true,
   onWiki,
+  repository = null,
+  onPouch,
   onClose,
 }: CellPanelProps) {
   // Focus follows the panel when it opens — not a trap (the player is walking), but a
@@ -136,7 +145,9 @@ export function CellPanel({
   }, [h3]);
   // Above the early return: hooks cannot be conditional, and `h3` already carries whether
   // there is a card open at all.
-  useEscape(h3 !== null, onClose);
+  const works = useWorksPage(repository, cell, now, onPouch);
+  // The page is a dialog of its own: ESC there closes the page, not the card beneath it.
+  useEscape(h3 !== null && !works.open, onClose);
   const [open, setOpen] = useState<ActionId | null>(null);
   useEffect(() => setOpen(null), [h3]);
 
@@ -167,6 +178,7 @@ export function CellPanel({
     wardGate,
     quest: quest ?? null,
     reveal: mine && Boolean(onReveal) && !isRevealed,
+    page: works.view ? WORKS_DEFS[works.view.kind].name : null,
     school: mine && place.kind === 'temple' && Boolean(research),
     works: mine && Boolean(me && build),
     rites: Boolean(spell),
@@ -183,6 +195,7 @@ export function CellPanel({
     else if (id === 'ward') onWard(cell.h3);
     else if (id === 'consecrate') place.onConsecrate(cell.h3);
     else if (id === 'expand') place.onExpand(cell.h3);
+    else if (id === 'page') works.setOpen(true);
     else setOpen((o) => (o === id ? null : id));
   };
 
@@ -199,6 +212,19 @@ export function CellPanel({
       {/* Every action this hex offers, in one row at the top — nothing to scroll for with
           one thumb while walking (BRDC-DETAIL-003). */}
       <CellActions actions={cellActions(offer)} open={open} onPress={press} status={status} />
+      {works.view ? (
+        <WorksPage
+          def={WORKS_DEFS[works.view.kind]}
+          page={works}
+          cell={cell}
+          mine={mine}
+          owner={mine ? 'Yours' : cell.ownerId ? 'Held by another' : 'Unclaimed'}
+          ground={GROUND_NAME[terrainForCell(cell).kind]}
+          pool={resources}
+          placeMana={place.kind ? place.manaPerHour : 0}
+          actions={<CellActions actions={cellActions(offer).filter((a) => !a.opens && a.id !== 'page')} open={null} onPress={press} />}
+        />
+      ) : null}
 
       {open === 'works' && me && build ? (
         <BuildPanel

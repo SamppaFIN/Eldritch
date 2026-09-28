@@ -5,7 +5,7 @@
 | **Alue** | `apps/game/src/features/works/` (uusi), `packages/ui/src/styles/tokens.css`, `CellPanel` (ovi), `KeepBuildingsPanel` (ovi) |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
-| **Status** | `draft` — speksi kirjoitettu 2026-09-24, ei aloitettu (testitauko) |
+| **Status** | `[~]` osittain valmis 2026-09-28 (v0.6.63) — sivu, puu ja tutkimus ajettu ja todennettu; kaksi ovea ja rivaalin opitut solmut siirtyivät |
 | **Riippuvuudet** | `BRDC-WORKS-002` (puumoottori), `BRDC-WORKS-003` (sisältö), `BRDC-DETAIL-003` (toimintorivi), `BRDC-UI-001` (jaettu arkki, jos valmis) |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-pelin uusi design systeemi.pdf` — "Eldritch · Works Codex", 9 rakennussivua |
 
@@ -77,32 +77,39 @@ Väri ei koskaan kanna tilaa yksin (§14): jokaisella tilalla on myös merkki ja
 
 ## 🟢 GREEN
 
-- [ ] Sivu avautuu kolmesta paikasta: `CellPanel` (oma tai rivaalin solu, jolla on
-      rakennus), `KeepBuildingsPanel`in rivi ja kartan rakennusikoni. Sama komponentti
-      kaikille, ESC sulkee, fokus palaa avaajaan (§14)
-- [ ] Yläpuoli kohdat 1–8 renderöityvät `BuildingDef`istä (WORKS-002), eikä yhtään
-      rakennuskohtaista haaraa JSX:ssä. Uusi rakennus = uusi data, ei uusi komponentti
-- [ ] Ulottuvuuskaavio piirtää `rings` yhtenäisenä ja `maxRings - rings` katkoviivana;
-      testi `reachRings.test.ts` (renkaat → solumäärä: 1 → 6, 2 → 18, 3 → 36)
-- [ ] Puu: viisi tasoa, valintatasot kehystettynä, tilat laskettu
-      `nodeState(def, learned)`-funktiolla (WORKS-002), ei komponentissa
-- [ ] Vaikutuslauseen korostettu osa tulee tyypitetystä `Effect`istä (WORKS-002),
-      ympäröivä lause on copyä. Väri seuraa efektin resurssia automaattisesti
-- [ ] Solmun napautus valitsee sen CTA:han. CTA on disabloitu ja kertoo syyn sanoin,
-      kun rahat eivät riitä ("Short 20 stone") — sama kuvio kuin Ward-napissa
-- [ ] **Rivaalin rakennus on vain luku, ei piilotettu:** koko puu ja rivaalin opitut solmut
-      näkyvät, ainoa ero on CTA. Omistajasiru `HELD BY …`, lukulaatta `YOUR ATTACK`
-- [ ] Lore voidaan piilottaa (asetus tai kehittäjäkytkin). Sivu on luettava ilman sitä,
-      ja e2e tarkistaa sen
-- [ ] 360 px ensin: ei vaakavieritystä 200 % zoomilla, CTA ≥ 44 px, peukalolla
-      tavoitettava (§14, §19)
-- [ ] Rivibudjetti: sivu jaetaan `WorksPage` · `WorksHeader` · `WorksReach` ·
-      `WorksTree` · `WorksNode`, jokainen alle 400 rivin. CSS menee `tokens.css`iin
-      (`.es-works*`), ei uutta CSS-tiedostoa, jos UI-001:n linja on silloin voimassa
-- [ ] e2e `works.spec.ts`: avaa oma Farmstead → näkyy `LEVEL`, puu, AVAILABLE-solmu;
-      tutki solmu → tila `✓`, taso nousee, pussi pienenee; avaa rivaalin rakennus →
-      ei tutkimusnappia
-- [ ] Portti: `pnpm test && pnpm typecheck && pnpm lint:lines && pnpm build`
+- [~] Sivu avautuu kortin toimintorivistä ("Open The Keep", "Open Farmstead"…), kaikille
+      yhdeksälle. Kartan rakennusikonin napautus valitsee solun, joten sivu on yhden napautuksen
+      päässä. **`KeepBuildingsPanel`in rivi ei vielä avaa sivua (siirtyi).** Sivu on native
+      `<dialog>` (`Modal`): ESC sulkee sivun muttei korttia, fokus palaa avaajaan (e2e)
+- [x] Yläpuoli renderöityy `BuildingDef`istä ilman rakennuskohtaisia haaroja JSX:ssä
+      (`features/works/WorksPage.tsx`)
+- [x] Ulottuvuuskaavio: `rings` yhtenäisenä, loput katkoviivana; nukkuvalla renkaalla
+      "not yet awake". Solumäärät `cellsInRings` (testi `works/tree.test.ts`: 0, 6, 18, 36)
+- [x] Puu: viisi tasoa, valintataso kehystettynä ("Choose one · the other closes", "or"),
+      tilat `nodeState`ista (`WorksTree.tsx`)
+- [x] Korostettu osa (`hl`) tulee datasta, väri efektin resurssista (`effectResource`, testi)
+- [x] Solmun napautus valitsee sen CTA:han; ensimmäinen opittavissa oleva on valmiiksi
+      valittu. Puute sanotaan sanoin ("Short 20 stone.", `shortLine`, testi)
+- [~] Rivaalin rakennus: vain luku, ei tutkimusnappia, CTA sanoo "Held by another. Step onto
+      it to take it" (P2 ratkaistu CLAIM-017:n mukaan). **Rivaalin opitut solmut eivät näy**,
+      koska `world.json` ei kanna puuta vielä (WORKS-002)
+- [x] Lore piilotettavissa sivun "Lore"-kytkimestä (muistetaan `localStorage`ssa, try/catch);
+      e2e todentaa, että sääntö näkyy ilman lorea
+- [x] 360 px ensin: `works.spec.ts` ajettu mobile-360:ssa ja desktopissa
+- [x] Rivibudjetti: `WorksPage` 174 · `WorksTree` 91 · `WorksReach` 40 · `worksCopy` 69 ·
+      `useWorksPage` 61. CSS on `works.css` (UI-001:n yhteinen arkki ei ole vielä olemassa)
+- [x] e2e `works.spec.ts`: Keep avautuu kortista → Level 0/5, puu, "◆ Available" ja "○ Not
+      yet awake" → Research · Warded Walls → "✓ Learned", Level 1/5 → lore pois, sääntö
+      jää → ESC sulkee sivun, kortti jää. Keep valittiin Farmsteadin sijaan, koska sen voi
+      tutkia aloituskivillä ilman rakentamista
+- [x] Portti: `pnpm test`, `pnpm typecheck`, `pnpm lint:lines`, `pnpm build`; e2e
+      `works` + `cell-actions` + `opening` 20/20 (yksi worker)
+
+**Löydös matkalla:** pussin laskenta luki puut omalla IndexedDB-haullaan, ja mobiilin
+aloituspussi alkoi myöhästyä (`opening.spec.ts:22` 2/3 punaisena, vertailukopiossa 3/3
+vihreänä). Korjaus: `perHourBonus` lukee nyt kaikki kahdeksan avaintaan yhdellä
+`getMany`-kutsulla seitsemän erillisen sijaan. Pussi näkyy nyt 6,5–8,9 sekunnissa, kun
+vertailukopiossa aika oli 8–9 s.
 
 ## Päätös Infiniteltä
 

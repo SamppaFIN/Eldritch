@@ -34,14 +34,27 @@ export function kindAtWith(home: H3Index | null, temples: ReadonlySet<H3Index>):
   };
 }
 
-export async function worksContext(store: KeyValueStore): Promise<{ trees: WorksTrees; kindAt: KindAt }> {
-  const trees = await readTrees(store);
-  const home = (await store.get<H3Index>(K.home)) ?? null;
-  const dwell = (await store.get<DwellMap>(K.dwell)) ?? {};
+export interface WorksContext {
+  trees: WorksTrees;
+  kindAt: KindAt;
+}
+
+/** Which page each cell is, from values the caller has already read. */
+export function worksContextFrom(
+  trees: WorksTrees | undefined,
+  home: H3Index | null,
+  dwell: DwellMap,
+): WorksContext {
   const temples = new Set(
     placesWithHome(dwell, home)
       .filter((p) => p.kind === 'temple')
       .map((p) => p.h3),
   );
-  return { trees, kindAt: kindAtWith(home, temples) };
+  return { trees: trees ?? {}, kindAt: kindAtWith(home, temples) };
+}
+
+/** One read for all three keys: each `get` is a transaction of its own. */
+export async function worksContext(store: KeyValueStore): Promise<WorksContext> {
+  const [trees, home, dwell] = await store.getMany<unknown>([K.worksTree, K.home, K.dwell]);
+  return worksContextFrom(trees as WorksTrees | undefined, (home as H3Index | undefined) ?? null, (dwell as DwellMap | undefined) ?? {});
 }

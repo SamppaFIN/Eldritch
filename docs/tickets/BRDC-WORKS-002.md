@@ -5,7 +5,7 @@
 | **Alue** | `packages/core/src/rules/worksTree.ts` (uusi), `rules/worksEffects.ts` (uusi), `data/worksStore.ts` (uusi), `types/GameRepository.ts`, `data/MockRepository.ts`, `data/world.ts` (additiivinen kenttä) |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
-| **Status** | `draft` — speksi kirjoitettu 2026-09-24, ei aloitettu (testitauko) |
+| **Status** | `[~]` osittain valmis 2026-09-24 (v0.6.63) — malli, säännöt, tila ja 8 efektilajia ajettu; rivaalin puu `world.json`issa siirtyi |
 | **Riippuvuudet** | — (WORKS-001 ja -003 riippuvat tästä) |
 | **Lähde** | Design system -PDF:n handoff-laatikko `interface BuildingDef` + neljä periaatetta |
 
@@ -110,23 +110,31 @@ Jokaisella kieltäytymisellä on sanallinen muoto UI:ssa (§14: virhe kertoo, mi
 
 ## 🟢 GREEN
 
-- [ ] `BuildingDef`, `Tier`, `Node`, `Effect` tyypit + `WORKS_DEFS` (sisältö WORKS-003:sta)
-- [ ] Rakennetesti yhdelle kerralle kaikille määritelmille: täsmälleen 5 tasoa, taso III
-      on aina `choice` ja siinä on 2 solmua, ei-valintatasolla 1 solmu, solmu-id:t uniikkeja,
-      jokaisen hinnan avaimet `RESOURCE_KINDS`issa
-- [ ] `nodeState`: taso I on available tasolla 0; valinta sulkee sisarensa (`closed`);
-      taso N+1 lukittu ennen tasoa N; ryhmä B → `dormant`
-- [ ] `canResearch`/`research`: jokainen kieltäytyminen omalla testillään; hinta vähenee
-      täsmälleen; toinen kutsu samalle solmulle → `already`
-- [ ] `worksLevel`: tasot, ei solmut. Keepin PDF-esimerkki (2 opittu tasoilla I–II) → 2
-- [ ] Ryhmä A:n jokainen `kind` kytketty ja testattu siihen sääntöön, jota se muuttaa
-      (esim. `produce` näkyy `forecast`issa, `decayFloor` pitää solun `decay.ts`issa)
-- [ ] `GameRepository.researchWork(h3, nodeId, now)` + `getWorksTree(h3)`,
-      `MockRepository` delegoi `worksStore`en (sama kuvio kuin `growHearthAt`)
-- [ ] Omistajan vaihto säilyttää puun; purku tyhjentää sen (repo-testi)
-- [ ] `world.ts`: `works` kulkee `buildSubmission` → `parseSubmission` → import;
-      puuttuva kenttä = tyhjä puu (testi vanhalla lähetyksellä)
-- [ ] Portti: `pnpm test && pnpm typecheck && pnpm lint:lines`
+- [x] Tyypit (`rules/works/types.ts`: `BuildingDef`, `WorksTier`, `WorksNode`, `Effect`) +
+      `WORKS_DEFS`. Solmulla on `effects: Effect[]` (ei yksi), koska useampi solmu tekee kahta
+      asiaa (Pale Timber, Unquenched, Deep Cellar)
+- [x] Rakennetesti kaikille määritelmille (`works/tree.test.ts`)
+- [x] `nodeState`: taso I available; valinta sulkee sisarensa; taso odottaa lähintä
+      *opittavissa olevaa* tasoa yllään (nukkuva taso ei estä, muuten puu pysähtyisi
+      ensimmäiseen puuttuvaan mekaniikkaan); ryhmä B → `dormant`
+- [x] `canResearch`/`researchNode`: jokainen kieltäytyminen testattu; hinta vähenee
+      täsmälleen; toinen kutsu → `already`
+- [x] `worksLevel`: tasot, ei solmut
+- [~] **Kytketty ja testattu (8 lajia):** `produce` (myös negatiivinen, pussi ei mene alle
+      nollan), `producePer` (provinssi ja renkaan heksat maastolla), `reach` (vain kun jokin
+      lukee rengasta), `storageCap` (pussin katto nyt resurssikohtainen), `convert`,
+      `produceFrom`, `worksMult`, `cellStrength` (vain oma solu, kertaluonteinen
+      tutkimushetkellä). **Ei kytketty, solmut nukkuvat:** `claimStrength`, `decayFloor`,
+      `decayMult`, `costDiscount`, `depositBonus`, `reveal`, `cellStrength` provinssille ja
+      kaikki `special`it. Jokainen on oma pieni tikettinsä, kun niitä tarvitaan
+- [x] Repositorio: `repository.works.viewAt(h3)` ja `repository.works.research(h3, nodeId)`
+      (`data/worksStore.ts`). Oma rajapintansa, koska `GameRepository` ja `MockRepository`
+      ovat molemmat 399 rivissä
+- [x] Puu on solun (`K.worksTree`), joten se säilyy omistajan vaihtuessa; purku tyhjentää
+      sen (`forgetTree` `demolishOn`issa, repo-testi)
+- [ ] `world.ts`: `works`-kenttä jaettuun maailmaan. **Siirtyi.** Rivaalin sivu näyttää nyt
+      puun ilman opittuja solmuja (`viewAt` palauttaa rivaalille `learned: []`)
+- [x] Portti: `pnpm test` (1789), `pnpm typecheck`, `pnpm lint:lines`, `pnpm build`
 
 ## Päätös Infiniteltä
 

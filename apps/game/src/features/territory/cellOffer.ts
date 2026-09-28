@@ -17,6 +17,8 @@ export interface OfferInput {
   wardGate: string | null;
   quest: QuestCellInfo | null;
   reveal: boolean;
+  /** The building page's name, when this hex has one (BRDC-WORKS-001). */
+  page: string | null;
   school: boolean;
   works: boolean;
   rites: boolean;
@@ -32,6 +34,7 @@ export function cellOffer(i: OfferInput): CellOffer {
   if (i.mine) {
     offer.ward = { label: `Ward · ${WARD_COST.wood} timber`, disabled: !i.canWard, why: i.wardGate };
   }
+  if (i.page) offer.page = { label: `Open ${i.page}` };
   if (i.works) offer.works = 'Works';
   if (i.mine && i.place.kind === null) {
     const cost = consecrateCost(i.place.dwellMs);

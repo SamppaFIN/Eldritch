@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.6.63",
+    "date": "2026-09-24",
+    "notes": [
+      "Everything you can do on a hex now sits in one row at the top of its card: Ward, Reveal, Consecrate and the rest. Build lists open under the row with one tap instead of filling the card.",
+      "Buildings have their own pages. Open the Keep, a temple, a Farmstead, Sawmill, Quarry, Forge, Market or Tavern from its hex to see its story, what it gives, how far it reaches and its own research tree of five tiers. Research pays out as it says. Parts the game cannot do yet are shown as not yet awake.",
+      "Your realm publishes to the shared world hourly instead of every ten minutes, and waits a while after a failed try, so the shared server is not overloaded."
+    ]
+  },
+  {
     "version": "0.6.62",
     "date": "2026-09-24",
     "notes": [

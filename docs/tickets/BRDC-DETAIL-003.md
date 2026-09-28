@@ -5,7 +5,7 @@
 | **Alue** | `apps/game/src/features/territory/CellPanel.tsx`, uusi `CellActions.tsx`, `cell-panel.css`; sama rivi `BRDC-WORKS-001`:n rakennussivulle |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `draft` — speksi kirjoitettu 2026-09-24, ei aloitettu (testitauko) |
+| **Status** | `done` — ajettu ja todennettu 2026-09-28 (v0.6.63) |
 | **Riippuvuudet** | `BRDC-DETAIL-002` (kortin järjestys), `BRDC-WORKS-001` (käyttää samaa riviä) |
 | **Lähde** | Infinite 2026-09-24: *"jos heksalla on omia toimintoja, niin asetellaan ne kaikki sivun yläreunaan"* |
 
@@ -70,22 +70,24 @@ kiinteänä alareunassa, koska se kuuluu rakennukselle eikä heksalle.
 
 ## 🟢 GREEN
 
-- [ ] `CellActions.tsx` (uusi): ottaa listan `{ id, label, cost?, disabled?, why?,
-      onPress | opens }`, ja järjestys on määritelty yhdessä vakiossa
-- [ ] `cellActions(cell, context): Action[]` on puhdas funktio, jolla on oma yksikkötesti:
-      oikeat toiminnot oikeilla ehdoilla (oma/rivaali/tyhjä, temppeli, kauppaheksa, quest),
-      aina samassa järjestyksessä
-- [ ] `CellPanel` renderöi rivin heti `CellHeader`in alle. Yhtään toimintonappia ei ole enää
-      tieto-osion seassa (e2e: jokainen `button` paitsi Close on rivissä tai avatussa osiossa)
-- [ ] Valintaa vaativa toiminto avautuu rivin alle, ja vain yksi kerrallaan
-- [ ] 360 px: rivi rivittyy, ei vaakavieritystä, koko rivi näkyy avaamisen jälkeen
-      vierittämättä (e2e mittaa rivin `boundingBox`in olevan ruudun ylimmässä puoliskossa)
-- [ ] Olemassaolevat e2e-testit, jotka napauttavat Ward/Reveal/Build-nappia, menevät läpi
-      nimillä, ei sijainnilla (`step-claim`, `hearth-growth`, `diplomacy`, `build`…)
-- [ ] Rivibudjetti: `CellPanel.tsx` (nyt 355) pienenee. Toimintojen logiikka siirtyy
-      `CellActions`iin eikä kasvata korttia
-- [ ] WORKS-001:n sivu käyttää samaa komponenttia (rastitetaan siellä)
-- [ ] Portti: `pnpm test && pnpm typecheck && pnpm lint:lines && pnpm build`
+- [x] `CellActions.tsx`: rivi ja yksi status-rivi. Järjestys on yhdessä vakiossa
+      (`ACTION_ORDER`, `hexActions.ts`; nimi ei ole `cellActions.ts`, koska Windows ei erota
+      sitä `CellActions.tsx`:stä)
+- [x] `cellActions(offer)` on puhdas ja testattu (`hexActions.test.ts`): vain tarjotut
+      toiminnot, aina sama järjestys, syy vain estetylle napille. Ehdot kootaan `cellOffer.ts`:ssä
+- [x] `CellPanel` renderöi rivin heti otsikon alle. Ward, Reveal, Consecrate, Expand ja
+      questin askel ovat rivissä; Works, Rites, Trade routes, Temple school, Trade post ja
+      Anomaly avautuvat sen alle. `ConsecratePanel` poistui, koska sen nappi siirtyi riviin
+- [x] Valintaa vaativa toiminto avautuu rivin alle, yksi kerrallaan, ja toinen painallus
+      sulkee (`cell-actions.spec.ts`)
+- [x] 360 px: rivi on ruudun yläpuoliskolla (`cell-actions.spec.ts`, mobile-360 + desktop)
+- [x] Olemassaolevat e2e:t päivitetty avaamaan Works ennen rakennuslistaa (`opening`,
+      `guide`, `sim.mjs`) ja tunnistamaan laituri "Trade post" -napista (`diplomacy`).
+      `opening` 10/10 ajettu. `adventure.spec.ts` mobile-360 on punainen jo commitilla
+      `e696d72` (vertailuajo), joten se ei johdu tästä
+- [x] Rivibudjetti: `CellPanel.tsx` 355 → 340, vaikka rakennussivu liitettiin siihen
+- [x] WORKS-001:n sivu käyttää samaa riviä (vain yhden painalluksen toiminnot)
+- [x] Portti: `pnpm test`, `pnpm typecheck`, `pnpm lint:lines`, `pnpm build`
 
 ## Ei tässä
 

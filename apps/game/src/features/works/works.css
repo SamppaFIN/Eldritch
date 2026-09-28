@@ -1,0 +1,302 @@
+/* A building's page (BRDC-WORKS-001). Same palette, same glass; the building's own hue
+   is only a glow behind its sprite. */
+
+.works {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.works__bar {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+}
+
+.works__hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.works__sprite {
+  flex: 0 0 auto;
+  inline-size: 96px;
+  block-size: 96px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--works-hue) 0%, transparent 70%);
+}
+
+.works__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.works__chip {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.works__quote {
+  margin: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid color-mix(in oklch, var(--sacred-gold) 45%, transparent);
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.works__quote p {
+  margin: 0;
+}
+
+.works__quote footer {
+  margin-block-start: var(--space-1);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.works__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.works__tiles div {
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm, 0.5rem);
+  text-align: center;
+}
+
+.works__tiles dt {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.works__tiles dd {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-body);
+}
+
+.works__label {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.works__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.works__asleep {
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.works__gives,
+.works__reach {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.works__reach {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.works__rings {
+  flex: 0 0 auto;
+}
+
+.works__ring {
+  fill: none;
+  stroke: var(--mystic-cyan);
+  stroke-width: 1.5;
+}
+
+.works__ring--core {
+  stroke: var(--sacred-gold);
+}
+
+.works__ring--later {
+  stroke: var(--text-dim);
+  stroke-dasharray: 4 4;
+}
+
+.works__tree-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--text);
+}
+
+.works__lore-toggle {
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.works__lore-toggle[aria-pressed='true'] {
+  color: var(--sacred-gold);
+}
+
+.works__tiers,
+.works__nodes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.works__tier {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: var(--space-2);
+}
+
+.works__spine {
+  align-self: start;
+  padding-block-start: var(--space-2);
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.works__choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-sm, 0.5rem);
+}
+
+.works__or-wrap {
+  list-style: none;
+}
+
+.works__or {
+  margin: 0 0 var(--space-1);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.works__node-btn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-block-size: var(--touch-min);
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm, 0.5rem);
+  background: transparent;
+  color: var(--text);
+  text-align: start;
+  font: inherit;
+}
+
+.works__node--learned .works__node-btn {
+  border-color: var(--sacred-gold);
+}
+
+.works__node--available .works__node-btn {
+  border-color: var(--mystic-cyan);
+}
+
+.works__node--picked .works__node-btn {
+  box-shadow: 0 0 0 2px var(--mystic-cyan);
+}
+
+.works__node--locked .works__node-btn,
+.works__node--dormant .works__node-btn,
+.works__node--closed .works__node-btn {
+  opacity: 0.6;
+}
+
+.works__node--closed .works__node-name {
+  text-decoration: line-through;
+}
+
+.works__node-btn:disabled {
+  cursor: default;
+}
+
+.works__node-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.works__node-name {
+  font-weight: var(--weight-bold, 700);
+}
+
+.works__state {
+  flex: 0 0 auto;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.works__rule {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.works__lore {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.works__cost {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.works__cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  inline-size: 100%;
+}
+
+.works__cta .es-btn {
+  min-block-size: var(--touch-min);
+}

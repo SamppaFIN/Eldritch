@@ -270,8 +270,7 @@ export function MapView({ onLeave }: MapViewProps) {
         />
       ) : null}
 
-      {/* The Wager: parked since BRDC-CLAIM-017 (instant-capture ownership leaves its
-          siege duel nothing to settle), not deleted — nothing opens it any more. */}
+      {/* The Wager: parked, not deleted, since BRDC-CLAIM-017 — nothing opens it any more. */}
       <WagerDialog
         open={false}
         repository={repository}
@@ -298,9 +297,10 @@ export function MapView({ onLeave }: MapViewProps) {
         onQuestOpen={() => quest.openQuestHex(inspect.selected)}
         revealed={discovery.revealed}
         onReveal={discovery.onReveal}
-        research={inspect.research}
-        wisdomPerHour={forecast?.perHour.wisdom ?? 0}
+        research={inspect.research} wisdomPerHour={forecast?.perHour.wisdom ?? 0}
         revealRivals={settings.revealRivals}
+        repository={repository}
+        onPouch={setResources}
         onWiki={aside.openHelp}
         onClose={inspect.close}
       />

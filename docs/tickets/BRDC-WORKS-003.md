@@ -2,16 +2,16 @@
 
 | | |
 |---|---|
-| **Alue** | `packages/core/src/rules/worksDefs/*.ts` (uusi, yksi tiedosto per rakennus, jotta mikään ei lähesty 400 riviä) |
+| **Alue** | `packages/core/src/rules/works/defs/*.ts` (yksi tiedosto per rakennus, jotta mikään ei lähesty 400 riviä) |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `draft` — sisältö siirretty PDF:stä 2026-09-24, ei aloitettu (testitauko) |
+| **Status** | `done` — ajettu ja todennettu 2026-09-24 (v0.6.63) |
 | **Riippuvuudet** | `BRDC-WORKS-002` (tyypit) |
 | **Lähde** | Design system -PDF, sivut 01–09. **Tämä tiketti on sisällön totuuden lähde**, eikä PDF:ää tarvitse avata toteutuksessa |
 
 ## 🔴 RED
 
-PDF:ssä on yhdeksän valmista sivua, joissa on lore, luvut ja 56 solmua, mutta mitään niistä
+PDF:ssä on yhdeksän valmista sivua, joissa on lore, luvut ja 57 solmua, mutta mitään niistä
 ei ole koodissa. Sisältö pitää siirtää dataksi täsmälleen, ja kolme PDF:n omaa
 epäjohdonmukaisuutta pitää ratkaista kerran (alla).
 
@@ -248,12 +248,35 @@ Ehdotus: se vaihdetaan A-efektiin tai jää `dormant`iksi.
 
 ## 🟢 GREEN
 
-- [ ] Yhdeksän `worksDefs/<kind>.ts`-tiedostoa, sisältö sanasta sanaan tästä tiketistä
-- [ ] WORKS-002:n rakennetesti menee läpi kaikille yhdeksälle
-- [ ] Lore-testi: yksikään `lore` ei ole tyhjä, ja jokaisella sivulla on `lore.source`
-- [ ] Hintojen avaimet ovat koodin avaimia (`wood`, ei `timber`). Testi hylkää tuntemattoman
-- [ ] Reach-lauseiden solumäärät lasketaan, ei kirjoiteta käsin (Keepin "36 cells" -virhe)
-- [ ] Portti: `pnpm test && pnpm typecheck && pnpm lint:lines`
+- [x] Yhdeksän tiedostoa `packages/core/src/rules/works/defs/<kind>.ts`, sisältö sanasta
+      sanaan tästä tiketistä. Jokaisella solmulla on `hl` (korostettava osa lauseesta)
+- [x] Rakennetesti menee läpi kaikille yhdeksälle (`works/tree.test.ts`): 5 tasoa, taso III
+      valinta, 57 uniikkia solmu-id:tä
+- [x] Lore-testi: yksikään `lore` ei ole tyhjä, ja jokaisella sivulla on `lore.source`
+- [x] Hintojen avaimet ovat koodin avaimia (`wood`, ei `timber`); testi hylkää tuntemattoman
+- [x] Solumäärät lasketaan (`cellsInRings`), ei kirjoiteta käsin. Keepin "36 cells" on
+      poistettu High Seatin lauseesta
+- [x] Portti: `pnpm test` (1789), `pnpm typecheck`, `pnpm lint:lines`, `pnpm build`
+
+**Toteutuksen poikkeamat tästä speksistä, sanottuna suoraan:**
+
+- **A/B-jako on koodissa tiukempi kuin taulukoissa.** Taulukon "A" tarkoitti, että mekaniikka
+  on olemassa. Koodissa solmun voi oppia vain, jos peli *oikeasti soveltaa* sen efektin
+  (`WIRED` + `isWired`, WORKS-002). Tulos: **20 solmua opittavissa, 37 nukkuu** ("Not yet
+  awake"). Opittavissa: Keep 2 · Temple 1 · Farmstead 4 · Sawmill 3 · Quarry 3 · Forge 2 ·
+  Market 4 · Watchtower 0 · Tavern 1. Nukkuva taso ei estä seuraavaa, joten puu jatkuu sen
+  ohi.
+- **Renkaan perusmerkitys** on kolmelle rakennukselle keksitty luku, koska PDF ei kerro
+  lukua: Farmstead +1 food per hallittu tasankoheksa renkaassa (PDF sanoo tämän), Sawmill +1
+  timber per metsäheksa ja Quarry +1 stone per mäkiheksa (PDF sanoo vain "feed the mill" /
+  "follows the seam"). **Tämä on tasapainomuutos:** jokainen olemassaoleva Farmstead ja
+  Sawmill alkaa tuottaa renkaastaan heti.
+- **Perustuotto ja ylläpito eivät tule PDF:stä** (P4, P7): sivu näyttää rakennuksen
+  todellisen tuoton (`BUILDINGS[id].produces` + paikan mana + opitut), ja ylläpitoa ei ole.
+  Kolmas lukulaatta on `Learned n / m` eikä PDF:n rakennuskohtainen luku (DEPTH, HEAT…),
+  jolle ei ole dataa.
+- Keepin muistiinpano on muotoiltu uudelleen: PDF:n *"If it falls to a rival, every province
+  loses its bonus"* ei pidä paikkaansa (Hearthia ei voi menettää), joten sitä ei väitetä.
 
 ## Päätös Infiniteltä
 

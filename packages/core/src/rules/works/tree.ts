@@ -73,6 +73,8 @@ export function nodeState(def: BuildingDef, learned: readonly string[], nodeId: 
   const node = nodeById(def, nodeId);
   if (!tier || !node) return 'locked';
   if (tier.choice && tierDone(tier, set)) return 'closed';
+  // Said first: "the game cannot do this yet" is truer than "learn the tier above".
+  if (isDormant(def, node)) return 'dormant';
   // The nearest tier above with anything learnable gates this one. A tier that is all
   // asleep does not — the tree would otherwise stop at the first thing the game lacks.
   for (let t = tier.tier - 1; t >= 1; t -= 1) {
@@ -81,7 +83,7 @@ export function nodeState(def: BuildingDef, learned: readonly string[], nodeId: 
     if (!tierDone(above, set)) return 'locked';
     break;
   }
-  return isDormant(def, node) ? 'dormant' : 'available';
+  return 'available';
 }
 
 export type ResearchCheck = { ok: true; node: WorksNode } | { ok: false; refused: WorksRefusal };

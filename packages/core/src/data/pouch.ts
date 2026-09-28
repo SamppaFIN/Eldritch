@@ -8,7 +8,7 @@
 import { EMPTY_POOL, RESOURCE_KINDS, addClaimYield, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
 import { worksBonus, worksCapBonus } from '../rules/works/bonus.js';
-import { worksContext } from './worksTrees.js';
+import { worksContext, worksContextFrom, type WorksContext } from './worksTrees.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
 import { research, researchBonus } from '../rules/tech.js';
@@ -67,31 +67,35 @@ async function perHourBonus(
   store: KeyValueStore,
   owned: readonly Cell[],
   now: number,
-): Promise<Partial<ResourcePool>> {
+): Promise<{ bonus: Partial<ResourcePool>; works: WorksContext }> {
+  // One transaction for every key, not one each — the pouch settles often (BRDC-WORKS-002).
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, routesS, treesS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.tradeRoutes, K.worksTree,
+  ]);
+  const dwell = (dwellS as DwellMap | undefined) ?? {};
+  const home = (homeS as H3Index | undefined) ?? null;
+  const expansions = (expansionsS as Record<H3Index, number> | undefined) ?? {};
   const merged: Partial<ResourcePool> = { ...buildingBonus(owned, now) };
-  const dwell = (await store.get<DwellMap>(K.dwell)) ?? {};
-  const home = (await store.get<H3Index>(K.home)) ?? null;
-  const expansions = (await store.get<Record<H3Index, number>>(K.expansions)) ?? {};
   addInto(merged, placeBonus(placesWithHome(dwell, home), expansions, owned, now));
 
-  const spells = (await store.get<ActiveSpell[]>(K.spells)) ?? [];
+  const spells = (spellsS as ActiveSpell[] | undefined) ?? [];
   addInto(merged, domainSpellBonus(activeSpells(spells, now), now));
   addInto(merged, resourceAura(owned, now));
 
-  const researched = (await store.get<TechId[]>(K.researched)) ?? [];
+  const researched = (researchedS as TechId[] | undefined) ?? [];
   addInto(merged, researchBonus(researched, owned, now));
 
   // Bounties pay only on ground that has been revealed (BRDC-BOUNTY-001) — the reveal is
   // how you find out what your own land is worth.
-  const revealed = (await store.get<Record<H3Index, number>>(K.revealed)) ?? {};
+  const revealed = (revealedS as Record<H3Index, number> | undefined) ?? {};
   addInto(merged, bountyBonus(owned, revealed, now));
 
-  const routes = (await store.get<TradeRoute[]>(K.tradeRoutes)) ?? [];
+  const routes = (routesS as TradeRoute[] | undefined) ?? [];
   addInto(merged, routeGoldBonus(routes, owned, now));
   addInto(merged, landmarkBonus(owned, now));
-  const works = await worksContext(store);
+  const works = worksContextFrom(treesS as WorksContext['trees'] | undefined, home, dwell);
   addInto(merged, worksBonus(owned, works.trees, works.kindAt, now));
-  return merged;
+  return { bonus: merged, works };
 }
 
 /**
@@ -104,9 +108,8 @@ async function perHourBonus(
  * minting `NaN` — is gone with it.
  */
 /** The pouch's ceilings: the Storehouse's shared one, raised per resource by research. */
-async function capFor(store: KeyValueStore, owned: readonly Cell[]): Promise<StorageCap> {
+function capFor(owned: readonly Cell[], works: WorksContext): StorageCap {
   const base = storageCap(buildingsOf(owned));
-  const works = await worksContext(store);
   const bonus = worksCapBonus(owned, works.trees, works.kindAt);
   if (Object.keys(bonus).length === 0) return base;
   const out = {} as Record<ResourceKind, number>;
@@ -171,8 +174,8 @@ export async function settlePouch(
   // the ceiling, and building production plus temple mana add a per-hour bonus, each
   // dormancy-filtered (BRDC-BUILD-001, BRDC-MANA-001). Computed before the write lock —
   // it reads other store keys and does not touch the pouch.
-  const cap = await capFor(store, owned);
-  const bph = await perHourBonus(store, owned, now);
+  const { bonus: bph, works } = await perHourBonus(store, owned, now);
+  const cap = capFor(owned, works);
   const bpd = buildingDayBonus(owned, now);
   const factor = darkTimeAt(now).factor;
   // Settle against the *fresh* pool: a spend that landed since is kept, not clobbered
@@ -201,8 +204,8 @@ export async function forecastRates(
   owned: readonly Cell[],
   now: number,
 ): Promise<Forecast> {
-  const cap = await capFor(store, owned);
-  const bph = await perHourBonus(store, owned, now);
+  const { bonus: bph, works } = await perHourBonus(store, owned, now);
+  const cap = capFor(owned, works);
   const bpd = buildingDayBonus(owned, now);
   const factor = darkTimeAt(now).factor;
 
@@ -295,7 +298,7 @@ export async function grantAll(
   amount: number,
 ): Promise<void> {
   const state = await settlePouch(store, owned, now);
-  const cap = await capFor(store, owned);
+  const cap = capFor(owned, await worksContext(store));
   const pool = { ...state.pool };
   for (const k of RESOURCE_KINDS) pool[k] = Math.min(capOf(cap, k), pool[k] + amount);
   await writePouch(store, pool, now);
@@ -312,7 +315,7 @@ export async function grantBonus(
   now: number,
 ): Promise<void> {
   const state = await settlePouch(store, owned, now);
-  const cap = await capFor(store, owned);
+  const cap = capFor(owned, await worksContext(store));
   const pool = { ...state.pool };
   for (const [k, v] of Object.entries(bonus) as [ResourceKind, number][]) {
     pool[k] = Math.min(capOf(cap, k), pool[k] + v);
