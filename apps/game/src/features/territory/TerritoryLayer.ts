@@ -62,6 +62,7 @@ export {
   NATION_MAXZOOM,
 } from './layerIds.js';
 import { keyed, syncSource } from './territorySync.js';
+import { ensureRealmOutline, removeRealmOutline, setRealmOutline } from './realmOutlineLayer.js';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
 const SHARED_PATTERN = 'cells-shared-pattern';
@@ -152,6 +153,8 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
       'fill-opacity': fadeAcrossBand(0, ['*', ['get', 'blight'], 0.6]),
     },
   });
+
+  ensureRealmOutline(map);
 
   map.addLayer({
     id: CELL_LINE_LAYER,
@@ -271,9 +274,11 @@ export function setTerritoryData(
   const polygons = cellsToGeoJson(cells, me, now, home, revealed, placeCells, myBanner);
   syncSource(map, CELL_SOURCE, keyed(polygons));
   syncSource(map, CELL_MARK_SOURCE, keyed(marksFromPolygons(polygons)));
+  setRealmOutline(map, cells, me);
 }
 
 export function removeTerritoryLayers(map: MapLibreMap): void {
+  removeRealmOutline(map);
   for (const id of [
     CELL_ANOMALY_LAYER,
     CELL_FLAG_LAYER,

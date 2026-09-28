@@ -249,8 +249,8 @@ test('five thousand hexagons do not stall the main thread', async ({ page }) => 
 });
 
 test('per-cell strokes are dropped when zoomed out', async ({ page }) => {
-  // Below zoom 13 a res-11 cell is smaller than a fingertip, so the strokes stop
-  // being information and become cost.
+  // Below zoom 14 a res-11 cell is ~5-11 px, so the strokes stop being information and
+  // become cost.
   await openMap(page);
 
   const minzooms = await page.evaluate(() => {
@@ -264,8 +264,10 @@ test('per-cell strokes are dropped when zoomed out', async ({ page }) => {
       .map((l) => [l.id, l.minzoom ?? 0] as const);
   });
 
+  // BRDC-PERF-004: the fill rises under the Atlas from zoom 9 (NATION_FADE_START); per-hex
+  // strokes wait for zoom 14, and one realm outline stands in for them below it.
   const byId = new Map(minzooms);
-  expect(byId.get('cells-fill')).toBe(0);
-  expect(byId.get('cells-line')).toBe(13);
-  expect(byId.get('cells-contested')).toBe(13);
+  expect(byId.get('cells-fill')).toBe(9);
+  expect(byId.get('cells-line')).toBe(14);
+  expect(byId.get('cells-contested')).toBe(14);
 });

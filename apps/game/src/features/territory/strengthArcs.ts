@@ -22,7 +22,8 @@ export const ARC_SOURCE = 'cell-arcs';
 export const ARC_LAYER = 'cell-arcs-line';
 
 /** Below this the hex is a few pixels across and an arc on it is noise, not information. */
-const ARC_MINZOOM = 15;
+// The arc reads from zoom 16, where the hex is ~43 px; below it the stroke was noise (BRDC-PERF-004).
+const ARC_MINZOOM = 16;
 
 /* The document's three colours, as literals: MapLibre parses paint values itself and has
    never heard of a custom property (the same reason `MAP_RESOURCE_COLOUR` exists). */

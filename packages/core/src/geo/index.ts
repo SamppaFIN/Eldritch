@@ -28,3 +28,5 @@ export { bankEdges, prunePaths, tierOf, trailEdges, walkedEdges } from './paths.
 export type { PathSegment, PathTier, WalkedEdge } from './paths.js';
 export * from './strengthArc.js';
 export { GEOMETRY_CACHE_MAX, cellCentreLngLat, cellNeighbours, cellRing, geometryWork } from './cellGeometry.js';
+export { realmOutline } from './realmOutline.js';
+export type { OutlineCoords } from './realmOutline.js';

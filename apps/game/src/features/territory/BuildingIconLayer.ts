@@ -11,7 +11,7 @@
 import type { FeatureCollection, Point } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { Cell } from '@es3/core';
-import { CELL_BUILDING_LAYER, CELL_DETAIL_MINZOOM } from './TerritoryLayer.js';
+import { CELL_BUILDING_LAYER } from './TerritoryLayer.js';
 import { buildingIconFeatures } from './buildingIconFeatures.js';
 import type { BuildingIconProps } from './buildingIconFeatures.js';
 import { SPRITE_PX, rasteriseSprites, spriteId } from './buildingSprites.js';
@@ -100,7 +100,8 @@ export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): voi
     id: WORK_ICON_LAYER,
     type: 'symbol',
     source: WORK_ICON_SOURCE,
-    minzoom: CELL_DETAIL_MINZOOM,
+    // With its plinth: an iso sprite a few pixels high is cost, not a building (BRDC-PERF-004).
+    minzoom: 15,
     layout: {
       visibility: visible ? 'visible' : 'none',
       'icon-image': ['get', 'sprite'],

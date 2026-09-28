@@ -51,7 +51,10 @@ export const NATION_LINE_LAYER = 'nation-line';
  * than in `TerritoryLayer.ts` because `territoryMarks.ts` needs the same threshold and
  * importing it back from there would be the cycle this file exists to avoid.
  */
-export const CELL_DETAIL_MINZOOM = 13;
+// 14, not 13 (BRDC-PERF-004): a hex is ~11 px across at zoom 14 and about 5 at 13 — per-hex
+// strokes and glyphs below 14 were a thousand draws of nothing legible. The realm's one
+// outline carries the border down there instead.
+export const CELL_DETAIL_MINZOOM = 14;
 
 /**
  * Below this, res-11 cells stop being a map and start being scattered dust — hundreds

@@ -97,6 +97,22 @@ for (const size of [{ label: '1027', rings: 18 }, { label: '5000', count: 5_000 
     }
     const walk = await readPerf(page);
     const frames = await panFrames(page, 5_000);
+    // Zoomed out, where the whole realm is on screen at once (BRDC-PERF-004).
+    await page.evaluate(() => (globalThis as unknown as { __esMap: { setZoom: (z: number) => void } }).__esMap.setZoom(13));
+    await page.waitForTimeout(3_000);
+    const wide = await panFrames(page, 5_000);
+    // Zoomed out, the realm is one outline, not a thousand strokes — and it is drawn.
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const src = (globalThis as unknown as {
+            __esMap: { getSource: (id: string) => { serialize?: () => { data?: { features?: unknown[] } } } | undefined };
+          }).__esMap.getSource('realm-outline');
+          return src?.serialize?.().data?.features?.length ?? 0;
+        }),
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(0);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
 
     const result = {
@@ -108,6 +124,7 @@ for (const size of [{ label: '1027', rings: 18 }, { label: '5000', count: 5_000 
         longestMs: Math.max(0, ...walk.longtasks),
       },
       pan: { frames: frames.length, p95Ms: p95(frames), maxMs: Math.round(Math.max(0, ...frames)) },
+      panZoom13: { frames: wide.length, p95Ms: p95(wide), maxMs: Math.round(Math.max(0, ...wide)) },
     };
     console.log(`PERF ${JSON.stringify(result)}`);
     await info.attach(`perf-${size.label}.json`, { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
