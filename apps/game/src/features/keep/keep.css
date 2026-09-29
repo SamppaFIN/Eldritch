@@ -171,3 +171,36 @@
   block-size: 0.5rem;
   accent-color: var(--danger);
 }
+
+/* The gate encounter (BRDC-DOOM-002). A success is marked by weight and a ring, not colour alone. */
+.keep-gate {
+  border-inline-start: 2px solid var(--danger);
+  padding-inline-start: 0.75rem;
+}
+
+.keep-gate__dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.keep-gate__die {
+  min-inline-size: var(--touch-min, 44px);
+  min-block-size: var(--touch-min, 44px);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.5rem;
+  background: var(--glass-bg);
+  color: var(--text);
+  font-family: var(--font-numeric, 'Orbitron', sans-serif);
+  font-size: 1.25rem;
+}
+
+.keep-gate__die--hit {
+  border: 2px solid var(--awareness-green);
+  font-weight: 700;
+}
+
+.keep-gate__die:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

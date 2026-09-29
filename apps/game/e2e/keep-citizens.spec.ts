@@ -204,3 +204,20 @@ test('an open season shows the shared Doom track and the Mythos card (BRDC-DOOM-
   await expect(doom).toContainText('The Low Water · Doom 10 / 13 — 3 steps from waking. Seal the gates.');
   await expect(doom).toContainText('Mythos ·');
 });
+
+test('a Season 2 realm sees its open gates and its investigator (BRDC-DOOM-002)', async ({ page }) => {
+  await page.route('**/season', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ n: 2, name: 'The Low Water', seed: 's2', phase: 'open', opensAt: Date.now() - 86_400_000, doom: 1, bossHp: 0, bossMaxHp: 0 }),
+    }),
+  );
+  await openMap(page, HERE);
+  await foundKeep(page);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  const gates = page.getByLabel('Your sanctuary').getByLabel('Open gates');
+  await expect(gates).toContainText('Stamina 7 · Sanity 6 · Clues 0 / 8');
+  await expect(gates).toContainText(/No gate is open near your realm\.|rings? out|Inside your border/);
+});
