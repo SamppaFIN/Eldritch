@@ -544,3 +544,28 @@ alue rakennetaan alusta ja lähetetään kartalle noin 3–4 kertaa sekunnissa k
 (`now={clock.now()}` joka renderöinnillä, kamera jokaisella fixillä). Hinta per kerta
 moninkertaistui 2026-09-15 (`BRDC-SIGIL-006`), mikä selittää, miksi se näkyi vasta nyt.
 Lasibudjetti liikkeen aikana jatkuu `BRDC-SIGIL-001`:ssä suunnittelijan hyväksynnän jälkeen.
+
+## Season 2 — Progression + Season Codex (2026-09-29)
+
+Järjestys: SEASON-002 → PROG-001…005 → PROG-007 → PROG-006 → PROG-008 → DOOM-001…004 → SEASON-003…006 → COUNSEL-001 → v0.7.0. Kaikki valmiina ennen Season 2:n avausta (Infinite 2026-09-29); faktiot parkissa, kauden pituus päätetään myöhemmin.
+
+| Tiketti | Mitä | Effort | Riippuu |
+|---|---|---|---|
+| [BRDC-SEASON-002](BRDC-SEASON-002.md) | Kausi on olio: vaihe, siemen ja mikä nollautuu | M | BRDC-SEASON-001 |
+| [BRDC-PROG-001](BRDC-PROG-001.md) | Kansalaiset syntyvät ruoasta | M | SEASON-002 |
+| [BRDC-PROG-002](BRDC-PROG-002.md) | Ei käsiä, ei satoa | M | PROG-001 |
+| [BRDC-PROG-003](BRDC-PROG-003.md) | Kulttuuri ostaa maan, kopiot kallistuvat | S | PROG-001 |
+| [BRDC-PROG-004](BRDC-PROG-004.md) | Lore: viisi aikakautta, neljä polkua | L | SEASON-002 |
+| [BRDC-PROG-005](BRDC-PROG-005.md) | Rakennusten tasot aikakauden katon alla | M | PROG-004, PROG-002 |
+| [BRDC-PROG-006](BRDC-PROG-006.md) | Masterworkit: monesta tulee yksi | L | PROG-005, PROG-007 |
+| [BRDC-PROG-007](BRDC-PROG-007.md) | Kolme koulua: Ward, Tide, Whisper | L | PROG-004 |
+| [BRDC-PROG-008](BRDC-PROG-008.md) | Sanity: valtakunnan mieliala | S | PROG-001, PROG-002 |
+| [BRDC-DOOM-001](BRDC-DOOM-001.md) | Doom-rata ja Mythos-kortti | M | SEASON-002 |
+| [BRDC-DOOM-002](BRDC-DOOM-002.md) | Portit, vihjeet ja tutkija | L | DOOM-001, PROG-008 |
+| [BRDC-DOOM-003](BRDC-DOOM-003.md) | Maaston kohtaamispakat | M | DOOM-002 |
+| [BRDC-DOOM-004](BRDC-DOOM-004.md) | The Reckoning: kaikki yhtä vastaan | L | DOOM-001, DOOM-002, PROG-006, PROG-007 |
+| [BRDC-SEASON-003](BRDC-SEASON-003.md) | Legacy-tilinpäätös | M | SEASON-002 |
+| [BRDC-SEASON-004](BRDC-SEASON-004.md) | Kausi sinetöidään: pakotettu retire ja historia | M | SEASON-003 |
+| [BRDC-SEASON-005](BRDC-SEASON-005.md) | Tulostaulut, Hall of Records ja Hall of Ages | M | SEASON-003 |
+| [BRDC-SEASON-006](BRDC-SEASON-006.md) | Perintökalu ja uusi kausi | M | SEASON-004, SEASON-005 |
+| [BRDC-COUNSEL-001](BRDC-COUNSEL-001.md) | Pitäjän neuvo: peli selittää itsensä | M | PROG-001…008, DOOM-002 |
