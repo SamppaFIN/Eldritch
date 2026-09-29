@@ -22,6 +22,7 @@ import { surveyedTerrainOf } from '../data/localSurvey.js';
 import { hexSeedOf } from '../data/hexSeedStore.js';
 import { localShare } from './share.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
+import type { KeepState } from './citizens.js';
 
 export type { Terrain, TerrainKind, TerrainSource } from '../types/domain.js';
 
@@ -264,6 +265,8 @@ export interface ResourceState {
   /** Last Collect press + the pool then — for the readout only; the trickle still accrues
    *  on its own (BRDC-ECON-007). Absent on an old save; the first collect stamps `now`. */
   collectedAt?: number;
+  /** The Keep's level and granary (BRDC-PROG-001) — only on a Season 2 save. */
+  keep?: KeepState;
   poolAtCollect?: ResourcePool;
 }
 

@@ -10,7 +10,7 @@
  * Pure: `settleGranary` is handed the hourly food balance and how long it held, and says
  * what happened in that time. The store seam (and who leaves first) is PROG-002's.
  */
-import { BALANCE, growBox } from './balance.js';
+import { BALANCE, growBox, housing } from './balance.js';
 
 export interface Granary {
   citizens: number;
@@ -88,4 +88,38 @@ export function settleGranary(g: Granary, balancePerH: number, hours: number, ho
 export function hoursToNextCitizen(g: Granary, balancePerH: number, housingCap: number): number | null {
   if (balancePerH <= 0 || g.citizens >= housingCap) return null;
   return (growBox(g.citizens) - g.box) / balancePerH;
+}
+
+/** The Keep's own record: its level and its granary. Present only on a Season 2 save. */
+export interface KeepState {
+  level: number;
+  granary: Granary;
+}
+
+export const FIRST_KEEP: KeepState = { level: 1, granary: FIRST_GRANARY };
+
+interface Settled {
+  pool: { food: number };
+  since: number;
+  keep?: KeepState;
+}
+
+/**
+ * Granary first (Infinite 2026-09-29, the document's rule): the food a settle just
+ * produced goes to the granary, not the pouch — only what a full Keep cannot turn into
+ * citizens reaches the pouch. `before` and `after` are one `settleResources` step. A save
+ * with no `keep` (every Season 1 save) is returned untouched.
+ */
+export function feedGranary<S extends Settled>(before: S, after: S): S {
+  const keep = after.keep;
+  const hours = (after.since - before.since) / 3_600_000;
+  if (!keep || hours <= 0) return after;
+  const produced = Math.max(0, after.pool.food - before.pool.food);
+  const balance = foodBalance(produced / hours, keep.granary.citizens);
+  const r = settleGranary(keep.granary, balance, hours, housing(keep.level));
+  return {
+    ...after,
+    pool: { ...after.pool, food: before.pool.food + Math.floor(r.stored) },
+    keep: { ...keep, granary: r.granary },
+  };
 }

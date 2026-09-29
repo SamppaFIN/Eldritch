@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-002 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf (P1 The Keep · Citizens, "Food Is the Clock", BALANCE)` |
-| **Status** | `in-progress` — 2/5 (2026-09-29) |
+| **Status** | `in-progress` — 3/5 (2026-09-29) |
 
 ## 🔴 RED
 
@@ -17,7 +17,7 @@ Ruoalla ei ole kelloa. Väestö on tänään `population()` (`rules/nation.ts`):
 
 - [x] `rules/balance.ts` = dokumentin BALANCE-objekti (yksi lähde, kuten constants.ts)
 - [x] (puhtaat säännöt: `rules/citizens.ts` `settleGranary`, 10 testiä; `claimCost` floorattu, koska dokumentin omat esimerkit 50/277 ovat floor-arvoja) `growBox(n)=20+8n+n²`, `housing=3+3·keepLv`, syönti 2/h, nälkä: aitta tyhjenee ensin, 6 h nollassa → vähiten hyödyllinen työläinen lähtee
-- [ ] Keepin taso ja sen nosto; aitan täyttö `settlePouch`in rinnalla
+- [~] Aitan täyttö `settlePouch`issa valmis: `feedGranary` (granary first — Infinite 2026-09-29 valitsi dokumentin säännön: ruoka menee pussiin vain kun Keep on täynnä). Toimii vain tallennuksella jolla on `ResourceState.keep` — Season 1 -tallennuksissa sitä ei ole, joten nykyinen peli ei muutu ennen v0.7.0:aa. **Jäljellä:** Keepin tason nosto (hinta?) ja `keep`in luonti uuden kauden alussa (SEASON-006)
 - [ ] P1-ruutu: CITIZENS x/y HOUSED, aitan palkki + ETA, FOOD LEDGER per hour
 - [ ] Vitest jokaiselle kaavalle; e2e: ruoka → kansalainen syntyy
 - [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`

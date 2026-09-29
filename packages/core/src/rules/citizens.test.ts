@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BALANCE, claimCost, copyCost, growBox, housing, slots } from './balance.js';
-import { FIRST_GRANARY, foodBalance, hoursToNextCitizen, settleGranary } from './citizens.js';
+import { FIRST_GRANARY, FIRST_KEEP, feedGranary, foodBalance, hoursToNextCitizen, settleGranary } from './citizens.js';
 
 describe('balance — the document\'s own worked numbers', () => {
   it('growBox: 29 at 1, 365 at 15', () => {
@@ -64,5 +64,29 @@ describe('settleGranary', () => {
     expect(hoursToNextCitizen({ citizens: 7, box: 81, starvedH: 0 }, 4, 9)).toBe((125 - 81) / 4);
     expect(hoursToNextCitizen(FIRST_GRANARY, 0, 9)).toBeNull();
     expect(hoursToNextCitizen({ citizens: 9, box: 0, starvedH: 0 }, 4, 9)).toBeNull();
+  });
+});
+
+describe('feedGranary — granary first', () => {
+  const H = 3_600_000;
+  const before = { pool: { food: 40 }, since: 0 };
+
+  it('leaves a Season 1 save (no keep) exactly as settled', () => {
+    const after = { pool: { food: 70 }, since: 3 * H };
+    expect(feedGranary(before, after)).toBe(after);
+  });
+
+  it('turns the food produced into the granary, not the pouch', () => {
+    // 3 h at 12 food/h, one citizen eating 2: +30 into the box, none to the pouch.
+    const r = feedGranary({ ...before, keep: FIRST_KEEP }, { pool: { food: 76 }, since: 3 * H, keep: FIRST_KEEP });
+    expect(r.pool.food).toBe(40);
+    expect(r.keep?.granary).toEqual({ citizens: 2, box: 1, starvedH: 0 });
+  });
+
+  it('a full Keep sends the surplus to the pouch', () => {
+    const full = { level: 1, granary: { citizens: 6, box: 0, starvedH: 0 } };
+    const r = feedGranary({ ...before, keep: full }, { pool: { food: 1040 }, since: 10 * H, keep: full });
+    expect(r.keep?.granary.citizens).toBe(6);
+    expect(r.pool.food).toBe(40 + 1000 - 10 * 12 - growBox(6));
   });
 });

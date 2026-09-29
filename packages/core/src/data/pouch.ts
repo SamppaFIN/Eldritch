@@ -5,6 +5,7 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
+import { feedGranary } from '../rules/citizens.js';
 import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
 import { worksBonus, worksCapBonus } from '../rules/works/bonus.js';
@@ -177,7 +178,8 @@ export async function settlePouch(
   // Settle against the *fresh* pool: a spend that landed since is kept, not clobbered
   // (BRDC-ECON-006). `settleResources` returns its argument unchanged for a no-op, which
   // `commit` then does not write.
-  return commit(store, now, (cur) => settleResources(cur, owned, now, cap, bph, bpd, factor));
+  // Season 2: the food just produced feeds the granary first (BRDC-PROG-001).
+  return commit(store, now, (cur) => feedGranary(cur, settleResources(cur, owned, now, cap, bph, bpd, factor)));
 }
 
 /**
