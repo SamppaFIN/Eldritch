@@ -40,6 +40,8 @@ export interface ReckoningApi {
   ledger(): Promise<{ unsent: number; dealt: number; readyAt: number | null }>;
   /** The Worker took `damage` of the unsent. */
   sent(damage: number): Promise<void>;
+  /** Damage dealt some other way — a wonder's rite (SEASON-008). */
+  land(damage: number): Promise<void>;
 }
 
 export function reckoningApi(store: () => KeyValueStore, owned: (now: number) => Promise<readonly Cell[]>): ReckoningApi {
@@ -95,6 +97,8 @@ export function reckoningApi(store: () => KeyValueStore, owned: (now: number) =>
       const b = await book();
       return { unsent: b.unsent, dealt: b.dealt, readyAt: b.lastStrikeAt !== undefined ? b.lastStrikeAt + STRIKE_COOLDOWN_MS : null };
     },
+
+    land,
 
     sent: async (damage) => {
       const b = await book();

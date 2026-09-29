@@ -5,7 +5,7 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { STORE_MS, feedGranary } from '../rules/citizens.js';
+import { STORE_MS, calmAt, feedGranary } from '../rules/citizens.js';
 import { staffedBonus, staffedCells } from '../rules/staffing.js';
 import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
@@ -77,7 +77,7 @@ async function perHourBonus(
   const dwell = (dwellS as DwellMap | undefined) ?? {};
   const home = (homeS as H3Index | undefined) ?? null;
   const expansions = (expansionsS as Record<H3Index, number> | undefined) ?? {};
-  const merged: Partial<ResourcePool> = keep ? staffedBonus(owned, keep.staff ?? {}, now, keep.boons, keep.granary.citizens, keep.gatesNear) : { ...buildingBonus(owned, now) };
+  const merged: Partial<ResourcePool> = keep ? staffedBonus(owned, keep.staff ?? {}, now, keep.boons, keep.granary.citizens, keep.gatesNear, calmAt(keep, now)) : { ...buildingBonus(owned, now) };
   addInto(merged, placeBonus(placesWithHome(dwell, home), expansions, owned, now));
 
   const spells = (spellsS as ActiveSpell[] | undefined) ?? [];

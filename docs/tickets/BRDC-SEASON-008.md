@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-007 |
 | **Lähde** | Infinite 2026-09-29 (chat); `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf` |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-09-29 |
 
 ## 🔴 RED
 
@@ -22,12 +22,12 @@ ihmeet pysyvät paikallaan kaudesta toiseen, siemen siirtää vain esiintymät j
 
 ## 🟢 GREEN
 
-- [ ] Ihmeiden paikat eivät riipu kauden siemenestä (`wonderPlace` pois `seed`-syötteestä); kauden vaihto ei poista niitä
-- [ ] Jokaisella ihmeellä oma erikoistoiminto (esim. kerran vuorokaudessa: näky, siunaus, vihjeen löytö, portin sinetöinti etäältä) — lista kirjoitetaan ja hyväksytetään Infinitellä ennen koodia
-- [ ] Toiminto näkyy ihmeen paneelissa `hexActions`-rivinä; cooldown per pelaaja
-- [ ] Legacy-rivi 'Wonders held' (SEASON-003) lukee edelleen hallintaa, ei löytöä
-- [ ] Vitest toiminnoille + e2e yksi toiminto käytetty
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
+- [x] (tarkistettu: `wonderRoll` hashaa ilman kauden suolaa, joten ihmeet pysyvät; SEASON-007:n suola ei koske niitä) Ihmeiden paikat eivät riipu kauden siemenestä (`wonderPlace` pois `seed`-syötteestä); kauden vaihto ei poista niitä
+- [x] (**Infinite hyväksyi 2026-09-29** ehdotuksen "one action per wonder": 12 toimintoa `rules/wonderActs.ts` — R'lyeh sinetöi lähimmän portin kaukaa, The Temple sanity +3 / vrk, Nameless City 2 vihjettä, Hyperborea aitta +25 %, Kadath paljastaa 3 rengasta, Leng yhden tekniikan wisdomin, Y'ha-nthlei 40 manaa, Mountains of Madness Fight +1, Arkham Lore +1, Deeper Slumber palauttaa tutkijan, Innsmouth 60 ruokaa, Dunwich Stones ilmainen riitti Reckoningissa) Jokaisella ihmeellä oma erikoistoiminto (esim. kerran vuorokaudessa: näky, siunaus, vihjeen löytö, portin sinetöinti etäältä) — lista kirjoitetaan ja hyväksytetään Infinitellä ennen koodia
+- [x] Toiminto heksakortilla (`CellWonder.tsx`) sillä heksalla, josta valtakunta ihmeen löysi (`K.wonderFinds`; ihmeen istuin on koko provinssi); kerran / vrk / pelaaja (`K.wonderActs`), vain heksan haltijalle
+- [x] Legacy-rivi 'Wonders held' lukee hallintaa (löytöheksa yhä oma) — SEASON-003
+- [x] Vitest (`wonderAct.repo.test.ts` 4) + e2e Innsmouth käytetty ja lepää
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build (1916)
 
 ## Todennus
 

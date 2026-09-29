@@ -183,5 +183,7 @@ export { heirloomApi } from './heirloomStore.js';
 export type { HeirloomApi } from './heirloomStore.js';
 export { ruinApi } from './ruinStore.js';
 export type { RuinApi, RuinOutcome } from './ruinStore.js';
+export { wonderActApi } from './wonderActStore.js';
+export type { WonderActApi, WonderActOutcome, WonderHere } from './wonderActStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

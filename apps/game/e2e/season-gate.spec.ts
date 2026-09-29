@@ -96,3 +96,28 @@ test('a ruin of last season’s Fortress can be searched once (BRDC-SEASON-007)'
   await expect(ruin.getByRole('status')).not.toBeEmpty();
   await expect(ruin.getByRole('button', { name: 'Search the ruins' })).toHaveCount(0);
 });
+
+test('a wonder the realm found offers its action once a day (BRDC-SEASON-008)', async ({ page }) => {
+  await openMap(page, HERE);
+  // Record the Hearth's own hex as where Innsmouth was found — a rarely written key.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const open = indexedDB.open('es3');
+        open.onsuccess = () => {
+          const tx = open.result.transaction('kv', 'readwrite');
+          const kv = tx.objectStore('kv');
+          const home = kv.get('home');
+          home.onsuccess = () => kv.put({ innsmouth: { h3: home.result, at: Date.now() } }, 'wonder-finds');
+          tx.oncomplete = () => resolve();
+        };
+      }),
+  );
+  await page.reload();
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+  const wonder = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Wonder');
+  await expect(wonder).toContainText('Innsmouth · The Catch.', { timeout: 20_000 });
+  await wonder.getByRole('button', { name: 'Use · The Catch' }).click();
+  await expect(wonder.getByRole('status')).toContainText('Gain 60 food.');
+  await expect(wonder.getByRole('button', { name: 'Resting until tomorrow' })).toBeDisabled();
+});

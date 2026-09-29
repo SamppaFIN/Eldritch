@@ -15,6 +15,7 @@ import type { ReckoningApi } from '../data/reckoningStore.js';
 import type { LegacyApi } from '../data/legacyTally.js';
 import type { HeirloomApi } from '../data/heirloomStore.js';
 import type { RuinApi } from '../data/ruinStore.js';
+import type { WonderActApi } from '../data/wonderActStore.js';
 
 export interface SeasonTwoApis {
   /** The Keep's level, citizens and granary (BRDC-PROG-001). */
@@ -37,4 +38,6 @@ export interface SeasonTwoApis {
   readonly heirloom: HeirloomApi;
   /** The last season's Fortresses, searched once each (BRDC-SEASON-007). */
   readonly ruins: RuinApi;
+  /** A wonder's action, once a day for whoever holds its hex (BRDC-SEASON-008). */
+  readonly wonderActs: WonderActApi;
 }

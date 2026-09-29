@@ -59,8 +59,7 @@ import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
 import { worksApi, type WorksApi } from './worksStore.js';
-import { gateApi, heirloomApi, keepApi, legacyApi, loreApi, masterworkApi, reckoningApi, riteApi, ruinApi, rumourApi } from './seasonTwo.js';
-import type { GateApi, HeirloomApi, KeepApi, LegacyApi, LoreApi, MasterworkApi, ReckoningApi, RiteApi, RuinApi, RumourApi } from './seasonTwo.js';
+import * as S2 from './seasonTwo.js'; // Season 2's doors (SeasonTwoApis), gathered for the line limit
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
@@ -356,16 +355,17 @@ export class MockRepository implements GameRepository {
 
   /* --- Growing the Hearth with food (BRDC-HEARTH-003), building pages (WORKS-002) --- */
   readonly works: WorksApi = worksApi(() => this.store, async () => (await this.getProfile()).id, (t) => this.getOwnedCells(t));
-  readonly keep: KeepApi = keepApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly lore: LoreApi = loreApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly rites: RiteApi = riteApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly masterworks: MasterworkApi = masterworkApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly gates: GateApi = gateApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly rumours: RumourApi = rumourApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly reckoning: ReckoningApi = reckoningApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly legacy: LegacyApi = legacyApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly heirloom: HeirloomApi = heirloomApi(() => this.store);
-  readonly ruins: RuinApi = ruinApi(() => this.store, () => this.newId());
+  readonly keep: S2.KeepApi = S2.keepApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly lore: S2.LoreApi = S2.loreApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly rites: S2.RiteApi = S2.riteApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly masterworks: S2.MasterworkApi = S2.masterworkApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly gates: S2.GateApi = S2.gateApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly rumours: S2.RumourApi = S2.rumourApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly reckoning: S2.ReckoningApi = S2.reckoningApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly legacy: S2.LegacyApi = S2.legacyApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly heirloom: S2.HeirloomApi = S2.heirloomApi(() => this.store);
+  readonly ruins: S2.RuinApi = S2.ruinApi(() => this.store, () => this.newId());
+  readonly wonderActs: S2.WonderActApi = S2.wonderActApi(() => this.store, (t) => this.getOwnedCells(t), () => this.gates, () => this.reckoning);
   hearthRing = (): Promise<number> => readHearthRing(this.store);
   growHearth = async (now: number): Promise<HearthGrowth> =>
     growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);

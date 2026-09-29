@@ -86,6 +86,8 @@ export const K = {
   heirloom: 'heirloom',
   /** Ruins searched this season, `H3Index[]` (SEASON-007). */
   ruinsSearched: 'ruins-searched',
+  /** When each wonder's action was last used, `Partial<Record<WonderId, number>>` (SEASON-008). */
+  wonderActs: 'wonder-acts',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

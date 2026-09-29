@@ -106,7 +106,12 @@ export interface KeepState {
   extraHousing?: number;
   /** Open gates within three rings, as the last gate sync counted them (DOOM-002). */
   gatesNear?: number;
+  /** A wonder's stillness: sanity + `value` until `until` (SEASON-008). */
+  calm?: { value: number; until: number };
 }
+
+/** The calm still in force at `now`. */
+export const calmAt = (keep: KeepState, now: number): number => (keep.calm && keep.calm.until > now ? keep.calm.value : 0);
 
 /** How many a Keep houses, Manors included. */
 export const keepHousing = (keep: KeepState): number => housing(keep.level) + (keep.extraHousing ?? 0);

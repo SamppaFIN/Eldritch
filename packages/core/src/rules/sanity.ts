@@ -17,7 +17,7 @@ import type { Cell } from '../types/domain.js';
 export const SANITY_YIELD_PENALTY = 0.8;
 export const SANITY_LEAVE_BELOW = -10;
 
-export function realmSanity(cells: readonly Cell[], staff: StaffMap, citizens: number, gatesNear = 0): number {
+export function realmSanity(cells: readonly Cell[], staff: StaffMap, citizens: number, gatesNear = 0, calm = 0): number {
   let temples = 0;
   let taverns = 0;
   for (const c of cells) {
@@ -27,7 +27,7 @@ export function realmSanity(cells: readonly Cell[], staff: StaffMap, citizens: n
       if (w.id === 'tavern') taverns += 1;
     }
   }
-  return Math.floor(10 + 2 * temples + 3 * taverns - (citizens - 6) - cells.length / 8 - 2 * gatesNear);
+  return Math.floor(10 + 2 * temples + 3 * taverns - (citizens - 6) - cells.length / 8 - 2 * gatesNear + calm);
 }
 
 /** What the number means, in a word — colour never carries it alone (§14). */

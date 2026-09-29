@@ -8,6 +8,7 @@ import { CellRites } from '../keep/CellRites.js';
 import { CellGate } from '../keep/CellGate.js';
 import { CellRumour } from '../keep/CellRumour.js';
 import { CellRuin } from '../season/CellRuin.js';
+import { CellWonder } from '../season/CellWonder.js';
 import {
   ANCHOR_THRESHOLD_MS,
   MAX_STRENGTH,
@@ -217,6 +218,7 @@ export function CellPanel({
       <CellGate repository={repository} h3={cell.h3} here={here} now={now} />
       <CellRumour repository={repository} h3={cell.h3} here={here} now={now} />
       <CellRuin repository={repository} h3={cell.h3} here={here} now={now} />
+      <CellWonder repository={repository} h3={cell.h3} mine={mine} now={now} />
       {works.view ? (
         <WorksPage
           def={WORKS_DEFS[works.view.kind]}

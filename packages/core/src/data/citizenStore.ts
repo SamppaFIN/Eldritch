@@ -8,7 +8,7 @@
  * a separate API object, like `worksApi`, because `MockRepository` is at its line limit.
  */
 import { claimCost, growBox } from '../rules/balance.js';
-import { FIRST_KEEP, STORE_MS, foodBalance, keepHousing, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
+import { FIRST_KEEP, STORE_MS, calmAt, foodBalance, keepHousing, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
 import type { KeepRaiseResult } from '../rules/citizens.js';
 import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js';
 import type { StaffRefusal } from '../rules/staffing.js';
@@ -106,8 +106,8 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         hoursToNext: hoursToNextCitizen(g, balance, cap),
         raiseCost: keepRaiseCost(keep.level),
         idle: g.citizens - staffed(keep.staff ?? {}),
-        sanity: realmSanity(cells, keep.staff ?? {}, g.citizens, keep.gatesNear),
-        sanityWord: sanityWord(realmSanity(cells, keep.staff ?? {}, g.citizens, keep.gatesNear)),
+        sanity: realmSanity(cells, keep.staff ?? {}, g.citizens, keep.gatesNear, calmAt(keep, now)),
+        sanityWord: sanityWord(realmSanity(cells, keep.staff ?? {}, g.citizens, keep.gatesNear, calmAt(keep, now))),
         nextCellCulture: claimCost(cells.length + 1),
         culture: state.pool.culture,
         storesLeftH: keep.titheAt === undefined ? null : Math.max(0, (keep.titheAt + STORE_MS - now) / 3_600_000),

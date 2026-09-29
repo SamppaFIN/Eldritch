@@ -279,6 +279,7 @@ export {
   feedGranary,
   foodBalance,
   hoursToNextCitizen,
+  calmAt,
   keepHousing,
   keepRaiseCost,
   raiseKeep,
@@ -373,3 +374,5 @@ export type { Crossing, Heirloom, HeirloomId } from './heirloom.js';
 export { seasonSalt, setSeasonSalt } from './seasonSalt.js';
 export { RUIN_FINDS, ruinFindAt } from './ruins.js';
 export type { RuinFind } from './ruins.js';
+export { WONDER_ACTS, WONDER_ACT_COOLDOWN_MS } from './wonderActs.js';
+export type { WonderAct, WonderActKind } from './wonderActs.js';

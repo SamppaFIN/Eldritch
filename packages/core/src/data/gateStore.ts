@@ -84,6 +84,8 @@ export interface GateApi {
   reroll(index: number, now: number, rng?: () => number): Promise<GateOutcome>;
   /** Take the pending roll: pass seals the gate, fail costs two sanity. */
   accept(now: number): Promise<GateOutcome>;
+  /** Seal the nearest open gate without walking to it — a wonder's gift (SEASON-008). */
+  sealFromAfar(now: number): Promise<boolean>;
   /** Spend five clues (three with Elder Signs) to seal a gate you stand on. */
   seal(gateId: string, standing: H3Index | null, now: number): Promise<GateOutcome>;
   /** The Doom moves not yet sent, and a way to clear the ones the Worker took (`gateId:delta`). */
@@ -187,6 +189,17 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
       }
       await store().set(K.investigator, afterTest(rest, 0, 2, now));
       return { ok: true, roll: pending.roll, sealed: false };
+    },
+
+    sealFromAfar: async (now) => {
+      const cells = await owned(now);
+      const b = await book();
+      const open = b.gates.filter(isOpen);
+      if (open.length === 0) return false;
+      const far = (g: Gate) => Math.min(...cells.map((c) => hexDistance(c.h3, g.h3)), 99);
+      const nearest = [...open].sort((a, z) => far(a) - far(z))[0] as Gate;
+      await sealGate(b, nearest.id, now);
+      return true;
     },
 
     seal: async (gateId, standing, now) => {
