@@ -17,7 +17,7 @@ Kauden päättyessä ei ole lukua joka kertoo mitä jäi jälkeen. Dokumentti: r
 
 - [x] (`rules/legacy.ts` `legacyOf(counts, outcome)` → rivit, subtotal, kerroin, total; testi toistaa dokumentin S4-esimerkin; Risen + avoin portti 2 renkaan sisällä kodista = Keep kaatunut) `legacyOf(realm, outcome)` → `{parts, subtotal, mult, total}` + Vitest
 - [x] Season 1:lle toimii: solut, ihmeet (`wonderFinds` jotka yhä omia), questit (valmiit anomaliat + kohdatut huhut); muut 0 (`data/legacyTally.ts`, `repository.legacy.tally`)
-- [ ] S4-ruutu 'What You Leave Behind' + paras kausi -vertailu
+- [~] S4-taulukko `LegacyTable` (uudelleenkäytettävä SEASON-004:n sinetöintiruudussa) + Keepin "What you would leave behind" -elävä tilinpäätös; e2e. **Ei vielä:** paras kausi -vertailu (tarvitsee edellisen kauden Legacyn — SEASON-005 Hall of Ages)
 - [~] → **siirretty SEASON-005:een** (tulostaulut lukevat sen; julkaisu tehdään yhdessä)
 - [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build (1902)
 
