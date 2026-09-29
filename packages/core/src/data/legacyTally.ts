@@ -26,10 +26,19 @@ export interface LegacyApi {
   tally(now: number, outcome?: SeasonOutcome): Promise<Legacy>;
   /** Freeze or thaw the map: a sealed season claims nothing (SEASON-004). */
   freeze(sealed: boolean): Promise<void>;
+  /** Titles won in the Hall of Records — they outlive every season (SEASON-005). */
+  titles(): Promise<string[]>;
+  award(titles: readonly string[]): Promise<void>;
 }
 
 export function legacyApi(store: () => KeyValueStore, owned: (now: number) => Promise<readonly Cell[]>): LegacyApi {
   return {
+    titles: async () => (await store().get<string[]>(K.titles)) ?? [],
+    award: async (titles) => {
+      const had = (await store().get<string[]>(K.titles)) ?? [];
+      const next = [...new Set([...had, ...titles])];
+      if (next.length !== had.length) await store().set(K.titles, next);
+    },
     freeze: async (sealed) => {
       if (sealed) await store().set(K.sealed, true);
       else await store().delete(K.sealed);
@@ -67,6 +76,7 @@ export function legacyApi(store: () => KeyValueStore, owned: (now: number) => Pr
           wonders: Object.values(wondersS ?? {}).filter((w) => held.has(w.h3)).length,
           damage: reckoningS?.dealt ?? 0,
           sane: keep ? realmSanity(cells, keep.staff ?? {}, keep.granary.citizens, keep.gatesNear) >= 0 : false,
+          sanity: keep ? realmSanity(cells, keep.staff ?? {}, keep.granary.citizens, keep.gatesNear) : 0,
           keepLevel: keep?.level ?? 0,
           keepStanding: !!keep && !fallen,
         },

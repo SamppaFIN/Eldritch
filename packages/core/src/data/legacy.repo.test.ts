@@ -32,3 +32,13 @@ describe('legacyApi (BRDC-SEASON-003)', () => {
     expect(quiet.mult).toBe(1.2);
   });
 });
+
+describe('titles outlive the season (BRDC-SEASON-005)', () => {
+  it('are awarded once each and kept', async () => {
+    const store = new MemoryStore();
+    const legacy = legacyApi(() => store, async () => []);
+    await legacy.award(['Season 2 · The Wide Reach']);
+    await legacy.award(['Season 2 · The Wide Reach', 'Season 2 · The Learned']);
+    expect(await legacy.titles()).toEqual(['Season 2 · The Wide Reach', 'Season 2 · The Learned']);
+  });
+});

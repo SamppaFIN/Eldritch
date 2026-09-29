@@ -80,6 +80,8 @@ export const K = {
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */
   sealed: 'sealed',
+  /** Hall of Records titles won, `string[]` — kept forever on the sigil (SEASON-005). */
+  titles: 'titles',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

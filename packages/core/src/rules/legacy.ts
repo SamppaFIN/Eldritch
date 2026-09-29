@@ -23,6 +23,8 @@ export interface LegacyCounts {
   wonders: number;
   damage: number;
   sane: boolean;
+  /** The realm's sanity at the end — only the Hall of Records reads the number (SEASON-005). */
+  sanity: number;
   keepLevel: number;
   keepStanding: boolean;
 }
@@ -36,6 +38,8 @@ export interface LegacyLine {
 }
 
 export interface Legacy {
+  /** What was counted — the boards and titles read these (SEASON-005). */
+  counts: LegacyCounts;
   lines: LegacyLine[];
   subtotal: number;
   mult: number;
@@ -44,7 +48,7 @@ export interface Legacy {
 
 export const EMPTY_COUNTS: LegacyCounts = {
   cells: 0, citizens: 0, masterworks: 0, dormantMasterworks: 0, lore: 0, spellRanks: 0,
-  gatesSealed: 0, quests: 0, wonders: 0, damage: 0, sane: false, keepLevel: 0, keepStanding: false,
+  gatesSealed: 0, quests: 0, wonders: 0, damage: 0, sane: false, sanity: 0, keepLevel: 0, keepStanding: false,
 };
 
 export function legacyOf(c: LegacyCounts, outcome: SeasonOutcome | undefined): Legacy {
@@ -68,5 +72,5 @@ export function legacyOf(c: LegacyCounts, outcome: SeasonOutcome | undefined): L
   }
   const subtotal = lines.reduce((s, l) => s + l.points, 0);
   const mult = legacyMultiplier(outcome);
-  return { lines, subtotal, mult, total: Math.round(subtotal * mult) };
+  return { counts: c, lines, subtotal, mult, total: Math.round(subtotal * mult) };
 }

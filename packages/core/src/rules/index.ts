@@ -366,3 +366,5 @@ export {
 export type { RealmMight, ReckoningStanding } from './reckoning.js';
 export { EMPTY_COUNTS, legacyOf } from './legacy.js';
 export type { Legacy, LegacyCounts, LegacyLine } from './legacy.js';
+export { hallOfAges, hallOfRecords, legacyBoard } from './boards.js';
+export type { BoardRow, Title } from './boards.js';

@@ -2,7 +2,7 @@
  * The shared season, read from the Worker (BRDC-SEASON-002). `null` before any season has
  * been opened, and on any failure — the game stays playable without it, like the shards.
  */
-import type { Season } from '@es3/core';
+import type { BoardRow, Season, Title } from '@es3/core';
 import { WORLD_API } from './worldSource.js';
 
 export async function fetchSeason(): Promise<Season | null> {
@@ -72,5 +72,45 @@ export async function postStrike(realm: string, damage: number): Promise<boolean
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+export interface Boards {
+  n: number;
+  board: BoardRow[];
+  records: Title[];
+}
+
+/** Publish this realm's Legacy (BRDC-SEASON-005); the Worker takes one an hour. */
+export async function postLegacy(row: BoardRow): Promise<boolean> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/legacy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(row),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** A season's Legacy board and Hall of Records; null off-line. */
+export async function fetchBoards(n: number): Promise<Boards | null> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/boards?n=${n}`, { cache: 'no-store' });
+    return res.status === 200 ? ((await res.json().catch(() => null)) as Boards | null) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The Hall of Ages; null off-line. */
+export async function fetchAges(): Promise<{ realm: string; name: string; score: number }[] | null> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/ages`, { cache: 'no-store' });
+    return res.status === 200 ? (((await res.json().catch(() => null)) as { ages?: [] } | null)?.ages ?? null) : null;
+  } catch {
+    return null;
   }
 }

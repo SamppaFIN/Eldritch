@@ -21,6 +21,7 @@ import type { Season, SeasonPhase } from '@es3/core/rules';
 import type { WorldSource } from '@es3/core/data';
 import type { KV } from './index.js';
 import { RUINS, archiveSeason } from './archive.js';
+import { handleBoards } from './boards.js';
 
 const STATE = 'season:state';
 const DAMAGE = 'season:reckoning:damage';
@@ -94,6 +95,9 @@ export async function handleSeasonState(
     await kv.put(STATE, JSON.stringify(next));
     return send({ bossHp: next.bossHp, bossMaxHp: next.bossMaxHp, phase: next.phase, damage: damage[realm] });
   }
+
+  const boards = await handleBoards(request, url, kv, await readSeason(kv), send);
+  if (boards) return boards;
 
   if (request.method === 'GET' && url.pathname === '/season/ruins') {
     const raw = await kv.get(RUINS);

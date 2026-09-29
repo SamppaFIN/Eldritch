@@ -38,3 +38,22 @@ test('a sealed season shows its close and the Legacy', async ({ page }) => {
   await expect(close).toContainText('The map is frozen');
   await expect(close).toContainText('Legacy');
 });
+
+test('the Keep shows the season board and the Hall of Records (BRDC-SEASON-005)', async ({ page }) => {
+  const counts = { cells: 0, citizens: 0, masterworks: 0, dormantMasterworks: 0, lore: 0, spellRanks: 0, gatesSealed: 9, quests: 0, wonders: 0, damage: 0, sane: false, sanity: 0, keepLevel: 0, keepStanding: false };
+  await page.route('**/season', (route) => route.fulfill(json(season({ n: 1 }))));
+  await page.route('**/season/legacy', (route) => route.fulfill(json({ ok: true })));
+  await page.route('**/season/ages', (route) => route.fulfill(json({ ages: [] })));
+  await page.route('**/season/boards?n=1', (route) =>
+    route.fulfill(json({
+      n: 1,
+      board: [{ realm: 'x', name: 'Kaarnakuningas', legacy: 6210, counts }],
+      records: [{ id: 'warden-of-doors', name: 'Warden of Doors', what: 'Most gates sealed', holder: { realm: 'x', name: 'Kaarnakuningas', value: 9 } }],
+    })),
+  );
+  await openMap(page, HERE);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  const boards = page.getByLabel('Your sanctuary').getByLabel('Season boards');
+  await expect(boards).toContainText('1 · Kaarnakuningas');
+  await expect(boards).toContainText('Warden of Doors — Most gates sealed: Kaarnakuningas · 9');
+});

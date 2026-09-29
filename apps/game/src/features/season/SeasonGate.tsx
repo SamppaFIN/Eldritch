@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
 import { clearAll } from '@es3/core';
 import type { GameRepository, Legacy, Season } from '@es3/core';
-import { seasonOnce } from '../../data/season.js';
+import { fetchBoards, seasonOnce } from '../../data/season.js';
 import { publishLegacy } from '../../data/legacy.js';
 import { LegacyTable } from '../keep/LegacyTally.js';
 import './season-panel.css';
@@ -36,6 +36,10 @@ export function SeasonGate({ repository }: { repository: GameRepository | null }
       await repository.legacy.freeze(sealed);
       if (sealed) {
         setGate({ kind: 'sealed', season, legacy: await repository.legacy.tally(now, season.outcome) });
+        // The Hall of Records is final at sealing; a title won stays on the sigil (SEASON-005).
+        const me = (await repository.getProfile()).id;
+        const won = (await fetchBoards(season.n))?.records.filter((t) => t.holder?.realm === me) ?? [];
+        await repository.legacy.award(won.map((t) => `Season ${season.n} · ${t.name}`));
         return;
       }
       if (season.n < 2 || (await repository.keep.view(now))) return;
