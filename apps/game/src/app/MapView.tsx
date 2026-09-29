@@ -276,7 +276,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onClose={inspect.closeWager}
         onImported={territory.refresh}
       />
-      <ResearchDialog open={inspect.researchOpen && !isRoute} research={inspect.research} pool={resources} wisdomPerHour={forecast?.perHour.wisdom ?? 0} onClose={inspect.closeResearch} />
+      <ResearchDialog open={inspect.researchOpen && !isRoute} research={inspect.research} pool={resources} wisdomPerHour={forecast?.perHour.wisdom ?? 0} onClose={inspect.closeResearch} repository={repository} />
 
       <CellPanel
         cell={inspect.cell}

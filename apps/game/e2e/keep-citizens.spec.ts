@@ -105,3 +105,15 @@ test('a building on a Season 2 save takes a citizen to work (BRDC-PROG-002)', as
   await expect(workers).toContainText('Farm · 1 / 1 at work');
   await expect(workers.getByRole('button', { name: 'Call one back' })).toBeVisible();
 });
+
+test('a Season 2 save studies the Lore, not the old tree (BRDC-PROG-004)', async ({ page }) => {
+  await openMap(page, HERE);
+  await foundKeep(page);
+  await page.getByRole('button', { name: 'Research', exact: true }).click();
+
+  const lore = page.getByRole('dialog', { name: 'The Lore' }).getByLabel('The Lore');
+  await expect(lore).toContainText('Age I · Hearth');
+  await expect(lore.getByLabel('Age I', { exact: true })).toContainText('Husbandry');
+  await expect(lore.getByLabel('Age I', { exact: true }).getByRole('button', { name: 'Study · 30 wisdom' }).first()).toBeVisible();
+  await expect(lore.getByLabel('Age II', { exact: true })).toContainText('Sealed');
+});

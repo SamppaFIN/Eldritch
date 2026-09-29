@@ -67,7 +67,8 @@ test('research opens from the footer, responds immediately, and lands', async ({
   await opener.focus();
   await opener.press('Enter');
 
-  const dialog = page.getByRole('dialog');
+  // By name: an unlock notice ("The ground pays") is a dialog too and can be up at once.
+  const dialog = page.getByRole('dialog', { name: 'Research' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText(/^Research ·/)).toBeVisible();
 
