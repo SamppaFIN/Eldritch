@@ -283,7 +283,7 @@ export {
   raiseKeep,
   settleGranary,
 } from './citizens.js';
-export type { Granary, GranaryResult, KeepRaiseResult, KeepState } from './citizens.js';
+export type { Boon, Granary, GranaryResult, KeepRaiseResult, KeepState } from './citizens.js';
 export {
   WORK_TABLE,
   assignWorker,
@@ -298,3 +298,22 @@ export {
 export type { StaffMap, StaffRefusal } from './staffing.js';
 export { AGE_NAMES, LORE, LORE_IDS, ageOf, canStudy, keepCeiling, loreAllows, loreCost, loreFor } from './lore.js';
 export type { Age, LoreId, LorePath, LoreTech, MasterworkId, StudyRefusal, Unlock } from './lore.js';
+export {
+  EMPTY_BOOK,
+  RITES,
+  RITE_COOLDOWN_MS,
+  RITE_IDS,
+  RITE_MANA,
+  castRite,
+  dedicate,
+  deepenCost,
+  deepenRite,
+  learnCost,
+  learnRite,
+  rankCeiling,
+  riteText,
+  rivalRite,
+  schoolSlots,
+  tierCeiling,
+} from './rites.js';
+export type { Rank, Rite, RiteBook, RiteEffect, RiteId, RiteRefusal, School, Tier } from './rites.js';

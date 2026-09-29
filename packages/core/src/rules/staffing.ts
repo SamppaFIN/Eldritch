@@ -16,6 +16,7 @@ import { bountyOn, bountyYield } from './bounty.js';
 import { neighboursOf } from '../geo/cells.js';
 import type { ResourcePool, TerrainKind } from './terrain.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
+import type { Boon } from './citizens.js';
 
 /** Workers per building, keyed `h3|buildingId`. */
 export type StaffMap = Readonly<Record<string, number>>;
@@ -56,7 +57,12 @@ export const staffed = (staff: StaffMap): number => Object.values(staff).reduce(
  * deposit doubles each worker's yield, a Sawmill gains a timber for every held forest hex
  * beside it, and a Market a gold for every held settlement (trade) hex beside it.
  */
-export function staffedBonus(cells: readonly Cell[], staff: StaffMap, now: number): Partial<ResourcePool> {
+export function staffedBonus(
+  cells: readonly Cell[],
+  staff: StaffMap,
+  now: number,
+  boons: readonly Boon[] = [],
+): Partial<ResourcePool> {
   const out: Partial<ResourcePool> = {};
   const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
   const held = new Map(cells.map((c) => [c.h3, c]));
@@ -76,6 +82,15 @@ export function staffedBonus(cells: readonly Cell[], staff: StaffMap, now: numbe
       }
       if (work.id === 'sawmill') add('wood', heldBeside(cell.h3, 'forest'));
       if (work.id === 'market') add('gold', heldBeside(cell.h3, 'settlement')); // trade cells in reach
+    }
+  }
+  // Rites of the Tide (PROG-007): Call the Shoal on one Farmstead, High Water on every hand.
+  for (const b of boons) {
+    if (b.until <= now) continue;
+    if (b.scope === 'target' && b.target && held.get(b.target)?.buildings?.some((w) => w.id === 'farm')) add('food', b.value);
+    if (b.scope === 'workers') {
+      const hands = cells.reduce((s, c) => s + (staff[staffKey(c.h3, 'farm')] ?? 0), 0);
+      add('food', b.value * hands);
     }
   }
   return out;

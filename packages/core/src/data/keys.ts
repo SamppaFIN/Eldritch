@@ -68,6 +68,8 @@ export const K = {
   hallOfFame: 'hall-of-fame',
   /** A Season 2 realm's learned Lore, `LoreId[]` (BRDC-PROG-004). Resets with the season. */
   lore: 'lore',
+  /** A Season 2 realm's schools and learned rites, `RiteBook` (BRDC-PROG-007). */
+  rites: 'rites',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

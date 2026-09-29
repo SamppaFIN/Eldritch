@@ -67,6 +67,7 @@ import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 import type { WorksApi } from '../data/worksStore.js';
 import type { KeepApi } from '../data/citizenStore.js';
 import type { LoreApi } from '../data/loreStore.js';
+import type { RiteApi } from '../data/riteStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -389,4 +390,6 @@ export interface GameRepository {
   readonly keep: KeepApi;
   /** The Lore — five Ages, four paths; `view` is null on a Season 1 save (BRDC-PROG-004). */
   readonly lore: LoreApi;
+  /** The temples' three schools — `view` is null on a Season 1 save (BRDC-PROG-007). */
+  readonly rites: RiteApi;
 }

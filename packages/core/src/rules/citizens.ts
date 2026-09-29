@@ -100,6 +100,17 @@ export interface KeepState {
   staff?: StaffMap;
   /** Last collection at the Keep; stores fill for `STORE_MS` after it (PROG-002). */
   titheAt?: number;
+  /** Rites still working — a timed food boost (PROG-007). */
+  boons?: readonly Boon[];
+}
+
+/** A cast rite whose effect lasts: `value` food/h, on one Farmstead or on every Farmstead hand. */
+export interface Boon {
+  rite: string;
+  scope: 'target' | 'workers';
+  value: number;
+  until: number;
+  target?: string;
 }
 
 /** Production accrues this long after a collection, then stops (the document's storageH). */
