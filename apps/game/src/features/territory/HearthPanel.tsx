@@ -25,6 +25,7 @@ import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
 import { HearthGrowth } from '../keep/HearthGrowth.js';
 import { KeepCitizens } from '../keep/KeepCitizens.js';
+import { RiteSchools } from '../keep/RiteSchools.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
@@ -172,6 +173,8 @@ export function HearthPanel({
         onPouch={onPouch}
         onGrown={onGrown ?? (() => {})}
       />
+
+      <RiteSchools repository={repository} now={now} />
 
       <h3 className="hearth-panel__section">Mana and temples</h3>
       <ManaPanel keep={keep} pool={resources} />

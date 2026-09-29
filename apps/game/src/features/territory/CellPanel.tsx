@@ -4,6 +4,7 @@
  * is the wrong shape for something you glance at and put away.
  */
 import { CellStaff } from '../keep/CellStaff.js';
+import { CellRites } from '../keep/CellRites.js';
 import {
   ANCHOR_THRESHOLD_MS,
   MAX_STRENGTH,
@@ -209,6 +210,7 @@ export function CellPanel({
           one thumb while walking (BRDC-DETAIL-003). */}
       <CellActions actions={cellActions(offer)} open={open} onPress={press} status={status} />
       {mine ? <CellStaff repository={repository} h3={cell.h3} now={now} /> : null}
+      {mine ? <CellRites repository={repository} h3={cell.h3} now={now} /> : null}
       {works.view ? (
         <WorksPage
           def={WORKS_DEFS[works.view.kind]}

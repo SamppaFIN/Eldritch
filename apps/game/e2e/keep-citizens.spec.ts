@@ -146,3 +146,39 @@ test('a Season 2 save studies the Lore, not the old tree (BRDC-PROG-004)', async
   await expect(lore.getByLabel('Age I', { exact: true }).getByRole('button', { name: 'Study · 30 wisdom' }).first()).toBeVisible();
   await expect(lore.getByLabel('Age II', { exact: true })).toContainText('Sealed');
 });
+
+/** Seed one rarely-written key directly (the Lore is written only when studying). */
+async function seedKey(page: Page, key: string, value: unknown): Promise<void> {
+  await page.evaluate(
+    ([k, v]) =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open('es3');
+        open.onsuccess = () => {
+          const tx = open.result.transaction('kv', 'readwrite');
+          tx.objectStore('kv').put(v, k as string);
+          tx.oncomplete = () => {
+            open.result.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    [key, value] as const,
+  );
+}
+
+test('Kindling lets a Season 2 realm dedicate a temple school (BRDC-PROG-007)', async ({ page }) => {
+  await openMap(page, HERE);
+  await foundKeep(page);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  const schools = page.getByLabel('Your sanctuary').getByLabel('Temple schools');
+  await expect(schools).toContainText('Study Kindling in the Lore to dedicate a temple.');
+
+  await seedKey(page, 'lore', ['kindling']);
+  await page.reload();
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  const after = page.getByLabel('Your sanctuary').getByLabel('Temple schools');
+  await after.getByRole('button', { name: 'Dedicate to The Tide' }).click();
+  await expect(after).toContainText('I · Call the Shoal');
+  await expect(after.getByRole('button', { name: /Learn · 40 mana/ }).first()).toBeVisible();
+});
