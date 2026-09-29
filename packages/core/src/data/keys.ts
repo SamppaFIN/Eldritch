@@ -76,6 +76,8 @@ export const K = {
   investigator: 'investigator',
   /** Rumours faced this season and a roll still pending (BRDC-DOOM-003). */
   rumours: 'rumours',
+  /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
+  reckoning: 'reckoning',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

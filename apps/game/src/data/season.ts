@@ -43,3 +43,34 @@ export function seasonOnce(): Promise<Season | null> {
   once ??= fetchSeason();
   return once;
 }
+
+export interface Reckoning {
+  bossHp: number;
+  bossMaxHp: number;
+  phase: string;
+  standings: { realm: string; damage: number }[];
+}
+
+/** The Ancient One's strength and every realm's damage (BRDC-DOOM-004); null off-line. */
+export async function fetchReckoning(): Promise<Reckoning | null> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/reckoning`, { cache: 'no-store' });
+    return res.status === 200 ? ((await res.json().catch(() => null)) as Reckoning | null) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Land a blow. `true` only when the Worker took it. */
+export async function postStrike(realm: string, damage: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/strike`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ realm, damage }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

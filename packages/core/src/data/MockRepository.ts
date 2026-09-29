@@ -59,12 +59,8 @@ import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
 import { worksApi, type WorksApi } from './worksStore.js';
-import { keepApi, type KeepApi } from './citizenStore.js';
-import { loreApi, type LoreApi } from './loreStore.js';
-import { riteApi, type RiteApi } from './riteStore.js';
-import { masterworkApi, type MasterworkApi } from './masterworkStore.js';
-import { gateApi, type GateApi } from './gateStore.js';
-import { rumourApi, type RumourApi } from './deckStore.js';
+import { gateApi, keepApi, loreApi, masterworkApi, reckoningApi, riteApi, rumourApi } from './seasonTwo.js';
+import type { GateApi, KeepApi, LoreApi, MasterworkApi, ReckoningApi, RiteApi, RumourApi } from './seasonTwo.js';
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
@@ -366,6 +362,7 @@ export class MockRepository implements GameRepository {
   readonly masterworks: MasterworkApi = masterworkApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly gates: GateApi = gateApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly rumours: RumourApi = rumourApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly reckoning: ReckoningApi = reckoningApi(() => this.store, (t) => this.getOwnedCells(t));
   hearthRing = (): Promise<number> => readHearthRing(this.store);
   growHearth = async (now: number): Promise<HearthGrowth> =>
     growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);

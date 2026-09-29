@@ -26,6 +26,7 @@ import { KeepRealm } from '../keep/KeepRealm.js';
 import { HearthGrowth } from '../keep/HearthGrowth.js';
 import { KeepCitizens } from '../keep/KeepCitizens.js';
 import { KeepDoom } from '../keep/KeepDoom.js';
+import { KeepReckoning } from '../keep/KeepReckoning.js';
 import { KeepGates } from '../keep/KeepGates.js';
 import { RiteSchools } from '../keep/RiteSchools.js';
 import { KeepMasterworks } from '../keep/KeepMasterworks.js';
@@ -154,6 +155,7 @@ export function HearthPanel({
       </dl>
 
       <KeepDoom now={now} />
+      <KeepReckoning repository={repository} now={now} />
       <KeepGates repository={repository} now={now} />
       <KeepCitizens repository={repository} now={now} onPouch={onPouch} />
 

@@ -7,17 +7,20 @@
  *                        call (*"season kestää kunnes saadaan uusi versio tulille"*)
  *   POST /season/doom    a gate moved the shared Doom {gateId, delta: 1 | -1} (DOOM-002):
  *                        taken once per gate and direction, however often it is sent
+ *   POST /season/strike  a realm hurts the Ancient One {realm, damage} (DOOM-004)
+ *   GET  /season/reckoning  its strength and every realm's damage
  *
  * Admin routes need `x-admin-key` to match the `ADMIN_KEY` Worker secret; with no secret
  * set they are simply off. The key never reaches the game client — Infinite uses curl.
  * Separate from `season.ts`, which is SEASON-001's daily tournament trail.
  */
-import { advanceSeason, forcePhase, openSeason } from '@es3/core/rules';
+import { MAX_DAMAGE_PER_CALL, STRIKE_COOLDOWN_MS, advanceSeason, damageBoss, forcePhase, openSeason } from '@es3/core/rules';
 import type { Season, SeasonPhase } from '@es3/core/rules';
 import type { WorldSource } from '@es3/core/data';
 import type { KV } from './index.js';
 
 const STATE = 'season:state';
+const DAMAGE = 'season:reckoning:damage';
 const PHASES: readonly SeasonPhase[] = ['open', 'reckoning', 'sealed', 'interregnum', 'next'];
 
 async function readSeason(kv: KV): Promise<Season | null> {
@@ -62,6 +65,31 @@ export async function handleSeasonState(
       await kv.put(STATE, JSON.stringify(next));
     }
     return send({ ok: true });
+  }
+
+  if (request.method === 'GET' && url.pathname === '/season/reckoning') {
+    const season = await readSeason(kv);
+    if (!season) return bare(204);
+    const damage = JSON.parse((await kv.get(DAMAGE)) ?? '{}') as Record<string, number>;
+    return send({ bossHp: season.bossHp, bossMaxHp: season.bossMaxHp, phase: season.phase, standings: Object.entries(damage).map(([realm, d]) => ({ realm, damage: d })) });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/season/strike') {
+    const body = (await request.json().catch(() => null)) as { realm?: unknown; damage?: unknown } | null;
+    const realm = typeof body?.realm === 'string' ? body.realm.slice(0, 80) : null;
+    const dmg = typeof body?.damage === 'number' ? Math.floor(body.damage) : 0;
+    if (!realm || dmg < 1 || dmg > MAX_DAMAGE_PER_CALL) return send({ fault: 'invalid' }, 400);
+    const season = await readSeason(kv);
+    if (!season || season.phase !== 'reckoning') return send({ fault: 'not-reckoning' }, 409);
+    // Same trust as /submit; the cap and the ration keep one phone from ending it alone.
+    if (await kv.get(`strike-rl:${realm}`)) return send({ fault: 'too-soon' }, 429);
+    await kv.put(`strike-rl:${realm}`, '1', { expirationTtl: Math.max(60, STRIKE_COOLDOWN_MS / 1000) });
+    const damage = JSON.parse((await kv.get(DAMAGE)) ?? '{}') as Record<string, number>;
+    damage[realm] = (damage[realm] ?? 0) + dmg;
+    await kv.put(DAMAGE, JSON.stringify(damage));
+    const next = advanceSeason(damageBoss(season, dmg), now, 0);
+    await kv.put(STATE, JSON.stringify(next));
+    return send({ bossHp: next.bossHp, bossMaxHp: next.bossMaxHp, phase: next.phase, damage: damage[realm] });
   }
 
   const admin = url.pathname === '/season/open' || url.pathname === '/season/phase';

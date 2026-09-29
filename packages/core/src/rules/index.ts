@@ -350,3 +350,17 @@ export { GATE_DOOM_MS, GATE_TEST_NEED, gateAtDawn, gatesNear, horrorBite, isOpen
 export type { Gate } from './gate.js';
 export { DECKS, RUMOUR_SHARE, cardById, deckFor, rumourAt } from './deck.js';
 export type { Deck, DeckCard } from './deck.js';
+export {
+  FORTRESS_STRIKE_BONUS,
+  MAX_DAMAGE_PER_CALL,
+  RITE_DAMAGE,
+  RITE_MANA_COST,
+  SEAL_DAMAGE,
+  STRIKE_COOLDOWN_MS,
+  STRIKE_PER_SUCCESS,
+  rankOf,
+  riteDamage,
+  sealDamage,
+  strikeDamage,
+} from './reckoning.js';
+export type { RealmMight, ReckoningStanding } from './reckoning.js';

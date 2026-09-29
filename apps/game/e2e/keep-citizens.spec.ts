@@ -221,3 +221,18 @@ test('a Season 2 realm sees its open gates and its investigator (BRDC-DOOM-002)'
   await expect(gates).toContainText('Stamina 7 · Sanity 6 · Clues 0 / 8');
   await expect(gates).toContainText(/No gate is open near your realm\.|rings? out|Inside your border/);
 });
+
+test('during the Reckoning the Keep strikes the Ancient One (BRDC-DOOM-004)', async ({ page }) => {
+  const json = (body: unknown) => ({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+  const season = { n: 2, name: 'The Low Water', seed: 's2', phase: 'reckoning', opensAt: Date.now() - 40 * 86_400_000, reckoningAt: Date.now() - 3_600_000, doom: 13, bossHp: 5400, bossMaxHp: 5400 };
+  await page.route('**/season', (route) => route.fulfill(json(season)));
+  await page.route('**/season/reckoning', (route) => route.fulfill(json({ bossHp: 5200, bossMaxHp: 5400, phase: 'reckoning', standings: [] })));
+  await page.route('**/season/strike', (route) => route.fulfill(json({ ok: true })));
+  await openMap(page, HERE);
+  await foundKeep(page);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  const fight = page.getByLabel('Your sanctuary').getByLabel('The Reckoning');
+  await expect(fight).toContainText('Its strength · 5200 / 5400');
+  await fight.getByRole('button', { name: 'Strike · Fight test' }).click();
+  await expect(fight.getByRole('status')).toContainText(/damage lands|shrugs the blow off/);
+});
