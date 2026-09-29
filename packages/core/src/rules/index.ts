@@ -269,3 +269,6 @@ export {
   seasonIsPlayable,
 } from './season.js';
 export type { Season, SeasonOutcome, SeasonPhase } from './season.js';
+export { BALANCE, claimCost, copyCost, growBox, housing, slots } from './balance.js';
+export { FIRST_GRANARY, foodBalance, hoursToNextCitizen, settleGranary } from './citizens.js';
+export type { Granary, GranaryResult } from './citizens.js';

@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-002 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf (P1 The Keep · Citizens, "Food Is the Clock", BALANCE)` |
-| **Status** | `todo` |
+| **Status** | `in-progress` — 2/5 (2026-09-29) |
 
 ## 🔴 RED
 
@@ -15,8 +15,8 @@ Ruoalla ei ole kelloa. Väestö on tänään `population()` (`rules/nation.ts`):
 
 ## 🟢 GREEN
 
-- [ ] `rules/balance.ts` = dokumentin BALANCE-objekti (yksi lähde, kuten constants.ts)
-- [ ] `growBox(n)=20+8n+n²`, `housing=3+3·keepLv`, syönti 2/h, nälkä: aitta tyhjenee ensin, 6 h nollassa → vähiten hyödyllinen työläinen lähtee
+- [x] `rules/balance.ts` = dokumentin BALANCE-objekti (yksi lähde, kuten constants.ts)
+- [x] (puhtaat säännöt: `rules/citizens.ts` `settleGranary`, 10 testiä; `claimCost` floorattu, koska dokumentin omat esimerkit 50/277 ovat floor-arvoja) `growBox(n)=20+8n+n²`, `housing=3+3·keepLv`, syönti 2/h, nälkä: aitta tyhjenee ensin, 6 h nollassa → vähiten hyödyllinen työläinen lähtee
 - [ ] Keepin taso ja sen nosto; aitan täyttö `settlePouch`in rinnalla
 - [ ] P1-ruutu: CITIZENS x/y HOUSED, aitan palkki + ETA, FOOD LEDGER per hour
 - [ ] Vitest jokaiselle kaavalle; e2e: ruoka → kansalainen syntyy
