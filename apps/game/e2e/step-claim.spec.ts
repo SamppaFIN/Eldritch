@@ -102,7 +102,7 @@ test('walking past the Hearth ring raises "New ground", which closes itself', as
   await expect(newGround(page)).toBeHidden({ timeout: 25_000 });
 });
 
-test('a step says what it paid — the spoils line appears (BRDC-CLAIM-013)', async ({ page }) => {
+test('a step says what it took — the claim line appears (BRDC-CLAIM-013)', async ({ page }) => {
   // The whole reward loop hung on a wiring gap: only a closed loop set `lastClaim`, and
   // loop closure is off by default since BRDC-CLAIM-009 — so walking onto new ground paid
   // the pouch and said nothing. The claim line is the visible end of that fix.
@@ -116,7 +116,7 @@ test('a step says what it paid — the spoils line appears (BRDC-CLAIM-013)', as
   const claim = page.locator('.hud__claim');
   await expect
     .poll(() => claim.innerText().catch(() => ''), { timeout: 25_000 })
-    .toMatch(/awakened .* \+\d+ \w+/);
+    .toMatch(/awakened/); // no "+10 wood" since the claim payout went (2026-09-29)
 
   // ...and then lets go (BRDC-HUD-004). It is a reward, not a readout; leaving it up
   // means the HUD carries the first hex of the walk for the rest of the session.

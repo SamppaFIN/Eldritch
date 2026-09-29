@@ -5,7 +5,7 @@
  * each taken cell sits under opaque gold, and one at a time — rippling out from the
  * middle — the gold lifts to show the ground underneath, a sacred-geometry sigil bursting
  * outward as its lid comes off. The layer is driven frame by frame because the hexagons
- * are on the GPU; the sigils and the "+10 timber" are projected DOM, like every other
+ * are on the GPU; the sigils are projected DOM, like every other
  * per-cell flourish on this map.
  *
  * Its own file only because MapCanvas was at the line limit; the layer internals are in
@@ -13,7 +13,7 @@
  */
 import { useEffect } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { CLAIM_YIELD, cellCentre, resourceOf } from '@es3/core';
+import { cellCentre } from '@es3/core';
 import type { H3Index } from '@es3/core';
 import {
   AWAKENING_MS,
@@ -22,30 +22,7 @@ import {
   setAwakeningProgress,
 } from '../territory/AwakeningLayer.js';
 import { awakeningFeatures } from '../territory/awakening.js';
-import { RESOURCE_COLOUR, RESOURCE_WORD } from '../territory/territoryFeatures.js';
-import './gains-flyup.css';
 import './gift-reveal.css';
-
-/** "+10 timber" rising and fading over each cell a loop just took. */
-function flyGains(map: MapLibreMap, cells: readonly H3Index[]): void {
-  const container = map.getCanvasContainer();
-  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-  for (const h3 of onScreen(map, cells)) {
-    const res = resourceOf(h3);
-    if (!res) continue;
-    const c = cellCentre(h3);
-    const p = map.project([c.lng, c.lat]);
-    const el = document.createElement('div');
-    el.className = reduced ? 'gains-flyup gains-flyup--still' : 'gains-flyup';
-    el.textContent = `+${CLAIM_YIELD} ${RESOURCE_WORD[res]}`;
-    el.style.color = RESOURCE_COLOUR[res];
-    el.style.left = `${p.x}px`;
-    el.style.top = `${p.y}px`;
-    container.appendChild(el);
-    el.addEventListener('animationend', () => el.remove());
-    setTimeout(() => el.remove(), 2500);
-  }
-}
 
 /** DOM effects per claimed cell, at most this many — a big loop was hundreds of nodes (BRDC-FX-003). */
 export const AWAKENING_DOM_MAX = 40;
@@ -103,7 +80,6 @@ export function useAwakening(
     if (!map || !ready || !awakening || awakening.cells.length === 0) return;
 
     setAwakeningCells(map, awakening.cells);
-    flyGains(map, awakening.cells);
 
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 

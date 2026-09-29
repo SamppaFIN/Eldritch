@@ -8,7 +8,6 @@
  * and the ☰ menu still opens it.
  */
 import { useEffect, useState } from 'react';
-import { gainsLine, resourceGainsFor } from './claimFeedback.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 
 /** Long enough to read while walking, short enough to be gone before the next hex. */
@@ -36,10 +35,6 @@ export function claimLine(claim: ClaimEvent): string {
   if (corrupted) parts.push(`${corrupted} corrupted`);
   if (reinforced) parts.push(`${reinforced} reinforced`);
   if (damaged) parts.push(`${damaged} weakened`);
-
-  // What the ground paid for being taken — the same CLAIM_YIELD the pouch just gained.
-  const spoils = gainsLine(resourceGainsFor(claim.outcomes));
-  if (spoils) parts.push(spoils);
 
   return parts.length > 0 ? parts.join(' · ') : 'The ground did not stir';
 }

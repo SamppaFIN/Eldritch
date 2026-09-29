@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.67",
+    "date": "2026-09-29",
+    "notes": [
+      "Claiming a hex no longer pays ten of its resource on the spot. Held ground still earns by the hour. Walking alone was filling the pouch far too fast."
+    ]
+  },
+  {
     "version": "0.6.66",
     "date": "2026-09-29",
     "notes": [

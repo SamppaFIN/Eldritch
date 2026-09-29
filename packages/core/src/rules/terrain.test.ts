@@ -5,12 +5,10 @@ import { destination } from '../geo/project.js';
 import { DECAY_GRACE_HOURS } from './constants.js';
 import {
   BASE_STORAGE_CAP,
-  CLAIM_YIELD,
   EMPTY_POOL,
   RESOURCE_KINDS,
   TERRAIN_TABLE,
   TRICKLE_PER_HOUR,
-  addClaimYield,
   canAfford,
   resourceForCell,
   resourceOf,
@@ -160,18 +158,6 @@ describe('resourceOf / resourceForCell', () => {
       terrain: { kind: 'mountain', source: 'tiles' },
     };
     expect(resourceForCell(withMine)).toBe('iron');
-  });
-});
-
-describe('claim yield', () => {
-  it('pays once for a producing cell', () => {
-    const producing = sample().find((h3) => resourceOf(h3) === 'wood') as string;
-    expect(addClaimYield(EMPTY_POOL, producing).wood).toBe(CLAIM_YIELD);
-  });
-
-  it('pays nothing for plain ground, and returns the pool untouched', () => {
-    const plain = sample().find((h3) => resourceOf(h3) === null) as string;
-    expect(addClaimYield(EMPTY_POOL, plain)).toBe(EMPTY_POOL);
   });
 });
 

@@ -547,7 +547,7 @@ Lasibudjetti liikkeen aikana jatkuu `BRDC-SIGIL-001`:ssä suunnittelijan hyväks
 
 ## Season 2 — Progression + Season Codex (2026-09-29)
 
-Järjestys: SEASON-002 → PROG-001…005 → PROG-007 → PROG-006 → PROG-008 → DOOM-001…004 → SEASON-003…006 → COUNSEL-001 → v0.7.0. Kaikki valmiina ennen Season 2:n avausta (Infinite 2026-09-29); faktiot parkissa, kauden pituus päätetään myöhemmin.
+Järjestys: SEASON-002 → PROG-001…005 → PROG-007 → PROG-006 → PROG-008 → DOOM-001…004 → SEASON-003…008 → COUNSEL-001 → v0.7.0. Kaikki valmiina ennen Season 2:n avausta (Infinite 2026-09-29); faktiot parkissa, kauden pituus päätetään myöhemmin.
 
 | Tiketti | Mitä | Effort | Riippuu |
 |---|---|---|---|
@@ -569,3 +569,7 @@ Järjestys: SEASON-002 → PROG-001…005 → PROG-007 → PROG-006 → PROG-008
 | [BRDC-SEASON-005](BRDC-SEASON-005.md) | Tulostaulut, Hall of Records ja Hall of Ages | M | SEASON-003 |
 | [BRDC-SEASON-006](BRDC-SEASON-006.md) | Perintökalu ja uusi kausi | M | SEASON-004, SEASON-005 |
 | [BRDC-COUNSEL-001](BRDC-COUNSEL-001.md) | Pitäjän neuvo: peli selittää itsensä | M | PROG-001…008, DOOM-002 |
+| [BRDC-SEASON-007](BRDC-SEASON-007.md) | Uusi kausi: maa vapautuu, Fortressit raunioiksi | M | SEASON-004, SEASON-002 |
+| [BRDC-SEASON-008](BRDC-SEASON-008.md) | Maailmanihmeet jäävät kartalle ja saavat erikoistoiminnot | M | SEASON-007 |
+
+**Tehty heti 2026-09-29 (v0.6.67):** valtauksen kertamaksu `CLAIM_YIELD` (+10 heksan resurssia jokaisesta askeleesta) poistettu — *"tekee pelistä aivan liian nopean"*. `awardClaims` vain tilittää trickle-kertymän; `CLAIM_YIELD` jää paljastuspalkkion yksiköksi.

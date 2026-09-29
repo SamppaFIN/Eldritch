@@ -95,7 +95,8 @@ export const TERRAIN_TABLE: Readonly<
   settlement: { resource: 'gold', buildSites: ['market'] },
 };
 
-/** Paid once, the moment a producing cell changes hands. Never capped — see spend below. */
+/** The unit a reveal pays in multiples of (`reveal.ts`). No longer paid on a claim —
+ *  removed 2026-09-29, see `awardClaims` in `data/pouch.ts`. */
 export const CLAIM_YIELD = 10;
 /** Paid for holding a producing cell, per hour, while it is awake. */
 export const TRICKLE_PER_HOUR = 2;
@@ -220,19 +221,6 @@ export function resourceOf(h3: H3Index): ResourceKind | null {
 /** The resource for a cell, preferring its stored terrain over the hash. */
 export function resourceForCell(cell: Cell): ResourceKind | null {
   return TERRAIN_TABLE[terrainForCell(cell).kind].resource;
-}
-
-/**
- * Add the one-off yield for taking a cell. Returns a new pool; never mutates.
- *
- * Keyed on the h3 alone, so it reads the hash: at the moment ground changes hands its
- * tile terrain may not be resolved yet. The trickle, which is handed whole cells, uses
- * the resolved value once one exists (`resourceForCell`).
- */
-export function addClaimYield(pool: ResourcePool, h3: H3Index): ResourcePool {
-  const resource = resourceOf(h3);
-  if (!resource) return pool;
-  return { ...pool, [resource]: pool[resource] + CLAIM_YIELD };
 }
 
 /**

@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { gridDisk, latLngToCell } from 'h3-js';
-import { CLAIM_YIELD, EMPTY_POOL, RESOURCE_KINDS, resourceOf } from '../rules/terrain.js';
+import { EMPTY_POOL, RESOURCE_KINDS, resourceOf } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
 import {
   awardClaims,
@@ -208,9 +208,8 @@ describe('resetPouch (BRDC-ECON-005)', () => {
  * BRDC-ECON-007 — no subsidies. What the player gets, they get from playing: a yield
  * every time ground is taken, and an hourly trickle a Collect press acknowledges.
  */
-describe('awardClaims — every new cell pays, in a batch, and again next time', () => {
+describe('awardClaims — a claim pays nothing since 2026-09-29, it only settles', () => {
   const T0 = Date.parse('2026-03-02T12:00:00Z');
-  const HOUR = 3_600_000;
   const ring = gridDisk(latLngToCell(61.4729, 23.7258, 11), 3);
   const producing = ring.filter((h3) => resourceOf(h3) !== null);
   const barren = ring.filter((h3) => resourceOf(h3) === null);
@@ -223,12 +222,11 @@ describe('awardClaims — every new cell pays, in a batch, and again next time',
     previousOwner: null,
   });
 
-  it('pays CLAIM_YIELD once per producing cell taken in one batch', async () => {
+  it('pays nothing for producing cells taken in one batch', async () => {
     expect(producing.length).toBeGreaterThanOrEqual(2);
     const store = new MemoryStore();
-    const take = producing.slice(0, 3);
-    await awardClaims(store, [], take.map(claimed), T0);
-    expect(total((await settlePouch(store, [], T0)).pool)).toBe(take.length * CLAIM_YIELD);
+    await awardClaims(store, [], producing.slice(0, 3).map(claimed), T0);
+    expect(total((await settlePouch(store, [], T0)).pool)).toBe(0);
   });
 
   it('a barren cell yields nothing', async () => {
@@ -236,14 +234,6 @@ describe('awardClaims — every new cell pays, in a batch, and again next time',
     const store = new MemoryStore();
     await awardClaims(store, [], [claimed(barren[0] as string)], T0);
     expect(total((await settlePouch(store, [], T0)).pool)).toBe(0);
-  });
-
-  it('the same cell pays again when it is taken a second time', async () => {
-    const store = new MemoryStore();
-    const h3 = producing[0] as string;
-    await awardClaims(store, [], [claimed(h3)], T0);
-    await awardClaims(store, [], [{ ...claimed(h3), kind: 'taken', previousOwner: 'rival' }], T0 + HOUR);
-    expect(total((await settlePouch(store, [], T0 + HOUR)).pool)).toBe(2 * CLAIM_YIELD);
   });
 
   it('reinforced and unchanged outcomes pay nothing', async () => {

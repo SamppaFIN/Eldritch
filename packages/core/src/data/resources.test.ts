@@ -2,7 +2,7 @@
  * The pouch, through the repository — claim yields and the trickle from held ground.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CLAIM_YIELD, EMPTY_POOL, RESOURCE_KINDS, TRICKLE_PER_HOUR, resourceOf } from '../rules/terrain.js';
+import { EMPTY_POOL, RESOURCE_KINDS, TRICKLE_PER_HOUR, resourceOf } from '../rules/terrain.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import { WARD_COST } from '../rules/ward.js';
 import { destination } from '../geo/project.js';
@@ -46,7 +46,7 @@ describe('resources', () => {
     expect(await repo.getResources(T0)).toEqual(EMPTY_POOL);
   });
 
-  it('are paid the moment ground is taken', async () => {
+  it('are not paid the moment ground is taken (claim payout removed 2026-09-29)', async () => {
     const id = await repo.startRun(T0);
     const result = await repo.submitTrail(id, walk());
 
@@ -56,7 +56,7 @@ describe('resources', () => {
 
     // The walk has to cross something worth having, or the test proves nothing.
     expect(producing).toBeGreaterThan(0);
-    expect(total(await repo.getResources(T0))).toBe(producing * CLAIM_YIELD);
+    expect(total(await repo.getResources(T0))).toBe(0);
   });
 
   it('trickle in for ground that is simply held', async () => {

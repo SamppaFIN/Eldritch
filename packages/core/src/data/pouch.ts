@@ -5,7 +5,7 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { EMPTY_POOL, RESOURCE_KINDS, addClaimYield, capOf, settleResources } from '../rules/terrain.js';
+import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
 import { worksBonus, worksCapBonus } from '../rules/works/bonus.js';
 import { worksContext, worksContextFrom, type WorksContext } from './worksTrees.js';
@@ -219,11 +219,13 @@ export async function forecastRates(
 }
 
 /**
- * Pay the one-off yield for ground that just changed hands.
+ * Settle the pouch at the moment ground changes hands, so the trickle owed up to now is
+ * banked against the old holdings and a new cell never earns for the hours before it was
+ * taken.
  *
- * Settles first, so the trickle owed up to this moment is banked before the claim is
- * added — otherwise the claim would be folded into a pool that is about to be recomputed
- * from an older timestamp, and paid for twice.
+ * It used to pay a one-off `CLAIM_YIELD` per cell too. Removed 2026-09-29 before Season 2
+ * (Infinite: *"poistetaan adjancy bonus +10 resurssia.. tekee pelistä aivan liian
+ * nopean"*): every step onto a neighbouring hex paid ten, so walking alone filled the pouch.
  */
 export async function awardClaims(
   store: KeyValueStore,
@@ -235,11 +237,6 @@ export async function awardClaims(
   if (taken.length === 0) return;
 
   await settlePouch(store, owned, now);
-  await commit(store, now, (cur) => {
-    let pool = cur.pool;
-    for (const outcome of taken) pool = addClaimYield(pool, outcome.h3);
-    return { ...cur, pool };
-  });
 }
 
 /**

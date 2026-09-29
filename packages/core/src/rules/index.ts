@@ -112,7 +112,6 @@ export {
   RESOURCE_KINDS,
   TERRAIN_TABLE,
   TRICKLE_PER_HOUR,
-  addClaimYield,
   canAfford,
   resourceForCell,
   resourceOf,
