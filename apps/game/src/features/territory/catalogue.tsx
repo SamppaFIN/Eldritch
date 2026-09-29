@@ -62,6 +62,10 @@ export const BUILDING_BLURB: Readonly<Record<BuildingId, string>> = {
   forge: 'Iron worked hot, beside the hill or the mine that feeds it.',
   tavern: 'The quest board. One per province — every tale under way is listed here.',
   watchtower: 'A lookout on the hill or the plain. It gives little; its worth is what it will show you.',
+  manor: 'Four Farmsteads become a house with a name. More room in the realm, and grain that grows faster.',
+  foundry: 'Quarries and Forges become one great fire. Iron and stone come half again as fast.',
+  exchange: 'Three Night Markets become a hall where coin turns into anything, at a price.',
+  'sunken-cathedral': 'Three temples sing the same verse until the water answers. Mana flows half again as fast.',
 };
 
 /** The one Rite each school leads to. Every value's `SPELLS[v].school` is its own key

@@ -169,5 +169,7 @@ export { loreApi, readLore } from './loreStore.js';
 export type { LoreApi, LoreRow, LoreView, StudyOutcome } from './loreStore.js';
 export { riteApi } from './riteStore.js';
 export type { RiteApi, RiteOutcome, RiteRow, RiteView } from './riteStore.js';
+export { masterworkApi } from './masterworkStore.js';
+export type { MasterworkApi, MasterworkRow, RaiseOutcome } from './masterworkStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

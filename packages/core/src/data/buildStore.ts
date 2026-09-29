@@ -80,6 +80,7 @@ export async function buildOn(
   const copies = state.keep ? buildingsOf(owned).filter((b) => b === id).length : 0;
   // Season 2 (PROG-004): the Lore decides what may be built; the old tree steps aside.
   if (state.keep && !loreAllows(id, await readLore(store))) return { ok: false, refused: 'locked' };
+  if (state.keep && id === 'fortress') return { ok: false, refused: 'locked' }; // a masterwork now (PROG-006)
   const check = canBuild(
     {
       playerId: me,

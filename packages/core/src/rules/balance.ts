@@ -67,3 +67,10 @@ export function claimsCost(held: number, count: number): number {
   for (let i = 1; i <= count; i += 1) cost += claimCost(held + i);
   return cost;
 }
+
+/** A whole price with `copies` already standing: each resource at `copyCost` (PROG-003). */
+export function copyPrice<K extends string>(cost: Readonly<Partial<Record<K, number>>>, copies: number): Partial<Record<K, number>> {
+  const out: Partial<Record<K, number>> = {};
+  for (const [k, v] of Object.entries(cost) as [K, number][]) out[k] = copyCost(v, copies + 1);
+  return out;
+}

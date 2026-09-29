@@ -71,6 +71,7 @@ describe('BUILDINGS is well-formed', () => {
         'granary', 'market', 'monument', 'storehouse',
         'sawmill', 'lumbermill', 'mine', 'quarry', 'farm', 'fishery', 'vineyard',
         'library', 'temple-grove', 'lighthouse', 'fortress', 'forge', 'tavern', 'watchtower',
+        'manor', 'foundry', 'exchange', 'sunken-cathedral',
       ].sort(),
     );
   });

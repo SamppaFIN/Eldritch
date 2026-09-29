@@ -102,7 +102,12 @@ export interface KeepState {
   titheAt?: number;
   /** Rites still working — a timed food boost (PROG-007). */
   boons?: readonly Boon[];
+  /** Housing beyond the Keep's own: +3 for every Manor raised (PROG-006). */
+  extraHousing?: number;
 }
+
+/** How many a Keep houses, Manors included. */
+export const keepHousing = (keep: KeepState): number => housing(keep.level) + (keep.extraHousing ?? 0);
 
 /** A cast rite whose effect lasts: `value` food/h, on one Farmstead or on every Farmstead hand. */
 export interface Boon {
@@ -136,7 +141,7 @@ export function feedGranary<S extends Settled>(before: S, after: S): S {
   if (!keep || hours <= 0) return after;
   const produced = Math.max(0, after.pool.food - before.pool.food);
   const balance = foodBalance(produced / hours, keep.granary.citizens);
-  const r = settleGranary(keep.granary, balance, hours, housing(keep.level));
+  const r = settleGranary(keep.granary, balance, hours, keepHousing(keep));
   return {
     ...after,
     pool: { ...after.pool, food: before.pool.food + Math.floor(r.stored) },

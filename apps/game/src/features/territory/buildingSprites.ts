@@ -58,6 +58,11 @@ const CAP: Readonly<Record<BuildingId, string>> = {
   // walk into, distinct from Market's wide canopy and Granary's silo dome.
   tavern: '<path d="M20 20 L32 8 L44 20 Z" fill="{{f}}"/><rect x="25" y="20" width="14" height="7" fill="{{d}}"/><circle cx="32" cy="6" r="2" fill="{{f}}"/>',
   watchtower: '<rect x="28" y="2" width="8" height="20" fill="{{f}}"/><path d="M26 4 L32 -2 L38 4 Z" fill="{{d}}"/>',
+  // Masterworks draw from `designSprites.ts`; these caps are only the fallback.
+  manor: '<rect x="20" y="8" width="24" height="14" fill="{{f}}"/><path d="M18 8 L32 -2 L46 8 Z" fill="{{d}}"/>',
+  foundry: '<rect x="18" y="8" width="28" height="14" fill="{{f}}"/><rect x="38" y="-2" width="5" height="10" fill="{{d}}"/>',
+  exchange: '<rect x="18" y="6" width="28" height="16" fill="{{f}}"/><path d="M16 6 L32 -2 L48 6 Z" fill="{{d}}"/>',
+  'sunken-cathedral': '<rect x="22" y="6" width="20" height="16" fill="{{f}}"/><path d="M26 6 L32 -4 L38 6 Z" fill="{{d}}"/>',
 };
 
 /** The shared isometric block: a top rhombus and two side faces, y 16–56. */

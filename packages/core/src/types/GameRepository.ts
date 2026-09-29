@@ -68,6 +68,7 @@ import type { WorksApi } from '../data/worksStore.js';
 import type { KeepApi } from '../data/citizenStore.js';
 import type { LoreApi } from '../data/loreStore.js';
 import type { RiteApi } from '../data/riteStore.js';
+import type { MasterworkApi } from '../data/masterworkStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -392,4 +393,6 @@ export interface GameRepository {
   readonly lore: LoreApi;
   /** The temples' three schools — `view` is null on a Season 1 save (BRDC-PROG-007). */
   readonly rites: RiteApi;
+  /** Masterworks — `view` is null on a Season 1 save (BRDC-PROG-006). */
+  readonly masterworks: MasterworkApi;
 }

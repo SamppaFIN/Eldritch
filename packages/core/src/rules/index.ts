@@ -279,6 +279,7 @@ export {
   feedGranary,
   foodBalance,
   hoursToNextCitizen,
+  keepHousing,
   keepRaiseCost,
   raiseKeep,
   settleGranary,
@@ -317,3 +318,11 @@ export {
   tierCeiling,
 } from './rites.js';
 export type { Rank, Rite, RiteBook, RiteEffect, RiteId, RiteRefusal, School, Tier } from './rites.js';
+export {
+  MASTERWORKS,
+  MASTERWORK_IDS,
+  activeMasterworks,
+  isDormant as isMasterworkDormant,
+  ladder as masterworkLadder,
+} from './masterwork.js';
+export type { Masterwork, Need } from './masterwork.js';

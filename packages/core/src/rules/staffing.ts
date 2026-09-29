@@ -17,6 +17,7 @@ import { neighboursOf } from '../geo/cells.js';
 import type { ResourcePool, TerrainKind } from './terrain.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 import type { Boon } from './citizens.js';
+import { activeMasterworks } from './masterwork.js';
 
 /** Workers per building, keyed `h3|buildingId`. */
 export type StaffMap = Readonly<Record<string, number>>;
@@ -84,6 +85,11 @@ export function staffedBonus(
       if (work.id === 'market') add('gold', heldBeside(cell.h3, 'settlement')); // trade cells in reach
     }
   }
+  // Masterworks (PROG-006): a Foundry lifts iron and stone by half, a Sunken Cathedral mana.
+  const awake = activeMasterworks(cells);
+  if (awake.includes('foundry')) for (const k of ['iron', 'stone'] as const) if (out[k]) out[k] = Math.round((out[k] ?? 0) * 1.5);
+  if (awake.includes('sunken-cathedral') && out.mana) out.mana = Math.round(out.mana * 1.5);
+
   // Rites of the Tide (PROG-007): Call the Shoal on one Farmstead, High Water on every hand.
   for (const b of boons) {
     if (b.until <= now) continue;

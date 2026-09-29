@@ -62,6 +62,7 @@ import { worksApi, type WorksApi } from './worksStore.js';
 import { keepApi, type KeepApi } from './citizenStore.js';
 import { loreApi, type LoreApi } from './loreStore.js';
 import { riteApi, type RiteApi } from './riteStore.js';
+import { masterworkApi, type MasterworkApi } from './masterworkStore.js';
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
@@ -360,6 +361,7 @@ export class MockRepository implements GameRepository {
   readonly keep: KeepApi = keepApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly lore: LoreApi = loreApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly rites: RiteApi = riteApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly masterworks: MasterworkApi = masterworkApi(() => this.store, (t) => this.getOwnedCells(t));
   hearthRing = (): Promise<number> => readHearthRing(this.store);
   growHearth = async (now: number): Promise<HearthGrowth> =>
     growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);

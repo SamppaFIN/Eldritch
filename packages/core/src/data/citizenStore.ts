@@ -7,8 +7,8 @@
  * trickle. This is the seam the Keep screen reads and the Raise button writes through —
  * a separate API object, like `worksApi`, because `MockRepository` is at its line limit.
  */
-import { claimCost, growBox, housing } from '../rules/balance.js';
-import { FIRST_KEEP, STORE_MS, foodBalance, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
+import { claimCost, growBox } from '../rules/balance.js';
+import { FIRST_KEEP, STORE_MS, foodBalance, keepHousing, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
 import type { KeepRaiseResult } from '../rules/citizens.js';
 import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js';
 import type { StaffRefusal } from '../rules/staffing.js';
@@ -89,7 +89,7 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
       if (!keep) return null;
       const producedPerH = (await forecastRates(store(), cells, now)).perHour.food ?? 0;
       const g = keep.granary;
-      const cap = housing(keep.level);
+      const cap = keepHousing(keep);
       const balance = foodBalance(producedPerH, g.citizens);
       return {
         level: keep.level,

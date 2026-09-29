@@ -90,7 +90,13 @@ export type BuildingId =
   // BRDC-TAVERN-001: Worldseed's tavern — the quest board.
   | 'tavern'
   // Infinite 2026-09-29: the Works Codex's watchtower, buildable at last.
-  | 'watchtower';
+  | 'watchtower'
+  // BRDC-PROG-006: masterworks — raised on a host, never built directly. The Fortress
+  // (above) is the fifth, raised from a Watchtower on a Season 2 save.
+  | 'manor'
+  | 'foundry'
+  | 'exchange'
+  | 'sunken-cathedral';
 
 /** One Work standing on a cell, and when it went up. */
 export interface CellBuilding {

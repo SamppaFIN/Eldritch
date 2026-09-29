@@ -21,7 +21,8 @@ import {
 } from './constants.js';
 import { BASE_STORAGE_CAP, canAfford, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
-import { copyCost } from './balance.js';
+import { copyPrice } from './balance.js';
+import { MASTERWORK_BUILDINGS } from './masterworkBuildings.js';
 import { hasTech } from './tech.js';
 import type { TechId } from './tech.js';
 import type { AuraKind, BuildingId, Cell, CellBuilding, PlayerId } from '../types/domain.js';
@@ -49,6 +50,7 @@ export interface Building {
   needsIronAdjacent?: boolean;
   /** Only one may stand per province (res-6 region) — the Tavern's own gate (BRDC-TAVERN-001). */
   uniquePerProvince?: boolean;
+  masterwork?: boolean; // BRDC-PROG-006: raised on a host (`masterworkStore`), never built
 }
 
 export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
@@ -166,6 +168,7 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
   },
   // BRDC-BUILD-004: blunts attacks on the ground around it. Read in the siege path,
   // not in `perHourBonus` — `defence` is not a resource.
+  ...MASTERWORK_BUILDINGS, // BRDC-PROG-006
   fortress: {
     cost: { stone: 120, iron: 40 },
     terrain: 'any',
@@ -213,11 +216,7 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
 export function buildCost(id: BuildingId, copies = 0): Readonly<Partial<ResourcePool>> {
-  if (copies <= 0) return BUILDINGS[id].cost;
-  // Season 2: each copy of the same Work is 25 % dearer than the one before (PROG-003).
-  const out: Partial<ResourcePool> = {};
-  for (const [k, v] of Object.entries(BUILDINGS[id].cost) as [ResourceKind, number][]) out[k] = copyCost(v, copies + 1);
-  return out;
+  return copies > 0 ? copyPrice(BUILDINGS[id].cost, copies) : BUILDINGS[id].cost; // Season 2 (PROG-003)
 }
 
 /** What demolishing hands back — half the cost, floored per resource. */
@@ -362,6 +361,7 @@ export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
 export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCheck {
   const b = BUILDINGS[id];
   const here = worksOn(cell);
+  if (b.masterwork) return { ok: false, refused: 'locked' };
 
   if (cell.ownerId !== ctx.playerId) return { ok: false, refused: 'not-yours' };
   // One of each per cell: three sawmills on one hex is a spreadsheet, not a decision.

@@ -32,6 +32,10 @@ export const BUILDING_ROLE: Readonly<Record<BuildingId, BuildingRole>> = {
   forge: 'produce',
   tavern: 'produce',
   watchtower: 'defence',
+  manor: 'produce',
+  foundry: 'produce',
+  exchange: 'produce',
+  'sunken-cathedral': 'produce',
 };
 
 /**
