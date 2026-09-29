@@ -5,7 +5,9 @@
  */
 import { MAX_STRENGTH } from '../rules/constants.js';
 import { WORKS_DEFS } from '../rules/works/defs/index.js';
-import { researchNode, worksLevel } from '../rules/works/tree.js';
+import { researchNode, tierNumberOf, worksLevel } from '../rules/works/tree.js';
+import { ageOf } from '../rules/lore.js';
+import { readLore } from './loreStore.js';
 import type { WorksRefusal } from '../rules/works/tree.js';
 import type { WorksKind } from '../rules/works/types.js';
 import type { Cell, H3Index } from '../types/domain.js';
@@ -49,6 +51,8 @@ export async function researchWorkAt(
   const def = WORKS_DEFS[kind];
   const trees = await readTrees(store);
   const state = await settlePouch(store, owned, now);
+  // Season 2 (PROG-005, LAW II): in Age N a building learns tiers I–N and no further.
+  if (state.keep && tierNumberOf(def, nodeId) > ageOf(await readLore(store))) return { ok: false, refused: 'age' };
   const result = researchNode(def, trees[h3] ?? [], nodeId, state.pool, true);
   if (!result.ok) return result;
 

@@ -90,4 +90,12 @@ describe('the ground adds to the hands (the NOTE column)', () => {
     expect(staffedBonus([mill, ...forests], staff, T0).wood).toBe(expected);
     expect(staffedBonus([mill], staff, T0).wood).toBe(2);
   });
+
+  it('a Market gains a gold per held settlement hex beside it', () => {
+    const market = { ...cell(A), buildings: [{ id: 'market' as const, builtAt: T0 }] };
+    const towns = neighboursOf(A).slice(0, 2).map((h) => ({ ...cell(h), terrain: { kind: 'settlement' as const, source: 'seed' as const } }));
+    const staff = { [staffKey(A, 'market')]: 1 };
+    const seen = towns.filter((t) => terrainForCell(t).kind === 'settlement').length;
+    expect(staffedBonus([market, ...towns], staff, T0).gold).toBe(3 + seen);
+  });
 });

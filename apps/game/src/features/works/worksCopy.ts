@@ -25,6 +25,7 @@ export const REFUSAL_TEXT: Readonly<Record<WorksRefusal | 'no-work', string>> = 
   closed: 'The other choice on this tier was taken. It stays closed.',
   dormant: 'The game cannot do this yet. It wakes in a later update.',
   short: 'Not enough in the pouch yet.',
+  age: 'Your Age is the ceiling. Study the Lore to reach the next one.',
   'no-work': 'Nothing stands here to research.',
 };
 

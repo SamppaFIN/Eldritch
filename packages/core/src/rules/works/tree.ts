@@ -25,7 +25,12 @@ export const WIRED: ReadonlySet<EffectKind> = new Set<EffectKind>([
 ]);
 
 export type NodeState = 'learned' | 'available' | 'locked' | 'closed' | 'dormant';
-export type WorksRefusal = 'not-yours' | 'unknown' | 'already' | 'locked' | 'closed' | 'dormant' | 'short';
+export type WorksRefusal = 'not-yours' | 'unknown' | 'already' | 'locked' | 'closed' | 'dormant' | 'short' | 'age';
+
+/** The tier (1-based) a node sits in, or 0 when the tree has no such node. */
+export function tierNumberOf(def: BuildingDef, nodeId: string): number {
+  return def.tree.tiers.findIndex((t) => t.nodes.some((n) => n.id === nodeId)) + 1;
+}
 
 /** A wider ring only matters when something reads it: the ring's own effect, or a node's. */
 function ringMatters(def: BuildingDef): boolean {

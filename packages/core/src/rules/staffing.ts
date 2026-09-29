@@ -14,7 +14,7 @@ import { BUILDINGS, worksOn } from './build.js';
 import { DORMANT_AFTER_MS, terrainForCell } from './terrain.js';
 import { bountyOn, bountyYield } from './bounty.js';
 import { neighboursOf } from '../geo/cells.js';
-import type { ResourcePool } from './terrain.js';
+import type { ResourcePool, TerrainKind } from './terrain.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 
 /** Workers per building, keyed `h3|buildingId`. */
@@ -53,13 +53,18 @@ export const staffed = (staff: StaffMap): number => Object.values(staff).reduce(
 /**
  * Per-hour production of every awake, staffed building. A building with no hands yields
  * nothing. The ground adds to it (the document's NOTE column): a Farmstead on a food
- * deposit doubles each worker's yield, and a Sawmill gains a timber for every held
- * forest hex beside it.
+ * deposit doubles each worker's yield, a Sawmill gains a timber for every held forest hex
+ * beside it, and a Market a gold for every held settlement (trade) hex beside it.
  */
 export function staffedBonus(cells: readonly Cell[], staff: StaffMap, now: number): Partial<ResourcePool> {
   const out: Partial<ResourcePool> = {};
   const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
   const held = new Map(cells.map((c) => [c.h3, c]));
+  const heldBeside = (h3: H3Index, kind: TerrainKind) =>
+    neighboursOf(h3).filter((h) => {
+      const n = held.get(h);
+      return n !== undefined && terrainForCell(n).kind === kind;
+    }).length;
   for (const cell of cells) {
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
     for (const work of worksOn(cell)) {
@@ -69,13 +74,8 @@ export function staffedBonus(cells: readonly Cell[], staff: StaffMap, now: numbe
       for (const [k, v] of Object.entries(rowFor(work.id).perWorker) as [keyof ResourcePool, number][]) {
         add(k, v * hands * (v > 0 ? mult : 1));
       }
-      if (work.id === 'sawmill') {
-        const forest = neighboursOf(cell.h3).filter((h) => {
-          const n = held.get(h);
-          return n !== undefined && terrainForCell(n).kind === 'forest';
-        }).length;
-        add('wood', forest);
-      }
+      if (work.id === 'sawmill') add('wood', heldBeside(cell.h3, 'forest'));
+      if (work.id === 'market') add('gold', heldBeside(cell.h3, 'settlement')); // trade cells in reach
     }
   }
   return out;

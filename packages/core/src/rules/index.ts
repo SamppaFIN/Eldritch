@@ -248,6 +248,7 @@ export {
   reachRings,
   researchNode,
   worksLevel,
+  tierNumberOf,
 } from './works/tree.js';
 export type { NodeState, WorksRefusal } from './works/tree.js';
 export { worksBonus, worksCapBonus } from './works/bonus.js';
