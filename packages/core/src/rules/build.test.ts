@@ -13,6 +13,7 @@ import { TECHS } from './tech.js';
 import type { TechId } from './tech.js';
 import {
   BUILDINGS,
+  buildCost,
   buildingBonus,
   buildingsOf,
   canBuild,
@@ -270,5 +271,13 @@ describe('keepOne — which Work survives one-per-cell (PIVOT-2026-09-09 §6)', 
 
   it('has nothing to say about bare ground', () => {
     expect(keepOne([])).toEqual({ keep: null, raze: [] });
+  });
+});
+
+describe('copies get dearer on a Season 2 save (BRDC-PROG-003)', () => {
+  it('the first copy is the base price; the fifth is 2.4× it', () => {
+    const base = buildCost('watchtower');
+    expect(buildCost('watchtower', 0)).toBe(base);
+    expect(buildCost('watchtower', 4)).toEqual({ wood: Math.round((base.wood ?? 0) * 1.25 ** 4), stone: Math.round((base.stone ?? 0) * 1.25 ** 4) });
   });
 });

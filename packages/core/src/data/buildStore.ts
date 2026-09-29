@@ -69,6 +69,8 @@ export async function buildOn(
   if (!live) return { ok: false, refused: 'not-yours' };
 
   const state = await settlePouch(store, owned, now);
+  // Season 2 (PROG-003): the fifth Watchtower costs 2.4× the first.
+  const copies = state.keep ? buildingsOf(owned).filter((b) => b === id).length : 0;
   const check = canBuild(
     {
       playerId: me,
@@ -78,13 +80,14 @@ export async function buildOn(
       templeAdjacent,
       ironAdjacent,
       tavernInProvince,
+      copies,
     },
     id,
     live,
   );
   if (!check.ok) return check;
 
-  const paid = spend(state.pool, buildCost(id));
+  const paid = spend(state.pool, buildCost(id, copies));
   if (!paid) return { ok: false, refused: 'cannot-afford' };
   await writePouch(store, paid, now);
 

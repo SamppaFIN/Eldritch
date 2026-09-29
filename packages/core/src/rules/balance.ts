@@ -46,3 +46,24 @@ export const claimCost = (n: number): number => Math.floor(8 + 3 * n ** 1.15);
 
 /** The `k`th copy of a building costs 1.25× the one before it (PROG-003). */
 export const copyCost = (base: number, k: number): number => Math.round(base * 1.25 ** (k - 1));
+
+/**
+ * How many new cells `culture` buys for a realm already holding `held`, and the culture
+ * they cost together — cell `held + 1` first, each dearer than the last (PROG-003).
+ */
+export function affordableClaims(culture: number, held: number): { count: number; cost: number } {
+  let count = 0;
+  let cost = 0;
+  while (cost + claimCost(held + count + 1) <= culture) {
+    cost += claimCost(held + count + 1);
+    count += 1;
+  }
+  return { count, cost };
+}
+
+/** The culture `count` new cells cost together, starting at cell `held + 1`. */
+export function claimsCost(held: number, count: number): number {
+  let cost = 0;
+  for (let i = 1; i <= count; i += 1) cost += claimCost(held + i);
+  return cost;
+}

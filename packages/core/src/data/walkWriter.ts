@@ -29,6 +29,8 @@ export interface Walker {
   level: number;
   /** Whether they hold anything at all. The seed exception turns on this. */
   hasTerritory: boolean;
+  /** Season 2: how many new cells the culture in the pouch pays for (PROG-003). Absent = no limit. */
+  claimBudget?: number;
 }
 
 export interface WalkRecord {
@@ -89,8 +91,17 @@ export async function recordWalk(
    * state per hex (a Map, insertion-ordered, later `set` wins) and writes those once.
    * Fewer writes, no ordering hazard, and the same result the loop was reaching for.
    */
+  // Season 2 (PROG-003): claims past what culture pays for are not written — in walk
+  // order, so the nearer ground is taken first and the budget is never overspent.
+  let budget = walker.claimBudget ?? Infinity;
+  const steps = plan.steps.filter((s) => {
+    const claims = s.outcome?.kind === 'claimed' || s.outcome?.kind === 'taken';
+    if (!claims) return true;
+    budget -= 1;
+    return budget >= 0;
+  });
   const finalCells = new Map<H3Index, Cell>();
-  for (const step of plan.steps) if (step.cell) finalCells.set(step.cell.h3, step.cell);
+  for (const step of steps) if (step.cell) finalCells.set(step.cell.h3, step.cell);
   await Promise.all([...finalCells].map(([h3, cell]) => store.set(K.cell(h3), cell)));
   await store.set(K.dwell, plan.dwell);
 
@@ -107,7 +118,7 @@ export async function recordWalk(
     await store.set<DwellReading>(K.lastReading, plan.lastReading);
   }
 
-  const grown = plan.steps.map((s) => s.outcome).filter((o): o is CaptureOutcome => o !== null);
+  const grown = steps.map((s) => s.outcome).filter((o): o is CaptureOutcome => o !== null);
   const taken = grown.filter((o) => o.kind === 'claimed' || o.kind === 'taken').length;
 
   return {

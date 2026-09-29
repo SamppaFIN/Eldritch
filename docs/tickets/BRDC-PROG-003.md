@@ -7,7 +7,7 @@
 | **Effort** | S |
 | **Riippuvuudet** | PROG-001 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf ("Every cell costs more", "Copies get dearer")` |
-| **Status** | `todo` |
+| **Status** | `in-progress` — säännöt valmiit, UI + Hearth-päätös auki (2026-09-29) |
 
 ## 🔴 RED
 
@@ -17,11 +17,11 @@ Askelvaltaus on ilmainen (CLAIM-009/017), joten maa kasvaa niin nopeasti kuin ja
 
 ## 🟢 GREEN
 
-- [ ] `claimCost(n)` askelvaltaukseen; ei varaa → heksaa ei vallata ja paneeli kertoo miksi
+- [x] (`claimStepAt`: Season 2 -tallennuksella solu n maksaa `claimCost(n)` kulttuuria, ilman varaa `{claimed:null, needsCulture}`; kävelyn kasvu `walkWriter` ottaa vain `affordableClaims`-budjetin verran, järjestyksessä, ja `walkFlow` vähentää `claimsCost`in) `claimCost(n)` askelvaltaukseen; ei varaa → heksaa ei vallata ja paneeli kertoo miksi
 - [ ] Keepin vaikutusalueella valtaus alkaa vahvempana
-- [ ] `copyCost(base,k)` `build.ts`:ään, paneeli näyttää k:nnen hinnan
+- [~] (`buildCost(id, copies)` + `BuildContext.copies`, `buildStore` laskee kopiot Season 2:lla ja maksaa kalliimman; **BuildPanelin näyttämä hinta ei vielä huomioi kopioita**) `copyCost(base,k)` `build.ts`:ään, paneeli näyttää k:nnen hinnan
 - [ ] Hearth-kasvatuksen kohtalo päätetty ja toteutettu
-- [ ] Vitest + step-claim.spec päivitetty
+- [~] Vitest (`affordableClaims`/`claimsCost`, `buildCost`-kopiot, `step.repo.test` Season 2 -valtaus) ✓; e2e ei vielä (UI puuttuu)
 - [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
 
 ## Todennus

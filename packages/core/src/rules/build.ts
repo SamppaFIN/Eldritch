@@ -21,6 +21,7 @@ import {
 } from './constants.js';
 import { BASE_STORAGE_CAP, canAfford, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
+import { copyCost } from './balance.js';
 import { hasTech } from './tech.js';
 import type { TechId } from './tech.js';
 import type { AuraKind, BuildingId, Cell, CellBuilding, PlayerId } from '../types/domain.js';
@@ -211,8 +212,12 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
-export function buildCost(id: BuildingId): Readonly<Partial<ResourcePool>> {
-  return BUILDINGS[id].cost;
+export function buildCost(id: BuildingId, copies = 0): Readonly<Partial<ResourcePool>> {
+  if (copies <= 0) return BUILDINGS[id].cost;
+  // Season 2: each copy of the same Work is 25 % dearer than the one before (PROG-003).
+  const out: Partial<ResourcePool> = {};
+  for (const [k, v] of Object.entries(BUILDINGS[id].cost) as [ResourceKind, number][]) out[k] = copyCost(v, copies + 1);
+  return out;
 }
 
 /** What demolishing hands back — half the cost, floored per resource. */
@@ -341,6 +346,8 @@ export interface BuildContext {
   ironAdjacent?: boolean;
   /** Does the player already hold a Tavern in this cell's province? (BRDC-TAVERN-001). */
   tavernInProvince?: boolean;
+  /** Season 2: copies of the chosen Work already standing — each makes the next dearer. */
+  copies?: number;
 }
 
 export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
@@ -386,7 +393,7 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   if (!upgrading && here.length >= CELL_BUILDING_CAP) {
     return { ok: false, refused: 'cell-full' };
   }
-  if (!canAfford(ctx.pool, b.cost)) return { ok: false, refused: 'cannot-afford' };
+  if (!canAfford(ctx.pool, buildCost(id, ctx.copies))) return { ok: false, refused: 'cannot-afford' };
 
   return { ok: true };
 }

@@ -15,7 +15,8 @@ import { emptyCell, resolveCapture, resolveInstantCapture } from '../rules/captu
 import { claimableStep } from '../rules/step.js';
 import { neighboursOf } from '../geo/cells.js';
 import { XP_PER_CELL_CLAIMED } from '../rules/constants.js';
-import { awardClaims } from './pouch.js';
+import { awardClaims, settlePouch, writePouch } from './pouch.js';
+import { claimCost } from '../rules/balance.js';
 import { addXpTo } from './profileStore.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
@@ -32,7 +33,7 @@ import type { CaptureOutcome, Cell, H3Index, PlayerProfile } from '../types/doma
  */
 export type StepClaimOutcome =
   | { claimed: H3Index; outcome: CaptureOutcome }
-  | { claimed: null };
+  | { claimed: null; needsCulture?: number };
 
 export async function claimStepAt(
   store: KeyValueStore,
@@ -52,6 +53,11 @@ export async function claimStepAt(
   const stored = await store.get<Cell>(K.cell(h3));
   if (profile.mode === 'route' && stored && stored.ownerId !== null) return { claimed: null };
 
+  // Season 2: the next cell costs culture, and a pouch without it takes nothing (PROG-003).
+  const pouch = await settlePouch(store, owned, now);
+  const price = pouch.keep ? claimCost(owned.length + 1) : 0;
+  if (pouch.pool.culture < price) return { claimed: null, needsCulture: price };
+
   const ownedNeighbours = neighboursOf(h3).filter((n) => owned.some((c) => c.h3 === n)).length;
   const resolve = profile.mode === 'route' ? resolveCapture : resolveInstantCapture;
   const { cell, outcome } = resolve(
@@ -62,6 +68,7 @@ export async function claimStepAt(
   if (outcome.kind !== 'claimed' && outcome.kind !== 'taken') return { claimed: null };
 
   await store.set(K.cell(h3), cell);
+  if (price > 0) await writePouch(store, { ...pouch.pool, culture: pouch.pool.culture - price }, now);
   await addXpTo(store, newId, XP_PER_CELL_CLAIMED);
   await awardClaims(store, [...owned, cell], [outcome], now);
   await writeLogEntry(store, { at: now, kind: outcome.kind === 'taken' ? 'corrupt' : 'awaken', count: 1 });

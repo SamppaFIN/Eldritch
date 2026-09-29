@@ -12,7 +12,8 @@ import { detectLoop } from '../geo/loopDetection.js';
 import { sweepDecay } from '../rules/decay.js';
 import { FORTRESS_REACH, fortified } from '../rules/aura.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
-import { awardClaims } from './pouch.js';
+import { awardClaims, settlePouch, writePouch } from './pouch.js';
+import { affordableClaims, claimsCost } from '../rules/balance.js';
 import { titheAtKeep } from './citizenStore.js';
 import { writeLogEntry } from './logStore.js';
 import { recordWalk } from './walkWriter.js';
@@ -80,11 +81,19 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
    */
   const owned = await d.getOwnedCells(lastT);
 
+  // Season 2: culture buys ground, each cell dearer than the last (BRDC-PROG-003).
+  const pouch = await settlePouch(d.store, owned, lastT);
   const walked = await recordWalk(d.store, accepted, {
     id: profile.id,
     level: profile.level,
     hasTerritory: owned.length > 0,
+    ...(pouch.keep ? { claimBudget: affordableClaims(pouch.pool.culture, owned.length).count } : {}),
   });
+  const newCells = walked.grown.filter((o) => o.kind === 'claimed' || o.kind === 'taken').length;
+  if (pouch.keep && newCells > 0) {
+    const pool = (await settlePouch(d.store, owned, lastT)).pool;
+    await writePouch(d.store, { ...pool, culture: pool.culture - claimsCost(owned.length, newCells) }, lastT);
+  }
 
   if (walked.xp > 0) await d.addXp(walked.xp);
   await awardClaims(d.store, owned, walked.grown, lastT);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BALANCE, claimCost, copyCost, growBox, housing, slots } from './balance.js';
+import { BALANCE, affordableClaims, claimCost, claimsCost, copyCost, growBox, housing, slots } from './balance.js';
 import { FIRST_GRANARY, FIRST_KEEP, feedGranary, foodBalance, hoursToNextCitizen, settleGranary } from './citizens.js';
 
 describe('balance — the document\'s own worked numbers', () => {
@@ -88,5 +88,17 @@ describe('feedGranary — granary first', () => {
     const r = feedGranary({ ...before, keep: full }, { pool: { food: 1040 }, since: 10 * H, keep: full });
     expect(r.keep?.granary.citizens).toBe(6);
     expect(r.pool.food).toBe(40 + 1000 - 10 * 12 - growBox(6));
+  });
+});
+
+describe('culture buys ground (PROG-003)', () => {
+  it('buys cells in order, each dearer, never overspending', () => {
+    const held = 7; // the founding Hearth ring
+    const one = claimCost(8);
+    expect(affordableClaims(one - 1, held)).toEqual({ count: 0, cost: 0 });
+    expect(affordableClaims(one, held)).toEqual({ count: 1, cost: one });
+    const two = claimsCost(held, 2);
+    expect(two).toBe(claimCost(8) + claimCost(9));
+    expect(affordableClaims(two + claimCost(10) - 1, held)).toEqual({ count: 2, cost: two });
   });
 });
