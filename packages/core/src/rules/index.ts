@@ -329,3 +329,22 @@ export type { Masterwork, Need } from './masterwork.js';
 export { SANITY_LEAVE_BELOW, SANITY_YIELD_PENALTY, realmSanity, sanityWord, sanityYield } from './sanity.js';
 export { DOOM_WARN_FROM, MYTHOS, dawnsSince, doomAt, mythosFor } from './doom.js';
 export type { MythosCard } from './doom.js';
+export {
+  FIRST_INVESTIGATOR,
+  HOME_MS,
+  REST_MS,
+  SANITY_MAX,
+  STAMINA_MAX,
+  addClues,
+  afterTest,
+  diceFor,
+  isHome,
+  recover,
+  reroll,
+  rollTest,
+  sealClues,
+  successFloor,
+} from './investigator.js';
+export type { Investigator, Luck, Roll, Skill } from './investigator.js';
+export { GATE_DOOM_MS, GATE_TEST_NEED, gateAtDawn, gatesNear, horrorBite, isOpen as isGateOpen, overdue } from './gate.js';
+export type { Gate } from './gate.js';
