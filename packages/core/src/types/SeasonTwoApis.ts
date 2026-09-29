@@ -12,6 +12,7 @@ import type { MasterworkApi } from '../data/masterworkStore.js';
 import type { GateApi } from '../data/gateStore.js';
 import type { RumourApi } from '../data/deckStore.js';
 import type { ReckoningApi } from '../data/reckoningStore.js';
+import type { LegacyApi } from '../data/legacyTally.js';
 
 export interface SeasonTwoApis {
   /** The Keep's level, citizens and granary (BRDC-PROG-001). */
@@ -28,4 +29,6 @@ export interface SeasonTwoApis {
   readonly rumours: RumourApi;
   /** The realm's blows in the Reckoning (BRDC-DOOM-004). */
   readonly reckoning: ReckoningApi;
+  /** The Legacy tally — works on a Season 1 save too (BRDC-SEASON-003). */
+  readonly legacy: LegacyApi;
 }

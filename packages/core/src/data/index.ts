@@ -177,5 +177,7 @@ export { rumourApi } from './deckStore.js';
 export type { RumourApi, RumourOutcome, RumourView } from './deckStore.js';
 export { reckoningApi } from './reckoningStore.js';
 export type { BlowOutcome, ReckoningApi } from './reckoningStore.js';
+export { legacyApi } from './legacyTally.js';
+export type { LegacyApi } from './legacyTally.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

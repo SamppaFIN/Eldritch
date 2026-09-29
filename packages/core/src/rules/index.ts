@@ -364,3 +364,5 @@ export {
   strikeDamage,
 } from './reckoning.js';
 export type { RealmMight, ReckoningStanding } from './reckoning.js';
+export { EMPTY_COUNTS, legacyOf } from './legacy.js';
+export type { Legacy, LegacyCounts, LegacyLine } from './legacy.js';

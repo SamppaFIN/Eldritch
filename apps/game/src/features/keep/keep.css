@@ -204,3 +204,33 @@
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
+
+/* The Legacy tally (BRDC-SEASON-003): a ledger, numbers aligned. */
+.keep-legacy {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.keep-legacy th {
+  text-align: start;
+  font-weight: 400;
+}
+
+.keep-legacy td {
+  text-align: end;
+  padding-inline-start: 0.5rem;
+}
+
+.keep-legacy__sum th,
+.keep-legacy__sum td {
+  border-block-start: 1px solid var(--glass-border);
+}
+
+.keep-legacy__total th,
+.keep-legacy__total td {
+  color: var(--sacred-gold);
+  font-weight: 700;
+  font-size: var(--text-body);
+}

@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-002 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf (S4, LEGACY SCORE)` |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-09-29; Legacyn julkaisu Workeriin siirtyy SEASON-005:een |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Kauden päättyessä ei ole lukua joka kertoo mitä jäi jälkeen. Dokumentti: r
 
 ## 🟢 GREEN
 
-- [ ] `legacyOf(realm, outcome)` → `{parts, subtotal, mult, total}` + Vitest
-- [ ] Season 1:lle toimii olemassa olevilla osilla (muut 0)
+- [x] (`rules/legacy.ts` `legacyOf(counts, outcome)` → rivit, subtotal, kerroin, total; testi toistaa dokumentin S4-esimerkin; Risen + avoin portti 2 renkaan sisällä kodista = Keep kaatunut) `legacyOf(realm, outcome)` → `{parts, subtotal, mult, total}` + Vitest
+- [x] Season 1:lle toimii: solut, ihmeet (`wonderFinds` jotka yhä omia), questit (valmiit anomaliat + kohdatut huhut); muut 0 (`data/legacyTally.ts`, `repository.legacy.tally`)
 - [ ] S4-ruutu 'What You Leave Behind' + paras kausi -vertailu
-- [ ] Legacy kulkee Workeriin `/submit`in mukana
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
+- [~] → **siirretty SEASON-005:een** (tulostaulut lukevat sen; julkaisu tehdään yhdessä)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build (1902)
 
 ## Todennus
 

@@ -71,6 +71,9 @@ test('a Season 1 save shows no Citizens section', async ({ page }) => {
   const keep = page.getByLabel('Your sanctuary');
   await expect(keep.getByLabel('Grow the Hearth')).toBeVisible();
   await expect(keep.getByLabel('Citizens')).toHaveCount(0);
+  // BRDC-SEASON-003: even a Season 1 realm sees what it would leave behind.
+  await expect(keep.getByLabel('Legacy')).toContainText('Cells held');
+  await expect(keep.getByLabel('Legacy')).toContainText('Legacy');
 });
 
 test('a Season 2 save shows its citizens, granary and the Raise button', async ({ page }) => {

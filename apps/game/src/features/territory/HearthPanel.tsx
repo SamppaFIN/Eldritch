@@ -27,6 +27,7 @@ import { HearthGrowth } from '../keep/HearthGrowth.js';
 import { KeepCitizens } from '../keep/KeepCitizens.js';
 import { KeepDoom } from '../keep/KeepDoom.js';
 import { KeepReckoning } from '../keep/KeepReckoning.js';
+import { KeepLegacy } from '../keep/LegacyTally.js';
 import { KeepGates } from '../keep/KeepGates.js';
 import { RiteSchools } from '../keep/RiteSchools.js';
 import { KeepMasterworks } from '../keep/KeepMasterworks.js';
@@ -189,6 +190,8 @@ export function HearthPanel({
       <KeepTemples places={places} pool={resources} repository={repository} now={now} onPouch={onPouch} />
 
       {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
+
+      <KeepLegacy repository={repository} now={now} />
 
       <h3 className="hearth-panel__section">What is at risk</h3>
       <KeepRealm
