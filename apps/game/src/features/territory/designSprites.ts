@@ -102,6 +102,48 @@ const WATCHTOWER =
   pyramid(32, 20, 7, 14, '#3a6fb0', '#7fb0e8') +
   orb(32, 16, 2.6, '#22d3ee');
 
+/** The Fortress (Linnoitus): a stone keep, four corner towers, a gold signal fire. */
+const FORTRESS =
+  plinth('#262a36', '#15171f') +
+  box(16, 48, 5, 18, '#9aa6b8', '#5d6a80', '#46526a') +
+  box(48, 48, 5, 18, '#9aa6b8', '#5d6a80', '#46526a') +
+  box(32, 54, 13, 12, '#a8b4c6', '#66748a', '#4c5870') +
+  box(32, 40, 6, 12, '#b6c2d2', '#707e94', '#566278') +
+  orb(32, 16, 3, '#ffd700');
+
+/** The Manor (Kartano): a long hall under a red roof, a gold harvest glow at the door. */
+const MANOR =
+  plinth('#23301f', '#141d12') +
+  box(32, 52, 15, 10, '#e7dcc4', '#b69a74', '#8e7556') +
+  pyramid(32, 42, 16, 11, '#c9503f', '#a33d30') +
+  poly('#f2c230', [26, 52], [30, 54], [30, 58], [26, 56]) +
+  `<rect x="44" y="26" width="5" height="16" rx="2.5" fill="#d9d3c4"/>`;
+
+/** The Foundry (Valimo): a broad works on the hill, two stacks, the pour glowing orange. */
+const FOUNDRY =
+  plinth('#2e2220', '#1b1413') +
+  box(32, 52, 15, 10, '#7d5645', '#6d4a3c', '#553628') +
+  box(24, 40, 2.6, 12, '#6a4a3c', '#5e3f33', '#4a3128') +
+  box(40, 40, 2.6, 16, '#6a4a3c', '#5e3f33', '#4a3128') +
+  poly('#ff8a2a', [20, 50], [30, 55], [30, 60], [20, 55]) +
+  orb(40, 18, 3, '#ff9a3a');
+
+/** The Exchange (Vaihtopörssi): a columned hall, a gold roof, coin light between pillars. */
+const EXCHANGE =
+  plinth('#2e2a1a', '#1b1810') +
+  poly('#4d4430', [12, 50], [32, 40], [52, 50], [32, 60]) +
+  `<rect x="19" y="36" width="3.5" height="16" fill="#e8dcb4"/><rect x="30.2" y="39" width="3.5" height="17" fill="#f3e9c8"/><rect x="41.5" y="36" width="3.5" height="16" fill="#e8dcb4"/>` +
+  pyramid(32, 35, 18, 10, '#e8c02a', '#c9a020') +
+  orb(32, 44, 2.4, '#f2c230');
+
+/** The Sunken Cathedral (Upponut katedraali): a spire rising out of dark water, cyan light. */
+const SUNKEN_CATHEDRAL =
+  poly('#12304a', [4, 50], [32, 36], [60, 50], [32, 64]) +
+  poly('#1c4a6e', [10, 50], [32, 39], [54, 50], [32, 61]) +
+  box(32, 52, 9, 20, '#5a6e96', '#3a4a70', '#2c3a5a') +
+  pyramid(32, 32, 9, 18, '#4a5e88', '#6a82b0') +
+  orb(32, 12, 3, '#22d3ee');
+
 /** The buildings drawn from the Codex. Every other Work keeps its older sprite for now. */
 export const DESIGN_SPRITES: Partial<Readonly<Record<BuildingId, string>>> = {
   farm: FARM,
@@ -111,6 +153,11 @@ export const DESIGN_SPRITES: Partial<Readonly<Record<BuildingId, string>>> = {
   market: MARKET,
   tavern: TAVERN,
   watchtower: WATCHTOWER,
+  fortress: FORTRESS,
+  manor: MANOR,
+  foundry: FOUNDRY,
+  exchange: EXCHANGE,
+  'sunken-cathedral': SUNKEN_CATHEDRAL,
 };
 
 /** Keep (the Hearth's structure) and Temple, for `placeSprites.ts`. */

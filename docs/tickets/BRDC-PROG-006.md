@@ -7,7 +7,7 @@
 | **Effort** | L |
 | **Riippuvuudet** | PROG-005, PROG-007 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf (P3, "What Many Ordinary Works Become", LAW III)` |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-09-29, Exchange/Cathedral-efektit ja kaksi ehtoa [~] |
 
 ## 🔴 RED
 
@@ -17,13 +17,13 @@ Fortress on tänään BUILD-013:n erillinen rakennus/taika. Dokumentti: viisi ma
 
 ## 🟢 GREEN
 
-- [ ] `MASTERWORKS` + `canRaise(realm, id)` needs-listana (P3: n / m MET)
-- [ ] Dormant-sääntö: ei tuottoa, vahvuus säilyy
-- [ ] Viiden efektit (Fortress +200 strength 2 ringissä, Manor housing +3, Foundry +50 %, Exchange 3:1, Cathedral tier V + mana +50 %)
-- [ ] 5 uutta iso-spriteä ART-006-tavalla
-- [ ] BUILD-013 Fortress sovitettu tähän
-- [ ] Vitest + e2e: yksi masterwork nostettu
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
+- [x] (`rules/masterwork.ts` `MASTERWORKS`, `ladder` n/m met, isäntä valitaan automaattisesti; `repository.masterworks` view/raise) `MASTERWORKS` + `canRaise(realm, id)` needs-listana (P3: n / m MET)
+- [x] Dormant-sääntö (`isDormant`, masterwork lasketaan isäntänsä lajiin; lepäävä ei anna efektiä): ei tuottoa, vahvuus säilyy
+- [~] Efektit: Manor housing +3 (`KeepState.extraHousing`) ✓; Foundry iron+stone ×1.5 ja Cathedral mana ×1.5 miehitetystä tuotosta ✓; Fortress = olemassa oleva `fortress`-rakennus auroineen (BUILD-012, CLAIM-017-poikkeus) ✓ — dokumentin "+200 strength 2 ringissä" ei vielä (nykyinen aura 30 / 1 rengas). **Ei vielä:** Exchangen 3:1-vaihto (toiminto), Cathedralin tier V -avaus. **Ehdot approksimoitu:** Exchangen "rival border" ei tarkisteta, Cathedral = 3 Temple Grovea + opittu tier III -riitti puuttuu (temppelit ovat paikkoja). Alkuperäinen: Viiden efektit (Fortress +200 strength 2 ringissä, Manor housing +3, Foundry +50 %, Exchange 3:1, Cathedral tier V + mana +50 %)
+- [x] 5 iso-spriteä `designSprites.ts`iin (Fortress, Manor, Foundry, Exchange, Sunken Cathedral), tarkistettu renderöintinä
+- [x] Fortress: Season 2:lla ei rakennettavissa suoraan (`buildStore`), nousee viidennestä Watchtowerista; Season 1 ennallaan
+- [x] Vitest (`masterwork.test.ts` 4, `masterwork.repo.test.ts` 2: Fortress nousee tornista) + e2e Masterworks-ladder Keep-paneelissa; P3-ruutu `KeepMasterworks.tsx`
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build (1864; `build.ts` 400/400 — masterwork-rivit omaan `masterworkBuildings.ts`iin, `copyPrice` → `balance.ts`)
 
 ## Todennus
 

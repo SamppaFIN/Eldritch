@@ -155,3 +155,12 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.keep-masterwork__needs {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}

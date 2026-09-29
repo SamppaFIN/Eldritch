@@ -84,6 +84,10 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   await expect(citizens).toContainText('Stores fill for 12 more h.');
   await expect(citizens).toContainText(/The next hex costs \d+ culture\./);
   await expect(citizens.getByRole('button', { name: /Raise the Keep · 100 food · 50 stone/ })).toBeVisible();
+  // BRDC-PROG-006: the masterwork ladder, nothing met yet.
+  const masterworks = page.getByLabel('Your sanctuary').getByLabel('Masterworks');
+  await expect(masterworks).toContainText('The Fortress · 0 of 3 met');
+  await expect(masterworks).toContainText('○ Lore · signal-fires');
 });
 
 /** Put a farm on the Hearth hex, the way building one would (BRDC-PROG-002). */
