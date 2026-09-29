@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.6.64",
+    "date": "2026-09-29",
+    "notes": [
+      "The map stays smooth with a big realm: it no longer redraws everything on every step, only what changed. With a thousand hexes the phone does about a quarter of the work it did, and panning is several times faster.",
+      "Zoomed out, your realm is drawn as one border instead of a thousand hex outlines. Your own ground no longer flashes pale when you pan to a new area.",
+      "Only ground in danger moves now: your cells close to fading pulse, and the building you stand on floats. A quiet map stays still and saves battery.",
+      "Tapping the Anchor Stone opens your sanctuary again instead of an ordinary cell card."
+    ]
+  },
+  {
     "version": "0.6.63",
     "date": "2026-09-24",
     "notes": [
