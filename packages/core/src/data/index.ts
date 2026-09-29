@@ -179,5 +179,7 @@ export { reckoningApi } from './reckoningStore.js';
 export type { BlowOutcome, ReckoningApi } from './reckoningStore.js';
 export { legacyApi } from './legacyTally.js';
 export type { LegacyApi } from './legacyTally.js';
+export { heirloomApi } from './heirloomStore.js';
+export type { HeirloomApi } from './heirloomStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

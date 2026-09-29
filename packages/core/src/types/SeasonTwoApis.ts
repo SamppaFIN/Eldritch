@@ -13,6 +13,7 @@ import type { GateApi } from '../data/gateStore.js';
 import type { RumourApi } from '../data/deckStore.js';
 import type { ReckoningApi } from '../data/reckoningStore.js';
 import type { LegacyApi } from '../data/legacyTally.js';
+import type { HeirloomApi } from '../data/heirloomStore.js';
 
 export interface SeasonTwoApis {
   /** The Keep's level, citizens and granary (BRDC-PROG-001). */
@@ -31,4 +32,6 @@ export interface SeasonTwoApis {
   readonly reckoning: ReckoningApi;
   /** The Legacy tally — works on a Season 1 save too (BRDC-SEASON-003). */
   readonly legacy: LegacyApi;
+  /** One thing carried across seasons (BRDC-SEASON-006). */
+  readonly heirloom: HeirloomApi;
 }

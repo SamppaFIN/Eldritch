@@ -368,3 +368,5 @@ export { EMPTY_COUNTS, legacyOf } from './legacy.js';
 export type { Legacy, LegacyCounts, LegacyLine } from './legacy.js';
 export { hallOfAges, hallOfRecords, legacyBoard } from './boards.js';
 export type { BoardRow, Title } from './boards.js';
+export { HEIRLOOMS, HEIRLOOM_IDS } from './heirloom.js';
+export type { Crossing, Heirloom, HeirloomId } from './heirloom.js';

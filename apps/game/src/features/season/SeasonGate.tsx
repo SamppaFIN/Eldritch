@@ -12,14 +12,20 @@
  */
 import { useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
-import { clearAll } from '@es3/core';
-import type { GameRepository, Legacy, Season } from '@es3/core';
+import { clearAll, utcDay } from '@es3/core';
+import type { GameRepository, HeirloomId, Legacy, Season } from '@es3/core';
 import { fetchBoards, seasonOnce } from '../../data/season.js';
 import { publishLegacy } from '../../data/legacy.js';
 import { LegacyTable } from '../keep/LegacyTally.js';
+import { HeirloomChoice } from './HeirloomChoice.js';
+import { SeasonIntro } from './SeasonIntro.js';
 import './season-panel.css';
 
-type Gate = { kind: 'retire'; season: Season } | { kind: 'sealed'; season: Season; legacy: Legacy } | null;
+type Gate =
+  | { kind: 'retire'; season: Season }
+  | { kind: 'sealed'; season: Season; legacy: Legacy }
+  | { kind: 'intro'; season: Season; heirloom: HeirloomId | null }
+  | null;
 
 export function SeasonGate({ repository }: { repository: GameRepository | null }) {
   const [gate, setGate] = useState<Gate>(null);
@@ -43,16 +49,26 @@ export function SeasonGate({ repository }: { repository: GameRepository | null }
         return;
       }
       if (season.n < 2 || (await repository.keep.view(now))) return;
-      if ((await repository.getOwnedCells(now)).length > 0) {
+      // A realm from the last season has walked before this one opened. A new player, or a
+      // save just retired, has not — its Hearth ring is today's — so it joins instead.
+      const opened = utcDay(season.opensAt);
+      const old = (await repository.getOwnedCells(now)).some((c) => c.visitDays.some((d) => d < opened));
+      if (old) {
         setEra(`Season ${season.n - 1}`);
         setGate({ kind: 'retire', season });
       } else {
-        await repository.keep.found(now); // a fresh save joins the open season
+        // A fresh save joins the open season: its Keep, then whatever heirloom it carried.
+        await repository.keep.found(now);
+        setGate({ kind: 'intro', season, heirloom: await repository.heirloom.claim(now) });
       }
     })();
   }, [repository]);
 
   if (!gate || !repository) return null;
+
+  if (gate.kind === 'intro') {
+    return <SeasonIntro season={gate.season} heirloom={gate.heirloom} onClose={() => setGate(null)} />;
+  }
 
   if (gate.kind === 'sealed') {
     const quiet = gate.season.outcome === 'quiet';
@@ -63,6 +79,7 @@ export function SeasonGate({ repository }: { repository: GameRepository | null }
         </p>
         <LegacyTable legacy={gate.legacy} outcome={gate.season.outcome} />
         <p>The map is frozen. Walk it for 48 hours as a fossil; nothing more can be claimed.</p>
+        <HeirloomChoice repository={repository} season={gate.season.n} />
       </Modal>
     );
   }

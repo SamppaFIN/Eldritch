@@ -19,7 +19,8 @@ const season = (over: Record<string, unknown>) => ({
 });
 
 test('Season 2 open: a Season 1 realm is asked to retire, and cannot wave it away', async ({ page }) => {
-  await page.route('**/season', (route) => route.fulfill(json(season({}))));
+  // The realm here was walked today, so the season "opens" tomorrow to make today's ground old.
+  await page.route('**/season', (route) => route.fulfill(json(season({ opensAt: Date.now() + 2 * 86_400_000 }))));
   await openMap(page, HERE);
   const notice = page.getByRole('dialog', { name: 'Retire your kingdom to the history books' });
   await expect(notice).toBeVisible({ timeout: 20_000 });
@@ -37,6 +38,20 @@ test('a sealed season shows its close and the Legacy', async ({ page }) => {
   await expect(close).toBeVisible({ timeout: 20_000 });
   await expect(close).toContainText('The map is frozen');
   await expect(close).toContainText('Legacy');
+  // BRDC-SEASON-006: one heirloom crosses into the next season.
+  await close.getByRole('button', { name: 'Keep the Foundation Stone' }).click();
+  await expect(close.getByRole('button', { name: '✓ Keeping the Foundation Stone' })).toBeVisible();
+});
+
+test('a new realm joins the open season and is told its rules (BRDC-SEASON-006)', async ({ page }) => {
+  await page.route('**/season', (route) => route.fulfill(json(season({}))));
+  await openMap(page, HERE);
+  const intro = page.getByRole('dialog', { name: 'Welcome to The Low Water' });
+  await expect(intro).toBeVisible({ timeout: 20_000 });
+  await expect(intro).toContainText('A building yields only while a citizen works in it.');
+  await intro.getByRole('button', { name: 'Begin' }).click();
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await expect(page.getByLabel('Your sanctuary').getByLabel('Citizens')).toContainText('housed');
 });
 
 test('the Keep shows the season board and the Hall of Records (BRDC-SEASON-005)', async ({ page }) => {

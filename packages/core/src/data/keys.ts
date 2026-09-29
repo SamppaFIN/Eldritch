@@ -82,6 +82,8 @@ export const K = {
   sealed: 'sealed',
   /** Hall of Records titles won, `string[]` — kept forever on the sigil (SEASON-005). */
   titles: 'titles',
+  /** The heirloom chosen at a season's end, spent at the next founding (SEASON-006). Forever. */
+  heirloom: 'heirloom',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

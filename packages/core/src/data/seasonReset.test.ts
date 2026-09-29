@@ -11,7 +11,8 @@ describe('resetForSeason', () => {
     await store.set(K.profile, { id: 'me' });
     await store.set(K.cell('8b112492eb03fff'), { h3: '8b112492eb03fff' });
     await resetForSeason(store);
-    expect(await store.keys()).toEqual([...FOREVER_KEYS]);
+    expect(await store.keys()).toEqual([K.hallOfFame, K.titles]);
+    expect(FOREVER_KEYS).toContain(K.heirloom);
     expect(await store.get(K.hallOfFame)).toEqual([{ name: 'Surreal Kingdom' }]);
     expect(await store.get(K.titles)).toEqual(['Season 2 · Warden of Doors']);
   });
