@@ -1,14 +1,15 @@
 /**
  * Taking part in the shared world (BRDC-SHARE-002, -003).
  *
- * One switch, both directions. When `enabled` is off nothing is fetched and `publish` is
- * a no-op; when it is on, `useWorld` pulls the shards for the viewport and `publish` POSTs
- * the player's own ground to the Worker — one request, no tab, no account.
+ * Reading is always on (Infinite 2026-09-30: everyone who has raised a banner this season
+ * shows on the map); `enabled` governs only sending your own ground. `publish` POSTs it to
+ * the Worker — one request, no tab, no account — stamped with the season it was raised in.
  */
 import { useCallback, useEffect, useRef } from 'react';
 import type { BBox, GameRepository, WorldIdentity } from '@es3/core';
 import { useWorld } from './useWorld.js';
 import { publishSubmission } from '../../data/worldSource.js';
+import { seasonOnce } from '../../data/season.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { readNation } from '../nation/nation.js';
 import { leaveClan, readClan } from '../clan/clan.js';
@@ -41,7 +42,7 @@ export function useSharedWorld({
   const { clan: myClan } = useClan();
   const stirred = useWorld({
     repository,
-    bbox: enabled ? bbox : null,
+    bbox,
     now,
     onMerged,
     clanId: enabled ? myClan.clanId || null : null,
@@ -55,7 +56,11 @@ export function useSharedWorld({
     if (n.bannerId) identity.banner = n.bannerId;
     const clan = readClan();
     if (clan.clanId) identity.clanId = clan.clanId;
-    const source = await repository.exportWorldSource(now(), identity);
+    const exported = await repository.exportWorldSource(now(), identity);
+    // A Season 2 realm (it has a Keep) says which season its banner went up in.
+    const season = await seasonOnce();
+    const s2 = season && season.n >= 2 && (await repository.keep.view(now())) !== null;
+    const source = s2 ? { ...exported, season: season.n } : exported;
     const outcome = await publishSubmission(source);
     // The founder removed this player (BRDC-CLAN-003) — their own file cannot be
     // edited, so this is the moment the Worker can actually say so.

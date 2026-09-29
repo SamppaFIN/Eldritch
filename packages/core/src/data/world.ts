@@ -44,6 +44,9 @@ export interface WorldPlayer {
    *  Adventure — only an explicit `'route'` pulls a realm into the route Codex. */
   mode?: GameMode;
   routeDistanceM?: number;
+  /** The season this realm raised its banner in (2026-09-30). Absent: an older submission,
+   *  which a Worker with a season open leaves off the shared map. */
+  season?: number;
 }
 
 export interface WorldShard {
@@ -91,6 +94,9 @@ export interface WorldSource {
   /** Route mode's own figures (BRDC-MODE-002), additive like `level`/`leyM` above. */
   mode?: GameMode;
   routeDistanceM?: number;
+  /** The season this realm raised its banner in (2026-09-30). Absent: an older submission,
+   *  which a Worker with a season open leaves off the shared map. */
+  season?: number;
 }
 
 /**
@@ -113,6 +119,7 @@ export interface WorldSubmission {
   leyM?: number;
   mode?: GameMode;
   routeDistanceM?: number;
+  season?: number;
   sum: string;
 }
 
@@ -138,6 +145,7 @@ export function buildSubmission(source: WorldSource): WorldSubmission {
     ...(source.leyM ? { leyM: Math.round(source.leyM) } : {}),
     ...(source.mode === 'route' ? { mode: source.mode } : {}),
     ...(source.routeDistanceM ? { routeDistanceM: Math.round(source.routeDistanceM) } : {}),
+    ...(source.season ? { season: source.season } : {}),
     cells: [...source.cells]
       .sort((a, b) => b.strength - a.strength)
       .slice(0, MAX_SHARD_CELLS)
@@ -201,6 +209,7 @@ export function parseSubmission(text: string): SubmissionParse {
       ...(typeof s.leyM === 'number' ? { leyM: s.leyM } : {}),
       ...(s.mode === 'route' ? { mode: s.mode } : {}),
       ...(typeof s.routeDistanceM === 'number' ? { routeDistanceM: s.routeDistanceM } : {}),
+      ...(typeof s.season === 'number' ? { season: s.season } : {}),
       cells: s.cells,
     },
   };

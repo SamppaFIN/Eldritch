@@ -9,6 +9,7 @@
 import { cellsWithin } from '../geo/cells.js';
 import { emptyCell, resolveCapture } from '../rules/capture.js';
 import {
+  HEARTH_MAX_RING,
   HEARTH_START_RING,
   growHearth,
   hearthRingHexes,
@@ -65,4 +66,33 @@ export async function growHearthAt(
   await store.set(K.hearthRing, result.ring);
   if (bought.length > 0) await writeLogEntry(store, { at: now, kind: 'awaken', count: bought.length });
   return { ok: true, ring: result.ring, claimed: bought.length, already, left: free.length - bought.length };
+}
+
+/**
+ * The Hearth's border moves out one ring for free — raising the Keep does this (Infinite
+ * 2026-09-30: *"jos raise keep niin hearth ottaa uuden heksaringin"*). Every free hex of the
+ * next ring is claimed at once; ground somebody holds is left alone, as in `growHearthAt`.
+ * Nothing past `HEARTH_MAX_RING`.
+ */
+export async function widenHearth(
+  store: KeyValueStore,
+  profile: PlayerProfile,
+  now: number,
+): Promise<{ ring: number; claimed: number } | null> {
+  const home = await store.get<H3Index>(K.home);
+  const ring = await readHearthRing(store);
+  if (!home || ring >= HEARTH_MAX_RING) return null;
+  const next = ring + 1;
+  const targets = ringOf(home, next);
+  const found = await store.getMany<Cell>(targets.map((h) => K.cell(h)));
+  const attacker = { id: profile.id, level: profile.level };
+  let claimed = 0;
+  for (const [i, h3] of targets.entries()) {
+    if ((found[i]?.ownerId ?? null) !== null) continue;
+    await store.set(K.cell(h3), resolveCapture(found[i] ?? emptyCell(h3), attacker, now).cell);
+    claimed += 1;
+  }
+  await store.set(K.hearthRing, next);
+  if (claimed > 0) await writeLogEntry(store, { at: now, kind: 'awaken', count: claimed });
+  return { ring: next, claimed };
 }

@@ -5,6 +5,7 @@
  * A territory game cannot be developed if every change costs a walk around the block,
  * but the simulated source must never reach a player, so it is compiled out.
  */
+import { takeFix } from './gpsPace.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { destination } from '@es3/core';
 import type { LatLng, TrailPoint } from '@es3/core';
@@ -75,6 +76,8 @@ export function usePositionSource({
 
     const id = navigator.geolocation.watchPosition(
       (pos) => {
+        // iOS fires about once a second; a fix that says nothing new waits 3 s (`gpsPace.ts`).
+        if (!takeFix(Date.now(), { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy })) return;
         setState({
           point: {
             lat: pos.coords.latitude,

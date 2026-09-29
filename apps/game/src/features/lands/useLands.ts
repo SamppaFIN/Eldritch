@@ -26,6 +26,8 @@ export interface Lands {
   loading: boolean;
   /** Reveal a held hex without leaving the page. */
   reveal: (h3: string) => void;
+  /** Reveal every unrevealed hex at once (Infinite 2026-09-30), one payout for the lot. */
+  revealAll: () => void;
   /** Hexes revealed from this page, so a row can say what it turned up. */
   found: Readonly<Record<string, Revealed>>;
   /** The last payout, shaped for the same toast and pling a map reveal uses. */
@@ -93,11 +95,34 @@ export function useLands(repository: GameRepository | null, open: boolean, now: 
     [repository, now],
   );
 
+  const revealAll = useCallback(() => {
+    if (!repository) return;
+    const at = now();
+    const hidden = list.filter((r) => !r.revealed).map((r) => r.h3);
+    if (hidden.length === 0) return;
+    setList((rows) => rows.map((r) => ({ ...r, revealed: true })));
+    void (async () => {
+      const delta: Record<string, number> = {};
+      const turned: Record<string, Revealed> = {};
+      for (const h3 of hidden) {
+        const r = await repository.revealCell(h3, at);
+        if (!r.ok) continue;
+        turned[h3] = { h3, tier: r.tier, bonus: r.bonus };
+        for (const [k, v] of Object.entries(r.bonus)) delta[k] = (delta[k] ?? 0) + (v ?? 0);
+        if (r.wonder) setWonder(r.wonder);
+      }
+      setFound((all) => ({ ...all, ...turned }));
+      const total = Object.values(delta).reduce((sum, n) => sum + n, 0);
+      if (total > 0) setGain({ delta, total, hours: 0, at });
+    })();
+  }, [repository, now, list]);
+
   return {
     list,
     summary: list.length > 0 ? summarise(list) : NONE,
     loading,
     reveal,
+    revealAll,
     found,
     gain,
     wonder,

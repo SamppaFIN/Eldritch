@@ -263,7 +263,7 @@ export function MapView({ onLeave }: MapViewProps) {
         <HearthPanel
           owned={territory.owned} resources={resources} places={places}
           level={levelState(profile?.xp ?? 0).level} levelName={levelState(profile?.xp ?? 0).name}
-          now={clock.now()} adventures={quest.adventures} repository={repository}
+          now={clock.now()} adventures={quest.adventures} repository={repository} onOpenLands={aside.openLands}
           onPouch={setResources} forecast={forecast}
           onPublish={settings.shareWorld ? world.publish : undefined}
           onWeakest={inspect.onCellTap} onGrown={() => void territory.refresh()} onClose={inspect.close}
@@ -375,7 +375,7 @@ export function MapView({ onLeave }: MapViewProps) {
         // all sanctuary ceremony built around adventure stats a route-mode save never
         // has (BRDC-MODE-001).
         onRetireKingdom={isRoute ? undefined : () => setConfirming('retire')}
-        onOpenLog={aside.openLog} onOpenLands={aside.openLands}
+        onOpenLog={aside.openLog}
         onOpenCodex={isRoute ? undefined : aside.openCodex}
         onOpenRouteCodex={isRoute ? aside.openRouteCodex : undefined} onOpenSeason={aside.openSeason}
         onOpenHallOfFame={isRoute ? undefined : aside.openHallOfFame}

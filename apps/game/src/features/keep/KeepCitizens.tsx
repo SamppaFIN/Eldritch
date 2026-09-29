@@ -13,6 +13,8 @@ export interface KeepCitizensProps {
   repository: GameRepository | null;
   now: number;
   onPouch: (pool: ResourcePool) => void;
+  /** The map redraws — raising the Keep moves the Hearth's border out a ring. */
+  onGrown?: () => void;
 }
 
 const REFUSAL: Record<string, string> = {
@@ -23,7 +25,7 @@ const REFUSAL: Record<string, string> = {
 
 const signed = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(Math.round(n))}`;
 
-export function KeepCitizens({ repository, now, onPouch }: KeepCitizensProps) {
+export function KeepCitizens({ repository, now, onPouch, onGrown }: KeepCitizensProps) {
   const [view, setView] = useState<KeepView | null>(null);
   const [said, setSaid] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -41,7 +43,12 @@ export function KeepCitizens({ repository, now, onPouch }: KeepCitizensProps) {
     setBusy(true);
     void (async () => {
       const r = await repository.keep.raise(now);
-      setSaid(r.ok ? `The Keep rises to level ${r.keep.level}.` : (REFUSAL[r.refused] ?? 'That did not work.'));
+      setSaid(
+        r.ok
+          ? `The Keep rises to level ${r.keep.level}.${r.hearth ? ` The Hearth reaches ring ${r.hearth.ring}: ${r.hearth.claimed} new hexes.` : ''}`
+          : (REFUSAL[r.refused] ?? 'That did not work.'),
+      );
+      if (r.ok && r.hearth) onGrown?.();
       setView(await repository.keep.view(now));
       onPouch(await repository.getResources(now));
       setBusy(false);

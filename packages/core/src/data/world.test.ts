@@ -360,3 +360,14 @@ describe('extended cell metadata through a shard (BRDC-WAGER-JSON-004)', () => {
     expect(byH3.get(h3s[0]!)?.importedFrom?.castle).toBe(keepH3);
   });
 });
+
+describe('a banner says which season it went up in (2026-09-30)', () => {
+  it('carries `season` through the checksum and back', () => {
+    const h3 = cellAt({ lat: 61.4729, lng: 23.7258 });
+    const sub = buildSubmission({ id: 'p1', name: 'Seeker', castle: h3, cells: [{ h3, strength: 100 }], season: 2 });
+    const back = parseSubmission(JSON.stringify(sub));
+    expect(back.ok && back.source.season).toBe(2);
+    const old = parseSubmission(JSON.stringify(buildSubmission({ id: 'p1', name: 'Seeker', castle: h3, cells: [{ h3, strength: 100 }] })));
+    expect(old.ok && old.source.season).toBeUndefined();
+  });
+});

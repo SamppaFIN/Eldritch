@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.7.4",
+    "date": "2026-09-30",
+    "notes": [
+      "Raising the Keep also moves the Hearth's border out one ring — every free hex of it is yours.",
+      "Your lands live in the Keep now, with a Reveal all button. The hex card no longer offers to reveal ground you already know.",
+      "The shared map shows the realms whose banner went up this season. Raise yours and the others see where you are.",
+      "The phone's GPS is listened to more calmly: a fix that says nothing new waits three seconds. It saves battery, most on iPhones. The menu shows how many fixes arrive and how many are used."
+    ]
+  },
+  {
     "version": "0.7.3",
     "date": "2026-09-30",
     "notes": [

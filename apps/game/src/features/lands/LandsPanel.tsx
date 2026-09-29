@@ -66,7 +66,7 @@ const h3OfRow = (h: Holding): string => h.h3;
 
 export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose }: LandsPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
-  const { list, summary, loading, reveal, found, gain, wonder, clearWonder } = useLands(
+  const { list, summary, loading, reveal, revealAll, found, gain, wonder, clearWonder } = useLands(
     repository,
     open,
     now,
@@ -182,6 +182,11 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
             {summary.works} {summary.works === 1 ? 'Work' : 'Works'}
             {summary.fading > 0 ? ` · ${summary.fading} fading within a day` : ''}
           </p>
+          {summary.unrevealed > 1 ? (
+            <RitualButton variant="ghost" onClick={revealAll}>
+              {`Reveal all · ${summary.unrevealed} hexes`}
+            </RitualButton>
+          ) : null}
           <ul className="lands__list">{list.map(row)}</ul>
         </>
       ) : null}

@@ -47,7 +47,7 @@ import {
   publishSeasonJoin,
   readSeasonDay,
 } from './season.js';
-import { handleSeasonState } from './seasonState.js';
+import { currentSeasonN, handleSeasonState } from './seasonState.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -148,8 +148,11 @@ function sourceIsValid(s: WorldSource): boolean {
  * before any of `demographicsOf`/`clanCodexOf`/`atlasOf`/`buildShards` sees the data.
  */
 async function liveSources(kv: KV, now: number): Promise<WorldSource[]> {
-  const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS);
-  return live.filter(sourceIsValid);
+  const live = mergePlayerFiles(await allFiles(kv), now, WORLD_PLAYER_TTL_MS).filter(sourceIsValid);
+  // With a season open (n >= 2), the shared map is the banners raised in it — a realm
+  // still publishing last season's ground stays off until it retires and starts again.
+  const n = await currentSeasonN(kv);
+  return n >= 2 ? live.filter((s) => s.season === n) : live;
 }
 
 /** Rebuild every region's shard from the players still inside the TTL. */

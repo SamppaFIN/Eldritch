@@ -188,6 +188,10 @@ test('a tap on the map opens a cell card even with almost no ground drawn', asyn
   // from the tap's coordinates instead. Tested with only the Hearth ring owned.
   test.setTimeout(120_000);
   await openMap(page);
+  // The first unlock card opens with the first hex and sits over the middle of the map on
+  // a phone; the tap this test makes is on the map, not on the card.
+  const card = page.getByRole('dialog', { name: 'The ground pays' });
+  if (await card.isVisible().catch(() => false)) await card.getByRole('button', { name: 'Not now' }).click();
 
   const canvas = page.locator('canvas').first();
   const box = await canvas.boundingBox();

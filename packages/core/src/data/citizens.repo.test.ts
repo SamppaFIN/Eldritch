@@ -103,3 +103,24 @@ describe('the 12-hour stores and the tithe (BRDC-PROG-002)', () => {
     expect(await titheAtKeep(store, [wood], T0)).toBe(false);
   });
 });
+
+describe('raising the Keep widens the Hearth (Infinite 2026-09-30)', () => {
+  it('takes the free hexes of the next ring, and leaves held ground alone', async () => {
+    const { K } = await import('./keys.js');
+    const { cellsWithin } = await import('../geo/cells.js');
+    const store = new MemoryStore();
+    const home = cellAt({ lat: 61.4729, lng: 23.7258 });
+    await store.set(K.home, home);
+    await store.set(K.profile, { id: 'me', name: 'Seeker', colorHue: 0, level: 1, xp: 0, mode: 'adventure' });
+    const ring2 = cellsWithin(home, 2).filter((h) => !cellsWithin(home, 1).includes(h));
+    await store.set(K.cell(ring2[0] as string), { h3: ring2[0], ownerId: 'rival', strength: 100, lastVisitedAt: T0, visitDays: [] });
+    const keep = keepApi(() => store, async () => []);
+    await keep.found(T0);
+    await writePouch(store, { ...EMPTY_POOL, food: 500, stone: 500 }, T0);
+    const r = await keep.raise(T0);
+    expect(r).toMatchObject({ ok: true, hearth: { ring: 2, claimed: 11 } });
+    expect(await store.get(K.hearthRing)).toBe(2);
+    expect((await store.get<{ ownerId: string }>(K.cell(ring2[0] as string)))?.ownerId).toBe('rival');
+    expect((await store.get<{ ownerId: string }>(K.cell(ring2[1] as string)))?.ownerId).toBe('me');
+  });
+});

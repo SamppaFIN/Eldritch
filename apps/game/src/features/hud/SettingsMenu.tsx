@@ -18,6 +18,7 @@
  * Not a modal: the player may be moving, and a focus trap is the wrong shape for something
  * flicked open and shut. ESC and a tap outside close it.
  */
+import { gpsRates, platformName } from '../trail/gpsPace.js';
 import { useEffect, useRef, useState } from 'react';
 import { APP_VERSION } from '@es3/core';
 import type { GameRepository } from '@es3/core';
@@ -48,8 +49,6 @@ export interface SettingsMenuProps {
   /** Opens the Season — distance and hexes gained since the trail began, for the
    *  week's challenge (BRDC-SEASON-001). Open to both modes. */
   onOpenSeason: () => void;
-  /** Opens the ledger of held ground (BRDC-LANDS-001). */
-  onOpenLands: () => void;
   /** Opens the Hall of Fame — kingdoms already retired (BRDC-HALL-001). Absent for a
    *  route-mode save (BRDC-MODE-001). */
   onOpenHallOfFame?: (() => void) | undefined;
@@ -103,7 +102,6 @@ export function SettingsMenu({
   onOpenCodex,
   onOpenRouteCodex,
   onOpenSeason,
-  onOpenLands,
   onOpenHallOfFame,
   onOpenClan,
   onOpenClanCodex,
@@ -264,7 +262,6 @@ export function SettingsMenu({
               <p className="settings__group-label">Go to</p>
               <div className="settings__grid">
                 {link('Guide', 'How it plays', onOpenGuide)}
-                {link('Your lands', 'The ground you hold', onOpenLands)}
                 {onOpenCodex ? link('Codex', 'Where you stand', onOpenCodex, 'var(--sacred-gold)') : null}
                 {onOpenRouteCodex
                   ? link('Route Ledger', 'Distance and hexes measured', onOpenRouteCodex, 'var(--sacred-gold)')
@@ -378,6 +375,10 @@ export function SettingsMenu({
                 ) : null}
               </div>
             ) : null}
+            {/* iOS vs Android, measured in the field (2026-09-30, `gpsPace.ts`). */}
+            <p className="settings__link-sub es-numeric" aria-label="GPS pace">
+              GPS · {platformName()} · {gpsRates(Date.now()).received} fixes/min, {gpsRates(Date.now()).used} used
+            </p>
           </GlassPanel>
         ) : null}
       </div>

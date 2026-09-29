@@ -152,6 +152,13 @@ export function CellPanel({
   useEscape(h3 !== null && !works.open, onClose);
   const [open, setOpen] = useState<ActionId | null>(null);
   useEffect(() => setOpen(null), [h3]);
+  // Read afresh when a card opens: a hex revealed from the ledger ("Reveal all") is not in
+  // the map's copy yet, and the card offered to reveal known ground (field report 2026-09-30).
+  const [known, setKnown] = useState(false);
+  useEffect(() => {
+    setKnown(false);
+    if (h3 && repository) void repository.getRevealed().then((r) => setKnown(r[h3] !== undefined));
+  }, [h3, repository]);
 
   if (!cell) return null;
 
@@ -171,7 +178,7 @@ export function CellPanel({
     : cell.strength >= MAX_STRENGTH
       ? 'Already at full strength — a ward would add nothing.'
       : shortNote(shortOf(resources, WARD_COST));
-  const isRevealed = revealed?.[cell.h3] !== undefined;
+  const isRevealed = known || revealed?.[cell.h3] !== undefined;
   const offer = cellOffer({
     mine,
     resources,

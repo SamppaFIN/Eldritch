@@ -28,6 +28,11 @@ const STATE = 'season:state';
 const DAMAGE = 'season:reckoning:damage';
 const PHASES: readonly SeasonPhase[] = ['open', 'reckoning', 'sealed', 'interregnum', 'next'];
 
+/** The open season's number, 0 before any is opened. For the shared map's filter. */
+export async function currentSeasonN(kv: KV): Promise<number> {
+  return (await readSeason(kv))?.n ?? 0;
+}
+
 async function readSeason(kv: KV): Promise<Season | null> {
   const raw = await kv.get(STATE);
   return raw ? (JSON.parse(raw) as Season) : null;

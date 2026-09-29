@@ -14,6 +14,8 @@ import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js'
 import type { StaffRefusal } from '../rules/staffing.js';
 import { worksOn } from '../rules/build.js';
 import { worksViewAt } from './worksStore.js';
+import { widenHearth } from './hearthGrowthStore.js';
+import { K } from './keys.js';
 import { readLore } from './loreStore.js';
 import { counselFor, markCodexRead, unreadCodex } from './counselStore.js';
 import type { Counsel } from '../rules/counsel.js';
@@ -23,7 +25,7 @@ import { commit, forecastRates, settlePouch } from './pouch.js';
 import type { KeepState } from '../rules/citizens.js';
 import type { ResourcePool } from '../rules/terrain.js';
 import type { KeyValueStore } from './kv.js';
-import type { BuildingId, Cell, H3Index } from '../types/domain.js';
+import type { BuildingId, Cell, H3Index, PlayerProfile } from '../types/domain.js';
 
 export interface KeepView {
   level: number;
@@ -58,7 +60,8 @@ export type StaffOutcome = { ok: true } | { ok: false; refused: StaffRefusal | '
 export interface KeepApi {
   /** `null` on a Season 1 save — it has no Keep record, and the game there is unchanged. */
   view(now: number): Promise<KeepView | null>;
-  raise(now: number): Promise<KeepRaiseResult>;
+  /** Raise the Keep a level; the Hearth's border moves out a ring with it (2026-09-30). */
+  raise(now: number): Promise<KeepRaiseResult & { hearth?: { ring: number; claimed: number } }>;
   /** Give a save its Keep — the first day of a Season 2 realm (SEASON-006 calls this). */
   found(now: number): Promise<void>;
   /** The buildings on an owned cell and their hands; empty on a Season 1 save. */
@@ -122,6 +125,9 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         const { food, stone } = result.paid;
         const pool = { ...state.pool, food: state.pool.food - food, stone: state.pool.stone - stone };
         await writeKeep(store(), result.keep, pool, now);
+        const profile = await store().get<PlayerProfile>(K.profile);
+        const hearth = profile ? await widenHearth(store(), profile, now) : null;
+        return hearth ? { ...result, hearth } : result;
       }
       return result;
     },

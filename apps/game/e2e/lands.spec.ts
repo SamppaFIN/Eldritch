@@ -16,8 +16,9 @@ test.use({ permissions: ['geolocation'], geolocation: HERE });
 async function openLands(page: Page) {
   await open(page, HERE);
   await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 25_000 });
-  await page.getByRole('button', { name: 'Menu' }).click();
-  await page.getByRole('button', { name: 'Your lands' }).click();
+  // Own lands live in the Keep now, not the menu (Infinite 2026-09-30).
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('button', { name: /^Your lands/ }).click();
   const lands = page.getByRole('region', { name: 'Your lands' });
   await expect(lands).toBeVisible({ timeout: 15_000 });
   return lands;
@@ -63,8 +64,9 @@ test('a row takes you to that hex, and ESC closes the ledger', async ({ page }) 
   await expect(page.getByRole('region', { name: 'Selected cell' })).toBeVisible({ timeout: 15_000 });
 
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Menu' }).click();
-  await page.getByRole('button', { name: 'Your lands' }).click();
+  // Own lands live in the Keep now, not the menu (Infinite 2026-09-30).
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('button', { name: /^Your lands/ }).click();
   const again = page.getByRole('region', { name: 'Your lands' });
   await expect(again).toBeVisible({ timeout: 15_000 });
   await page.keyboard.press('Escape');
@@ -83,8 +85,9 @@ test('revealed ground names what is on it (BRDC-BOUNTY-001)', async ({ page }) =
 
   const count = await seedRealm(page, { at: HERE, rings: 6, reveal: true });
   await page.reload();
-  await page.getByRole('button', { name: 'Menu' }).click();
-  await page.getByRole('button', { name: 'Your lands' }).click();
+  // Own lands live in the Keep now, not the menu (Infinite 2026-09-30).
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('button', { name: /^Your lands/ }).click();
   const lands = page.getByRole('region', { name: 'Your lands' });
   await expect(lands.locator('.lands__row')).toHaveCount(count, { timeout: 40_000 });
 
@@ -151,4 +154,23 @@ test('a reveal from the ledger pays into the pouch like any other', async ({ pag
   }
   await expect(lands).toContainText('0 unrevealed', { timeout: 20_000 });
   await expect(lands.locator('.lands__found')).not.toHaveCount(0);
+});
+
+test('reveals every hex at once from the ledger (Infinite 2026-09-30)', async ({ page }) => {
+  const lands = await openLands(page);
+  const all = lands.getByRole('button', { name: /^Reveal all · \d+ hexes$/ });
+  await expect(all).toBeVisible();
+  const count = Number((await all.textContent())?.match(/(\d+) hexes/)?.[1] ?? 0);
+  await all.click();
+  await expect(lands.locator('.lands__note')).toContainText('0 unrevealed', { timeout: 15_000 });
+  // The list says "0 unrevealed" at once; the reveals themselves are written one by one.
+  // Every row saying what it turned up is when the last one has landed.
+  await expect(lands.locator('.lands__found')).toHaveCount(count, { timeout: 20_000 });
+  await expect(all).toHaveCount(0);
+  // The hex card knows at once — it offered to reveal known ground (field report 2026-09-30).
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+  const card = page.getByRole('region', { name: 'Selected cell' });
+  await expect(card).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Reveal this ground' })).toHaveCount(0);
 });
