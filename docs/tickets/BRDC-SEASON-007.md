@@ -25,6 +25,7 @@ Fortress-solut lisätään.
 
 ## 🟢 GREEN
 
+- [ ] Kauden siemen (`Season.seed`, SEASON-002) syöttää esiintymät, anomaliat ja porttipaikat (`terrainSeed`, `anomalySignOf`, …); ihmeet eivät (SEASON-008)
 - [ ] Kauden vaihdossa kaikki `cells` nollautuvat (paikallinen tallennus `seasonal`-avaimina SEASON-002:n mukaan, Workerin `player:*` SEASON-004:ssä); kaikki maa on vallattavissa
 - [ ] Workerin `GET /ruins` (tai `world.json`in kenttä): Season 1:n Fortress-solut, pysyvä kausikohtainen lista
 - [ ] `rules/ruins.ts`: `ruinRewardAt(h3, seasonSeed)` — seedattu, deterministinen: resursseja, tokeni, XP, harvinainen vihje tai lore-rivi (Civ goody hut). Kerran per pelaaja per raunio

@@ -162,5 +162,6 @@ export { clearSurvey, recordSurvey, surveySize, surveyedTerrainOf } from './loca
 export { GPX_ASSUMED_ACCURACY_M, parseGpx } from './gpx.js';
 export type { GpxFault, GpxParse } from './gpx.js';
 export { readHallOfFame, retireKingdom, setKingdomStory } from './hallOfFameStore.js';
+export { FOREVER_KEYS, resetForSeason } from './seasonReset.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

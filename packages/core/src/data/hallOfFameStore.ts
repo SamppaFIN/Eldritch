@@ -8,6 +8,7 @@
  * achievements, the things found), archives them, and only then does the same wipe
  * `resetAll` does — restoring the one key the wipe would otherwise have taken with it.
  */
+import { resetForSeason } from './seasonReset.js';
 import { buildingsOf } from '../rules/build.js';
 import { levelState } from '../rules/level.js';
 import { population, provinceCount } from '../rules/nation.js';
@@ -110,8 +111,7 @@ export async function retireKingdom(
     ...(era?.trim() ? { era: era.trim().slice(0, 60) } : {}),
   };
 
-  const archive = [...(await readHallOfFame(store)), entry];
-  await store.clear();
-  await store.set(K.hallOfFame, archive);
+  await store.set(K.hallOfFame, [...(await readHallOfFame(store)), entry]);
+  await resetForSeason(store);
   return entry;
 }
