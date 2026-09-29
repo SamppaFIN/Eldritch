@@ -7,7 +7,7 @@
  * trickle. This is the seam the Keep screen reads and the Raise button writes through —
  * a separate API object, like `worksApi`, because `MockRepository` is at its line limit.
  */
-import { claimCost, growBox } from '../rules/balance.js';
+import { growBox } from '../rules/balance.js';
 import { FIRST_KEEP, STORE_MS, calmAt, foodBalance, keepHousing, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
 import type { KeepRaiseResult } from '../rules/citizens.js';
 import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js';
@@ -44,9 +44,6 @@ export interface KeepView {
   /** The realm's mood (PROG-008), and the word for it. */
   sanity: number;
   sanityWord: string;
-  /** Culture the next new hex costs, and what the pouch holds (PROG-003). */
-  nextCellCulture: number;
-  culture: number;
 }
 
 /** One building on a cell and the hands in it. */
@@ -115,8 +112,6 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         idle: g.citizens - staffed(keep.staff ?? {}),
         sanity: realmSanity(cells, keep.staff ?? {}, g.citizens, keep.gatesNear, calmAt(keep, now)),
         sanityWord: sanityWord(realmSanity(cells, keep.staff ?? {}, g.citizens, keep.gatesNear, calmAt(keep, now))),
-        nextCellCulture: claimCost(cells.length + 1),
-        culture: state.pool.culture,
         storesLeftH: keep.titheAt === undefined ? null : Math.max(0, (keep.titheAt + STORE_MS - now) / 3_600_000),
       };
     },

@@ -2,7 +2,7 @@
  * BRDC-CLAIM-009 — step-claim and reveal through the repository.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
-import { EMPTY_POOL, cellAt, claimCost, neighboursOf } from '@es3/core';
+import { EMPTY_POOL, cellAt, neighboursOf } from '@es3/core';
 import { writePouch } from './pouch.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
@@ -145,19 +145,13 @@ describe('revealCell', () => {
   });
 });
 
-describe('claimStep on a Season 2 save — culture buys ground (BRDC-PROG-003)', () => {
-  it('takes nothing without the culture, and pays it when it has it', async () => {
+describe('claimStep on a Season 2 save — walking always claims (Infinite 2026-09-30)', () => {
+  it('takes the hex with an empty pouch, and charges no culture', async () => {
     const { repo, store, near } = await repoWithHearth();
     await repo.keep.found(T0);
-    const held = (await repo.getOwnedCells(T0)).length;
-    const price = claimCost(held + 1);
-
-    await writePouch(store, { ...EMPTY_POOL, culture: price - 1 }, T0);
-    expect(await repo.claimStep(near, T0)).toEqual({ claimed: null, needsCulture: price });
-
-    await writePouch(store, { ...EMPTY_POOL, culture: price + 5 }, T0);
+    await writePouch(store, { ...EMPTY_POOL, culture: 3 }, T0);
     expect(await repo.claimStep(near, T0)).toMatchObject({ claimed: near });
-    expect((await repo.getResources(T0)).culture).toBe(5);
+    expect((await repo.getResources(T0)).culture).toBe(3);
   });
 });
 

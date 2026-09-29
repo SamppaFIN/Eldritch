@@ -3,6 +3,10 @@
 GPS territory-capture game. Walk in the real world and take the ground you cross; steal it
 from other players. Lovecraftian aesthetic and lore inherited from v2.
 
+**Walking always claims (Infinite 2026-09-30, field report):** Season 2's culture price per
+hex (PROG-003) was tried and removed in v0.7.2 — a friend walked for hours and took nothing.
+Do not put a price on stepping again without asking.
+
 **Claiming, as of 2026-09-02 (BRDC-CLAIM-009):** the primary way is *stepping* — walk onto
 an unclaimed hex that borders yours and it is yours. Closing a loop to claim the land
 *inside* it is the game's deeper mechanic and it still exists, behind `Settings.loopClosure`

@@ -9,6 +9,8 @@
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf ("Every cell costs more", "Copies get dearer")` |
 | **Status** | `in-progress` — kaikki paitsi BuildPanelin kopiohinta (2026-09-29) |
 
+**KUMOTTU 2026-09-30 (kenttähavainto, Infinite):** *"jos kaveri oli monta tuntia ja monta laylinee, niin ei tuntunut kivalta kun ei saanutkaan maata.. Eikös täs nyt pitäny olla säännöissä, et aina saat maan kun kävelet sinne?"* — kulttuurihinta poistettu kokonaan (v0.7.2): kävely valtaa aina, kuten CLAUDE.md lupaa. Kasvun jarru on PROG-008:n sanity (−1 / 8 heksaa). Kopiohinnat (`copyCost`) jäävät.
+
 ## 🔴 RED
 
 Askelvaltaus on ilmainen (CLAIM-009/017), joten maa kasvaa niin nopeasti kuin jaksaa kävellä. Dokumentti: `claim(n)=8+3·n^1.15` kulttuuria, kuten Civilizationin rajat. Samaa rakennusta voi rakentaa rajatta samaan hintaan; dokumentti: `cost(k)=base·1.25^(k−1)`.

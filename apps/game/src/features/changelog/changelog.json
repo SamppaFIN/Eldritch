@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.7.2",
+    "date": "2026-09-30",
+    "notes": [
+      "Walking claims ground again, always. New hexes no longer cost culture — step onto the hex beside yours and it is yours."
+    ]
+  },
+  {
     "version": "0.7.1",
     "date": "2026-09-29",
     "notes": [

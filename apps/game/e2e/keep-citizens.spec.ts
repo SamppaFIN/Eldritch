@@ -86,7 +86,6 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   await expect(citizens).toContainText('Granary 0 / 29');
   await expect(citizens).toContainText(/Sanity \d+ · calm/);
   await expect(citizens).toContainText('Stores fill for 12 more h.');
-  await expect(citizens).toContainText(/The next hex costs \d+ culture\./);
   await expect(citizens.getByRole('button', { name: /Raise the Keep · 100 food · 50 stone/ })).toBeVisible();
   // BRDC-COUNSEL-001: the Counsel and the first codex card, read once.
   const counsel = page.getByLabel('Your sanctuary').getByLabel('Counsel');

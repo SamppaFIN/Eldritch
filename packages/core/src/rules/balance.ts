@@ -37,36 +37,10 @@ export const housing = (keepLevel: number): number => 3 + 3 * keepLevel;
 /** Worker slots at a building level: 1, 2, 2, 3, 3 … */
 export const slots = (level: number): number => 1 + Math.floor(level / 2);
 
-/**
- * Culture for the `n`th cell: 50 at 10, 277 at 50 (PROG-003). Floored, not rounded: the
- * document's handoff says `Math.round`, but its own worked numbers (50, 277) are floors
- * — 50 → 277.8 — and the worked numbers are what a player is told.
- */
-export const claimCost = (n: number): number => Math.floor(8 + 3 * n ** 1.15);
 
 /** The `k`th copy of a building costs 1.25× the one before it (PROG-003). */
 export const copyCost = (base: number, k: number): number => Math.round(base * 1.25 ** (k - 1));
 
-/**
- * How many new cells `culture` buys for a realm already holding `held`, and the culture
- * they cost together — cell `held + 1` first, each dearer than the last (PROG-003).
- */
-export function affordableClaims(culture: number, held: number): { count: number; cost: number } {
-  let count = 0;
-  let cost = 0;
-  while (cost + claimCost(held + count + 1) <= culture) {
-    cost += claimCost(held + count + 1);
-    count += 1;
-  }
-  return { count, cost };
-}
-
-/** The culture `count` new cells cost together, starting at cell `held + 1`. */
-export function claimsCost(held: number, count: number): number {
-  let cost = 0;
-  for (let i = 1; i <= count; i += 1) cost += claimCost(held + i);
-  return cost;
-}
 
 /** A whole price with `copies` already standing: each resource at `copyCost` (PROG-003). */
 export function copyPrice<K extends string>(cost: Readonly<Partial<Record<K, number>>>, copies: number): Partial<Record<K, number>> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BALANCE, affordableClaims, claimCost, claimsCost, copyCost, growBox, housing, slots } from './balance.js';
+import { BALANCE, copyCost, growBox, housing, slots } from './balance.js';
 import { FIRST_GRANARY, FIRST_KEEP, feedGranary, foodBalance, hoursToNextCitizen, settleGranary } from './citizens.js';
 
 describe('balance — the document\'s own worked numbers', () => {
@@ -12,9 +12,7 @@ describe('balance — the document\'s own worked numbers', () => {
     expect([0, 1, 2, 3, 4].map(slots)).toEqual([1, 1, 2, 2, 3]);
     expect([1, 2, 3, 4, 5].map(slots)).toEqual([1, 2, 2, 3, 3]);
   });
-  it('claimCost 50 at 10, 277 at 50; the fifth copy costs 2.4×', () => {
-    expect(claimCost(10)).toBe(50);
-    expect(claimCost(50)).toBe(277);
+  it('the fifth copy costs 2.4×', () => {
     expect(copyCost(100, 5)).toBe(244);
   });
 });
@@ -91,14 +89,3 @@ describe('feedGranary — granary first', () => {
   });
 });
 
-describe('culture buys ground (PROG-003)', () => {
-  it('buys cells in order, each dearer, never overspending', () => {
-    const held = 7; // the founding Hearth ring
-    const one = claimCost(8);
-    expect(affordableClaims(one - 1, held)).toEqual({ count: 0, cost: 0 });
-    expect(affordableClaims(one, held)).toEqual({ count: 1, cost: one });
-    const two = claimsCost(held, 2);
-    expect(two).toBe(claimCost(8) + claimCost(9));
-    expect(affordableClaims(two + claimCost(10) - 1, held)).toEqual({ count: 2, cost: two });
-  });
-});
