@@ -64,6 +64,12 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         </h2>
         <div className="es-modal__body">{children}</div>
         {footer ? <div className="es-modal__footer">{footer}</div> : null}
+        {/* Always a way out by touch: iOS has no back swipe to close a <dialog>, and a page
+            like a building's has no "Done" in its footer (field report 2026-09-29). Last in
+            the DOM so `showModal` still focuses the primary action first; placed top-right. */}
+        <button type="button" className="es-modal__close" aria-label="Close" onClick={onClose}>
+          ×
+        </button>
       </div>
     </dialog>
   );

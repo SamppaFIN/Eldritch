@@ -10,8 +10,37 @@ import { openMap } from './hearth.js';
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
-/** Give the pouch record a Keep, the way SEASON-006 will on the first day of a season. */
+/**
+ * Give the pouch record a Keep, the way SEASON-006 will on the first day of a season.
+ * The app rewrites `resources` on every settle, so a write can lose a race with one in
+ * flight: read it back after a beat and write again until the Keep is really there.
+ */
 async function foundKeep(page: Page): Promise<void> {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await writeKeep(page);
+    await page.waitForTimeout(400);
+    if (await hasKeep(page)) return;
+  }
+  throw new Error('the Keep would not stay seeded');
+}
+
+async function hasKeep(page: Page): Promise<boolean> {
+  return page.evaluate(
+    () =>
+      new Promise<boolean>((resolve) => {
+        const open = indexedDB.open('es3');
+        open.onsuccess = () => {
+          const get = open.result.transaction('kv', 'readonly').objectStore('kv').get('resources');
+          get.onsuccess = () => {
+            open.result.close();
+            resolve(Boolean(get.result?.keep));
+          };
+        };
+      }),
+  );
+}
+
+async function writeKeep(page: Page): Promise<void> {
   await page.evaluate(
     () =>
       new Promise<void>((resolve, reject) => {

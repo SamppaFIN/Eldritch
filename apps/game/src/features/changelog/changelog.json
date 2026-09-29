@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.68",
+    "date": "2026-09-29",
+    "notes": [
+      "Every window now has a × in its corner to close it. The building page had no way out on an iPhone."
+    ]
+  },
+  {
     "version": "0.6.67",
     "date": "2026-09-29",
     "notes": [
