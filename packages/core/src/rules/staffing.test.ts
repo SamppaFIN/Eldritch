@@ -99,3 +99,12 @@ describe('the ground adds to the hands (the NOTE column)', () => {
     expect(staffedBonus([market, ...towns], staff, T0).gold).toBe(3 + seen);
   });
 });
+
+describe('a mad realm works at four fifths (BRDC-PROG-008)', () => {
+  it('sanity below zero takes a fifth off what the hands make', () => {
+    const farmCell = cell(A, 'farm');
+    const staff = { [staffKey(A, 'farm')]: 1 };
+    expect(staffedBonus([farmCell], staff, T0, [], 6).food).toBe(3);
+    expect(staffedBonus([farmCell], staff, T0, [], 30).food).toBe(2); // sanity −14
+  });
+});

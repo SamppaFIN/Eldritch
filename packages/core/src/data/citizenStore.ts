@@ -16,6 +16,7 @@ import { worksOn } from '../rules/build.js';
 import { worksViewAt } from './worksStore.js';
 import { readLore } from './loreStore.js';
 import { keepCeiling } from '../rules/lore.js';
+import { realmSanity, sanityWord } from '../rules/sanity.js';
 import { commit, forecastRates, settlePouch } from './pouch.js';
 import type { KeepState } from '../rules/citizens.js';
 import type { ResourcePool } from '../rules/terrain.js';
@@ -38,6 +39,9 @@ export interface KeepView {
   idle: number;
   /** Hours the stores still fill before the realm sleeps; 0 = full, walk to the Keep. */
   storesLeftH: number | null;
+  /** The realm's mood (PROG-008), and the word for it. */
+  sanity: number;
+  sanityWord: string;
   /** Culture the next new hex costs, and what the pouch holds (PROG-003). */
   nextCellCulture: number;
   culture: number;
@@ -102,6 +106,8 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         hoursToNext: hoursToNextCitizen(g, balance, cap),
         raiseCost: keepRaiseCost(keep.level),
         idle: g.citizens - staffed(keep.staff ?? {}),
+        sanity: realmSanity(cells, keep.staff ?? {}, g.citizens),
+        sanityWord: sanityWord(realmSanity(cells, keep.staff ?? {}, g.citizens)),
         nextCellCulture: claimCost(cells.length + 1),
         culture: state.pool.culture,
         storesLeftH: keep.titheAt === undefined ? null : Math.max(0, (keep.titheAt + STORE_MS - now) / 3_600_000),

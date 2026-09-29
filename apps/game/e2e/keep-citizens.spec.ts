@@ -81,6 +81,7 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   const citizens = page.getByLabel('Your sanctuary').getByLabel('Citizens');
   await expect(citizens).toContainText('1 / 6 housed · 1 idle · Keep level 1');
   await expect(citizens).toContainText('Granary 0 / 29');
+  await expect(citizens).toContainText(/Sanity \d+ · calm/);
   await expect(citizens).toContainText('Stores fill for 12 more h.');
   await expect(citizens).toContainText(/The next hex costs \d+ culture\./);
   await expect(citizens.getByRole('button', { name: /Raise the Keep · 100 food · 50 stone/ })).toBeVisible();

@@ -18,6 +18,7 @@ import type { ResourcePool, TerrainKind } from './terrain.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 import type { Boon } from './citizens.js';
 import { activeMasterworks } from './masterwork.js';
+import { realmSanity, sanityYield } from './sanity.js';
 
 /** Workers per building, keyed `h3|buildingId`. */
 export type StaffMap = Readonly<Record<string, number>>;
@@ -63,6 +64,8 @@ export function staffedBonus(
   staff: StaffMap,
   now: number,
   boons: readonly Boon[] = [],
+  /** The Keep's citizens — given, the realm's sanity shapes the yield (PROG-008). */
+  citizens?: number,
 ): Partial<ResourcePool> {
   const out: Partial<ResourcePool> = {};
   const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
@@ -89,6 +92,12 @@ export function staffedBonus(
   const awake = activeMasterworks(cells);
   if (awake.includes('foundry')) for (const k of ['iron', 'stone'] as const) if (out[k]) out[k] = Math.round((out[k] ?? 0) * 1.5);
   if (awake.includes('sunken-cathedral') && out.mana) out.mana = Math.round(out.mana * 1.5);
+
+  // A mad realm works at four fifths (PROG-008) — what it makes, not what it spends.
+  if (citizens !== undefined) {
+    const f = sanityYield(realmSanity(cells, staff, citizens));
+    if (f !== 1) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.floor((out[k] ?? 0) * f);
+  }
 
   // Rites of the Tide (PROG-007): Call the Shoal on one Farmstead, High Water on every hand.
   for (const b of boons) {

@@ -55,6 +55,10 @@ export function KeepCitizens({ repository, now, onPouch }: KeepCitizensProps) {
         <p className="hearth-panel__line es-numeric">
           {view.citizens} / {view.housing} housed · {view.idle} idle · Keep level {view.level}
         </p>
+        <p className="hearth-panel__line es-numeric" role={view.sanity < 0 ? 'alert' : undefined}>
+          Sanity {view.sanity} · {view.sanityWord}
+          {view.sanity < 0 ? ' — every yield is down a fifth. Staff a temple or a tavern.' : ''}
+        </p>
         <label className="keep-citizens__granary">
           <span>
             {full
