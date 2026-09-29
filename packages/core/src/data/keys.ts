@@ -70,6 +70,10 @@ export const K = {
   lore: 'lore',
   /** A Season 2 realm's schools and learned rites, `RiteBook` (BRDC-PROG-007). */
   rites: 'rites',
+  /** A Season 2 realm's gates, the Horrors' bites and the Doom outbox (BRDC-DOOM-002). */
+  gates: 'gates',
+  /** The investigator — stamina, sanity, clues, skills, a pending roll (BRDC-DOOM-002). */
+  investigator: 'investigator',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

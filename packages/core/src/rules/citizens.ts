@@ -104,6 +104,8 @@ export interface KeepState {
   boons?: readonly Boon[];
   /** Housing beyond the Keep's own: +3 for every Manor raised (PROG-006). */
   extraHousing?: number;
+  /** Open gates within three rings, as the last gate sync counted them (DOOM-002). */
+  gatesNear?: number;
 }
 
 /** How many a Keep houses, Manors included. */

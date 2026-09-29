@@ -77,7 +77,7 @@ async function perHourBonus(
   const dwell = (dwellS as DwellMap | undefined) ?? {};
   const home = (homeS as H3Index | undefined) ?? null;
   const expansions = (expansionsS as Record<H3Index, number> | undefined) ?? {};
-  const merged: Partial<ResourcePool> = keep ? staffedBonus(owned, keep.staff ?? {}, now, keep.boons, keep.granary.citizens) : { ...buildingBonus(owned, now) };
+  const merged: Partial<ResourcePool> = keep ? staffedBonus(owned, keep.staff ?? {}, now, keep.boons, keep.granary.citizens, keep.gatesNear) : { ...buildingBonus(owned, now) };
   addInto(merged, placeBonus(placesWithHome(dwell, home), expansions, owned, now));
 
   const spells = (spellsS as ActiveSpell[] | undefined) ?? [];

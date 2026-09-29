@@ -66,6 +66,7 @@ export function staffedBonus(
   boons: readonly Boon[] = [],
   /** The Keep's citizens — given, the realm's sanity shapes the yield (PROG-008). */
   citizens?: number,
+  gatesNear = 0,
 ): Partial<ResourcePool> {
   const out: Partial<ResourcePool> = {};
   const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
@@ -95,7 +96,7 @@ export function staffedBonus(
 
   // A mad realm works at four fifths (PROG-008) — what it makes, not what it spends.
   if (citizens !== undefined) {
-    const f = sanityYield(realmSanity(cells, staff, citizens));
+    const f = sanityYield(realmSanity(cells, staff, citizens, gatesNear));
     if (f !== 1) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.floor((out[k] ?? 0) * f);
   }
 

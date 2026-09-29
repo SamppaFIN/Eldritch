@@ -65,12 +65,9 @@ import type { AchievementView } from '../data/achievementStore.js';
 import type { CipherView } from '../data/cipherStore.js';
 import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 import type { WorksApi } from '../data/worksStore.js';
-import type { KeepApi } from '../data/citizenStore.js';
-import type { LoreApi } from '../data/loreStore.js';
-import type { RiteApi } from '../data/riteStore.js';
-import type { MasterworkApi } from '../data/masterworkStore.js';
+import type { SeasonTwoApis } from './SeasonTwoApis.js';
 
-export interface GameRepository {
+export interface GameRepository extends SeasonTwoApis {
   /* --- Profile ---------------------------------------------------------- */
   getProfile(): Promise<PlayerProfile>;
   /** Only takes effect the moment a profile is first created; a no-op once one
@@ -387,12 +384,4 @@ export interface GameRepository {
   setKingdomShared(id: string, sharedAt: number): Promise<void>;
   /** Building pages and their research trees (BRDC-WORKS-002). */
   readonly works: WorksApi;
-  /** The Keep's level, citizens and granary — `view` is null on a Season 1 save (BRDC-PROG-001). */
-  readonly keep: KeepApi;
-  /** The Lore — five Ages, four paths; `view` is null on a Season 1 save (BRDC-PROG-004). */
-  readonly lore: LoreApi;
-  /** The temples' three schools — `view` is null on a Season 1 save (BRDC-PROG-007). */
-  readonly rites: RiteApi;
-  /** Masterworks — `view` is null on a Season 1 save (BRDC-PROG-006). */
-  readonly masterworks: MasterworkApi;
 }
