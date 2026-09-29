@@ -20,7 +20,7 @@ describe('keepApi', () => {
     const store = new MemoryStore();
     const keep = keepApi(() => store, async () => []);
     await keep.found(T0);
-    expect(await keep.view(T0)).toMatchObject({ level: 1, citizens: 1, housing: 6, box: 0, boxNeed: 29 });
+    expect(await keep.view(T0)).toMatchObject({ level: 1, citizens: 1, housing: 6, box: 0, boxNeed: 29, nextCellCulture: 11 });
   });
 
   it('raising pays food and stone once, and stops without Lore at level 2', async () => {

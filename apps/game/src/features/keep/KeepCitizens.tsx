@@ -70,6 +70,11 @@ export function KeepCitizens({ repository, now, onPouch }: KeepCitizensProps) {
         ) : (
           <p className="hearth-panel__line">Stores fill for {Math.ceil(view.storesLeftH)} more h.</p>
         )}
+        <p className="hearth-panel__line es-numeric">
+          {view.culture >= view.nextCellCulture
+            ? `The next hex costs ${view.nextCellCulture} culture. You have ${Math.floor(view.culture)}.`
+            : `The next hex costs ${view.nextCellCulture} culture. Walking takes no ground until you have it.`}
+        </p>
         {view.hoursToNext !== null ? (
           <p className="hearth-panel__line">Next citizen in {Math.ceil(view.hoursToNext)} h.</p>
         ) : null}
