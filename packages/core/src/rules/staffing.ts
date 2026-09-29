@@ -11,7 +11,9 @@
  */
 import { slots } from './balance.js';
 import { BUILDINGS, worksOn } from './build.js';
-import { DORMANT_AFTER_MS } from './terrain.js';
+import { DORMANT_AFTER_MS, terrainForCell } from './terrain.js';
+import { bountyOn, bountyYield } from './bounty.js';
+import { neighboursOf } from '../geo/cells.js';
 import type { ResourcePool } from './terrain.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 
@@ -40,21 +42,39 @@ function rowFor(id: BuildingId): WorkRow {
   return WORK_TABLE[id] ?? { perWorker: BUILDINGS[id].produces ?? {}, maxSlots: 1 };
 }
 
+/** A hex whose bounty pays food — wheat, herd, deer, fish… (the document's food deposit). */
+export const isFoodDeposit = (cell: Cell): boolean => (bountyYield(bountyOn(cell)).food ?? 0) > 0;
+
 /** Hands a building can take at this level. */
 export const slotsFor = (id: BuildingId, level: number): number => Math.min(rowFor(id).maxSlots, slots(level));
 
 export const staffed = (staff: StaffMap): number => Object.values(staff).reduce((s, n) => s + n, 0);
 
-/** Per-hour production of every awake, staffed building. A building with no hands yields nothing. */
+/**
+ * Per-hour production of every awake, staffed building. A building with no hands yields
+ * nothing. The ground adds to it (the document's NOTE column): a Farmstead on a food
+ * deposit doubles each worker's yield, and a Sawmill gains a timber for every held
+ * forest hex beside it.
+ */
 export function staffedBonus(cells: readonly Cell[], staff: StaffMap, now: number): Partial<ResourcePool> {
   const out: Partial<ResourcePool> = {};
+  const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
+  const held = new Map(cells.map((c) => [c.h3, c]));
   for (const cell of cells) {
     if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
     for (const work of worksOn(cell)) {
       const hands = staff[staffKey(cell.h3, work.id)] ?? 0;
       if (hands <= 0) continue;
+      const mult = work.id === 'farm' && isFoodDeposit(cell) ? 2 : 1;
       for (const [k, v] of Object.entries(rowFor(work.id).perWorker) as [keyof ResourcePool, number][]) {
-        out[k] = (out[k] ?? 0) + v * hands;
+        add(k, v * hands * (v > 0 ? mult : 1));
+      }
+      if (work.id === 'sawmill') {
+        const forest = neighboursOf(cell.h3).filter((h) => {
+          const n = held.get(h);
+          return n !== undefined && terrainForCell(n).kind === 'forest';
+        }).length;
+        add('wood', forest);
       }
     }
   }

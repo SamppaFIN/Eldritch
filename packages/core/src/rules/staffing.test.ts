@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { cellAt, neighboursOf } from '../geo/cells.js';
-import { assignWorker, slotsFor, staffKey, staffed, staffedBonus, staffedCells, trimStaff } from './staffing.js';
+import { assignWorker, isFoodDeposit, slotsFor, staffKey, staffed, staffedBonus, staffedCells, trimStaff } from './staffing.js';
 import { feedGranary } from './citizens.js';
+import { terrainForCell } from './terrain.js';
 import type { Cell } from '../types/domain.js';
 
 const T0 = Date.parse('2026-10-01T12:00:00Z');
@@ -59,5 +60,34 @@ describe('staffing — no hands, no harvest', () => {
     const r = feedGranary(before, { pool: { food: 0 }, since: 6 * 3_600_000, keep });
     expect(r.keep?.granary.citizens).toBe(1);
     expect(r.keep?.staff).toEqual({ [staffKey(A, 'farm')]: 1 });
+  });
+});
+
+describe('the ground adds to the hands (the NOTE column)', () => {
+  const ring = [A, ...neighboursOf(A)];
+  const around = (h: string) => [h, ...neighboursOf(h)];
+
+  it('a Farmstead on a food deposit doubles each worker', () => {
+    // Walk outward until a hex with a food bounty turns up.
+    const seen = new Set<string>(ring);
+    const queue = [...ring];
+    let found: string | undefined;
+    while (!found && queue.length) {
+      const h = queue.shift() as string;
+      if (isFoodDeposit(cell(h, 'farm'))) found = h;
+      for (const n of around(h)) if (!seen.has(n) && seen.size < 5000) (seen.add(n), queue.push(n));
+    }
+    expect(found).toBeDefined();
+    const c = cell(found as string, 'farm');
+    expect(staffedBonus([c], { [staffKey(c.h3, 'farm')]: 1 }, T0)).toEqual({ food: 6 });
+  });
+
+  it('a Sawmill gains a timber per held forest hex beside it', () => {
+    const mill = { ...cell(A), buildings: [{ id: 'sawmill' as const, builtAt: T0 }] };
+    const forests = neighboursOf(A).map((h) => ({ ...cell(h), terrain: { kind: 'forest' as const, source: 'seed' as const } }));
+    const staff = { [staffKey(A, 'sawmill')]: 1 };
+    const expected = 2 + forests.filter((f) => terrainForCell(f).kind === 'forest').length;
+    expect(staffedBonus([mill, ...forests], staff, T0).wood).toBe(expected);
+    expect(staffedBonus([mill], staff, T0).wood).toBe(2);
   });
 });

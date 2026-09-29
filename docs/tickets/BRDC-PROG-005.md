@@ -15,6 +15,7 @@
 
 ## 🟢 GREEN
 
+- [ ] (PROG-002:lta) Forge: bog iron reachin sisällä sulatetaan ilman timber-ylläpitoa; Night Market: trade-solut reachissa +1 gold
 - [ ] Puun tier ≤ nykyinen Age; lukittu node kertoo mikä aikakausi avaa
 - [ ] Taso = opittujen nodejen määrä → `slots` (PROG-002)
 - [ ] Watchtower saa puun (Lookouts, sight + 40 strength ring 1, löytää vihjeitä)

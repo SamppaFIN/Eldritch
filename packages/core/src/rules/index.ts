@@ -286,6 +286,7 @@ export type { Granary, GranaryResult, KeepRaiseResult, KeepState } from './citiz
 export {
   WORK_TABLE,
   assignWorker,
+  isFoodDeposit,
   slotsFor,
   staffKey,
   staffed,
