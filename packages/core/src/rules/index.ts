@@ -295,3 +295,5 @@ export {
   trimStaff,
 } from './staffing.js';
 export type { StaffMap, StaffRefusal } from './staffing.js';
+export { AGE_NAMES, LORE, LORE_IDS, ageOf, canStudy, keepCeiling, loreAllows, loreCost, loreFor } from './lore.js';
+export type { Age, LoreId, LorePath, LoreTech, MasterworkId, StudyRefusal, Unlock } from './lore.js';

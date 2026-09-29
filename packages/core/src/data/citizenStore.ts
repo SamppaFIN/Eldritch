@@ -14,6 +14,8 @@ import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js'
 import type { StaffRefusal } from '../rules/staffing.js';
 import { worksOn } from '../rules/build.js';
 import { worksViewAt } from './worksStore.js';
+import { readLore } from './loreStore.js';
+import { keepCeiling } from '../rules/lore.js';
 import { commit, forecastRates, settlePouch } from './pouch.js';
 import type { KeepState } from '../rules/citizens.js';
 import type { ResourcePool } from '../rules/terrain.js';
@@ -107,7 +109,7 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
     },
     raise: async (now) => {
       const state = await settlePouch(store(), await owned(now), now);
-      const result = raiseKeep(state.keep, state.pool);
+      const result = raiseKeep(state.keep, state.pool, keepCeiling(await readLore(store())));
       if (result.ok) {
         const { food, stone } = result.paid;
         const pool = { ...state.pool, food: state.pool.food - food, stone: state.pool.stone - stone };

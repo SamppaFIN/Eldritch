@@ -165,5 +165,7 @@ export { readHallOfFame, retireKingdom, setKingdomStory } from './hallOfFameStor
 export { FOREVER_KEYS, resetForSeason } from './seasonReset.js';
 export { keepApi } from './citizenStore.js';
 export type { KeepApi, KeepView, StaffOutcome, StaffSlot } from './citizenStore.js';
+export { loreApi, readLore } from './loreStore.js';
+export type { LoreApi, LoreRow, LoreView, StudyOutcome } from './loreStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

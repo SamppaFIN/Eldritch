@@ -66,6 +66,7 @@ import type { CipherView } from '../data/cipherStore.js';
 import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 import type { WorksApi } from '../data/worksStore.js';
 import type { KeepApi } from '../data/citizenStore.js';
+import type { LoreApi } from '../data/loreStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -386,4 +387,6 @@ export interface GameRepository {
   readonly works: WorksApi;
   /** The Keep's level, citizens and granary — `view` is null on a Season 1 save (BRDC-PROG-001). */
   readonly keep: KeepApi;
+  /** The Lore — five Ages, four paths; `view` is null on a Season 1 save (BRDC-PROG-004). */
+  readonly lore: LoreApi;
 }

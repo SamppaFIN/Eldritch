@@ -6,6 +6,10 @@
  * does not grow two more verbs inline. `wardWith` in pouch.js is the shape: settle the
  * pouch, ask the rule, and write only on success.
  */
+import { loreAllows } from '../rules/lore.js';
+import { readLore } from './loreStore.js';
+import { TECHS } from '../rules/tech.js';
+
 import { BUILDINGS, buildCost, buildingsOf, canBuild, hasWork, refund, worksOn } from '../rules/build.js';
 import type { BuildRefusal, BuildingId } from '../rules/build.js';
 import { spend, terrainOf } from '../rules/terrain.js';
@@ -20,6 +24,9 @@ import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
 import { forgetTree } from './worksTrees.js';
+
+/** Every old tech — a Season 2 save passes them all so only the Lore gates a building. */
+const TECH_IDS = Object.keys(TECHS) as TechId[];
 
 /**
  * The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — a mountain within one ring, or
@@ -71,10 +78,12 @@ export async function buildOn(
   const state = await settlePouch(store, owned, now);
   // Season 2 (PROG-003): the fifth Watchtower costs 2.4× the first.
   const copies = state.keep ? buildingsOf(owned).filter((b) => b === id).length : 0;
+  // Season 2 (PROG-004): the Lore decides what may be built; the old tree steps aside.
+  if (state.keep && !loreAllows(id, await readLore(store))) return { ok: false, refused: 'locked' };
   const check = canBuild(
     {
       playerId: me,
-      researched,
+      researched: state.keep ? TECH_IDS : researched,
       pool: state.pool,
       buildings: buildingsOf(owned),
       templeAdjacent,
