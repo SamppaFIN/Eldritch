@@ -110,3 +110,37 @@
   color: var(--danger);
   font-size: var(--text-sm);
 }
+
+/* The Keep · Citizens (BRDC-PROG-001). */
+.keep-citizens {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+}
+
+.keep-citizens__granary {
+  display: grid;
+  gap: 0.25rem;
+  font-size: var(--text-sm);
+}
+
+.keep-citizens__granary progress {
+  inline-size: 100%;
+  block-size: 0.5rem;
+  accent-color: var(--awareness-green);
+}
+
+.keep-citizens__ledger {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.keep-citizens__ledger div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.keep-citizens__ledger dd {
+  margin: 0;
+}

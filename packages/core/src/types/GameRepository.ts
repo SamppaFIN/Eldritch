@@ -65,6 +65,7 @@ import type { AchievementView } from '../data/achievementStore.js';
 import type { CipherView } from '../data/cipherStore.js';
 import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 import type { WorksApi } from '../data/worksStore.js';
+import type { KeepApi } from '../data/citizenStore.js';
 
 export interface GameRepository {
   /* --- Profile ---------------------------------------------------------- */
@@ -383,4 +384,6 @@ export interface GameRepository {
   setKingdomShared(id: string, sharedAt: number): Promise<void>;
   /** Building pages and their research trees (BRDC-WORKS-002). */
   readonly works: WorksApi;
+  /** The Keep's level, citizens and granary — `view` is null on a Season 1 save (BRDC-PROG-001). */
+  readonly keep: KeepApi;
 }

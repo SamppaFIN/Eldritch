@@ -24,6 +24,7 @@ import { KeepResources } from '../keep/KeepResources.js';
 import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
 import { HearthGrowth } from '../keep/HearthGrowth.js';
+import { KeepCitizens } from '../keep/KeepCitizens.js';
 import type { PublishResult } from '../../data/worldSource.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
@@ -147,6 +148,8 @@ export function HearthPanel({
           <dd className="es-numeric">{places.filter((p) => p.kind === 'temple').length}</dd>
         </div>
       </dl>
+
+      <KeepCitizens repository={repository} now={now} onPouch={onPouch} />
 
       <h3 className="hearth-panel__section">The pouch</h3>
       <KeepResources
