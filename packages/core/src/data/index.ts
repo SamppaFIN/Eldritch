@@ -173,5 +173,7 @@ export { masterworkApi } from './masterworkStore.js';
 export type { MasterworkApi, MasterworkRow, RaiseOutcome } from './masterworkStore.js';
 export { gateApi } from './gateStore.js';
 export type { GateApi, GateOutcome, GateView, SeasonClock } from './gateStore.js';
+export { rumourApi } from './deckStore.js';
+export type { RumourApi, RumourOutcome, RumourView } from './deckStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

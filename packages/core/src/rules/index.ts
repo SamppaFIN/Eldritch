@@ -348,3 +348,5 @@ export {
 export type { Investigator, Luck, Roll, Skill } from './investigator.js';
 export { GATE_DOOM_MS, GATE_TEST_NEED, gateAtDawn, gatesNear, horrorBite, isOpen as isGateOpen, overdue } from './gate.js';
 export type { Gate } from './gate.js';
+export { DECKS, RUMOUR_SHARE, cardById, deckFor, rumourAt } from './deck.js';
+export type { Deck, DeckCard } from './deck.js';

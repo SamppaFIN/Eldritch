@@ -36,3 +36,10 @@ export async function postDoom(moves: readonly { gateId: string; delta: 1 | -1 }
   }
   return done;
 }
+
+let once: Promise<Season | null> | null = null;
+/** The season, fetched once a session — for reads made on every hex tap (rumours). */
+export function seasonOnce(): Promise<Season | null> {
+  once ??= fetchSeason();
+  return once;
+}

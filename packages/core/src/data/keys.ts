@@ -74,6 +74,8 @@ export const K = {
   gates: 'gates',
   /** The investigator — stamina, sanity, clues, skills, a pending roll (BRDC-DOOM-002). */
   investigator: 'investigator',
+  /** Rumours faced this season and a roll still pending (BRDC-DOOM-003). */
+  rumours: 'rumours',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

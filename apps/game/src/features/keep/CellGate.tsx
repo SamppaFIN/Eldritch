@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import type { GameRepository, GateView, H3Index, Roll } from '@es3/core';
 import { RitualButton } from '@es3/ui';
+import { DiceRow } from './DiceRow.js';
 import './keep.css';
 
 export interface CellGateProps {
@@ -70,20 +71,7 @@ export function CellGate({ repository, h3, here, now }: CellGateProps) {
           <p className="hearth-panel__line es-numeric">
             Lore test · {pending.successes} of {pending.need} needed — {pending.pass ? 'passed' : 'not yet'}
           </p>
-          <div className="keep-gate__dice" role="group" aria-label="Dice">
-            {pending.faces.map((f, i) => (
-              <button
-                key={i}
-                type="button"
-                className={`keep-gate__die${f >= 5 ? ' keep-gate__die--hit' : ''}`}
-                aria-label={`Die ${i + 1}: ${f}${f >= 5 ? ', a success' : ', spend a clue to reroll'}`}
-                disabled={busy || f >= 5 || inv.clues < 1 || pending.pass}
-                onClick={() => act(() => repository.gates.reroll(i, now))}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+          <DiceRow roll={pending} clues={inv.clues} busy={busy} onReroll={(i) => act(() => repository.gates.reroll(i, now))} />
           <RitualButton
             variant="ghost"
             disabled={busy}

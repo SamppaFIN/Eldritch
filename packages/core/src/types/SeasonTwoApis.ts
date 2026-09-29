@@ -10,6 +10,7 @@ import type { LoreApi } from '../data/loreStore.js';
 import type { RiteApi } from '../data/riteStore.js';
 import type { MasterworkApi } from '../data/masterworkStore.js';
 import type { GateApi } from '../data/gateStore.js';
+import type { RumourApi } from '../data/deckStore.js';
 
 export interface SeasonTwoApis {
   /** The Keep's level, citizens and granary (BRDC-PROG-001). */
@@ -22,4 +23,6 @@ export interface SeasonTwoApis {
   readonly masterworks: MasterworkApi;
   /** Gates, clues and the investigator (BRDC-DOOM-002). */
   readonly gates: GateApi;
+  /** Rumours: terrain encounter decks (BRDC-DOOM-003). */
+  readonly rumours: RumourApi;
 }
