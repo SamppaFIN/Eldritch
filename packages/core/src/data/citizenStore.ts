@@ -10,9 +10,13 @@
 import { growBox, housing } from '../rules/balance.js';
 import { FIRST_KEEP, foodBalance, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
 import type { KeepRaiseResult } from '../rules/citizens.js';
+import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js';
+import type { StaffRefusal } from '../rules/staffing.js';
+import { worksOn } from '../rules/build.js';
+import { worksViewAt } from './worksStore.js';
 import { forecastRates, settlePouch, writeKeep } from './pouch.js';
 import type { KeyValueStore } from './kv.js';
-import type { Cell } from '../types/domain.js';
+import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 
 export interface KeepView {
   level: number;
@@ -26,7 +30,18 @@ export interface KeepView {
   eatenPerH: number;
   hoursToNext: number | null;
   raiseCost: { food: number; stone: number };
+  /** Citizens with no building to work in (BRDC-PROG-002). */
+  idle: number;
 }
+
+/** One building on a cell and the hands in it. */
+export interface StaffSlot {
+  id: BuildingId;
+  hands: number;
+  slots: number;
+}
+
+export type StaffOutcome = { ok: true } | { ok: false; refused: StaffRefusal | 'no-keep' };
 
 export interface KeepApi {
   /** `null` on a Season 1 save — it has no Keep record, and the game there is unchanged. */
@@ -34,6 +49,10 @@ export interface KeepApi {
   raise(now: number): Promise<KeepRaiseResult>;
   /** Give a save its Keep — the first day of a Season 2 realm (SEASON-006 calls this). */
   found(now: number): Promise<void>;
+  /** The buildings on an owned cell and their hands; empty on a Season 1 save. */
+  staffOn(h3: H3Index, now: number): Promise<StaffSlot[]>;
+  /** Send an idle citizen to (+1) or call one back from (−1) a building. */
+  staff(h3: H3Index, id: BuildingId, delta: 1 | -1, now: number): Promise<StaffOutcome>;
 }
 
 export function keepApi(store: () => KeyValueStore, owned: (now: number) => Promise<readonly Cell[]>): KeepApi {
@@ -57,6 +76,7 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         eatenPerH: producedPerH - balance,
         hoursToNext: hoursToNextCitizen(g, balance, cap),
         raiseCost: keepRaiseCost(keep.level),
+        idle: g.citizens - staffed(keep.staff ?? {}),
       };
     },
     raise: async (now) => {
@@ -72,6 +92,31 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
     found: async (now) => {
       const state = await settlePouch(store(), await owned(now), now);
       if (!state.keep) await writeKeep(store(), FIRST_KEEP, state.pool, now);
+    },
+    staffOn: async (h3, now) => {
+      const cells = await owned(now);
+      const cell = cells.find((c) => c.h3 === h3);
+      const keep = (await settlePouch(store(), cells, now)).keep;
+      if (!cell || !keep) return [];
+      const level = (await worksViewAt(store(), cell))?.level ?? 0;
+      return worksOn(cell).map((w) => ({
+        id: w.id,
+        hands: keep.staff?.[staffKey(h3, w.id)] ?? 0,
+        slots: slotsFor(w.id, level),
+      }));
+    },
+    staff: async (h3, id, delta, now) => {
+      const cells = await owned(now);
+      const cell = cells.find((c) => c.h3 === h3 && worksOn(c).some((w) => w.id === id));
+      const state = await settlePouch(store(), cells, now);
+      const keep = state.keep;
+      if (!keep) return { ok: false, refused: 'no-keep' };
+      if (!cell) return { ok: false, refused: 'none-there' };
+      const level = (await worksViewAt(store(), cell))?.level ?? 0;
+      const r = assignWorker(keep.staff ?? {}, keep.granary.citizens, h3, id, delta, level);
+      if (!r.ok) return r;
+      await writeKeep(store(), { ...keep, staff: r.staff }, state.pool, now);
+      return { ok: true };
     },
   };
 }

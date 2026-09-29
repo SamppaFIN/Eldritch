@@ -164,6 +164,6 @@ export type { GpxFault, GpxParse } from './gpx.js';
 export { readHallOfFame, retireKingdom, setKingdomStory } from './hallOfFameStore.js';
 export { FOREVER_KEYS, resetForSeason } from './seasonReset.js';
 export { keepApi } from './citizenStore.js';
-export type { KeepApi, KeepView } from './citizenStore.js';
+export type { KeepApi, KeepView, StaffOutcome, StaffSlot } from './citizenStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

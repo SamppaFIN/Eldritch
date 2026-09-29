@@ -282,3 +282,14 @@ export {
   settleGranary,
 } from './citizens.js';
 export type { Granary, GranaryResult, KeepRaiseResult, KeepState } from './citizens.js';
+export {
+  WORK_TABLE,
+  assignWorker,
+  slotsFor,
+  staffKey,
+  staffed,
+  staffedBonus,
+  staffedCells,
+  trimStaff,
+} from './staffing.js';
+export type { StaffMap, StaffRefusal } from './staffing.js';

@@ -11,6 +11,8 @@
  * what happened in that time. The store seam (and who leaves first) is PROG-002's.
  */
 import { BALANCE, growBox, housing } from './balance.js';
+import { trimStaff } from './staffing.js';
+import type { StaffMap } from './staffing.js';
 
 export interface Granary {
   citizens: number;
@@ -94,6 +96,8 @@ export function hoursToNextCitizen(g: Granary, balancePerH: number, housingCap: 
 export interface KeepState {
   level: number;
   granary: Granary;
+  /** Workers per building (BRDC-PROG-002). Absent means nobody is at work. */
+  staff?: StaffMap;
 }
 
 export const FIRST_KEEP: KeepState = { level: 1, granary: FIRST_GRANARY };
@@ -120,7 +124,12 @@ export function feedGranary<S extends Settled>(before: S, after: S): S {
   return {
     ...after,
     pool: { ...after.pool, food: before.pool.food + Math.floor(r.stored) },
-    keep: { ...keep, granary: r.granary },
+    keep: {
+      ...keep,
+      granary: r.granary,
+      // Whoever left was at work somewhere — the last-assigned hands go first.
+      ...(r.left > 0 && keep.staff ? { staff: trimStaff(keep.staff, r.granary.citizens) } : {}),
+    },
   };
 }
 

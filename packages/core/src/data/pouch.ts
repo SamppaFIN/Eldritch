@@ -5,8 +5,8 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { feedGranary } from '../rules/citizens.js';
-import type { KeepState } from '../rules/citizens.js';
+import { feedGranary, type KeepState } from '../rules/citizens.js';
+import { staffedBonus, staffedCells } from '../rules/staffing.js';
 import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
 import { worksBonus, worksCapBonus } from '../rules/works/bonus.js';
@@ -69,13 +69,15 @@ async function perHourBonus(
   now: number,
 ): Promise<{ bonus: Partial<ResourcePool>; works: WorksContext }> {
   // One transaction for every key, not one each — the pouch settles often (BRDC-WORKS-002).
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree,
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY,
   ]);
+  const keep = (pouchS as ResourceState | undefined)?.keep;
+  const working = keep ? staffedCells(owned, keep.staff ?? {}) : owned; // Season 2: no hands, no harvest (PROG-002)
   const dwell = (dwellS as DwellMap | undefined) ?? {};
   const home = (homeS as H3Index | undefined) ?? null;
   const expansions = (expansionsS as Record<H3Index, number> | undefined) ?? {};
-  const merged: Partial<ResourcePool> = { ...buildingBonus(owned, now) };
+  const merged: Partial<ResourcePool> = keep ? staffedBonus(owned, keep.staff ?? {}, now) : { ...buildingBonus(owned, now) };
   addInto(merged, placeBonus(placesWithHome(dwell, home), expansions, owned, now));
 
   const spells = (spellsS as ActiveSpell[] | undefined) ?? [];
@@ -92,7 +94,7 @@ async function perHourBonus(
 
   addInto(merged, landmarkBonus(owned, now));
   const works = worksContextFrom(treesS as WorksContext['trees'] | undefined, home, dwell);
-  addInto(merged, worksBonus(owned, works.trees, works.kindAt, now));
+  addInto(merged, worksBonus(working, works.trees, works.kindAt, now));
   return { bonus: merged, works };
 }
 
