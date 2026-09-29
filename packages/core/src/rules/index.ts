@@ -274,6 +274,7 @@ export {
   FIRST_GRANARY,
   FIRST_KEEP,
   KEEP_LEVEL_WITHOUT_LORE,
+  STORE_MS,
   feedGranary,
   foodBalance,
   hoursToNextCitizen,

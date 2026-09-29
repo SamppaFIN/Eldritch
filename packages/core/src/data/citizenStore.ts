@@ -8,13 +8,15 @@
  * a separate API object, like `worksApi`, because `MockRepository` is at its line limit.
  */
 import { growBox, housing } from '../rules/balance.js';
-import { FIRST_KEEP, foodBalance, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
+import { FIRST_KEEP, STORE_MS, foodBalance, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
 import type { KeepRaiseResult } from '../rules/citizens.js';
 import { assignWorker, slotsFor, staffKey, staffed } from '../rules/staffing.js';
 import type { StaffRefusal } from '../rules/staffing.js';
 import { worksOn } from '../rules/build.js';
 import { worksViewAt } from './worksStore.js';
-import { forecastRates, settlePouch, writeKeep } from './pouch.js';
+import { commit, forecastRates, settlePouch } from './pouch.js';
+import type { KeepState } from '../rules/citizens.js';
+import type { ResourcePool } from '../rules/terrain.js';
 import type { KeyValueStore } from './kv.js';
 import type { BuildingId, Cell, H3Index } from '../types/domain.js';
 
@@ -32,6 +34,8 @@ export interface KeepView {
   raiseCost: { food: number; stone: number };
   /** Citizens with no building to work in (BRDC-PROG-002). */
   idle: number;
+  /** Hours the stores still fill before the realm sleeps; 0 = full, walk to the Keep. */
+  storesLeftH: number | null;
 }
 
 /** One building on a cell and the hands in it. */
@@ -53,6 +57,22 @@ export interface KeepApi {
   staffOn(h3: H3Index, now: number): Promise<StaffSlot[]>;
   /** Send an idle citizen to (+1) or call one back from (−1) a building. */
   staff(h3: H3Index, id: BuildingId, delta: 1 | -1, now: number): Promise<StaffOutcome>;
+}
+
+/** Write the Keep beside the pouch it lives in, with the pool it paid from. */
+async function writeKeep(store: KeyValueStore, keep: KeepState, pool: ResourcePool, now: number): Promise<void> {
+  await commit(store, now, (cur) => ({ ...cur, pool, keep }));
+}
+
+/**
+ * Walking to the Keep collects everything (PROG-002, "the daily tithe"): settle what the
+ * stores hold, then start their 12 hours again. A Season 1 save has no Keep and no tithe.
+ */
+export async function titheAtKeep(store: KeyValueStore, owned: readonly Cell[], now: number): Promise<boolean> {
+  const state = await settlePouch(store, owned, now);
+  if (!state.keep) return false;
+  await writeKeep(store, { ...state.keep, titheAt: now }, state.pool, now);
+  return true;
 }
 
 export function keepApi(store: () => KeyValueStore, owned: (now: number) => Promise<readonly Cell[]>): KeepApi {
@@ -77,6 +97,7 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         hoursToNext: hoursToNextCitizen(g, balance, cap),
         raiseCost: keepRaiseCost(keep.level),
         idle: g.citizens - staffed(keep.staff ?? {}),
+        storesLeftH: keep.titheAt === undefined ? null : Math.max(0, (keep.titheAt + STORE_MS - now) / 3_600_000),
       };
     },
     raise: async (now) => {
@@ -91,7 +112,7 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
     },
     found: async (now) => {
       const state = await settlePouch(store(), await owned(now), now);
-      if (!state.keep) await writeKeep(store(), FIRST_KEEP, state.pool, now);
+      if (!state.keep) await writeKeep(store(), { ...FIRST_KEEP, titheAt: now }, state.pool, now);
     },
     staffOn: async (h3, now) => {
       const cells = await owned(now);

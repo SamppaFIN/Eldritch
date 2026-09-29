@@ -24,7 +24,7 @@ async function foundKeep(page: Page): Promise<void> {
           const get = kv.get('resources');
           get.onsuccess = () => {
             const cur = get.result ?? { pool: {}, since: Date.now(), sinceDay: Date.now() };
-            kv.put({ ...cur, keep: { level: 1, granary: { citizens: 1, box: 0, starvedH: 0 } } }, 'resources');
+            kv.put({ ...cur, keep: { level: 1, granary: { citizens: 1, box: 0, starvedH: 0 }, titheAt: Date.now() } }, 'resources');
           };
           tx.oncomplete = () => {
             db.close();
@@ -50,8 +50,9 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
 
   const citizens = page.getByLabel('Your sanctuary').getByLabel('Citizens');
-  await expect(citizens).toContainText('1 / 6 housed · Keep level 1');
+  await expect(citizens).toContainText('1 / 6 housed · 1 idle · Keep level 1');
   await expect(citizens).toContainText('Granary 0 / 29');
+  await expect(citizens).toContainText('Stores fill for 12 more h.');
   await expect(citizens.getByRole('button', { name: /Raise the Keep · 100 food · 50 stone/ })).toBeVisible();
 });
 

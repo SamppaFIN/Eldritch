@@ -53,7 +53,7 @@ export function KeepCitizens({ repository, now, onPouch }: KeepCitizensProps) {
       <h3 className="hearth-panel__section">Citizens</h3>
       <section className="keep-citizens" aria-label="Citizens">
         <p className="hearth-panel__line es-numeric">
-          {view.citizens} / {view.housing} housed · Keep level {view.level}
+          {view.citizens} / {view.housing} housed · {view.idle} idle · Keep level {view.level}
         </p>
         <label className="keep-citizens__granary">
           <span>
@@ -63,6 +63,13 @@ export function KeepCitizens({ repository, now, onPouch }: KeepCitizensProps) {
           </span>
           <progress max={view.boxNeed} value={Math.min(view.box, view.boxNeed)} />
         </label>
+        {view.storesLeftH === null ? null : view.storesLeftH <= 0 ? (
+          <p className="hearth-panel__line" role="alert">
+            The stores are full and the realm sleeps. Walk to the Keep to collect.
+          </p>
+        ) : (
+          <p className="hearth-panel__line">Stores fill for {Math.ceil(view.storesLeftH)} more h.</p>
+        )}
         {view.hoursToNext !== null ? (
           <p className="hearth-panel__line">Next citizen in {Math.ceil(view.hoursToNext)} h.</p>
         ) : null}

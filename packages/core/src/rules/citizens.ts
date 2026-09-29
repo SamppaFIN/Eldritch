@@ -98,7 +98,12 @@ export interface KeepState {
   granary: Granary;
   /** Workers per building (BRDC-PROG-002). Absent means nobody is at work. */
   staff?: StaffMap;
+  /** Last collection at the Keep; stores fill for `STORE_MS` after it (PROG-002). */
+  titheAt?: number;
 }
+
+/** Production accrues this long after a collection, then stops (the document's storageH). */
+export const STORE_MS = BALANCE.storageH * 3_600_000;
 
 export const FIRST_KEEP: KeepState = { level: 1, granary: FIRST_GRANARY };
 

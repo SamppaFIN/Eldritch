@@ -11,8 +11,9 @@ import { filterTrail } from '../geo/filter.js';
 import { detectLoop } from '../geo/loopDetection.js';
 import { sweepDecay } from '../rules/decay.js';
 import { FORTRESS_REACH, fortified } from '../rules/aura.js';
-import { cellsWithin } from '../geo/cells.js';
+import { cellAt, cellsWithin } from '../geo/cells.js';
 import { awardClaims } from './pouch.js';
+import { titheAtKeep } from './citizenStore.js';
 import { writeLogEntry } from './logStore.js';
 import { recordWalk } from './walkWriter.js';
 import { addRouteDistance } from './distanceStore.js';
@@ -87,6 +88,9 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
 
   if (walked.xp > 0) await d.addXp(walked.xp);
   await awardClaims(d.store, owned, walked.grown, lastT);
+  // Walking to the Keep collects the stores on a Season 2 save (BRDC-PROG-002).
+  const home = await d.store.get<string>(K.home);
+  if (home && accepted.some((p) => cellAt(p) === home)) await titheAtKeep(d.store, owned, lastT);
 
   return { ...result, ...walked.trail };
 }

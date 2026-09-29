@@ -5,7 +5,7 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { feedGranary, type KeepState } from '../rules/citizens.js';
+import { STORE_MS, feedGranary } from '../rules/citizens.js';
 import { staffedBonus, staffedCells } from '../rules/staffing.js';
 import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
@@ -141,7 +141,7 @@ async function read(store: KeyValueStore, now: number): Promise<ResourceState> {
  * returns what to write, or returns its argument unchanged to write nothing.
  */
 let writeChain: Promise<unknown> = Promise.resolve();
-function commit(
+export function commit(
   store: KeyValueStore,
   now: number,
   next: (current: ResourceState) => ResourceState,
@@ -181,8 +181,13 @@ export async function settlePouch(
   // Settle against the *fresh* pool: a spend that landed since is kept, not clobbered
   // (BRDC-ECON-006). `settleResources` returns its argument unchanged for a no-op, which
   // `commit` then does not write.
-  // Season 2: the food just produced feeds the granary first (BRDC-PROG-001).
-  return commit(store, now, (cur) => feedGranary(cur, settleResources(cur, owned, now, cap, bph, bpd, factor)));
+  return commit(store, now, (cur) => {
+    // Season 2: stores fill for 12 h after the last collection at the Keep, then the realm
+    // sleeps until walked to (PROG-002); what is produced feeds the granary first (PROG-001).
+    const until = cur.keep?.titheAt !== undefined ? Math.min(now, cur.keep.titheAt + STORE_MS) : now;
+    const fed = feedGranary(cur, settleResources(cur, owned, until, cap, bph, bpd, factor));
+    return until < now && fed.since < now ? { ...fed, since: now, sinceDay: now } : fed;
+  });
 }
 
 /**
@@ -344,16 +349,6 @@ export async function writePouch(
   now: number,
 ): Promise<void> {
   await commit(store, now, (cur) => ({ ...cur, pool }));
-}
-
-/** Write the Keep beside the pouch it lives in (BRDC-PROG-001), with the pool it paid from. */
-export async function writeKeep(
-  store: KeyValueStore,
-  keep: KeepState,
-  pool: ResourcePool,
-  now: number,
-): Promise<void> {
-  await commit(store, now, (cur) => ({ ...cur, pool, keep }));
 }
 
 /**
