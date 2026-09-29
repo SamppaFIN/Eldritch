@@ -47,6 +47,7 @@ import {
   publishSeasonJoin,
   readSeasonDay,
 } from './season.js';
+import { handleSeasonState } from './seasonState.js';
 
 /** The slice of Workers KV this uses — declared here so the Worker needs no extra types. */
 export interface KV {
@@ -61,6 +62,8 @@ export interface Env {
   /** Set with `wrangler secret put AI_API_KEY` (BRDC-HALL-002). Absent means the feature
    *  is simply off — the client already has its own local chronicle for that case. */
   AI_API_KEY?: string;
+  /** `wrangler secret put ADMIN_KEY` — opens and moves the season (`seasonState.ts`). */
+  ADMIN_KEY?: string;
 }
 
 const PLAYER = 'player:';
@@ -307,6 +310,10 @@ export default {
       return entries.length === 0 ? bare(204) : send({ v: 1, generatedAt: Date.now(), entries });
     }
 
+    // GET /season, POST /season/open|phase — the shared season (BRDC-SEASON-002).
+    const seasonResponse = await handleSeasonState(request, url, env.WORLD, env.ADMIN_KEY, send, bare, liveSources);
+    if (seasonResponse) return seasonResponse;
+
     // POST /clan, GET/POST /clan/<id>[/roster|/rename|/kick] — moved to clan.ts once
     // BRDC-SEASON-001's own routes pushed this file back over 400 lines.
     if (url.pathname === '/clan' || url.pathname.startsWith('/clan/')) {
@@ -326,6 +333,9 @@ export default {
           'GET /atlas',
           'GET /atlas/history',
           'GET /atlas/history/<week>',
+          'GET /season',
+          'POST /season/open',
+          'POST /season/phase',
           'GET /season/history',
           'GET /season/history/<day>',
           'POST /season/join',
