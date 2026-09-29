@@ -67,3 +67,25 @@ export async function archiveSeason(kv: KV, now: number, era: string, wipe: bool
   }
   return { archived, ruins: ruins.size, wiped: wipe };
 }
+
+/**
+ * Take archived rows back out of the Chronicles (BRDC-SEASON-004): every row of one
+ * archive run (`id`, e.g. `archive-season-2-deep-awakens`), and/or every archived row
+ * under one of `names`. Only rows an archive run wrote (`archive-*`) are touched; a
+ * kingdom a player retired by hand is never removed here.
+ */
+export async function forgetArchived(kv: KV, id: string | null, names: readonly string[]): Promise<string[]> {
+  const { keys } = await kv.list({ prefix: LEGACY });
+  const removed: string[] = [];
+  for (const { name } of keys) {
+    const raw = await kv.get(name);
+    if (!raw) continue;
+    const e = JSON.parse(raw) as { id?: string; name?: string };
+    if (!e.id?.startsWith('archive-')) continue;
+    if (e.id === id || (e.name !== undefined && names.includes(e.name))) {
+      await kv.delete(name);
+      removed.push(`${e.name} (${e.id})`);
+    }
+  }
+  return removed;
+}

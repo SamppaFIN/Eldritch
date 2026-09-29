@@ -340,6 +340,7 @@ export default {
           'POST /season/strike',
           'GET /season/reckoning',
           'POST /season/archive',
+          'POST /season/archive/forget',
           'GET /season/ruins',
           'POST /season/legacy',
           'GET /season/boards',

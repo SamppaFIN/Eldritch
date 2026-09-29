@@ -71,6 +71,17 @@ function Open-Season {
   Call POST '/season/open' $body -Admin
 }
 
+function Forget-Archived {
+  Write-Host "Removes rows an archive run wrote. A kingdom retired by hand is never touched."
+  $id = Read-Host 'Archive id to remove, e.g. archive-season-2-deep-awakens (Enter = none)'
+  $names = Read-Host 'Kingdom names to remove, comma separated, e.g. Seeker (Enter = none)'
+  $body = @{}
+  if ($id) { $body.id = $id }
+  if ($names) { $body.names = @($names.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }) }
+  if ($body.Count -eq 0) { Write-Host 'Nothing to remove.'; return }
+  Call POST '/season/archive/forget' $body -Admin
+}
+
 function Set-Phase {
   $phase = Read-Host 'Phase: open / reckoning / sealed / interregnum / next'
   Call POST '/season/phase' @{ phase = $phase } -Admin
@@ -85,6 +96,7 @@ while ($true) {
   Write-Host '5  Archive AND wipe the map'
   Write-Host '6  Open a season'
   Write-Host '7  Force a phase (reckoning / sealed / ...)'
+  Write-Host '8  Remove archived rows from the Chronicles'
   Write-Host 'Q  Quit'
   switch ((Read-Host 'Choose').ToUpper()) {
     '1' { New-AdminKey }
@@ -94,7 +106,8 @@ while ($true) {
     '5' { Invoke-Archive -Wipe }
     '6' { Open-Season }
     '7' { Set-Phase }
+    '8' { Forget-Archived }
     'Q' { return }
-    default { Write-Host 'Choose 1-7 or Q.' }
+    default { Write-Host 'Choose 1-8 or Q.' }
   }
 }
