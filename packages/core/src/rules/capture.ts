@@ -36,6 +36,8 @@ export interface Attacker {
   ownedNeighbours?: number;
   /** Anchor Stone support. Phase 6; the field exists so the formula does not move. */
   anchored?: boolean;
+  /** A walk takes a rival's hex outright — Adventure mode, 2026-09-30 (`growth.ts`). */
+  takesOutright?: boolean;
 }
 
 export interface CaptureResult {

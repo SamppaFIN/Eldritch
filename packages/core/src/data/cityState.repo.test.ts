@@ -122,7 +122,7 @@ describe('trading through the repository', () => {
  * no city state to reach. It is carried to the player's own Hearth now, the way the Fuming
  * Lake is — same distance and bearing from the origin, different ground.
  */
-describe('a village carried to a Hearth outside Härmälä', () => {
+describe('one map for everyone — the village stays where it was written (2026-09-30)', () => {
   const OULU = { lat: 65.0121, lng: 25.4651 };
 
   async function ouluStore() {
@@ -132,16 +132,16 @@ describe('a village carried to a Hearth outside Härmälä', () => {
     return store;
   }
 
-  it('places the village near that Hearth, and its quay answers there', async () => {
+  it('a Hearth in Oulu still finds the village in Härmälä, and its quay answers there', async () => {
     const store = await ouluStore();
     const { cityStates, anchorCityStates } = await import('@es3/core');
     await placeCityStates(store, T0);
 
     const [village] = cityStates();
     const door = doorCell(village as (typeof CITY_STATES)[number]);
-    const { cellAt, hexDistance } = await import('@es3/core');
-    // 270 m from a Hearth is a handful of hexes, not 600 km.
-    expect(hexDistance(cellAt(OULU), door)).toBeLessThan(12);
+    // The map is shared: the quay is where it was written, whoever's Hearth is asking.
+    const { cellAt } = await import('@es3/core');
+    expect(door).toBe(cellAt(CITY.door));
     expect((await store.get<Cell>(K.cell(door)))?.ownerId).toBe(CITY.owner);
     expect((await cityAtDoor(store, door))?.id).toBe(CITY.id);
 

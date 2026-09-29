@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react';
 import {
   anchorCityStates,
   anchorQuestSites,
-  cellCentre,
   load,
   pinQuestCells,
   pinWeeklySecrets,
@@ -103,8 +102,11 @@ export function useBoot(now: () => number, clock: unknown): Boot {
    * walk keeps its shape; only where it is walked changes.
    */
   useEffect(() => {
-    anchorQuestSites(castle ? cellCentre(castle) : null);
-    anchorCityStates(castle ? cellCentre(castle) : null);
+    // One map for everyone (Infinite 2026-09-30): *"pidä statue of the boy
+    // seikkailupiste keskipisteenä kaikille kartoille"* — the map is shared, so the tale
+    // and the city states stand where they were written, not beside each player's Keep.
+    anchorQuestSites(null);
+    anchorCityStates(null);
     if (!castle) return;
 
     /*
@@ -126,19 +128,19 @@ export function useBoot(now: () => number, clock: unknown): Boot {
      * keep that mistake forever. The old key is simply never read again; nothing deletes
      * it, there is nothing there worth deleting.
      */
-    const stored = load<Partial<Record<QuestSiteId, H3Index>>>('quest-cells-v2', {});
+    const stored = load<Partial<Record<QuestSiteId, H3Index>>>('quest-cells-v3', {});
     if (Object.keys(stored).length > 0) {
       pinQuestCells(stored);
     } else {
       const cells = resolveQuestCells();
       pinQuestCells(cells);
-      saveNow('quest-cells-v2', cells);
+      saveNow('quest-cells-v3', cells); // -v3: -v2 pins were moved to each Keep
     }
 
     // The troll's hoard is re-hidden every week (BRDC-QUEST-007) — the three secrets only;
     // the authored path above never moves. Written down per week so it holds until the next.
-    const hoard = load<Parameters<typeof pinWeeklySecrets>[1]>('quest-secrets-v1', null);
-    saveNow('quest-secrets-v1', pinWeeklySecrets(weekOf(now()), hoard));
+    const hoard = load<Parameters<typeof pinWeeklySecrets>[1]>('quest-secrets-v2', null);
+    saveNow('quest-secrets-v2', pinWeeklySecrets(weekOf(now()), hoard));
   }, [castle]);
 
   return { repository, alerts, profile, setProfile, castle };

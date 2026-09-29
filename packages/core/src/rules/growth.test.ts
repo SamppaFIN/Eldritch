@@ -150,3 +150,20 @@ describe('purity', () => {
     expect(result.cell?.strength).toBe(emptyCell(HERE).strength + BASE_STRENGTH);
   });
 });
+
+describe('a walk takes red ground outright (Infinite 2026-09-30)', () => {
+  it('Adventure takes a rival hex at once; Route still only wears it down', () => {
+    const T0 = Date.parse('2026-09-30T12:00:00Z');
+    const target = cellAt(ORIGIN);
+    const mine = neighboursOf(target)[0] as string;
+    const known = new Map<string, Cell>([
+      [target, { h3: target, ownerId: 'rival', strength: 400, lastVisitedAt: T0, visitDays: [] }],
+      [mine, { h3: mine, ownerId: 'me', strength: 100, lastVisitedAt: T0, visitDays: [] }],
+    ]);
+    const outright = growInto(target, known, { id: 'me', level: 1, takesOutright: true }, T0, true);
+    expect(outright.outcome?.kind).toBe('taken');
+    expect(outright.cell?.ownerId).toBe('me');
+    const siege = growInto(target, known, { id: 'me', level: 1 }, T0, true);
+    expect(siege.cell?.ownerId).toBe('rival');
+  });
+});

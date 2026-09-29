@@ -241,13 +241,15 @@ describe('walking over someone else', () => {
     expect(result.outcomes.every((o) => o.kind !== 'damaged')).toBe(true);
   });
 
-  it('is worn down by the walk as well as by the loop', async () => {
-    // Walking across a rival's ground costs them, even on a lap that never closes.
+  it('is taken outright by the walk, not worn down (Infinite 2026-09-30)', async () => {
+    // "punaiset maat on nyt vallattavissa" — no siege this season: a walk across a
+    // rival's ground takes it, full strength or not, even on a lap that never closes.
     await giveBlockToRival(MAX_STRENGTH);
     const id = await repo.startRun(T0);
     const result = await repo.submitTrail(id, lap(T0));
 
-    expect(result.grown.some((o) => o.kind === 'damaged')).toBe(true);
+    expect(result.grown.some((o) => o.kind === 'taken')).toBe(true);
+    expect(result.grown.some((o) => o.kind === 'damaged')).toBe(false);
   });
 });
 

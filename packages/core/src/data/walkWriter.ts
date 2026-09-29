@@ -29,8 +29,10 @@ export interface Walker {
   level: number;
   /** Whether they hold anything at all. The seed exception turns on this. */
   hasTerritory: boolean;
-  /** Season 2: how many new cells the culture in the pouch pays for (PROG-003). Absent = no limit. */
+  /** How many new cells a walk may take; 0 in a sealed season (SEASON-004). Absent = no limit. */
   claimBudget?: number;
+  /** Take a rival's hex outright rather than wear it down — Adventure mode (2026-09-30). */
+  takesOutright?: boolean;
 }
 
 export interface WalkRecord {
@@ -75,7 +77,7 @@ export async function recordWalk(
   });
 
   const plan = planWalk(accepted, {
-    attacker: { id: walker.id, level: walker.level },
+    attacker: { id: walker.id, level: walker.level, ...(walker.takesOutright ? { takesOutright: true } : {}) },
     known,
     dwell: (await store.get<DwellMap>(K.dwell)) ?? {},
     previous: (await store.get<DwellReading | null>(K.lastReading)) ?? null,

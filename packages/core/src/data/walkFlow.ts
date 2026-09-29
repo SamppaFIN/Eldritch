@@ -86,6 +86,7 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
     id: profile.id,
     level: profile.level,
     hasTerritory: owned.length > 0,
+    takesOutright: profile.mode !== 'route',
     ...((await d.store.get<boolean>(K.sealed)) ? { claimBudget: 0 } : {}),
   });
 

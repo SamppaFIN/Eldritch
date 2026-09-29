@@ -11,7 +11,7 @@
  * no special case, nothing to tune.
  */
 import { neighboursOf } from '../geo/cells.js';
-import { emptyCell, resolveCapture } from './capture.js';
+import { emptyCell, resolveCapture, resolveInstantCapture } from './capture.js';
 import type { Attacker } from './capture.js';
 import { defenceAura, fortified } from './aura.js';
 import type { CaptureOutcome, Cell, H3Index } from '../types/domain.js';
@@ -63,6 +63,13 @@ export function growInto(
   }
 
   const defenderId = current?.ownerId && current.ownerId !== attacker.id ? current.ownerId : null;
+  // Infinite 2026-09-30: *"punaiset maat on nyt vallattavissa.. unohdetaan kaikki king of
+  // the hill laskennat tälle seasonille"* — a walk takes a rival's hex outright, the way a
+  // step already does (CLAIM-017). Route mode keeps its no-stealing promise (siege below).
+  if (current && defenderId && attacker.takesOutright) {
+    const { cell, outcome } = resolveInstantCapture(current, { ...attacker, ownedNeighbours }, now);
+    return { cell, outcome, skipped: null };
+  }
   const defence = defenderId ? defenceAura(known, h3, defenderId) : 0;
   // A rival's hex under their Fortress holds at 1 (BRDC-BUILD-012). `known` is this hex and
   // its six neighbours — the Fortress's whole reach.

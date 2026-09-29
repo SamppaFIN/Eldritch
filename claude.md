@@ -3,6 +3,12 @@
 GPS territory-capture game. Walk in the real world and take the ground you cross; steal it
 from other players. Lovecraftian aesthetic and lore inherited from v2.
 
+**One map for everyone (Infinite 2026-09-30):** the testers are all in Härmälä, and the map is
+shared, so the Fuming Lake tale and the city states stand where they were written (around the
+Statue of the Boy) for every player — `anchorQuestSites(null)`, `anchorCityStates(null)`. A
+world-wide version comes later. **Red ground falls to a walk as well as a step** this season —
+no siege for Adventure mode (`Attacker.takesOutright`); Route mode keeps its no-stealing rule.
+
 **Walking always claims (Infinite 2026-09-30, field report):** Season 2's culture price per
 hex (PROG-003) was tried and removed in v0.7.2 — a friend walked for hours and took nothing.
 Do not put a price on stepping again without asking.

@@ -12,7 +12,7 @@
 import { anchorCityStates, cityStateOf, cityStates, trade } from '../rules/cityState.js';
 import type { CityState, TradeResult } from '../rules/cityState.js';
 import type { ResourceKind } from '../rules/terrain.js';
-import { cellAt, cellCentre, cellsWithin } from '../geo/cells.js';
+import { cellAt, cellsWithin } from '../geo/cells.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
@@ -25,9 +25,9 @@ import type { Cell, H3Index } from '../types/domain.js';
  * Read from the store rather than passed in, so a placement, a lookup and a trade can never
  * disagree about where the quay is — the Hearth is the one fact all three share.
  */
-async function anchorToHome(store: KeyValueStore): Promise<void> {
-  const home = await store.get<H3Index>(K.home);
-  anchorCityStates(home ? cellCentre(home) : null);
+async function anchorToHome(_store: KeyValueStore): Promise<void> {
+  // One map for everyone (2026-09-30): city states stand where they were written.
+  anchorCityStates(null);
 }
 
 /** The quay — the one hex diplomacy happens at. */
