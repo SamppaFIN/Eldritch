@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | BRDC-SEASON-001 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf (HANDOFF season.ts, "what resets, what stays")` |
-| **Status** | `todo` |
+| **Status** | `in-progress` — 1/5 (2026-09-29) |
 
 ## 🔴 RED
 
@@ -17,7 +17,7 @@ Peli ei tiedä missä kaudessa se on. SEASON-001:n "viikkoturnaus" on liittymish
 
 ## 🟢 GREEN
 
-- [ ] `rules/season.ts`: `SeasonPhase`, `Season {n,name,seed,opensAt,reckoningAt?,sealedAt?,doom,bossHp,bossMaxHp,outcome?}`, puhtaat siirtymät + Vitest
+- [x] `rules/season.ts`: `SeasonPhase`, `Season {n,name,seed,opensAt,reckoningAt?,sealedAt?,doom,bossHp,bossMaxHp,outcome?}`, puhtaat siirtymät + Vitest (7 testiä). Kauden pituus: `reckoningByDay` on valinnainen — ilman sitä vain Doom tai `forcePhase` herättää Reckoningin
 - [ ] Worker `GET /season` + admin-kytkin (`POST /season/phase`, Worker-secret), sama KV kuin SEASON-001
 - [ ] Resets / stays / crosses once koodina: `SAVE_VERSION` nousee; `es3:*`-avaimet jaettu `seasonal` vs `forever` (sigil, avatar, tittelit, reliikit, Hall of Ages, luetut codex-merkinnät)
 - [ ] Siemen syöttää `terrainSeed`/`wonderPlace`/anomaliat: uusi kausi = uudet esiintymät, sama rantaviiva

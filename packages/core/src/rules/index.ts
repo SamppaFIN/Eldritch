@@ -253,3 +253,20 @@ export {
 export type { NodeState, WorksRefusal } from './works/tree.js';
 export { worksBonus, worksCapBonus } from './works/bonus.js';
 export type { BuildingDef, Effect, EffectKind, SpecialId, WorksKind, WorksNode, WorksTier } from './works/types.js';
+export {
+  BOSS_HP_PER_REALM,
+  DOOM_MAX,
+  FOSSIL_MS,
+  INTERREGNUM_MS,
+  QUIET_LEGACY_MULT,
+  RECKONING_MS,
+  advanceSeason,
+  bossMaxHp,
+  damageBoss,
+  forcePhase,
+  legacyMultiplier,
+  openSeason,
+  seasonDay,
+  seasonIsPlayable,
+} from './season.js';
+export type { Season, SeasonOutcome, SeasonPhase } from './season.js';
