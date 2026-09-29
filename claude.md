@@ -50,7 +50,7 @@ v2's most concrete failure was 112 markdown files with no source of truth.
   "versio": "0.5.87",
   "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
   "tila": "toteutus",
-  "vaihe": "2.6 — Mobiilikokemus ja jaettu maailma",
+  "vaihe": "2.7 — Season 2: Progression + Season Codex (tiketit docs/tickets/README.md)",
   "edellinen_vaihe": "2.5 — Suunnanmuutos (valmis 2026-08-30)",
   "juurihakemisto": "c:/Projects/Klitoritari-FinalFantasy",
   "kohdelaite": "Samsung S23 Ultra (mobile-first), desktop simulaatiotilassa",
@@ -266,6 +266,12 @@ files/              MASTERPLAN, EXTRACTION, PROMPTS — strategy documents
 | **4** | Capacitor, foreground service, signed APK | **mock** | APK on a friend's phone, tracking with screen off |
 | **5** | Supabase: subscription data, chat, account persistence. Golden fixtures | Supabase | Golden fixtures green (mock ≡ SQL) |
 | **6** | Lore back: codex, discoveries, quest, anchors, audio | Supabase | — |
+
+**Season 2 (added 2026-09-29).** `Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf` and
+`Eldritch-season.pdf` change the mechanics: citizens staff buildings, five Ages, masterworks,
+three spell schools, the Doom track and gates, the Reckoning, Legacy and heirlooms. Twenty
+tickets (`SEASON-002…008`, `PROG-001…008`, `DOOM-001…004`, `COUNSEL-001`) are all built
+before Season 2 opens as v0.7.0. Factions are parked; season length is decided later.
 
 **Renumbered 2026-08-31, on Infinite's direction.** Supabase is no longer Phase 3: it
 shrinks to subscription-model data and chat persistence, and moves behind the APK.
