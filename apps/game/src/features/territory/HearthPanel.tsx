@@ -25,6 +25,7 @@ import { KeepTemples } from '../keep/KeepTemples.js';
 import { KeepRealm } from '../keep/KeepRealm.js';
 import { HearthGrowth } from '../keep/HearthGrowth.js';
 import { KeepCitizens } from '../keep/KeepCitizens.js';
+import { KeepDoom } from '../keep/KeepDoom.js';
 import { RiteSchools } from '../keep/RiteSchools.js';
 import { KeepMasterworks } from '../keep/KeepMasterworks.js';
 import type { PublishResult } from '../../data/worldSource.js';
@@ -151,6 +152,7 @@ export function HearthPanel({
         </div>
       </dl>
 
+      <KeepDoom now={now} />
       <KeepCitizens repository={repository} now={now} onPouch={onPouch} />
 
       <h3 className="hearth-panel__section">The pouch</h3>

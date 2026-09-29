@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-002 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf (S1), Eldritch-pelin uusi design systeemi/Eldritch-Progression.pdf (LAW IV, Doom Track, Mythos Card)` |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-09-29; kortin sääntöefektit ja kartan varoitus [~] |
 
 ## 🔴 RED
 
@@ -15,10 +15,10 @@ Kaudella ei ole kelloa jonka kaikki näkevät. Dokumentti: jaettu rata 0→13, +
 
 ## 🟢 GREEN
 
-- [ ] Worker pitää radan ja kortin (opportunistinen kirjoitus kuten season.ts)
-- [ ] `MYTHOS`-pakka (sääntöefektit: mana −1, Will −1 die, …)
-- [ ] Kotiruutu: THE DOOM TRACK n/13, varoitukset Doomista 9, OPEN GATES nearest first (S1)
-- [ ] Vitest radan laskennalle
+- [x] (Doom johdetaan puhtaasti: `doomAt(season, now)` = aamunkoitot ÷ `doomEveryNDawns` + `doomShift`, 0…13; `advanceSeason` kantaa sen ja herättää Reckoningin 13:ssa. Aamunkoittokello on **valinnainen** kauden asetus (`/season/open` `doomEveryNDawns`), koska Infinite jätti kauden pituuden auki; Mythos-kortti = hash(siemen, aamunkoitto) — sama kaikille ilman Worker-kirjoitusta) Worker pitää radan ja kortin (opportunistinen kirjoitus kuten season.ts)
+- [~] `MYTHOS`-pakka 10 korttia ✓; säännöistä yksikään ei vielä vaikuta peliin (odottavat noppia, portteja, vihjeitä, päiväsääntöjä) ja kortti sanoo sen. Alkuperäinen: `MYTHOS`-pakka (sääntöefektit: mana −1, Will −1 die, …)
+- [~] Keep-paneelin "The Doom track" (kauden nimi, n/13, palkki, varoitus Doom 9:stä, päivän kortti) ✓ + e2e mockatulla `/season`illa. **Ei vielä:** varoitus kartan päällä (MapView 397/400) ja OPEN GATES -lista (DOOM-002). Alkuperäinen: Kotiruutu: THE DOOM TRACK n/13, varoitukset Doomista 9, OPEN GATES nearest first (S1)
+- [x] Vitest (`doom.test.ts` 5)
 - [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
 
 ## Todennus

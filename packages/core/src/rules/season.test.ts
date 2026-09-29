@@ -30,7 +30,7 @@ describe('season', () => {
   });
 
   it('wakes the Ancient One at Doom 13, strength 900 per realm', () => {
-    const s = { ...openSeason(2, 'x', 'seed', T0), doom: DOOM_MAX };
+    const s = { ...openSeason(2, 'x', 'seed', T0), doomShift: DOOM_MAX };
     const r = advanceSeason(s, T0 + DAY, 6);
     expect(r.phase).toBe('reckoning');
     expect(r.bossHp).toBe(5_400);

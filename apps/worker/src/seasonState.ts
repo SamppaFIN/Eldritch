@@ -2,7 +2,7 @@
  * The one shared season (BRDC-SEASON-002).
  *
  *   GET  /season         the current `Season`, advanced to now; 204 before any is opened
- *   POST /season/open    admin: open season n {n, name, seed, reckoningByDay?}
+ *   POST /season/open    admin: open season n {n, name, seed, reckoningByDay?, doomEveryNDawns?}
  *   POST /season/phase   admin: force a phase {phase} — the season's length is Infinite's
  *                        call (*"season kestää kunnes saadaan uusi versio tulille"*)
  *
@@ -51,12 +51,14 @@ export async function handleSeasonState(
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
   if (url.pathname === '/season/open') {
-    const { n, name, seed, reckoningByDay } = body ?? {};
+    const { n, name, seed, reckoningByDay, doomEveryNDawns } = body ?? {};
     if (typeof n !== 'number' || typeof name !== 'string' || typeof seed !== 'string') {
       return send({ fault: 'invalid' }, 400);
     }
     const day = typeof reckoningByDay === 'number' ? reckoningByDay : undefined;
-    const season = openSeason(n, name.slice(0, 60), seed.slice(0, 60), now, day);
+    const opened = openSeason(n, name.slice(0, 60), seed.slice(0, 60), now, day);
+    // The Doom's dawn clock is optional too (DOOM-001): the document's 3, or none.
+    const season = typeof doomEveryNDawns === 'number' && doomEveryNDawns > 0 ? { ...opened, doomEveryNDawns } : opened;
     await kv.put(STATE, JSON.stringify(season));
     return send(season);
   }

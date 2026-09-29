@@ -10,6 +10,8 @@
  * Pure: the Worker holds the one shared `Season` and calls `advanceSeason` on it.
  */
 
+import { doomAt } from './doom.js';
+
 export type SeasonPhase =
   | 'open' //          day 1 → Doom 13 (or the deadline day, if one is set)
   | 'reckoning' //     72 h, the Ancient One's strength shared by everyone
@@ -32,6 +34,10 @@ export interface Season {
   sealedAt?: number;
   interregnumAt?: number;
   doom: number;
+  /** Dawns per Doom step (the document's 3) — absent, the clock does not move it (DOOM-001). */
+  doomEveryNDawns?: number;
+  /** What gates have added (+1 each left open 48 h) and sealing has taken away. */
+  doomShift?: number;
   bossHp: number;
   bossMaxHp: number;
   outcome?: SeasonOutcome;
@@ -88,8 +94,10 @@ function toSealed(season: Season, now: number, outcome: SeasonOutcome): Season {
 export function advanceSeason(season: Season, now: number, activeRealms: number): Season {
   switch (season.phase) {
     case 'open': {
+      const doom = doomAt(season, now);
+      if (doom !== season.doom) season = { ...season, doom };
       const deadline = season.reckoningByDay !== undefined && seasonDay(season, now) >= season.reckoningByDay;
-      return season.doom >= DOOM_MAX || deadline ? toReckoning(season, now, activeRealms) : season;
+      return doom >= DOOM_MAX || deadline ? toReckoning(season, now, activeRealms) : season;
     }
     case 'reckoning':
       if (season.bossHp <= 0) return toSealed(season, now, 'quiet');

@@ -187,3 +187,20 @@ test('Kindling lets a Season 2 realm dedicate a temple school (BRDC-PROG-007)', 
   await expect(after).toContainText('I · Call the Shoal');
   await expect(after.getByRole('button', { name: /Learn · 40 mana/ }).first()).toBeVisible();
 });
+
+test('an open season shows the shared Doom track and the Mythos card (BRDC-DOOM-001)', async ({ page }) => {
+  const opensAt = Date.now() - 2 * 86_400_000;
+  await page.route('**/season', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ n: 2, name: 'The Low Water', seed: 's2', phase: 'open', opensAt, doom: 10, bossHp: 0, bossMaxHp: 0 }),
+    }),
+  );
+  await openMap(page, HERE);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  const doom = page.getByLabel('Your sanctuary').getByLabel('The Doom track');
+  await expect(doom).toContainText('The Low Water · Doom 10 / 13 — 3 steps from waking. Seal the gates.');
+  await expect(doom).toContainText('Mythos ·');
+});

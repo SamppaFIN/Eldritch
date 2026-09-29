@@ -164,3 +164,10 @@
   list-style: none;
   font-size: var(--text-sm);
 }
+
+/* The Doom track (BRDC-DOOM-001): the danger token, the one shared threat. */
+.keep-doom__track {
+  inline-size: 100%;
+  block-size: 0.5rem;
+  accent-color: var(--danger);
+}
