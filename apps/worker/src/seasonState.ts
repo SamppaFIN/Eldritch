@@ -11,7 +11,7 @@
  *   GET  /season/reckoning  its strength and every realm's damage
  *   POST /season/archive admin: every realm into the Chronicles {era, wipe?} (SEASON-004)
  *   GET  /season/ruins   the Fortresses the last season left standing (SEASON-007)
- *   POST /season/archive/forget  admin: take archived rows back out {id?, names?}
+ *   POST /season/archive/forget  admin: take rows back out {id?, names?, rows?: ['<player>:<id>']}
  *
  * Admin routes need `x-admin-key` to match the `ADMIN_KEY` Worker secret; with no secret
  * set they are simply off. The key never reaches the game client — Infinite uses curl.
@@ -112,9 +112,11 @@ export async function handleSeasonState(
 
   if (url.pathname === '/season/archive/forget') {
     const id = typeof body?.id === 'string' && body.id ? body.id : null;
-    const names = Array.isArray(body?.names) ? (body.names as unknown[]).filter((n): n is string => typeof n === 'string') : [];
-    if (!id && names.length === 0) return send({ fault: 'invalid' }, 400);
-    return send({ removed: await forgetArchived(kv, id, names) });
+    const strings = (v: unknown) => (Array.isArray(v) ? v.filter((n): n is string => typeof n === 'string') : []);
+    const names = strings(body?.names);
+    const rows = strings(body?.rows);
+    if (!id && names.length === 0 && rows.length === 0) return send({ fault: 'invalid' }, 400);
+    return send({ removed: await forgetArchived(kv, id, names, rows) });
   }
 
   if (url.pathname === '/season/archive') {

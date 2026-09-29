@@ -31,11 +31,22 @@ export async function archiveSeason(kv: KV, now: number, era: string, wipe: bool
   const ruins = new Set<string>();
   const slug = era.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'season';
 
+  // A realm its player already retired by hand since they last published is in the
+  // Chronicles once already — archiving it again made every such kingdom appear twice.
+  const retired = new Map<string, number>();
+  for (const { name } of (await kv.list({ prefix: LEGACY })).keys) {
+    const row = JSON.parse((await kv.get(name)) ?? 'null') as { id?: string; playerId?: string; retiredAt?: number } | null;
+    if (row?.playerId && row.id && !row.id.startsWith('archive-')) {
+      retired.set(row.playerId, Math.max(retired.get(row.playerId) ?? 0, row.retiredAt ?? 0));
+    }
+  }
+
   for (const { name } of keys) {
     const raw = await kv.get(name);
     if (!raw) continue;
     const file = JSON.parse(raw) as PlayerFile;
     const s = file.source;
+    if ((retired.get(s.id) ?? -1) >= (file.submittedAt ?? Infinity)) continue;
     const cells = s.cells ?? [];
     for (const c of cells) if (c.b?.includes('fortress')) ruins.add(c.h3);
     const entry = {
@@ -74,15 +85,23 @@ export async function archiveSeason(kv: KV, now: number, era: string, wipe: bool
  * under one of `names`. Only rows an archive run wrote (`archive-*`) are touched; a
  * kingdom a player retired by hand is never removed here.
  */
-export async function forgetArchived(kv: KV, id: string | null, names: readonly string[]): Promise<string[]> {
+export async function forgetArchived(
+  kv: KV,
+  id: string | null,
+  names: readonly string[],
+  rows: readonly string[] = [],
+): Promise<string[]> {
   const { keys } = await kv.list({ prefix: LEGACY });
   const removed: string[] = [];
   for (const { name } of keys) {
     const raw = await kv.get(name);
     if (!raw) continue;
-    const e = JSON.parse(raw) as { id?: string; name?: string };
-    if (!e.id?.startsWith('archive-')) continue;
-    if (e.id === id || (e.name !== undefined && names.includes(e.name))) {
+    const e = JSON.parse(raw) as { id?: string; name?: string; playerId?: string };
+    // `rows` names exact rows (`<playerId>:<id>`), of any kind — the one way to take out a
+    // row a player retired by hand, and only when asked for by name.
+    const exact = rows.includes(`${e.playerId}:${e.id}`);
+    if (!exact && !e.id?.startsWith('archive-')) continue;
+    if (exact || e.id === id || (e.name !== undefined && names.includes(e.name))) {
       await kv.delete(name);
       removed.push(`${e.name} (${e.id})`);
     }
