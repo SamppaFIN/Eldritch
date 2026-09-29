@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | BRDC-SEASON-001 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf (HANDOFF season.ts, "what resets, what stays")` |
-| **Status** | `in-progress` — 2/5 (2026-09-29) |
+| **Status** | `in-progress` — 2/5 + 1 osittain (2026-09-29) |
 
 ## 🔴 RED
 
@@ -21,7 +21,7 @@ Peli ei tiedä missä kaudessa se on. SEASON-001:n "viikkoturnaus" on liittymish
 - [x] Worker `GET /season` + admin-kytkin (`POST /season/phase`, Worker-secret), sama KV kuin SEASON-001 → `apps/worker/src/seasonState.ts`, `x-admin-key` = `wrangler secret put ADMIN_KEY` (ilman secretiä admin-reitit ovat pois). Vaatii Infiniten `wrangler deploy`n
 - [ ] Resets / stays / crosses once koodina: `SAVE_VERSION` nousee; `es3:*`-avaimet jaettu `seasonal` vs `forever` (sigil, avatar, tittelit, reliikit, Hall of Ages, luetut codex-merkinnät)
 - [ ] Siemen syöttää `terrainSeed`/`wonderPlace`/anomaliat: uusi kausi = uudet esiintymät, sama rantaviiva
-- [ ] Client lukee vaiheen bootissa (`useBoot`), offline = viimeksi nähty
+- [~] Client lukee vaiheen: `apps/game/src/data/season.ts` `fetchSeason()` + testit valmiina; kytkentä bootiin ja offline-välimuisti siirtyy SEASON-004:ään, joka on ensimmäinen kuluttaja
 - [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
 
 ## Todennus
