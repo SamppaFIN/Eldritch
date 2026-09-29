@@ -86,9 +86,9 @@ export interface GateApi {
   accept(now: number): Promise<GateOutcome>;
   /** Spend five clues (three with Elder Signs) to seal a gate you stand on. */
   seal(gateId: string, standing: H3Index | null, now: number): Promise<GateOutcome>;
-  /** The Doom moves not yet sent, and a way to clear the ones the Worker took. */
+  /** The Doom moves not yet sent, and a way to clear the ones the Worker took (`gateId:delta`). */
   outbox(): Promise<GateBook['outbox']>;
-  delivered(gateIds: readonly string[]): Promise<void>;
+  delivered(moves: readonly string[]): Promise<void>;
 }
 
 const EMPTY: GateBook = { gates: [], dawn: -1, bitten: {}, outbox: [] };
@@ -204,10 +204,10 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
     },
 
     outbox: async () => (await book()).outbox,
-    delivered: async (gateIds) => {
+    delivered: async (moves) => {
       const b = await book();
-      const done = new Set(gateIds);
-      await store().set(K.gates, { ...b, outbox: b.outbox.filter((o) => !done.has(`${o.gateId}`)) });
+      const done = new Set(moves);
+      await store().set(K.gates, { ...b, outbox: b.outbox.filter((o) => !done.has(`${o.gateId}:${o.delta}`)) });
     },
   };
 }

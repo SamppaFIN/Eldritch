@@ -1,7 +1,7 @@
 /** BRDC-SEASON-002 — the client's read of the shared season. */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { openSeason } from '@es3/core';
-import { fetchSeason } from './season.js';
+import { fetchSeason, postDoom } from './season.js';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -22,5 +22,14 @@ describe('fetchSeason', () => {
     expect(await fetchSeason()).toBeNull();
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
     expect(await fetchSeason()).toBeNull();
+  });
+});
+
+describe('postDoom', () => {
+  it('returns the gates the Worker took, and stops at the first network failure', async () => {
+    vi.stubGlobal('fetch', reply(200, { ok: true }));
+    expect(await postDoom([{ gateId: 'a', delta: -1 }, { gateId: 'b', delta: 1 }])).toEqual(['a:-1', 'b:1']);
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+    expect(await postDoom([{ gateId: 'a', delta: -1 }])).toEqual([]);
   });
 });

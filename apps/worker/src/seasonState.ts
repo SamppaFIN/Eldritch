@@ -5,6 +5,8 @@
  *   POST /season/open    admin: open season n {n, name, seed, reckoningByDay?, doomEveryNDawns?}
  *   POST /season/phase   admin: force a phase {phase} — the season's length is Infinite's
  *                        call (*"season kestää kunnes saadaan uusi versio tulille"*)
+ *   POST /season/doom    a gate moved the shared Doom {gateId, delta: 1 | -1} (DOOM-002):
+ *                        taken once per gate and direction, however often it is sent
  *
  * Admin routes need `x-admin-key` to match the `ADMIN_KEY` Worker secret; with no secret
  * set they are simply off. The key never reaches the game client — Infinite uses curl.
@@ -43,6 +45,23 @@ export async function handleSeasonState(
     const next = advanceSeason(season, now, season.phase === 'open' ? await realms() : 0);
     if (next !== season) await kv.put(STATE, JSON.stringify(next));
     return send(next);
+  }
+
+  if (request.method === 'POST' && url.pathname === '/season/doom') {
+    const body = (await request.json().catch(() => null)) as { gateId?: unknown; delta?: unknown } | null;
+    const gateId = typeof body?.gateId === 'string' ? body.gateId.slice(0, 120) : null;
+    const delta = body?.delta === 1 || body?.delta === -1 ? body.delta : null;
+    if (!gateId || delta === null) return send({ fault: 'invalid' }, 400);
+    const season = await readSeason(kv);
+    if (!season || season.phase !== 'open') return send({ fault: 'no-open-season' }, 409);
+    // Same trust as /submit: no account. A gate moves the Doom once each way, at most.
+    const once = `doomgate:${gateId}:${delta}`;
+    if (!(await kv.get(once))) {
+      await kv.put(once, '1', { expirationTtl: 60 * 86_400 });
+      const next = advanceSeason({ ...season, doomShift: (season.doomShift ?? 0) + delta }, now, await realms());
+      await kv.put(STATE, JSON.stringify(next));
+    }
+    return send({ ok: true });
   }
 
   const admin = url.pathname === '/season/open' || url.pathname === '/season/phase';

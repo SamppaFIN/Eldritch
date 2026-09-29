@@ -15,3 +15,24 @@ export async function fetchSeason(): Promise<Season | null> {
     return null;
   }
 }
+
+/**
+ * Tell the Worker a gate moved the shared Doom (BRDC-DOOM-002). Returns `gateId:delta` for
+ * each move it accepted, so the outbox can be cleared of exactly those; any failure keeps them queued.
+ */
+export async function postDoom(moves: readonly { gateId: string; delta: 1 | -1 }[]): Promise<string[]> {
+  const done: string[] = [];
+  for (const m of moves) {
+    try {
+      const res = await fetch(`${WORLD_API}/season/doom`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(m),
+      });
+      if (res.ok) done.push(`${m.gateId}:${m.delta}`);
+    } catch {
+      break;
+    }
+  }
+  return done;
+}

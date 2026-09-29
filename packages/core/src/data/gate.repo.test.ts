@@ -62,7 +62,7 @@ describe('gateApi (BRDC-DOOM-002)', () => {
     expect(v?.gates.find((g) => g.id === gate.id)).toBeUndefined();
     expect(v?.investigator).toMatchObject({ stamina: 6, clues: 2 });
     expect(await gates.outbox()).toEqual([{ gateId: gate.id, delta: -1 }]);
-    await gates.delivered([gate.id]);
+    await gates.delivered([`${gate.id}:-1`]);
     expect(await gates.outbox()).toEqual([]);
   });
 
