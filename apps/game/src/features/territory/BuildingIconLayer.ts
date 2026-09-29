@@ -14,7 +14,9 @@ import type { Cell } from '@es3/core';
 import { CELL_BUILDING_LAYER } from './TerritoryLayer.js';
 import { buildingIconFeatures } from './buildingIconFeatures.js';
 import type { BuildingIconProps } from './buildingIconFeatures.js';
-import { SPRITE_PX, rasteriseSprites, spriteId } from './buildingSprites.js';
+import { SPRITE_PX, spriteId, spriteSvg } from './buildingSprites.js';
+import { DESIGN_SPRITES } from './designSprites.js';
+import { rasteriseSvgs } from './spriteRaster.js';
 import { watchRemoval } from '../map/mapLife.js';
 import { BUILDING_ROLE } from './buildingGlyphs.js';
 import type { BuildingId } from '@es3/core';
@@ -30,22 +32,31 @@ const EMPTY: FeatureCollection<Point, BuildingIconProps> = {
 };
 
 /**
- * Draw the sprites into this map's image atlas if they are not already there.
+ * Draw a Work's sprite the first time the map asks for it (BRDC-ART-006).
  *
- * Idempotency is `map.hasImage`, not a module flag: a torn-down and rebuilt map (React
- * StrictMode, a route change) starts with an empty atlas, and a stale flag would leave
- * every icon a broken image.
+ * Every sprite used to be rasterised at map open, one after another, before any of them
+ * could be seen — seconds of main thread on a phone (BRDC-MOBILE-004) for sixteen
+ * buildings most realms never build. Now MapLibre says which image it is missing and only
+ * that one is drawn, once; the tiles that wanted it pick it up when it lands.
  */
-async function addSprites(map: MapLibreMap): Promise<void> {
-  const ids = Object.keys(BUILDING_ROLE) as BuildingId[];
-  if (ids.every((id) => map.hasImage(spriteId(id)))) return;
-  const life = watchRemoval(map);
-  const images = await rasteriseSprites();
-  life.stop();
-  if (!images || life.gone()) return;
-  for (const [id, data] of images) {
-    if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
-  }
+const asked = new WeakMap<MapLibreMap, Set<string>>();
+function drawOnDemand(map: MapLibreMap): void {
+  if (asked.has(map)) return;
+  const pending = new Set<string>();
+  asked.set(map, pending);
+  map.on('styleimagemissing', (e: { id: string }) => {
+    const id = e.id;
+    const work = id.slice('work-'.length) as BuildingId;
+    if (!id.startsWith('work-') || !(work in BUILDING_ROLE) || pending.has(id) || map.hasImage(id)) return;
+    pending.add(id);
+    const life = watchRemoval(map);
+    void rasteriseSvgs([work], spriteSvg, spriteId, SPRITE_PX).then((images) => {
+      life.stop();
+      pending.delete(id);
+      if (!images || life.gone()) return;
+      for (const [key, data] of images) if (!map.hasImage(key)) map.addImage(key, data, { pixelRatio: 2 });
+    });
+  });
 }
 
 /**
@@ -53,7 +64,7 @@ async function addSprites(map: MapLibreMap): Promise<void> {
  * hidden when it is off so the first paint is already correct.
  */
 export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): void {
-  void addSprites(map);
+  drawOnDemand(map);
   if (map.getSource(WORK_ICON_SOURCE)) {
     setBuildingIconsVisible(map, visible);
     return;
@@ -76,6 +87,8 @@ export function ensureBuildingIconLayer(map: MapLibreMap, visible: boolean): voi
     type: 'circle',
     source: WORK_ICON_SOURCE,
     minzoom: 15,
+    // A Codex drawing stands on its own plinth (BRDC-ART-006); the disc is for the rest.
+    filter: ['!', ['in', ['get', 'sprite'], ['literal', Object.keys(DESIGN_SPRITES).map((id) => spriteId(id as BuildingId))]]],
     layout: { visibility: visible ? 'visible' : 'none' },
     paint: {
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 5, 19, 17],

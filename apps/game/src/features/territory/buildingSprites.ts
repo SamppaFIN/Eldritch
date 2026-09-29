@@ -13,7 +13,7 @@
 import type { BuildingId } from '@es3/core';
 import { BUILDING_ROLE } from './buildingGlyphs.js';
 import type { BuildingRole } from './buildingGlyphs.js';
-import { rasteriseSvgs } from './spriteRaster.js';
+import { designSvg } from './designSprites.js';
 
 /** Rendered size of each sprite, device pixels. Small — it sits inside one res-11 hex. */
 export const SPRITE_PX = 192;
@@ -67,21 +67,13 @@ const BLOCK =
 
 /** The full SVG string for one building. */
 export function spriteSvg(id: BuildingId): string {
+  // A Works Codex drawing where there is one (BRDC-ART-006); the older block otherwise.
+  const drawn = designSvg(id, SPRITE_PX);
+  if (drawn) return drawn;
   const [f, d, ink] = ROLE_INK[BUILDING_ROLE[id]];
   const body = (CAP[id] + BLOCK).replaceAll('{{f}}', f).replaceAll('{{d}}', d);
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${SPRITE_PX}" height="${SPRITE_PX}">` +
     `<g stroke="${ink}" stroke-width="1" stroke-linejoin="round">${body}</g></svg>`
   );
-}
-
-/**
- * Rasterise every sprite to an `ImageData`, keyed by `spriteId`.
- *
- * Async because an `<img>` must decode first. Returns `null` on a platform without a 2D
- * canvas (a test runner) so the caller can no-op rather than throw. Real Chromium — the
- * game, and Playwright — always resolves it.
- */
-export async function rasteriseSprites(): Promise<Map<string, ImageData> | null> {
-  return rasteriseSvgs(Object.keys(CAP) as BuildingId[], spriteSvg, spriteId, SPRITE_PX);
 }

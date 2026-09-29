@@ -12,7 +12,7 @@ describe('place sprites', () => {
 
   it('draw each kind as its own picture', () => {
     expect(placeSvg('temple')).not.toEqual(placeSvg('anchor'));
-    for (const kind of PLACE_KINDS) expect(placeSvg(kind)).toMatch(/^<svg [^>]*viewBox="0 0 64 64"/);
+    for (const kind of PLACE_KINDS) expect(placeSvg(kind)).toMatch(/^<svg [^>]*viewBox="0 2 64 64"/);
   });
 
   it('carry the glow §03 gives them — gold for the Temple, green for the Anchor', () => {

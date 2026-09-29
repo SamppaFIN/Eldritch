@@ -534,7 +534,7 @@ järjestys; seuraava ei ala ennen kuin edellisen portti on vihreä.
 | [BRDC-PERF-002](BRDC-PERF-002.md) | 🔶 Kartta rakennetaan uudelleen joka renderöinnillä | M | `now` minuuttitikiksi, `withFogOfWar`-flicker, vakaat identiteetit, kameran kuollut alue |
 | [BRDC-PERF-003](BRDC-PERF-003.md) | 🔶 Yksi valtaus ei lähetä tuhansia heksoja | L | geometriavälimuisti coressa, `updateData`-diffit + `promoteId`, SCALE-001:n `owned:`-indeksi |
 | [BRDC-PERF-004](BRDC-PERF-004.md) | 🔶 Tarkkuus zoomin mukaan | M | alle 14 ääriviiva, 14–16 kiekot, 16+ spritet — pelkillä tasojen zoomrajoilla |
-| [BRDC-ART-006](BRDC-ART-006.md) | ⏸ Works Codexin rakennukset kartalle atlaksen kautta | L | SVG lähteenä, build-skripti hexeiksi, laiska `setMissingStyleImageResolver`, jalusta erikseen |
+| [BRDC-ART-006](BRDC-ART-006.md) | 🔶 Works Codexin rakennukset kartalle atlaksen kautta | L | SVG lähteenä, build-skripti hexeiksi, laiska `setMissingStyleImageResolver`, jalusta erikseen |
 | [BRDC-FX-003](BRDC-FX-003.md) | 🔶 Syke vain sille, mikä on vaarassa | M | yksi ~10 fps:n syke rapautuville ja kiistellyille, kellunta vain fokussolulle |
 | [BRDC-MAP-007](BRDC-MAP-007.md) | ✅ Paikan ja questin napautus ei koskaan laukea | S | MapLibre `parseInt`taa merkkijono-id:t; korjautuu `promoteId`llä |
 

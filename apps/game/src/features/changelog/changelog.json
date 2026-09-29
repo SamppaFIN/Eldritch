@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.6.65",
+    "date": "2026-09-29",
+    "notes": [
+      "New building art on the map: the Farmstead, Sawmill, Quarry, Forge, Night Market and Tavern stand as the Works Codex draws them, and your Hearth is now drawn as the Keep. Temples got their new look too. Buildings are drawn when they first appear instead of all at startup, so the map opens faster."
+    ]
+  },
+  {
     "version": "0.6.64",
     "date": "2026-09-29",
     "notes": [

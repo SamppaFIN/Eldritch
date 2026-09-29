@@ -9,6 +9,7 @@ import { BUILDINGS, cellAt } from '@es3/core';
 import type { BuildingId, Cell } from '@es3/core';
 import { SPRITE_PX, spriteId, spriteSvg } from './buildingSprites.js';
 import { buildingIconFeatures } from './buildingIconFeatures.js';
+import { DESIGN_SPRITES } from './designSprites.js';
 
 const ALL = Object.keys(BUILDINGS) as BuildingId[];
 const T0 = Date.parse('2026-09-06T12:00:00Z');
@@ -36,8 +37,8 @@ describe('buildingSprites', () => {
       const svg = spriteSvg(id);
       expect(svg.startsWith('<svg'), id).toBe(true);
       expect(svg).toContain(`width="${SPRITE_PX}"`);
-      // The shared iso block is always present; the cap adds the distinguishing shape.
-      expect(svg).toContain('M32 20 L52 31 L32 42 L12 31 Z');
+      // The older shared iso block stays for a Work the Codex has not drawn (BRDC-ART-006).
+      if (!(id in DESIGN_SPRITES)) expect(svg).toContain('M32 20 L52 31 L32 42 L12 31 Z');
     }
   });
 
