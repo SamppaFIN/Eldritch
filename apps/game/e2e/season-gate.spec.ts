@@ -99,20 +99,28 @@ test('a ruin of last season’s Fortress can be searched once (BRDC-SEASON-007)'
 
 test('a wonder the realm found offers its action once a day (BRDC-SEASON-008)', async ({ page }) => {
   await openMap(page, HERE);
-  // Record the Hearth's own hex as where Innsmouth was found — a rarely written key.
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) => {
-        const open = indexedDB.open('es3');
-        open.onsuccess = () => {
-          const tx = open.result.transaction('kv', 'readwrite');
-          const kv = tx.objectStore('kv');
-          const home = kv.get('home');
-          home.onsuccess = () => kv.put({ innsmouth: { h3: home.result, at: Date.now() } }, 'wonder-finds');
-          tx.oncomplete = () => resolve();
-        };
-      }),
-  );
+  // Record the Hearth's own hex as where Innsmouth was found. The app writes this key too
+  // when it finds a wonder of its own, so write, reload, and write again until it holds.
+  const seed = () =>
+    page.evaluate(
+      () =>
+        new Promise<boolean>((resolve) => {
+          const open = indexedDB.open('es3');
+          open.onsuccess = () => {
+            const tx = open.result.transaction('kv', 'readwrite');
+            const kv = tx.objectStore('kv');
+            const home = kv.get('home');
+            const finds = kv.get('wonder-finds');
+            tx.oncomplete = () => resolve(Boolean(finds.result?.innsmouth));
+            home.onsuccess = () => {
+              finds.onsuccess = () => {
+                if (!finds.result?.innsmouth) kv.put({ ...(finds.result ?? {}), innsmouth: { h3: home.result, at: Date.now() } }, 'wonder-finds');
+              };
+            };
+          };
+        }),
+    );
+  for (let i = 0; i < 4 && !(await seed()); i += 1) await page.reload();
   await page.reload();
   await page.getByRole('button', { name: 'Here', exact: true }).click();
   const wonder = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Wonder');

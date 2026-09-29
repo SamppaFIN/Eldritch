@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.7.1",
+    "date": "2026-09-29",
+    "notes": [
+      "The first tip no longer promises a payment for taking a hex. Held ground pays every hour."
+    ]
+  },
+  {
     "version": "0.7.0",
     "date": "2026-09-29",
     "notes": [

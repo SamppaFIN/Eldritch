@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-e2e/
 dist-types/
 *.tsbuildinfo
 coverage/
@@ -7,6 +8,8 @@ test-results/
 playwright-report/
 .env
 .env.*
+# Playwright's own build config — no secrets, only a dead Worker URL.
+!apps/game/.env.e2e
 *.log
 .DS_Store
 android/

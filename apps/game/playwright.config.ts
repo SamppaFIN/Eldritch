@@ -15,7 +15,7 @@ export default defineConfig({
   retries: process.env['CI'] ? 1 : 0,
   reporter: process.env['CI'] ? 'github' : 'list',
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: 'http://localhost:4174',
     trace: 'on-first-retry',
   },
   projects: [
@@ -29,9 +29,14 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm preview --port 4173 --strictPort',
-    url: 'http://localhost:4173',
-    reuseExistingServer: !process.env['CI'],
-    timeout: 60_000,
+    // Its own build: `.env.e2e` points the shared-world Worker at nothing, so tests never
+    // touch the live one (2026-09-29: a live Season 2 put its welcome over every test,
+    // and test realms had been landing in the real Chronicles as "Seeker").
+    command: 'pnpm exec vite build --mode e2e --outDir dist-e2e && pnpm exec vite preview --outDir dist-e2e --port 4174 --strictPort',
+    // Its own port, and never reused: a preview of the production build left on 4173
+    // was once picked up silently and the tests ran against the live Worker.
+    url: 'http://localhost:4174',
+    reuseExistingServer: false,
+    timeout: 240_000,
   },
 });
