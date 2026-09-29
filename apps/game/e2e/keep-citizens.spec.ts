@@ -198,7 +198,7 @@ test('an open season shows the shared Doom track and the Mythos card (BRDC-DOOM-
       status: 200,
       contentType: 'application/json',
       headers: { 'access-control-allow-origin': '*' },
-      body: JSON.stringify({ n: 2, name: 'The Low Water', seed: 's2', phase: 'open', opensAt, doom: 10, bossHp: 0, bossMaxHp: 0 }),
+      body: JSON.stringify({ n: 1, name: 'The Low Water', seed: 's2', phase: 'open', opensAt, doom: 10, bossHp: 0, bossMaxHp: 0 }),
     }),
   );
   await openMap(page, HERE);
@@ -214,7 +214,7 @@ test('a Season 2 realm sees its open gates and its investigator (BRDC-DOOM-002)'
       status: 200,
       contentType: 'application/json',
       headers: { 'access-control-allow-origin': '*' },
-      body: JSON.stringify({ n: 2, name: 'The Low Water', seed: 's2', phase: 'open', opensAt: Date.now() - 86_400_000, doom: 1, bossHp: 0, bossMaxHp: 0 }),
+      body: JSON.stringify({ n: 1, name: 'The Low Water', seed: 's2', phase: 'open', opensAt: Date.now() - 86_400_000, doom: 1, bossHp: 0, bossMaxHp: 0 }),
     }),
   );
   await openMap(page, HERE);
@@ -227,7 +227,7 @@ test('a Season 2 realm sees its open gates and its investigator (BRDC-DOOM-002)'
 
 test('during the Reckoning the Keep strikes the Ancient One (BRDC-DOOM-004)', async ({ page }) => {
   const json = (body: unknown) => ({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
-  const season = { n: 2, name: 'The Low Water', seed: 's2', phase: 'reckoning', opensAt: Date.now() - 40 * 86_400_000, reckoningAt: Date.now() - 3_600_000, doom: 13, bossHp: 5400, bossMaxHp: 5400 };
+  const season = { n: 1, name: 'The Low Water', seed: 's2', phase: 'reckoning', opensAt: Date.now() - 40 * 86_400_000, reckoningAt: Date.now() - 3_600_000, doom: 13, bossHp: 5400, bossMaxHp: 5400 };
   await page.route('**/season', (route) => route.fulfill(json(season)));
   await page.route('**/season/reckoning', (route) => route.fulfill(json({ bossHp: 5200, bossMaxHp: 5400, phase: 'reckoning', standings: [] })));
   await page.route('**/season/strike', (route) => route.fulfill(json({ ok: true })));

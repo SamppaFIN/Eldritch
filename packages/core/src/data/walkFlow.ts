@@ -87,7 +87,9 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
     id: profile.id,
     level: profile.level,
     hasTerritory: owned.length > 0,
-    ...(pouch.keep ? { claimBudget: affordableClaims(pouch.pool.culture, owned.length).count } : {}),
+    ...((await d.store.get<boolean>(K.sealed))
+      ? { claimBudget: 0 } // a sealed season is a fossil: walkable, never claimed (SEASON-004)
+      : pouch.keep ? { claimBudget: affordableClaims(pouch.pool.culture, owned.length).count } : {}),
   });
   const newCells = walked.grown.filter((o) => o.kind === 'claimed' || o.kind === 'taken').length;
   if (pouch.keep && newCells > 0) {

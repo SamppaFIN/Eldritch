@@ -78,6 +78,8 @@ export const K = {
   rumours: 'rumours',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
+  /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */
+  sealed: 'sealed',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

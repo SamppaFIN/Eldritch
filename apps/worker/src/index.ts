@@ -339,6 +339,8 @@ export default {
           'POST /season/doom',
           'POST /season/strike',
           'GET /season/reckoning',
+          'POST /season/archive',
+          'GET /season/ruins',
           'GET /season/history',
           'GET /season/history/<day>',
           'POST /season/join',

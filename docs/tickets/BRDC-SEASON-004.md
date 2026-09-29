@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-003 |
 | **Lähde** | `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf (S3, "The map becomes a fossil")` |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-09-29; sija S3:ssa ja rivaalien read-only [~] |
 
 ## 🔴 RED
 
@@ -21,13 +21,13 @@ enää avaa peliä) arkistoidaan Chroniclesiin samalla kertaa.
 
 ## 🟢 GREEN
 
-- [ ] Vaiheessa `sealed` peli on luku-tilassa (ei valtausta eikä rakentamista); S3-ruutu Quiet/Risen + sija + Legacy
-- [ ] Pakotettu retire: valtakunta Hall of Fameen (HALL-003 Chronicles), tallennus nollautuu kaudelle
-- [ ] **Julkaisuilmoitus:** kun v0.7.0 avautuu ja pelaajan tallennus on Season 1:ltä, ensimmäinen ruutu on "Retire your kingdom to the history books". Se ei ohitu ennen retirea
-- [ ] **Workerin vanhat kuningaskunnat arkistoidaan:** admin-reitti (`ADMIN_KEY`) kirjoittaa jokaisesta `player:*`-tiedostosta `LegacyEntry`n Chroniclesiin (Surreal Kingdom, Sampan majamaa, …), sitten `player:*` ja shardit tyhjenevät uutta kautta varten. Idempotentti: toinen ajo ei tuplaa rivejä
-- [ ] Eläköityneiden lista historiaan (Atlas history / Chronicles)
-- [ ] Rivaalien viimeiset valtakunnat avattavissa read-only
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
+- [~] Sinetöity kausi: `K.sealed` (`repository.legacy.freeze`) pysäyttää askelvaltauksen ja kävelyn kasvun ✓ (Vitest); S3-ruutu `SeasonGate` (Quiet/Risen + Legacy-taulukko + "The map is frozen") ✓ e2e. **Ei vielä:** rakentamisen esto sinetöitynä ja oma sija (tulee SEASON-005:n tauluista)
+- [x] Pakotettu retire: `SeasonGate` ajaa saman polun kuin vapaaehtoinen (`retireKingdom` → `resetForSeason`, `publishLegacy` Chroniclesiin, `clearAll`, reload); tuore tallennus liittyy avoimeen kauteen (`keep.found`)
+- [x] **Julkaisuilmoitus:** (`SeasonGate` + `Modal dismissible={false}`: ei ×:ää, ESC ei sulje; aukeaa kun Workerin kausi n ≥ 2 on auki ja tallennuksella on Season 1 -maata; era esitäytetty "Season 1"; e2e `season-gate.spec.ts`) kun v0.7.0 avautuu ja pelaajan tallennus on Season 1:ltä, ensimmäinen ruutu on "Retire your kingdom to the history books". Se ei ohitu ennen retirea
+- [x] (`apps/worker/src/archive.ts`, `POST /season/archive` {era, wipe?} admin-avaimella; avain `legacy:<pelaaja>:archive-<era>` → idempotentti; Fortress-solut talteen `season:ruins` SEASON-007:lle, `GET /season/ruins`. **Ajettu vain tyyppitarkistuksena** — Infinite ajaa `wrangler deploy`n ja kutsun) **Workerin vanhat kuningaskunnat arkistoidaan:** admin-reitti (`ADMIN_KEY`) kirjoittaa jokaisesta `player:*`-tiedostosta `LegacyEntry`n Chroniclesiin (Surreal Kingdom, Sampan majamaa, …), sitten `player:*` ja shardit tyhjenevät uutta kautta varten. Idempotentti: toinen ajo ei tuplaa rivejä
+- [x] Eläköityneiden lista historiaan: arkistointi ja pakotettu retire kirjoittavat molemmat Chroniclesiin (`/legacy`), jonka Hall of Fame -paneeli jo näyttää
+- [~] Rivaalien viimeiset valtakunnat read-only: ei vielä (vaatii arkistoidun kartan tilannekuvan ennen `wipe`ä)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build (1903); MapView 399/400
 
 ## Todennus
 

@@ -46,6 +46,7 @@ export async function claimStepAt(
 ): Promise<StepClaimOutcome> {
   const h3 = claimableStep(standing, owned, home);
   if (!h3) return { claimed: null };
+  if (await store.get<boolean>(K.sealed)) return { claimed: null }; // a sealed season is a fossil (SEASON-004)
 
   // The rule only checks adjacency; a rival's border cell can pass it. Route mode still
   // stops here — its own no-stealing promise (BRDC-MODE-002). Adventure mode instead

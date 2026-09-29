@@ -160,3 +160,13 @@ describe('claimStep on a Season 2 save — culture buys ground (BRDC-PROG-003)',
     expect((await repo.getResources(T0)).culture).toBe(5);
   });
 });
+
+describe('a sealed season is a fossil (BRDC-SEASON-004)', () => {
+  it('claims nothing while sealed, and again once thawed', async () => {
+    const { repo, near } = await repoWithHearth();
+    await repo.legacy.freeze(true);
+    expect(await repo.claimStep(near, T0)).toEqual({ claimed: null });
+    await repo.legacy.freeze(false);
+    expect(await repo.claimStep(near, T0)).toMatchObject({ claimed: near });
+  });
+});

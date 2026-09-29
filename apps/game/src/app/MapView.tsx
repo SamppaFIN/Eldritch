@@ -55,6 +55,7 @@ import { useNation } from '../features/nation/useNation.js';
 import { useSharedWorld } from '../features/territory/useSharedWorld.js';
 import { keepIfSame } from '../features/map/keepIfSame.js';
 import { nextLoaded } from '../features/map/viewportHysteresis.js';
+import { SeasonGate } from '../features/season/SeasonGate.js';
 import './mapview.css';
 
 export interface MapViewProps {
@@ -388,6 +389,7 @@ export function MapView({ onLeave }: MapViewProps) {
         visible={inspect.cell === null && !inspect.sanctum}
       />
 
+      <SeasonGate repository={repository} />
       <SanctumDialogs
         confirming={confirming} setConfirming={setConfirming} onLeave={onLeave} now={clock.now}
         repository={repository} ownedCells={territory.owned.length} distanceM={trail.distanceM}

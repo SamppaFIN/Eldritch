@@ -24,10 +24,16 @@ import type { Cell, H3Index } from '../types/domain.js';
 export interface LegacyApi {
   /** What the realm would leave if the season closed now, under `outcome`. */
   tally(now: number, outcome?: SeasonOutcome): Promise<Legacy>;
+  /** Freeze or thaw the map: a sealed season claims nothing (SEASON-004). */
+  freeze(sealed: boolean): Promise<void>;
 }
 
 export function legacyApi(store: () => KeyValueStore, owned: (now: number) => Promise<readonly Cell[]>): LegacyApi {
   return {
+    freeze: async (sealed) => {
+      if (sealed) await store().set(K.sealed, true);
+      else await store().delete(K.sealed);
+    },
     tally: async (now, outcome) => {
       const cells = await owned(now);
       const held = new Set(cells.map((c) => c.h3));

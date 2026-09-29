@@ -19,9 +19,11 @@ export interface ModalProps {
   children: ReactNode;
   /** Buttons. The primary one is focused when the dialog opens. */
   footer?: ReactNode;
+  /** False for a choice that must be made (a forced retire): no ×, and ESC does nothing. */
+  dismissible?: boolean;
 }
 
-export function Modal({ open, title, onClose, children, footer }: ModalProps) {
+export function Modal({ open, title, onClose, children, footer, dismissible = true }: ModalProps) {
   const ref = useRef<HTMLDialogElement | null>(null);
   const opener = useRef<Element | null>(null);
   const titleId = useId();
@@ -45,9 +47,9 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
   const onCancel = useCallback(
     (e: React.SyntheticEvent<HTMLDialogElement>) => {
       e.preventDefault();
-      onClose();
+      if (dismissible) onClose();
     },
-    [onClose],
+    [onClose, dismissible],
   );
 
   return (
@@ -67,9 +69,11 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         {/* Always a way out by touch: iOS has no back swipe to close a <dialog>, and a page
             like a building's has no "Done" in its footer (field report 2026-09-29). Last in
             the DOM so `showModal` still focuses the primary action first; placed top-right. */}
-        <button type="button" className="es-modal__close" aria-label="Close" onClick={onClose}>
-          ×
-        </button>
+        {dismissible ? (
+          <button type="button" className="es-modal__close" aria-label="Close" onClick={onClose}>
+            ×
+          </button>
+        ) : null}
       </div>
     </dialog>
   );

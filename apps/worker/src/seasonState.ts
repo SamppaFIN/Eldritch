@@ -9,6 +9,8 @@
  *                        taken once per gate and direction, however often it is sent
  *   POST /season/strike  a realm hurts the Ancient One {realm, damage} (DOOM-004)
  *   GET  /season/reckoning  its strength and every realm's damage
+ *   POST /season/archive admin: every realm into the Chronicles {era, wipe?} (SEASON-004)
+ *   GET  /season/ruins   the Fortresses the last season left standing (SEASON-007)
  *
  * Admin routes need `x-admin-key` to match the `ADMIN_KEY` Worker secret; with no secret
  * set they are simply off. The key never reaches the game client — Infinite uses curl.
@@ -18,6 +20,7 @@ import { MAX_DAMAGE_PER_CALL, STRIKE_COOLDOWN_MS, advanceSeason, damageBoss, for
 import type { Season, SeasonPhase } from '@es3/core/rules';
 import type { WorldSource } from '@es3/core/data';
 import type { KV } from './index.js';
+import { RUINS, archiveSeason } from './archive.js';
 
 const STATE = 'season:state';
 const DAMAGE = 'season:reckoning:damage';
@@ -92,10 +95,20 @@ export async function handleSeasonState(
     return send({ bossHp: next.bossHp, bossMaxHp: next.bossMaxHp, phase: next.phase, damage: damage[realm] });
   }
 
-  const admin = url.pathname === '/season/open' || url.pathname === '/season/phase';
+  if (request.method === 'GET' && url.pathname === '/season/ruins') {
+    const raw = await kv.get(RUINS);
+    return raw ? send(JSON.parse(raw)) : bare(204);
+  }
+
+  const admin = url.pathname === '/season/open' || url.pathname === '/season/phase' || url.pathname === '/season/archive';
   if (request.method !== 'POST' || !admin) return null;
   if (!adminKey || request.headers.get('x-admin-key') !== adminKey) return send({ fault: 'forbidden' }, 403);
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+
+  if (url.pathname === '/season/archive') {
+    const era = typeof body?.era === 'string' && body.era.trim() ? body.era.trim() : 'Season 1';
+    return send(await archiveSeason(kv, now, era, body?.wipe === true));
+  }
 
   if (url.pathname === '/season/open') {
     const { n, name, seed, reckoningByDay, doomEveryNDawns } = body ?? {};
