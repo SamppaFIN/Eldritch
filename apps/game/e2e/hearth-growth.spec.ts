@@ -9,7 +9,7 @@ import { openMap } from './hearth.js';
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
-test('the Keep shows the Hearth’s reach and the food a new ring costs', async ({ page }) => {
+test('the Keep shows the Hearth’s reach and the food a hex costs', async ({ page }) => {
   await openMap(page, HERE);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
 
@@ -18,8 +18,8 @@ test('the Keep shows the Hearth’s reach and the food a new ring costs', async 
 
   const growth = keep.getByLabel('Grow the Hearth');
   await expect(growth).toContainText('Hearth reach 1 of 6');
-  // Ring 2 is twelve hexes at five food each.
-  const button = growth.getByRole('button', { name: 'Grow the Hearth · 60 food' });
+  // 100 food a hex since 2026-09-29, bought a few at a time.
+  const button = growth.getByRole('button', { name: 'Grow the Hearth · 100 food a hex' });
   await expect(button).toBeVisible();
   await expect(button).toBeDisabled();
 });

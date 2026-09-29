@@ -85,10 +85,12 @@ export type BuildingId =
   | 'lighthouse'
   // BRDC-BUILD-004: the defensive aura
   | 'fortress'
-  // BRDC-BUILD-013: Worldseed's forge. Watchtower is not here yet — see that ticket.
+  // BRDC-BUILD-013: Worldseed's forge.
   | 'forge'
   // BRDC-TAVERN-001: Worldseed's tavern — the quest board.
-  | 'tavern';
+  | 'tavern'
+  // Infinite 2026-09-29: the Works Codex's watchtower, buildable at last.
+  | 'watchtower';
 
 /** One Work standing on a cell, and when it went up. */
 export interface CellBuilding {

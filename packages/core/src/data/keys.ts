@@ -31,8 +31,6 @@ export const K = {
   paths: 'paths',
   /** Running spells, `ActiveSpell[]`, pruned on cast (BRDC-SPELL-001). */
   spells: 'spells',
-  /** Trade Routes, `TradeRoute[]` — two-cell links (BRDC-BUILD-004). */
-  tradeRoutes: 'trade-routes',
   /** The action log, a capped `LogEntry[]` (BRDC-LOG-001). */
   log: 'log',
   /** Adventure state, `Record<id, { stage, done? }>` (BRDC-QUEST-001). */

@@ -39,8 +39,6 @@ import type { ConsecrateOutcome, ExpandOutcome, SchoolOutcome } from '../data/te
 import type { AltarOutcome } from '../data/keepStore.js';
 import type { CastOutcome } from '../data/spellStore.js';
 import type { ActiveSpell, SpellId } from '../rules/spell.js';
-import type { RouteOutcome } from '../data/tradeStore.js';
-import type { TradeRoute } from '../rules/trade.js';
 import type { HearthGrowth } from '../data/hearthGrowthStore.js';
 import type { CityState } from '../rules/cityState.js';
 import type { TradeOutcome } from '../data/cityStateStore.js';
@@ -227,17 +225,6 @@ export interface GameRepository {
    * values — "same-resource", "cannot-afford" — and nothing is written on one.
    */
   trade(h3: H3Index, give: ResourceKind, want: ResourceKind, now: number): Promise<TradeOutcome>;
-
-  /* --- Trade Routes (BRDC-BUILD-004) ---------------------------------- */
-  /** The two-cell links the player holds; each pays gold while both ends are awake. */
-  getTradeRoutes(): Promise<TradeRoute[]>;
-  /**
-   * Bind two owned cells within `TRADE_ROUTE_MAX_HEXES`, paying stone and gold. Refusals
-   * are named — same cell, not yours, too far, already linked, cannot afford.
-   */
-  layTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome>;
-  /** Tear a route down and hand back half its cost. */
-  removeTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome>;
 
   /* --- Technology (BRDC-TECH-001) ------------------------------------------ */
   /** Everything researched so far, in the order it was learned. */

@@ -21,7 +21,7 @@ import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerProfile } from '../types/domain.js';
 
 export type HearthGrowth =
-  | { ok: true; ring: number; claimed: number; already: number }
+  | { ok: true; ring: number; claimed: number; already: number; left: number }
   | { ok: false; refused: HearthGrowthRefusal | 'no-hearth' };
 
 export async function readHearthRing(store: KeyValueStore): Promise<number> {
@@ -56,12 +56,13 @@ export async function growHearthAt(
 
   await writePouch(store, result.pool, now);
   const attacker = { id: profile.id, level: profile.level };
-  for (const h3 of free) {
+  const bought = free.slice(0, result.bought);
+  for (const h3 of bought) {
     const at = targets.indexOf(h3);
     const { cell } = resolveCapture(found[at] ?? emptyCell(h3), attacker, now);
     await store.set(K.cell(h3), cell);
   }
   await store.set(K.hearthRing, result.ring);
-  if (free.length > 0) await writeLogEntry(store, { at: now, kind: 'awaken', count: free.length });
-  return { ok: true, ring: result.ring, claimed: free.length, already };
+  if (bought.length > 0) await writeLogEntry(store, { at: now, kind: 'awaken', count: bought.length });
+  return { ok: true, ring: result.ring, claimed: bought.length, already, left: free.length - bought.length };
 }

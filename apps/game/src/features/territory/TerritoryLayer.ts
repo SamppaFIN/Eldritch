@@ -65,6 +65,7 @@ import { keyed, syncSource } from './territorySync.js';
 import { ensureRealmOutline, removeRealmOutline, setRealmOutline } from './realmOutlineLayer.js';
 
 export const CELL_FADING_LAYER = 'cells-fading';
+export const CELL_HEARTH_LAYER = 'cells-hearth';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
 const SHARED_PATTERN = 'cells-shared-pattern';
@@ -266,6 +267,17 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
     paint: { 'line-color': OWN_STROKE, 'line-width': 2.5, 'line-opacity': 0.8 },
   });
 
+  // The Hearth's own ground, edged in sacred gold (Infinite 2026-09-29) — the one border
+  // on the map that says "this is home", distinct from every other hex you hold.
+  map.addLayer({
+    id: CELL_HEARTH_LAYER,
+    type: 'line',
+    source: CELL_SOURCE,
+    minzoom: CELL_DETAIL_MINZOOM,
+    filter: ['get', 'hearth'],
+    paint: { 'line-color': '#ffd700', 'line-width': 2, 'line-opacity': 0.9 },
+  });
+
   addMarkLayers(map);
 }
 
@@ -280,11 +292,13 @@ export function setTerritoryData(
   revealed: Readonly<Record<H3Index, number>> = {},
   /** The Temple and the Anchor (BRDC-SIGIL-006): no banner on the hex they stand on. */
   places: readonly { h3: H3Index }[] = [],
+  /** The Hearth's grown ring (BRDC-HEARTH-003), for the gold edge. */
+  hearthRing = 0,
 ): void {
   const placeCells = new Set(places.map((p) => p.h3));
   const myBanner = bannerId ?? '';
   // Built once; the points are the polygons' centres. Sent as diffs (BRDC-PERF-003).
-  const polygons = cellsToGeoJson(cells, me, now, home, revealed, placeCells, myBanner);
+  const polygons = cellsToGeoJson(cells, me, now, home, revealed, placeCells, myBanner, hearthRing);
   syncSource(map, CELL_SOURCE, keyed(polygons));
   syncSource(map, CELL_MARK_SOURCE, keyed(marksFromPolygons(polygons)));
   setRealmOutline(map, cells, me);
@@ -293,6 +307,7 @@ export function setTerritoryData(
 export function removeTerritoryLayers(map: MapLibreMap): void {
   removeRealmOutline(map);
   if (map.getLayer(CELL_FADING_LAYER)) map.removeLayer(CELL_FADING_LAYER);
+  if (map.getLayer(CELL_HEARTH_LAYER)) map.removeLayer(CELL_HEARTH_LAYER);
   for (const id of [
     CELL_ANOMALY_LAYER,
     CELL_FLAG_LAYER,

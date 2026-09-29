@@ -3,8 +3,8 @@
  * (BRDC-TECH-001).
  *
  * Lifted out of useSelection when adding a pending state pushed that file over its line
- * limit — research is as self-contained as trade routes already were (useTradeRoutes.ts):
- * its own binding, its own panel, one seam into the rest of selection (`afterSpend`).
+ * limit — research is self-contained: its own binding, its own panel, one seam into the
+ * rest of selection (`afterSpend`).
  */
 import { useCallback, useEffect, useState } from 'react';
 import { TECHS, eraOf, researchableSchoolless } from '@es3/core';

@@ -9,7 +9,9 @@ import { ANOMALY_INVESTIGATE_COST, shortOf, canAfford } from '@es3/core';
 import type { ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { shortNote } from './gateNote.js';
-import type { AnomalyBinding } from './useAnomaly.js';
+import type { AnomalyBinding, AnomalyFind } from './useAnomaly.js';
+import { RESOURCE_WORD } from './territoryFeatures.js';
+import type { ResourceKind } from '@es3/core';
 
 const REFUSAL: Readonly<Record<string, string>> = {
   'cannot-afford': `Not enough food — an investigation costs ${ANOMALY_INVESTIGATE_COST.food}. Any lake or shore gives it.`,
@@ -35,7 +37,8 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
     <section className="cell-panel__anomaly" aria-label="Anomaly">
       {a.state === 'dormant' ? (
         <>
-          <p className="cell-panel__anomaly-text">Something is wrong with this ground.</p>
+          <p className="cell-panel__anomaly-name">{a.sign.name}</p>
+          <p className="cell-panel__anomaly-text">{a.sign.text}</p>
           <RitualButton
             variant="ghost"
             onClick={anomaly.onInvestigate}
@@ -53,6 +56,7 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
 
       {a.state === 'investigating' ? (
         <>
+          <p className="cell-panel__anomaly-name">{a.sign.name}</p>
           <p className="cell-panel__anomaly-text">Studying it… {Math.round(a.progress * 100)}%</p>
           <div className="cell-panel__bar" aria-hidden>
             <div className="cell-panel__bar-fill" style={{ inlineSize: `${a.progress * 100}%` }} />
@@ -87,6 +91,20 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
           {REFUSAL[anomaly.refusal] ?? 'That did not work.'}
         </p>
       ) : null}
+    </section>
+  );
+}
+
+/** What an anomaly gave up, said on the card after it is spent (Infinite 2026-09-29). */
+export function AnomalyFound({ found }: { found: AnomalyFind }) {
+  const gains = (Object.entries(found.gains) as [ResourceKind, number][])
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => `+${v} ${RESOURCE_WORD[k]}`);
+  if (found.xp > 0) gains.push(`+${found.xp} XP`);
+  return (
+    <section className="cell-panel__anomaly" aria-label="What the anomaly gave" role="status">
+      {found.text ? <p className="cell-panel__anomaly-text cell-panel__anomaly-text--story">{found.text}</p> : null}
+      {gains.length > 0 ? <p className="cell-panel__anomaly-found es-numeric">{gains.join(' · ')}</p> : null}
     </section>
   );
 }

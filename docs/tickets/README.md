@@ -537,6 +537,7 @@ järjestys; seuraava ei ala ennen kuin edellisen portti on vihreä.
 | [BRDC-ART-006](BRDC-ART-006.md) | 🔶 Works Codexin rakennukset kartalle atlaksen kautta | L | SVG lähteenä, build-skripti hexeiksi, laiska `setMissingStyleImageResolver`, jalusta erikseen |
 | [BRDC-FX-003](BRDC-FX-003.md) | 🔶 Syke vain sille, mikä on vaarassa | M | yksi ~10 fps:n syke rapautuville ja kiistellyille, kellunta vain fokussolulle |
 | [BRDC-MAP-007](BRDC-MAP-007.md) | ✅ Paikan ja questin napautus ei koskaan laukea | S | MapLibre `parseInt`taa merkkijono-id:t; korjautuu `promoteId`llä |
+| [BRDC-S2-000](BRDC-S2-000.md) | ✅ Ennen Season 2:ta: trade routet pois, anomaliat, Watchtower, Keep-näkymä, Hearth kalliimmaksi | M | — |
 
 **Juurisyy ei ole grafiikassa.** Kartta ei piirrä heksoja DOM-elementteinä, vaan koko
 alue rakennetaan alusta ja lähetetään kartalle noin 3–4 kertaa sekunnissa kävellessä

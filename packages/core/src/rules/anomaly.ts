@@ -88,19 +88,48 @@ export function beginInvestigation(cell: Cell, pool: ResourcePool, now: number):
   return { ok: true, cell: { ...cell, anomaly: { startedAt: now } }, pool: paid };
 }
 
-/** Resources the reward can pay in — everyday materials, plus wisdom. */
-const REWARD_KINDS: readonly ResourceKind[] = ['wood', 'stone', 'food', 'gold', 'wisdom'];
+/**
+ * What an anomaly looks like before anyone studies it, and what studying it turns up
+ * (Infinite 2026-09-29: *"useampia erilaisia ja niistä saa sitten jonkin palkinnon"*).
+ * Each sign leans its reward toward one resource, so the ground says what it holds.
+ */
+export interface AnomalySign {
+  id: string;
+  name: string;
+  /** Said on the untouched hex. */
+  sign: string;
+  /** Said when a reward anomaly gives up what it held. */
+  found: string;
+  resource: ResourceKind;
+}
+
+export const ANOMALY_SIGNS: readonly AnomalySign[] = [
+  { id: 'hum', name: 'The Hum', sign: 'The ground hums a low note that is almost a word.', found: 'Under the note, a seam of stone that rings when struck.', resource: 'stone' },
+  { id: 'door', name: 'The Standing Door', sign: 'A door stands in the open ground, with no house behind it.', found: 'Behind the door, a larder nobody stocked. It is full.', resource: 'food' },
+  { id: 'weeping', name: 'The Weeping Stone', sign: 'A stone here is wet on a dry day, and the wet runs uphill.', found: 'The stone split along its tears. Something old was pressed inside.', resource: 'wisdom' },
+  { id: 'shadow', name: 'The Wrong Shadow', sign: 'Something casts a shadow here, and nothing is standing in it.', found: 'Where the shadow lay, the grass had grown into coins.', resource: 'gold' },
+  { id: 'bell', name: 'The Drowned Bell', sign: 'A bell rings under the turf, on the hour, every hour.', found: 'You dug to the bell. Its tongue is solid gold and it will not ring again.', resource: 'gold' },
+  { id: 'ash', name: 'The Ring of Ash', sign: 'A perfect ring of ash, still warm, that no rain has ever wet.', found: 'The ash was the last of a great tree. Its roots were not.', resource: 'wood' },
+  { id: 'birds', name: 'The Still Birds', sign: 'A flock sits on the grass and does not move, or breathe.', found: 'The birds were carved. Someone left them here to be found.', resource: 'culture' },
+  { id: 'well', name: 'The Dry Well', sign: 'A well with no water, and a voice at the bottom counting.', found: 'The voice counted down to a hoard of iron nails.', resource: 'iron' },
+];
+
+/** The sign an anomaly at `h3` shows — deterministic, so every phone sees the same one. */
+export function anomalySignOf(h3: string): AnomalySign {
+  return ANOMALY_SIGNS[Math.floor(hash(`anomaly:sign:${h3}`) * ANOMALY_SIGNS.length)] as AnomalySign;
+}
 
 /**
  * The hidden payoff of a `'reward'` anomaly, revealed only once it resolves.
  *
  * Deterministic from the index — the same find for everyone, and a reload cannot re-roll
- * it — but the game does not show it until `isResolved`. Modest: roughly two claims'
- * worth, in one resource, plus a little XP.
+ * it — in the sign's own resource, plus XP, and one sign in five also holds a token.
  */
 export function resolveReward(h3: string): { pool: Partial<ResourcePool>; xp: number } {
-  const resource = REWARD_KINDS[Math.floor(hash(`anomaly:res:${h3}`) * REWARD_KINDS.length)] as ResourceKind;
-  const amount = 20 + Math.floor(hash(`anomaly:amt:${h3}`) * 31); // 20..50
+  const resource = anomalySignOf(h3).resource;
+  const amount = 30 + Math.floor(hash(`anomaly:amt:${h3}`) * 31); // 30..60
   const xp = 15 + Math.floor(hash(`anomaly:xp:${h3}`) * 26); // 15..40
-  return { pool: { [resource]: amount }, xp };
+  const pool: Partial<ResourcePool> = { [resource]: amount };
+  if (hash(`anomaly:token:${h3}`) < 0.2) pool.tokens = 1;
+  return { pool, xp };
 }

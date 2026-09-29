@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import {
   HEARTH_MAX_RING,
-  hearthRingCost,
+  HEARTH_FOOD_PER_HEX,
 } from '@es3/core';
 import type { GameRepository, ResourcePool } from '@es3/core';
 import { RitualButton } from '@es3/ui';
@@ -40,7 +40,7 @@ export function HearthGrowth({ repository, resources, now, onPouch, onGrown }: H
 
   if (ring === null) return null;
   const atLimit = ring >= HEARTH_MAX_RING;
-  const cost = (hearthRingCost(ring + 1).food ?? 0) as number;
+  const cost = HEARTH_FOOD_PER_HEX;
   const affordable = (resources?.food ?? 0) >= cost;
 
   const grow = () => {
@@ -51,9 +51,9 @@ export function HearthGrowth({ repository, resources, now, onPouch, onGrown }: H
       if (r.ok) {
         setRing(r.ring);
         setSaid(
-          r.already > 0
-            ? `The border moves out: ${r.claimed} hexes taken, ${r.already} already held.`
-            : `The border moves out: ${r.claimed} hexes taken.`,
+          r.left > 0
+            ? `${r.claimed} ${r.claimed === 1 ? 'hex' : 'hexes'} taken. ${r.left} more to reach ring ${r.ring + 1}.`
+            : `The border moves out to ring ${r.ring}.`,
         );
         onPouch(await repository.getResources(now));
         onGrown();
@@ -73,7 +73,7 @@ export function HearthGrowth({ repository, resources, now, onPouch, onGrown }: H
         <p className="hearth-panel__line">Its border cannot be pushed any further.</p>
       ) : (
         <RitualButton variant="ghost" disabled={busy || !affordable} onClick={grow}>
-          {`Grow the Hearth · ${cost} food`}
+          {`Grow the Hearth · ${cost} food a hex`}
         </RitualButton>
       )}
       {said ? (

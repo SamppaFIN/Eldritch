@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.6.66",
+    "date": "2026-09-29",
+    "notes": [
+      "Anomalies are more varied: eight different signs, from a humming stone to a dry well that counts, and six stories instead of two. Each one gives something, and the card now says what you got.",
+      "The Watchtower can be built on a hill or a plain. The Hearth's own hexes have a gold edge on the map, and the neighbour-count circles are gone.",
+      "The Keep screen is simpler: four clear parts instead of tabs. Growing the Hearth now costs 100 food a hex, bought a few at a time.",
+      "Trade routes are removed."
+    ]
+  },
+  {
     "version": "0.6.65",
     "date": "2026-09-29",
     "notes": [

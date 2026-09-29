@@ -23,8 +23,6 @@ import { activeSpells } from '../rules/spell.js';
 import { domainSpellBonus } from '../rules/spellEffects.js';
 import type { ActiveSpell } from '../rules/spell.js';
 import { resourceAura } from '../rules/aura.js';
-import { routeGoldBonus } from '../rules/trade.js';
-import type { TradeRoute } from '../rules/trade.js';
 import { darkTimeAt } from '../rules/darkTime.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
@@ -59,7 +57,7 @@ function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void
  * production (BRDC-BUILD-001), mana and wisdom from held places (BRDC-MANA-002), what
  * research pays on its own ground (PIVOT-2026-09-09 §3), a running research spell
  * (BRDC-SPELL-001), area auras from Libraries and the like (BRDC-BUILD-003), a bounty on
- * revealed ground, gold from a trade route, and culture from a real landmark held
+ * revealed ground, and culture from a real landmark held
  * (BRDC-LANDMARK-001), merged additively. Each is filtered by its own rule — kept here so
  * `rules/terrain.ts` stays blind to all of it.
  */
@@ -69,8 +67,8 @@ async function perHourBonus(
   now: number,
 ): Promise<{ bonus: Partial<ResourcePool>; works: WorksContext }> {
   // One transaction for every key, not one each — the pouch settles often (BRDC-WORKS-002).
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, routesS, treesS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.tradeRoutes, K.worksTree,
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree,
   ]);
   const dwell = (dwellS as DwellMap | undefined) ?? {};
   const home = (homeS as H3Index | undefined) ?? null;
@@ -90,8 +88,6 @@ async function perHourBonus(
   const revealed = (revealedS as Record<H3Index, number> | undefined) ?? {};
   addInto(merged, bountyBonus(owned, revealed, now));
 
-  const routes = (routesS as TradeRoute[] | undefined) ?? [];
-  addInto(merged, routeGoldBonus(routes, owned, now));
   addInto(merged, landmarkBonus(owned, now));
   const works = worksContextFrom(treesS as WorksContext['trees'] | undefined, home, dwell);
   addInto(merged, worksBonus(owned, works.trees, works.kindAt, now));

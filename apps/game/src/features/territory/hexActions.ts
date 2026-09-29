@@ -7,7 +7,7 @@
 /** Pressing does it at once. */
 export type PressId = 'quest' | 'reveal' | 'ward' | 'page' | 'consecrate' | 'expand';
 /** Pressing opens its own section under the row — it needs a choice first. */
-export type SectionId = 'works' | 'school' | 'rites' | 'trade' | 'city' | 'anomaly';
+export type SectionId = 'works' | 'school' | 'rites' | 'city' | 'anomaly';
 export type ActionId = PressId | SectionId;
 
 export interface CellAction {
@@ -38,7 +38,6 @@ export const ACTION_ORDER: readonly ActionId[] = [
   'expand',
   'school',
   'rites',
-  'trade',
   'city',
   'anomaly',
 ];

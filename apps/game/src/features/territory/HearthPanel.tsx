@@ -9,7 +9,7 @@
  * from the title screen, which meant ending a walk to reach it (BRDC-WAGER-JSON-001,
  * known limitation). Standing on your own Hearth is a better place to be asked.
  */
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
@@ -19,7 +19,6 @@ import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace } from
 import { formatArea } from '../codex/figures.js';
 import { dominionOf } from './dominion.js';
 import { ManaPanel } from './ManaPanel.js';
-import { KeepBuildingsPanel } from './KeepBuildingsPanel.js';
 import { NationIdentity } from '../nation/NationIdentity.js';
 import { KeepResources } from '../keep/KeepResources.js';
 import { KeepTemples } from '../keep/KeepTemples.js';
@@ -29,19 +28,6 @@ import type { PublishResult } from '../../data/worldSource.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
-
-export type KeepTab = 'mana' | 'buildings';
-
-/**
- * The Keep's tabbed sections — mana and buildings (BRDC-KEEP-002, -003). Opened from the
- * map marker or the ⌂ Keep button. Research was a third tab until a field report
- * (BRDC-KEEP-007): three attempts to make it findable here failed, so it left for its
- * own HUD footer button and dialog, the way The Wager has one.
- */
-export const TABS: readonly { id: KeepTab; label: string }[] = [
-  { id: 'mana', label: 'Mana' },
-  { id: 'buildings', label: 'Buildings' },
-];
 
 export interface HearthPanelProps {
   /** Every cell the player holds, already projected to `now`. */
@@ -55,7 +41,7 @@ export interface HearthPanelProps {
   /** The adventure book, opened from here (BRDC-QUEST-001). Lifted to MapView so the map
    *  can reveal landmarks by stage. */
   adventures: AdventureBinding;
-  /** For the Keep's Mana tab — the Altar and channelling (BRDC-KEEP-002). */
+  /** For the Keep's mana part — the Altar and channelling (BRDC-KEEP-002). */
   repository: GameRepository | null;
   /** Push a fresh pouch up after a Keep spend, so the numbers do not lag the minute poll. */
   onPouch: (pool: ResourcePool) => void;
@@ -89,7 +75,6 @@ export function HearthPanel({
   onGrown,
   onClose,
 }: HearthPanelProps) {
-  const [tab, setTab] = useState<KeepTab>('mana');
   useEscape(true, onClose);
   const afterKeepSpend = useCallback(() => {
     void repository?.getResources(now).then(onPouch);
@@ -116,12 +101,18 @@ export function HearthPanel({
   // the player is told in words, not left to notice the pouch has quietly stopped moving.
   const full = resources ? RESOURCE_KINDS.some((k) => d.perHour[k] > 0 && resources[k] >= BASE_STORAGE_CAP) : false;
 
+  /*
+   * One column, four headed parts, in the order a player asks (Infinite 2026-09-29: the
+   * screen was "sekava"). What the realm is; what it holds; the Hearth and its growth;
+   * mana and temples; then what is at risk. The Buildings tab went: it was a read-only
+   * catalogue the Guide and each building's own page already carry.
+   */
   return (
     <GlassPanel as="section" className="hearth-panel" aria-label="Your sanctuary">
       <div className="hearth-panel__head">
         <MetatronsCube size={44} animate={1200} className="hearth-panel__sigil" />
         <div>
-          <p className="hearth-panel__title">Your Anchor Stone</p>
+          <p className="hearth-panel__title">The Keep</p>
           <p className="hearth-panel__sub">
             Consciousness {level} · {levelName}
           </p>
@@ -136,8 +127,8 @@ export function HearthPanel({
         </RitualButton>
       </div>
 
+      <h3 className="hearth-panel__section">Your realm</h3>
       <NationIdentity owned={owned} />
-
       <dl className="hearth-panel__stats">
         <div>
           <dt>Warded</dt>
@@ -157,6 +148,7 @@ export function HearthPanel({
         </div>
       </dl>
 
+      <h3 className="hearth-panel__section">The pouch</h3>
       <KeepResources
         resources={resources}
         perHour={perHour}
@@ -169,38 +161,7 @@ export function HearthPanel({
         onPouch={onPouch}
       />
 
-      {/* The Mana / Buildings switch sits right above the part it switches — everything
-          above (nation, figures, resources) is common to both (BRDC-KEEP-006/-007). */}
-      <div className="hearth-panel__tabs" aria-label="Keep sections">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={tab === t.id}
-            className={`hearth-panel__tab${tab === t.id ? ' hearth-panel__tab--on' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'mana' ? (
-        <>
-          <ManaPanel keep={keep} pool={resources} />
-          <KeepTemples
-            places={places}
-            pool={resources}
-            repository={repository}
-            now={now}
-            onPouch={onPouch}
-          />
-        </>
-      ) : null}
-      {tab === 'buildings' ? <KeepBuildingsPanel /> : null}
-
-      {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
-
+      <h3 className="hearth-panel__section">The Hearth</h3>
       <HearthGrowth
         repository={repository}
         resources={resources}
@@ -209,6 +170,13 @@ export function HearthPanel({
         onGrown={onGrown ?? (() => {})}
       />
 
+      <h3 className="hearth-panel__section">Mana and temples</h3>
+      <ManaPanel keep={keep} pool={resources} />
+      <KeepTemples places={places} pool={resources} repository={repository} now={now} onPouch={onPouch} />
+
+      {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
+
+      <h3 className="hearth-panel__section">What is at risk</h3>
       <KeepRealm
         weakestH3={d.weakest?.h3 ?? null}
         atRisk={d.atRisk}

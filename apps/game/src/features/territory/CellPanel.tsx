@@ -33,14 +33,13 @@ import { OwnershipNote, isSharedGround } from './OwnershipNote.js';
 import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TempleSchoolPanel } from './TempleSchoolPanel.js';
-import { TradeControls } from './TradeControls.js';
-import { AnomalyPanel } from './AnomalyPanel.js';
+import { AnomalyFound, AnomalyPanel } from './AnomalyPanel.js';
 import { TradePost, VillageNote } from './TradePost.js';
 import { QuestCellPanel } from '../quest/QuestCellPanel.js';
 import type { QuestCellInfo } from '../quest/questCell.js';
 import type { QuestBoardEntry } from '../quest/questBoard.js';
 import type { AnomalyBinding } from './useAnomaly.js';
-import type { BuildBinding, PlaceBinding, ResearchBinding, TradeBinding } from './useSelection.js';
+import type { BuildBinding, PlaceBinding, ResearchBinding } from './useSelection.js';
 import type { SpellBinding } from './useSpells.js';
 import type { CityBinding } from './useDiplomacy.js';
 import { historyLine } from './cellHistory.js';
@@ -62,8 +61,6 @@ export interface CellPanelProps {
   onWard: (h3: string) => void;
   /** The rites sub-panel's bundle (BRDC-SPELL-001), from `useSelection`. */
   spell?: SpellBinding;
-  /** The trade-route controls' bundle (BRDC-BUILD-004), from `useSelection`. */
-  trade?: TradeBinding;
   /** The build sub-panel's bundle (BRDC-BUILD-001), and the anomaly on this cell (BRDC-EVENT-001). */
   build?: BuildBinding;
   anomaly?: AnomalyBinding;
@@ -119,7 +116,6 @@ export function CellPanel({
   place,
   onWard,
   spell,
-  trade,
   build,
   anomaly,
   city,
@@ -182,8 +178,7 @@ export function CellPanel({
     school: mine && place.kind === 'temple' && Boolean(research),
     works: mine && Boolean(me && build),
     rites: Boolean(spell),
-    trade: mine && Boolean(trade),
-    city: Boolean(city?.city),
+      city: Boolean(city?.city),
     anomaly: mine && Boolean(anomaly?.current),
   });
   const status = [refusal ? REFUSAL[refusal] : null, place.refusal ? EXPAND_REFUSAL[place.refusal] : null].filter(
@@ -251,11 +246,11 @@ export function CellPanel({
       {open === 'rites' && spell ? (
         <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} />
       ) : null}
-      {open === 'trade' && trade ? <TradeControls trade={trade} cellH3={cell.h3} /> : null}
       {open === 'city' && city?.city ? (
         <TradePost city={city.city} resources={resources} refusal={city.refusal} onTrade={city.onTrade} />
       ) : null}
       {open === 'anomaly' && anomaly?.current ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
+      {anomaly?.found && anomaly.found.h3 === cell.h3 ? <AnomalyFound found={anomaly.found} /> : null}
 
       {quest ? <QuestCellPanel info={quest} /> : null}
 

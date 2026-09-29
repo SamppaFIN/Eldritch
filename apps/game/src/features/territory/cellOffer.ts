@@ -22,7 +22,6 @@ export interface OfferInput {
   school: boolean;
   works: boolean;
   rites: boolean;
-  trade: boolean;
   city: boolean;
   anomaly: boolean;
 }
@@ -53,7 +52,6 @@ export function cellOffer(i: OfferInput): CellOffer {
   }
   if (i.school) offer.school = 'Temple school';
   if (i.rites) offer.rites = 'Rites';
-  if (i.trade) offer.trade = 'Trade routes';
   if (i.city) offer.city = 'Trade post';
   if (i.anomaly) offer.anomaly = 'Anomaly';
   return offer;

@@ -17,38 +17,36 @@ import type { ResourcePool } from './terrain.js';
 export const HEARTH_START_RING = 1;
 /** Out to 127 hexes. Past this a Hearth is a province, and the map already has a word for that. */
 export const HEARTH_MAX_RING = 6;
-export const HEARTH_FOOD_PER_HEX = 5;
+/**
+ * 100 food a hex — twenty times the first price (Infinite 2026-09-29: *"tee hearthin
+ * laajentamisesta 20x kalliimpaa"*). A whole ring at that price is more food than the
+ * pouch can hold, so the Hearth now grows a hex at a time: a press buys as many of the
+ * next ring's free hexes as the food covers, and the ring is reached when none are left.
+ */
+export const HEARTH_FOOD_PER_HEX = 100;
 
 /** The most a ring can hold: `6·ring` hexes. */
 export const hearthRingHexes = (ring: number): number => 6 * ring;
 
-/** What reaching `ring` costs, at a fixed price for each hex actually bought. */
-export function hearthRingCost(ring: number, hexes = hearthRingHexes(ring)): Partial<ResourcePool> {
-  return { food: hexes * HEARTH_FOOD_PER_HEX };
-}
-
 export type HearthGrowthRefusal = 'at-limit' | 'cannot-afford';
 
 export type HearthGrowthResult =
-  | { ok: true; ring: number; pool: ResourcePool }
+  | { ok: true; ring: number; bought: number; pool: ResourcePool }
   | { ok: false; refused: HearthGrowthRefusal };
 
 /**
- * Pay for the next ring out from `ring`. Refuses before taking anything.
- *
- * `hexes` is how many of that ring are actually free to buy — a hex the player already
- * holds, or a rival does, is not charged for, so the price is for ground received.
+ * Buy what the food covers of the next ring out from `ring`. `free` is how many of its
+ * hexes nobody holds — only those are paid for. Refuses before taking anything.
  */
-export function growHearth(
-  pool: ResourcePool,
-  ring: number,
-  hexes = hearthRingHexes(ring + 1),
-): HearthGrowthResult {
+export function growHearth(pool: ResourcePool, ring: number, free: number): HearthGrowthResult {
   if (ring >= HEARTH_MAX_RING) return { ok: false, refused: 'at-limit' };
-  const next = ring + 1;
-  const cost = hearthRingCost(next, hexes);
+  // Every hex of the next ring already held: it is reached for nothing.
+  if (free <= 0) return { ok: true, ring: ring + 1, bought: 0, pool };
+  const bought = Math.min(free, Math.floor(pool.food / HEARTH_FOOD_PER_HEX));
+  if (bought < 1) return { ok: false, refused: 'cannot-afford' };
+  const cost = { food: bought * HEARTH_FOOD_PER_HEX };
   if (!canAfford(pool, cost)) return { ok: false, refused: 'cannot-afford' };
   const paid = spend(pool, cost);
   if (!paid) return { ok: false, refused: 'cannot-afford' };
-  return { ok: true, ring: next, pool: paid };
+  return { ok: true, ring: bought === free ? ring + 1 : ring, bought, pool: paid };
 }

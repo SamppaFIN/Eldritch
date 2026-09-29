@@ -17,14 +17,11 @@ import type {
   H3Index,
   ResourcePool,
   RevealedPlace,
-  RouteRefusal,
   TechId,
   TechRefusal,
   TempleSchool,
-  TradeRoute,
   WardRefusal,
 } from '@es3/core';
-import { useTradeRoutes } from './useTradeRoutes.js';
 import { useDiplomacy, type CityBinding } from './useDiplomacy.js';
 import { useSpells, type SpellBinding } from './useSpells.js';
 import { useResearch } from './useResearch.js';
@@ -103,17 +100,6 @@ export interface ResearchBinding {
   onResearch: (id: TechId) => void;
 }
 
-/** Trade Routes: the ones held, and the two-tap flow to lay one (BRDC-BUILD-004). */
-export interface TradeBinding {
-  routes: readonly TradeRoute[];
-  /** The cell a link started from, while waiting for the second tap. */
-  linkFrom: H3Index | null;
-  refusal: RouteRefusal | 'no-such-route' | null;
-  onStartLink: (h3: H3Index) => void;
-  onCancelLink: () => void;
-  onRemove: (a: H3Index, b: H3Index) => void;
-}
-
 export interface Selection {
   selected: H3Index | null;
   cell: Cell | null;
@@ -121,7 +107,6 @@ export interface Selection {
   auraCells: readonly H3Index[];
   place: PlaceBinding;
   spell: SpellBinding;
-  trade: TradeBinding;
   research: ResearchBinding;
   /** The quay, when the selected hex is a city state's (BRDC-DIPLO-001). */
   city: CityBinding;
@@ -185,22 +170,19 @@ export function useSelection({
     await refreshTerritory();
   }, [repository, now, onWarded, refreshTerritory]);
 
-  const tradeHook = useTradeRoutes(repository, now, trailVersion, afterSpend);
   const anomaly = useAnomaly(repository, selected, now, trailVersion, afterSpend);
 
   // A new selection starts with a clean slate: a refusal about the last cell has nothing
-  // to say about this one, and the two panels never share the screen. While a Trade Route
-  // link is open, a tap on another cell is its far end, not a new selection.
+  // to say about this one, and the two panels never share the screen.
   const onCellTap = useCallback(
     (h3: H3Index) => {
-      if (tradeHook.interceptTap(h3)) return;
       setSelected(h3);
       setRefusal(null);
       setBuildRefusal(null);
       setExpandRefusal(null);
       setSanctum(false);
     },
-    [tradeHook],
+    [],
   );
 
   /*
@@ -340,7 +322,6 @@ export function useSelection({
     spell,
     research,
     city: diplomacy,
-    trade: tradeHook.binding,
     anomaly,
     refusal,
     sanctum,

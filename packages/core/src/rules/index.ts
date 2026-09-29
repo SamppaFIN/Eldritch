@@ -59,8 +59,6 @@ export {
   resourceAura,
 } from './aura.js';
 export type { AuraKind } from './aura.js';
-export { canLayRoute, routeCost, routeGoldBonus, routeRefund, sameLink } from './trade.js';
-export type { RouteCheck, RouteRefusal, TradeRoute } from './trade.js';
 export { RARITY_SHARE, REVEAL_MULT, revealBonus, revealOf } from './reveal.js';
 export type { Rarity } from './reveal.js';
 export { claimableStep } from './step.js';
@@ -74,8 +72,10 @@ export {
   investigationProgress,
   isResolved,
   resolveReward,
+  ANOMALY_SIGNS,
+  anomalySignOf,
 } from './anomaly.js';
-export type { AnomalyKind, InvestigateRefusal } from './anomaly.js';
+export type { AnomalyKind, AnomalySign, InvestigateRefusal } from './anomaly.js';
 export { applyChoice, parseChains } from './chain.js';
 export type { Chain, ChainChoice, ChainEffect, ChainStage, ChoiceRefusal } from './chain.js';
 export { advanceAdventure, gateMet, parseAdventures } from './adventure.js';
@@ -139,7 +139,6 @@ export {
   HEARTH_MAX_RING,
   HEARTH_START_RING,
   growHearth,
-  hearthRingCost,
   hearthRingHexes,
 } from './hearthGrowth.js';
 export type { HearthGrowthRefusal, HearthGrowthResult } from './hearthGrowth.js';

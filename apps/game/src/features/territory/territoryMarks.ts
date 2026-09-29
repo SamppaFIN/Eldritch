@@ -19,8 +19,6 @@ import {
   CELL_LANDMARK_LAYER,
   CELL_FLAG_LAYER,
   CELL_ANOMALY_LAYER,
-  CELL_NEIGHBOUR_DISC_LAYER,
-  CELL_NEIGHBOUR_LAYER,
   CELL_STRENGTH_LAYER,
 } from './layerIds.js';
 import { slotTranslate } from './cellMarks.js';
@@ -280,54 +278,6 @@ export function addMarkLayers(map: MapLibreMap): void {
    * up so the two do not sit on each other. `--mystic-cyan`, one colour — the glyph
    * carries the state (`◌` a site, `◐` under study, `✦` a chain), never colour alone.
    */
-  /*
-   * The neighbour count, upper-left (Sigil §03).
-   *
-   * `NEIGHBOUR_BONUS` made visible: how many of the six around this hex you already hold,
-   * and so how much easier the next claim here will be. A disc rather than bare text,
-   * because a lone digit on a map reads as part of the basemap.
-   *
-   * Two layers for one badge — MapLibre draws a circle and a label in separate layers —
-   * translated by the same pixels so they stay a single mark. From zoom 16, where a hex
-   * is finally wide enough to hold something in its corner.
-   */
-  map.addLayer({
-    id: CELL_NEIGHBOUR_DISC_LAYER,
-    type: 'circle',
-    source: CELL_MARK_SOURCE,
-    minzoom: 16,
-    filter: ['all', ['get', 'mine'], ['>', ['get', 'neighbours'], 0]],
-    paint: {
-      // §03: a dark disc with a faint rim, not a purple ring — the figure inside carries
-      // the colour, and the owner stroke is the only purple line on the hex.
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 16, 9, 17, 11, 19, 16],
-      'circle-color': '#0a0612',
-      'circle-opacity': 0.9,
-      'circle-stroke-color': '#3a3346',
-      'circle-stroke-width': 1,
-      'circle-translate': slotTranslate('northWest'),
-    },
-  });
-
-  map.addLayer({
-    id: CELL_NEIGHBOUR_LAYER,
-    type: 'symbol',
-    source: CELL_MARK_SOURCE,
-    minzoom: 16,
-    filter: ['all', ['get', 'mine'], ['>', ['get', 'neighbours'], 0]],
-    layout: {
-      'text-field': ['to-string', ['get', 'neighbours']],
-      'text-font': ['Noto Sans Regular'],
-      'text-size': ['interpolate', ['linear'], ['zoom'], 16, 10, 17, 12, 19, 17],
-      'text-allow-overlap': true,
-      'text-ignore-placement': false,
-    },
-    paint: {
-      'text-color': '#00ff88', // --awareness-green, as §03 draws it
-      'text-translate': slotTranslate('northWest'),
-    },
-  });
-
   /*
    * The strength figure, under the arc it belongs to (Sigil §03, "strength · tier 2").
    *

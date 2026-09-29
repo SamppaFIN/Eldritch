@@ -8,6 +8,7 @@
  */
 import {
   anomalyAt,
+  anomalySignOf,
   beginInvestigation,
   investigationProgress,
   isResolved,
@@ -32,6 +33,8 @@ export interface Anomaly {
   progress: number;
   /** The current stage of an event chain, when `state` is `'chain'`. */
   stage?: { text: string; choices: readonly { text: string }[] };
+  /** What the hex shows before and after it is studied (BRDC-EVENT-001, 2026-09-29). */
+  sign: { name: string; text: string; found: string };
 }
 
 /**
@@ -45,8 +48,10 @@ export function describeAnomalies(owned: readonly Cell[], now: number): Anomaly[
     if (kind === null || cell.anomaly?.done) continue;
 
     const a = cell.anomaly;
+    const s0 = anomalySignOf(cell.h3);
+    const sign = { name: s0.name, text: s0.sign, found: s0.found };
     if (!a) {
-      out.push({ h3: cell.h3, kind, state: 'dormant', progress: 0 });
+      out.push({ h3: cell.h3, kind, state: 'dormant', progress: 0, sign });
     } else if (a.stage !== undefined) {
       const s = chainForCell(cell.h3).stages[a.stage];
       out.push({
@@ -54,12 +59,13 @@ export function describeAnomalies(owned: readonly Cell[], now: number): Anomaly[
         kind,
         state: 'chain',
         progress: 1,
+        sign,
         ...(s ? { stage: { text: s.text, choices: s.choices.map((c) => ({ text: c.text })) } } : {}),
       });
     } else if (isResolved(cell, now)) {
-      out.push({ h3: cell.h3, kind, state: 'ready', progress: 1 });
+      out.push({ h3: cell.h3, kind, state: 'ready', progress: 1, sign });
     } else {
-      out.push({ h3: cell.h3, kind, state: 'investigating', progress: investigationProgress(cell, now) });
+      out.push({ h3: cell.h3, kind, state: 'investigating', progress: investigationProgress(cell, now), sign });
     }
   }
   return out;
@@ -74,7 +80,7 @@ export type ResolveOutcome =
   | { ok: false; refused: 'not-yours' | 'nothing-here' | 'not-ready' };
 
 export type ChoiceOutcome =
-  | { ok: true; next: number | 'end'; xp: number }
+  | { ok: true; next: number | 'end'; xp: number; gained: Partial<ResourcePool> }
   | { ok: false; refused: ChoiceRefusal | 'not-yours' | 'not-in-chain' };
 
 async function ownedCell(store: KeyValueStore, h3: string, me: PlayerId): Promise<Cell | null> {
@@ -157,5 +163,10 @@ export async function chooseAt(
       : { startedAt: cell.anomaly!.startedAt, stage: result.next };
   await store.set(K.cell(h3), { ...cell, anomaly });
   await writeLogEntry(store, { at: now, kind: 'anomaly', ref: 'choice' });
-  return { ok: true, next: result.next, xp: result.xp };
+  // What the choice put in the pouch, so the panel can say it (costs are not listed).
+  const gained: Partial<ResourcePool> = {};
+  for (const [k, v] of Object.entries(result.pool) as [ResourceKind, number][]) {
+    if (v > state.pool[k]) gained[k] = v - state.pool[k];
+  }
+  return { ok: true, next: result.next, xp: result.xp, gained };
 }

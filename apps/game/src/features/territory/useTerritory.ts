@@ -48,6 +48,8 @@ export interface TerritoryState {
   released: string[];
   /** Bearing from the player to the nearest rival ground, or null if there is none. */
   rivalBearing: number | null;
+  /** How far the Hearth has grown, in rings — re-read with the ground (BRDC-HEARTH-003). */
+  hearthRing: number;
   refresh: () => Promise<void>;
 }
 
@@ -80,6 +82,7 @@ export function useTerritory({
   const [owned, setOwned] = useState<Cell[]>([]);
   const [lastClaim, setLastClaim] = useState<ClaimEvent | null>(null);
   const [released, setReleased] = useState<string[]>([]);
+  const [hearthRing, setHearthRing] = useState(1);
   // A closure attempt writes, so two must never overlap — but a second attempt that
   // arrives mid-flight must not simply be dropped either. `queued` is the difference
   // between serialising the work and losing it.
@@ -91,7 +94,12 @@ export function useTerritory({
     const at = now();
     // Both at once, and state only when something changed: an unchanged re-read used to
     // hand the map two fresh arrays and a full rebuild of every hex (BRDC-PERF-002).
-    const [nextCells, nextOwned] = await Promise.all([repository.getCells(bbox, at), repository.getOwnedCells(at)]);
+    const [nextCells, nextOwned, ring] = await Promise.all([
+      repository.getCells(bbox, at),
+      repository.getOwnedCells(at),
+      repository.hearthRing(),
+    ]);
+    setHearthRing(ring);
     setCells((prev) => (sameCells(prev, nextCells) ? prev : nextCells));
     setOwned((prev) => (sameCells(prev, nextOwned) ? prev : nextOwned));
   }, [repository, bbox, now]);
@@ -218,6 +226,7 @@ export function useTerritory({
     cells,
     owned,
     rivalBearing,
+    hearthRing,
     ownedAreaM2,
     strongest,
     lastClaim,

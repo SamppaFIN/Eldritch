@@ -28,13 +28,13 @@
  * between two stops is wrong everywhere between them (at zoom 17 it put a slot 145 px out
  * on a hex whose real radius there is 87).
  */
-import { cellCentreLngLat, cellNeighbours, cellRing, fortified, hoursUntilReleased } from '@es3/core';
+import { cellCentreLngLat, cellNeighbours, cellRing, fortified, hexDistance, hoursUntilReleased } from '@es3/core';
 import { cellProperties } from './territoryFeatures.js';
 import type { CellProperties } from './territoryFeatures.js';
 import type { Cell, H3Index, PlayerId } from '@es3/core';
 import type { Feature, FeatureCollection, Point, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { CELL_NEIGHBOUR_DISC_LAYER } from './layerIds.js';
+import { CELL_STRENGTH_LAYER } from './layerIds.js';
 import { FADING_WARNING_HOURS } from './useTerritory.js';
 
 /**
@@ -173,6 +173,8 @@ export function cellsToGeoJson(
   /** The local player's own chosen banner (BRDC-HEX-003) — threaded to every `mine`
    *  feature; an imported cell already carries its owner's banner on itself. */
   myBanner = '',
+  /** How far the Hearth has grown, in rings — cells within it get the gold edge. */
+  hearthRing = 0,
 ): FeatureCollection<Polygon, CellProperties> {
   // A border cell is one of mine with at least one neighbour I do not hold — the blight
   // creeps in from there, so it is drawn a little deeper (BRDC-BLIGHT-001).
@@ -198,10 +200,7 @@ export function cellsToGeoJson(
       const feature = cellToFeature(
         cell, me, now, home, isBorder(cell), revealed, places?.has(cell.h3) ?? false, myBanner,
       );
-      // Counted here rather than in `cellProperties`, which sees one cell and cannot know
-      // what else you hold. `ownedH3` is already built above for the border test.
-      const neighbours =
-        cell.ownerId === me ? cellNeighbours(cell.h3).filter((n) => ownedH3.has(n)).length : 0;
+      const hearth = home !== null && cell.ownerId === me && hexDistance(home, cell.h3) <= hearthRing;
       // Ground under a Fortress does not decay, so the Void's stain has no business on it
       // (BRDC-BUILD-012). Decided here, because only this sees the neighbours.
       const sheltered = fortified(byH3, cell.h3);
@@ -210,7 +209,7 @@ export function cellsToGeoJson(
       const fading =
         cell.ownerId === me && cell.h3 !== home && !sheltered &&
         hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000 <= FADING_WARNING_HOURS;
-      return { ...feature, properties: { ...feature.properties, neighbours, blight, fading } };
+      return { ...feature, properties: { ...feature.properties, hearth, blight, fading } };
     }),
   };
 }
@@ -219,8 +218,7 @@ export function cellsToGeoJson(
  * Where a name label goes in the layer stack: beneath the marks (BRDC-SIGIL-006).
  *
  * MapLibre places symbols from the top of the stack down, and a label only gets out of the
- * way of something placed *before* it. The neighbour count and the strength figure always
- * draw, so for a place name to yield to them — instead of printing "100 THE KEEP 100"
+ * way of something placed *before* it. The strength figure always draws, so for a place name to yield to them — instead of printing "100 THE KEEP 100"
  * across them at zoom 16 — the names must sit below them in the stack, and the numbers
  * must take part in placement rather than ignore it.
  *
@@ -228,5 +226,5 @@ export function cellsToGeoJson(
  * below them anyway.
  */
 export function beneathMarks(map: MapLibreMap): string | undefined {
-  return map.getLayer(CELL_NEIGHBOUR_DISC_LAYER) ? CELL_NEIGHBOUR_DISC_LAYER : undefined;
+  return map.getLayer(CELL_STRENGTH_LAYER) ? CELL_STRENGTH_LAYER : undefined;
 }

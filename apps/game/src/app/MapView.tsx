@@ -219,12 +219,11 @@ export function MapView({ onLeave }: MapViewProps) {
         trail={trail.points}
         walkedPaths={trail.walkedPaths}
         auraCells={inspect.auraCells}
-        tradeRoutes={inspect.trade.routes}
         cells={shownCells}
         playerId={profile?.id ?? null}
         places={places}
         questSites={quest.questSites}
-        castle={castle}
+        castle={castle} hearthRing={territory.hearthRing}
         now={minuteNow}
         awakening={awakening}
         initialZoom={openingZoom}
@@ -289,7 +288,6 @@ export function MapView({ onLeave }: MapViewProps) {
         place={inspect.place}
         onWard={inspect.onWard}
         spell={inspect.spell}
-        trade={inspect.trade}
         build={inspect.build}
         anomaly={inspect.anomaly}
         quest={quest.questCell} questBoard={quest.board}

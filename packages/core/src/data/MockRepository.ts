@@ -35,8 +35,6 @@ import { readRouteDistance } from './distanceStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges, type WalkedEdge } from '../geo/paths.js';
 import { neighboursOf } from '../geo/cells.js';
-import { layRouteAt, readRoutes, removeRouteAt, type RouteOutcome } from './tradeStore.js';
-import type { TradeRoute } from '../rules/trade.js';
 import { castSpellAt, readSpells, type CastOutcome } from './spellStore.js';
 import { activeSpells, type ActiveSpell, type SpellId } from '../rules/spell.js';
 import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
@@ -166,16 +164,6 @@ export class MockRepository implements GameRepository {
     return takeRazed(this.store, await this.getOwnedCells(now), now);
   }
   reconcileSeedReveals = (): Promise<H3Index[]> => reconcileSeedReveals(this.store);
-  getTradeRoutes = (): Promise<TradeRoute[]> => readRoutes(this.store);
-
-  async layTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome> {
-    const me = (await this.getProfile()).id;
-    return layRouteAt(this.store, me, a, b, await this.getOwnedCells(now), now);
-  }
-
-  async removeTradeRoute(a: H3Index, b: H3Index, now: number): Promise<RouteOutcome> {
-    return removeRouteAt(this.store, a, b, await this.getOwnedCells(now), now);
-  }
 
   getResearched = (): Promise<TechId[]> => readResearched(this.store);
 

@@ -12,7 +12,7 @@
  * gives that hex's own share and nothing else — the same functions the pouch settles
  * with, which is what keeps this line and the pouch from drifting apart.
  *
- * What it deliberately leaves out: auras, places, spells and trade routes. Those are
+ * What it deliberately leaves out: auras, places and spells. Those are
  * properties of a *realm* — a Monument two hexes away, a Rite running over everything —
  * and splitting them across cells would invent a number nobody could check. So this is
  * what the hex pays on its own, and it says so.

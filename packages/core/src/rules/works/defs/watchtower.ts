@@ -1,6 +1,6 @@
 import type { BuildingDef } from '../types.js';
 
-/** 08 · Watchtower (BRDC-WORKS-003). Not buildable yet — BRDC-BUILD-013 moved it. */
+/** 08 · Watchtower (BRDC-WORKS-003). Buildable since 2026-09-29. */
 export const WATCHTOWER: BuildingDef = {
   kind: 'watchtower',
   name: 'Watchtower',

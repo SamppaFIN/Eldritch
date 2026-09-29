@@ -187,7 +187,7 @@ export const ROUTE_CODEX_VERSION = 1;
  * The build's own version, shown in the menu and headed each `changelog.json` block
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2. */
-export const APP_VERSION = '0.6.65';
+export const APP_VERSION = '0.6.66';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -335,16 +335,6 @@ export const DEFENCE_AURA_CAP = 75;
  */
 export const LOYALTY_PER_SOURCE = 0.15;
 export const LOYALTY_MAX = 0.5;
-
-/**
- * A Trade Route (BRDC-BUILD-004): the one building that binds two cells rather than
- * sitting on one. Both ends must be held and within `TRADE_ROUTE_MAX_HEXES` of each
- * other; while both are awake it pays `TRADE_ROUTE_GOLD` an hour, folded into the pouch
- * like any other production.
- */
-export const TRADE_ROUTE_COST: Readonly<Record<string, number>> = { stone: 60, gold: 30 };
-export const TRADE_ROUTE_MAX_HEXES = 6;
-export const TRADE_ROUTE_GOLD = 3;
 
 /* --- Walked paths (BRDC-TRAIL-003) ---------------------------------- */
 

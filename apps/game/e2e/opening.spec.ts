@@ -77,11 +77,12 @@ test('a greyed action says what it is waiting for (BRDC-UI-002)', async ({ page 
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 10_000 });
 
-  const consecrate = card.getByRole('button', { name: /Consecrate/ }).first();
-  await expect(consecrate).toBeDisabled();
-  // It names the shortfall in the game's own words, and how else to pay it.
-  await expect(card).toContainText(/Short .*(stone|gold)/);
-  await expect(card).toContainText(/Walking here longer/);
+  // The Hearth is the Anchor Stone, so it offers no Consecrate (it used to, while the
+  // Anchor was missing — BRDC-MAP-007). Ward is the greyed action here: no timber yet.
+  const ward = card.getByRole('button', { name: /^Ward/ });
+  await expect(ward).toBeDisabled();
+  // It names the shortfall in the game's own words.
+  await expect(card).toContainText(/Short .*timber/);
 });
 
 test('Ward explains itself on ground that is already as safe as it gets', async ({ page }) => {

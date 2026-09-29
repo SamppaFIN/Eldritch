@@ -18,7 +18,6 @@ import { ensurePlaceLayers, removePlaceLayers } from '../territory/PlaceMarkers.
 import { ensureQuestLayers, removeQuestLayers } from '../territory/QuestMarkers.js';
 import { ensureArcLayer } from '../territory/strengthArcs.js';
 import { CELL_GROUND_LAYER, ensureTerritoryLayers, removeTerritoryLayers } from '../territory/TerritoryLayer.js';
-import { ensureTradeLayer, removeTradeLayer } from './TradeLayer.js';
 import { ensureTrailLayers, removeTrailLayers } from '../trail/TrailLayer.js';
 
 export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
@@ -29,7 +28,6 @@ export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
     ensureArcLayer(map, CELL_GROUND_LAYER);
     ensurePathLayers(map);
     ensureAuraLayers(map);
-    ensureTradeLayer(map);
     ensureTrailLayers(map);
     ensurePlaceLayers(map);
     ensureCastleLayer(map);
@@ -43,7 +41,6 @@ export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
         removeCastleLayer(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
-        removeTradeLayer(map);
         removeAuraLayers(map);
         removePathLayers(map);
         removeTerritoryLayers(map);

@@ -61,6 +61,7 @@ export const BUILDING_BLURB: Readonly<Record<BuildingId, string>> = {
   fortress: 'Blunts every attack on the ground around it.',
   forge: 'Iron worked hot, beside the hill or the mine that feeds it.',
   tavern: 'The quest board. One per province — every tale under way is listed here.',
+  watchtower: 'A lookout on the hill or the plain. It gives little; its worth is what it will show you.',
 };
 
 /** The one Rite each school leads to. Every value's `SPELLS[v].school` is its own key

@@ -173,11 +173,7 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     aura: { kind: 'defence', radius: 1, amount: 30 },
   },
   // BRDC-BUILD-013 (Worldseed's own): needs a hill or settlement, and iron next door — a
-  // Mine's own ground counts, so does a bare mountain hex, owned or not. Worldseed's
-  // Watchtower is not here: its two effects (a permanent reveal radius, halving a rival's
-  // siege) are both new systems this ticket's own RED said to measure before switching
-  // on, and the siege half raises a real balance question ("does it stack with a
-  // Fortress?") this ticket leaves open for Infinite rather than assuming.
+  // Mine's own ground counts, so does a bare mountain hex, owned or not.
   forge: {
     cost: { wood: 30, stone: 40 },
     terrain: ['hill', 'settlement'],
@@ -196,6 +192,20 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
     requires: [],
     uniquePerProvince: true,
     produces: { gold: 2, culture: 1 },
+  },
+  /*
+   * The Watchtower (Works Codex 08; Infinite 2026-09-29: *"watch tower puuttuu"*). Built on
+   * hill or plain, as the Codex says, and it produces what the Codex says: a little wisdom.
+   * Its real worth — sight, and blunting a rival's siege — is its research tree, whose
+   * nodes wake as those systems exist (BRDC-WORKS-002); BUILD-013's stacking question
+   * with the Fortress stays open until the siege half is built.
+   */
+  watchtower: {
+    cost: { wood: 40, stone: 30 },
+    terrain: ['hill', 'plain'],
+    tech: null,
+    requires: [],
+    produces: { wisdom: 1 },
   },
 };
 

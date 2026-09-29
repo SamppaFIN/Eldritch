@@ -57,6 +57,7 @@ const CAP: Readonly<Record<BuildingId, string>> = {
   // A gabled roof over a lit window, with a small ornament at the ridge — a house you would
   // walk into, distinct from Market's wide canopy and Granary's silo dome.
   tavern: '<path d="M20 20 L32 8 L44 20 Z" fill="{{f}}"/><rect x="25" y="20" width="14" height="7" fill="{{d}}"/><circle cx="32" cy="6" r="2" fill="{{f}}"/>',
+  watchtower: '<rect x="28" y="2" width="8" height="20" fill="{{f}}"/><path d="M26 4 L32 -2 L38 4 Z" fill="{{d}}"/>',
 };
 
 /** The shared isometric block: a top rhombus and two side faces, y 16–56. */

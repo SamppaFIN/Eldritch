@@ -133,12 +133,8 @@ export interface CellProperties {
   bannerId: string;
   /** Both you and an imported Wager claim this cell (BRDC-WAGER-JSON-005) — `cell.shared`. */
   shared: boolean;
-  /**
-   * How many of the six neighbours you already hold, on your own ground (Sigil §03's
-   * "neighbour count"). It is the `NEIGHBOUR_BONUS` made visible: the number that decides
-   * how much easier the next claim around here will be. Zero on anyone else's cell.
-   */
-  neighbours: number;
+  /** Yours and inside the Hearth's grown ring — drawn with a gold edge (Infinite 2026-09-29). */
+  hearth: boolean;
 }
 
 /** The map flag glyph and its colour (BRDC-BANNER-001). Geometric Shapes block, so it
@@ -361,8 +357,8 @@ export function cellProperties(
     strength: cell.strength,
     mine,
     ally,
-    // Filled in by `cellsToGeoJson`, which is the only caller that knows the whole realm.
-    neighbours: 0,
+    // Filled in by `cellsToGeoJson`, which is the only caller told the Hearth's ring.
+    hearth: false,
     contested: cell.ownerId !== null && cell.strength < CONTESTED_BELOW,
     // Four tiers: mine, a clanmate's, a rival's, or seen-but-unclaimed. Strength drives
     // opacity in the paint expression, so a fresh reveal (strength 0) is naturally faint.

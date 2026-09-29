@@ -20,14 +20,12 @@ import type {
   PlayerId,
   QuestSiteId,
   RevealedPlace,
-  TradeRoute,
   TrailPoint,
   WalkedEdge,
 } from '@es3/core';
 import { setTrailData } from '../trail/TrailLayer.js';
 import { setPathData } from '../trail/PathLayer.js';
 import { setAuraData } from './AuraLayer.js';
-import { setTradeData } from './TradeLayer.js';
 import { CELL_FILL_LAYER, setTerritoryData } from '../territory/TerritoryLayer.js';
 import { setArcData } from '../territory/strengthArcs.js';
 import { useNationLayer } from '../territory/useNationLayer.js';
@@ -73,8 +71,6 @@ export interface MapCanvasProps {
   walkedPaths?: readonly WalkedEdge[];
   /** Hexes the selected cell's aura or loyalty reaches (BRDC-BUILD-004). */
   auraCells?: readonly string[];
-  /** Trade Routes, drawn as lines between the cells they bind (BRDC-BUILD-004). */
-  tradeRoutes?: readonly TradeRoute[];
   cells?: readonly Cell[]; // visible territory
   playerId?: PlayerId | null;
   places?: readonly RevealedPlace[]; // cells the game has worked out are places
@@ -82,6 +78,8 @@ export interface MapCanvasProps {
   questSites?: readonly string[];
   /** The Keep — the published location, the Hearth cell (BRDC-CASTLE-001). Null before one exists. */
   castle?: H3Index | null;
+  /** The Hearth's grown ring — its cells get a gold edge. */
+  hearthRing?: number;
   /** Game time, for the blight wash on decaying cells (BRDC-BLIGHT-001). */
   now?: number;
   /**
@@ -126,12 +124,12 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   trail,
   walkedPaths,
   auraCells,
-  tradeRoutes,
   cells,
   playerId = null,
   places,
   questSites,
   castle = null,
+  hearthRing = 0,
   now = 0,
   awakening = null,
   initialZoom,
@@ -196,9 +194,9 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
 
   useEffect(() => {
     if (!map || !ready || !cells) return;
-    setTerritoryData(map, cells, playerId, now, castle, bannerId, revealed, places);
+    setTerritoryData(map, cells, playerId, now, castle, bannerId, revealed, places, hearthRing);
     setArcData(map, cells, playerId, now);
-  }, [map, ready, cells, playerId, now, castle, bannerId, revealed, places]);
+  }, [map, ready, cells, playerId, now, castle, bannerId, revealed, places, hearthRing]);
 
   /*
    * Tapping a hexagon. A rendered cell carries its H3 as the feature id; a tap on none
@@ -317,11 +315,6 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     if (!map || !ready) return;
     setAuraData(map, auraCells ?? []);
   }, [map, ready, auraCells]);
-
-  useEffect(() => {
-    if (!map || !ready) return;
-    setTradeData(map, tradeRoutes ?? []);
-  }, [map, ready, tradeRoutes]);
 
   useEffect(() => {
     if (!map || !ready || !places) return;

@@ -93,6 +93,15 @@ const TAVERN =
   `<path d="M14 42 L14 28 L20 28" stroke="#7a5a46" stroke-width="2"/><circle cx="18" cy="32" r="3" fill="#f2c230"/>` +
   `<circle cx="38" cy="20" r="2.4" fill="#8a8a92"/><circle cx="41" cy="15" r="1.8" fill="#6f6f78"/>`;
 
+/** The Watchtower: a tall grey-blue shaft, a cyan slit window, a crystal cap, its lamp. */
+const WATCHTOWER =
+  plinth('#1f2a36', '#121820') +
+  box(32, 50, 6, 26, '#b6c4d4', '#8a9aac', '#66778a') +
+  poly('#22d3ee', [29, 38], [31, 39], [31, 44], [29, 43]) +
+  box(32, 24, 8, 2, '#c8d4e0', '#9aaabc', '#7a8a9c') +
+  pyramid(32, 20, 7, 14, '#3a6fb0', '#7fb0e8') +
+  orb(32, 16, 2.6, '#22d3ee');
+
 /** The buildings drawn from the Codex. Every other Work keeps its older sprite for now. */
 export const DESIGN_SPRITES: Partial<Readonly<Record<BuildingId, string>>> = {
   farm: FARM,
@@ -101,6 +110,7 @@ export const DESIGN_SPRITES: Partial<Readonly<Record<BuildingId, string>>> = {
   forge: FORGE,
   market: MARKET,
   tavern: TAVERN,
+  watchtower: WATCHTOWER,
 };
 
 /** Keep (the Hearth's structure) and Temple, for `placeSprites.ts`. */

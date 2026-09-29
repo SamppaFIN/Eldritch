@@ -13,7 +13,7 @@ describe('Works Codex sprites (BRDC-ART-006)', () => {
   });
 
   it('the six Codex Works draw their new picture; the others keep the old block', () => {
-    for (const id of ['farm', 'sawmill', 'quarry', 'forge', 'market', 'tavern'] as const) {
+    for (const id of ['farm', 'sawmill', 'quarry', 'forge', 'market', 'tavern', 'watchtower'] as const) {
       expect(spriteSvg(id)).toBe(designSvg(id, 192));
     }
     expect(designSvg('granary', 192)).toBeNull();

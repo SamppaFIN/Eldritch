@@ -34,18 +34,29 @@ describe('growHearth', () => {
     ({ repo, store, ring2 } = await repoWithFood(500));
   });
 
-  it('starts at ring 1 and takes the whole next ring for food', async () => {
+  const fill = (food: number) => store.set('resources', { pool: { ...EMPTY_POOL, food }, since: T0, sinceDay: T0 });
+
+  it('buys as many hexes of the next ring as the food covers', async () => {
     expect(await repo.hearthRing()).toBe(1);
     const r = await repo.growHearth(T0);
-    expect(r).toEqual({ ok: true, ring: 2, claimed: 12, already: 0 });
-    expect(await repo.hearthRing()).toBe(2);
-    const owned = (await repo.getOwnedCells(T0)).map((c) => c.h3);
-    for (const h of ring2) expect(owned).toContain(h);
-    expect((await repo.getResources(T0)).food).toBe(500 - 12 * HEARTH_FOOD_PER_HEX);
+    expect(r).toEqual({ ok: true, ring: 1, claimed: 5, already: 0, left: 7 });
+    expect(await repo.hearthRing()).toBe(1);
+    expect((await repo.getResources(T0)).food).toBe(500 - 5 * HEARTH_FOOD_PER_HEX);
   });
 
-  it('refuses without the food, and changes nothing', async () => {
-    await store.set('resources', { pool: { ...EMPTY_POOL, food: 5 }, since: T0, sinceDay: T0 });
+  it('reaches ring 2 when its last hex is bought', async () => {
+    await repo.growHearth(T0);
+    await fill(500);
+    await repo.growHearth(T0);
+    await fill(500);
+    const last = await repo.growHearth(T0);
+    expect(last).toEqual({ ok: true, ring: 2, claimed: 2, already: 10, left: 0 });
+    const owned = (await repo.getOwnedCells(T0)).map((c) => c.h3);
+    for (const h of ring2) expect(owned).toContain(h);
+  });
+
+  it('refuses without the food for one hex, and changes nothing', async () => {
+    await fill(HEARTH_FOOD_PER_HEX - 1);
     expect(await repo.growHearth(T0)).toEqual({ ok: false, refused: 'cannot-afford' });
     expect(await repo.hearthRing()).toBe(1);
     expect(await store.get(K.cell(ring2[0] as string))).toBeUndefined();
@@ -55,19 +66,9 @@ describe('growHearth', () => {
     const rival = ring2[0] as string;
     const held: Cell = { h3: rival, ownerId: 'them', strength: 200, lastVisitedAt: T0, visitDays: [] };
     await store.set(K.cell(rival), held);
-
     const r = await repo.growHearth(T0);
-    expect(r).toEqual({ ok: true, ring: 2, claimed: 11, already: 1 });
+    expect(r).toEqual({ ok: true, ring: 1, claimed: 5, already: 1, left: 6 });
     expect((await store.get<Cell>(K.cell(rival)))?.ownerId).toBe('them');
-    expect((await repo.getResources(T0)).food).toBe(500 - 11 * HEARTH_FOOD_PER_HEX);
-  });
-
-  it('grows again from where it stopped, until the limit', async () => {
-    await store.set('resources', { pool: { ...EMPTY_POOL, food: 500 }, since: T0, sinceDay: T0 });
-    expect((await repo.growHearth(T0)).ok).toBe(true);
-    await store.set('resources', { pool: { ...EMPTY_POOL, food: 500 }, since: T0, sinceDay: T0 });
-    const third = await repo.growHearth(T0);
-    expect(third).toMatchObject({ ok: true, ring: 3 });
   });
 
   it('does nothing without a Hearth', async () => {

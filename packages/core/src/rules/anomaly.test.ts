@@ -11,6 +11,8 @@ import {
   investigationProgress,
   isResolved,
   resolveReward,
+  ANOMALY_SIGNS,
+  anomalySignOf,
 } from './anomaly.js';
 import type { Cell } from '../types/domain.js';
 
@@ -104,16 +106,23 @@ describe('beginInvestigation', () => {
 });
 
 describe('resolveReward', () => {
-  it('is deterministic per index and modest', () => {
+  it("is deterministic per index, paid in the sign's resource, and modest", () => {
     for (const h of RARE.slice(0, 20)) {
       const a = resolveReward(h);
-      const b = resolveReward(h);
-      expect(a).toEqual(b);
-      const [amount] = Object.values(a.pool);
-      expect(amount).toBeGreaterThanOrEqual(20);
-      expect(amount).toBeLessThanOrEqual(50);
+      expect(resolveReward(h)).toEqual(a);
+      const amount = a.pool[anomalySignOf(h).resource] ?? 0;
+      expect(amount).toBeGreaterThanOrEqual(30);
+      expect(amount).toBeLessThanOrEqual(60);
+      expect(a.pool.tokens ?? 0).toBeLessThanOrEqual(1);
       expect(a.xp).toBeGreaterThanOrEqual(15);
       expect(a.xp).toBeLessThanOrEqual(40);
     }
+  });
+
+  it('has several distinct signs, and every hex shows one of them', () => {
+    expect(ANOMALY_SIGNS.length).toBeGreaterThanOrEqual(8);
+    expect(new Set(ANOMALY_SIGNS.map((s) => s.id)).size).toBe(ANOMALY_SIGNS.length);
+    const seen = new Set(RARE.map((h) => anomalySignOf(h).id));
+    expect(seen.size).toBeGreaterThan(3);
   });
 });
