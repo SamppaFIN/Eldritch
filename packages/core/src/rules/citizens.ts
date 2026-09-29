@@ -123,3 +123,33 @@ export function feedGranary<S extends Settled>(before: S, after: S): S {
     keep: { ...keep, granary: r.granary },
   };
 }
+
+/**
+ * What raising the Keep from `level` costs. The document names no price (it only says
+ * Granaries opens level 3); this doubling one is the ticket's own default, recorded in
+ * BRDC-PROG-001, until Infinite sets another. Paid from the pouch — which, granary first,
+ * only fills once the Keep is full: the realm raises its Keep when it has outgrown it.
+ */
+export const keepRaiseCost = (level: number): { food: number; stone: number } => ({
+  food: 100 * 2 ** (level - 1),
+  stone: 50 * 2 ** (level - 1),
+});
+
+/** Without research the Keep stops here; Granaries (PROG-004) lifts it to 3, and so on. */
+export const KEEP_LEVEL_WITHOUT_LORE = 2;
+
+export type KeepRaiseResult =
+  | { ok: true; keep: KeepState; paid: { food: number; stone: number } }
+  | { ok: false; refused: 'no-keep' | 'at-limit' | 'cannot-afford' };
+
+export function raiseKeep(
+  keep: KeepState | undefined,
+  pool: { food: number; stone: number },
+  maxLevel: number = KEEP_LEVEL_WITHOUT_LORE,
+): KeepRaiseResult {
+  if (!keep) return { ok: false, refused: 'no-keep' };
+  if (keep.level >= maxLevel) return { ok: false, refused: 'at-limit' };
+  const paid = keepRaiseCost(keep.level);
+  if (pool.food < paid.food || pool.stone < paid.stone) return { ok: false, refused: 'cannot-afford' };
+  return { ok: true, keep: { ...keep, level: keep.level + 1 }, paid };
+}

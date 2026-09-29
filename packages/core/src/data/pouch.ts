@@ -6,6 +6,7 @@
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
 import { feedGranary } from '../rules/citizens.js';
+import type { KeepState } from '../rules/citizens.js';
 import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
 import { worksBonus, worksCapBonus } from '../rules/works/bonus.js';
@@ -341,6 +342,16 @@ export async function writePouch(
   now: number,
 ): Promise<void> {
   await commit(store, now, (cur) => ({ ...cur, pool }));
+}
+
+/** Write the Keep beside the pouch it lives in (BRDC-PROG-001), with the pool it paid from. */
+export async function writeKeep(
+  store: KeyValueStore,
+  keep: KeepState,
+  pool: ResourcePool,
+  now: number,
+): Promise<void> {
+  await commit(store, now, (cur) => ({ ...cur, pool, keep }));
 }
 
 /**
