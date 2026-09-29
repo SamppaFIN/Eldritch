@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.69",
+    "date": "2026-09-29",
+    "notes": [
+      "The Keep now shows what your realm would leave behind if the season closed today — the Legacy tally, line by line.",
+      "Season 2 is built and waiting: citizens, the Lore, temple schools, masterworks, gates, the Doom and the Reckoning. It opens when the season changes."
+    ]
+  },
+  {
     "version": "0.6.68",
     "date": "2026-09-29",
     "notes": [

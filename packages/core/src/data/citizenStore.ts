@@ -15,6 +15,8 @@ import type { StaffRefusal } from '../rules/staffing.js';
 import { worksOn } from '../rules/build.js';
 import { worksViewAt } from './worksStore.js';
 import { readLore } from './loreStore.js';
+import { counselFor, markCodexRead, unreadCodex } from './counselStore.js';
+import type { Counsel } from '../rules/counsel.js';
 import { keepCeiling } from '../rules/lore.js';
 import { realmSanity, sanityWord } from '../rules/sanity.js';
 import { commit, forecastRates, settlePouch } from './pouch.js';
@@ -66,6 +68,11 @@ export interface KeepApi {
   staffOn(h3: H3Index, now: number): Promise<StaffSlot[]>;
   /** Send an idle citizen to (+1) or call one back from (−1) a building. */
   staff(h3: H3Index, id: BuildingId, delta: 1 | -1, now: number): Promise<StaffOutcome>;
+  /** The Keeper's Counsel, first true rule first; null on a Season 1 save (COUNSEL-001). */
+  counsel(now: number): Promise<Counsel[] | null>;
+  /** The first codex card not yet read, and marking one read. */
+  codex(): Promise<{ id: string; title: string; text: string } | null>;
+  readCodex(id: string): Promise<void>;
 }
 
 /** Write the Keep beside the pouch it lives in, with the pool it paid from. */
@@ -139,6 +146,10 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         slots: slotsFor(w.id, level),
       }));
     },
+    counsel: async (now) => counselFor(store(), await owned(now), now),
+    codex: async () => unreadCodex(store()),
+    readCodex: async (id) => markCodexRead(store(), id),
+
     staff: async (h3, id, delta, now) => {
       const cells = await owned(now);
       const cell = cells.find((c) => c.h3 === h3 && worksOn(c).some((w) => w.id === id));

@@ -11,7 +11,7 @@ import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 
 /** Keys that outlive a season. SEASON-005/006 and COUNSEL-001 add theirs here. */
-export const FOREVER_KEYS: readonly string[] = [K.hallOfFame, K.titles, K.heirloom];
+export const FOREVER_KEYS: readonly string[] = [K.hallOfFame, K.titles, K.heirloom, K.codexRead];
 
 /** Clear the store for a new season, keeping every `FOREVER_KEYS` record as it was. */
 export async function resetForSeason(store: KeyValueStore): Promise<void> {

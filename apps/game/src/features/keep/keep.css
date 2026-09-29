@@ -234,3 +234,9 @@
   font-weight: 700;
   font-size: var(--text-body);
 }
+
+/* A codex card (BRDC-COUNSEL-001): read once, a quiet gold edge. */
+.keep-codex {
+  border-inline-start: 2px solid var(--sacred-gold);
+  padding-inline-start: 0.75rem;
+}

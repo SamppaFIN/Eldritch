@@ -88,6 +88,8 @@ export const K = {
   ruinsSearched: 'ruins-searched',
   /** When each wonder's action was last used, `Partial<Record<WonderId, number>>` (SEASON-008). */
   wonderActs: 'wonder-acts',
+  /** Codex cards already read, `string[]` — forever, so the Counsel never re-explains (COUNSEL-001). */
+  codexRead: 'codex-read',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',
