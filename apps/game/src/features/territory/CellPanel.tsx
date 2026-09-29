@@ -3,6 +3,7 @@
  * first thing resources are for. Not a modal — the player is walking, and a focus trap
  * is the wrong shape for something you glance at and put away.
  */
+import { CellStaff } from '../keep/CellStaff.js';
 import {
   ANCHOR_THRESHOLD_MS,
   MAX_STRENGTH,
@@ -207,6 +208,7 @@ export function CellPanel({
       {/* Every action this hex offers, in one row at the top — nothing to scroll for with
           one thumb while walking (BRDC-DETAIL-003). */}
       <CellActions actions={cellActions(offer)} open={open} onPress={press} status={status} />
+      {mine ? <CellStaff repository={repository} h3={cell.h3} now={now} /> : null}
       {works.view ? (
         <WorksPage
           def={WORKS_DEFS[works.view.kind]}

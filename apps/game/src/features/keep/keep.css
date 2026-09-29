@@ -144,3 +144,14 @@
 .keep-citizens__ledger dd {
   margin: 0;
 }
+
+.cell-staff__row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cell-staff__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

@@ -54,3 +54,52 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   await expect(citizens).toContainText('Granary 0 / 29');
   await expect(citizens.getByRole('button', { name: /Raise the Keep · 100 food · 50 stone/ })).toBeVisible();
 });
+
+/** Put a farm on the Hearth hex, the way building one would (BRDC-PROG-002). */
+async function farmOnHearth(page: Page): Promise<void> {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open('es3');
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const db = open.result;
+          const tx = db.transaction('kv', 'readwrite');
+          const kv = tx.objectStore('kv');
+          const home = kv.get('home');
+          home.onsuccess = () => {
+            const h3 = home.result as string;
+            const cursor = kv.openCursor();
+            cursor.onsuccess = () => {
+              const c = cursor.result;
+              if (!c) return;
+              if (String(c.key).startsWith('cell:') && String(c.key).endsWith(`:${h3}`)) {
+                c.update({ ...c.value, buildings: [{ id: 'farm', builtAt: Date.now() }] });
+                return;
+              }
+              c.continue();
+            };
+          };
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+  );
+}
+
+test('a building on a Season 2 save takes a citizen to work (BRDC-PROG-002)', async ({ page }) => {
+  await openMap(page, HERE);
+  await foundKeep(page);
+  await farmOnHearth(page);
+  await page.reload();
+
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+  const workers = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Workers');
+  await expect(workers).toContainText('Farm · 0 / 1 at work — no hands, no yield', { timeout: 20_000 });
+  await workers.getByRole('button', { name: 'Send a citizen' }).click();
+  await expect(workers).toContainText('Farm · 1 / 1 at work');
+  await expect(workers.getByRole('button', { name: 'Call one back' })).toBeVisible();
+});
