@@ -84,6 +84,8 @@ export const K = {
   titles: 'titles',
   /** The heirloom chosen at a season's end, spent at the next founding (SEASON-006). Forever. */
   heirloom: 'heirloom',
+  /** Ruins searched this season, `H3Index[]` (SEASON-007). */
+  ruinsSearched: 'ruins-searched',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

@@ -9,6 +9,7 @@
  * This is only the tier. A `legendary` cell is a wonder *site* — its content is
  * `BRDC-WONDER-001`; a `rare` one is an anomaly *site* — its story is `BRDC-EVENT-001`.
  */
+import { seasonSalt } from './seasonSalt.js';
 import { CLAIM_YIELD, resourceOf } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
 
@@ -39,7 +40,7 @@ function hash(s: string): number {
 
 /** The rarity of the cell at `h3` — the same answer for everyone, every device, forever. */
 export function revealOf(h3: string): Rarity {
-  const roll = hash(`reveal:${h3}`);
+  const roll = hash(`reveal:${seasonSalt()}${h3}`);
   if (roll < LEGENDARY_BELOW) return 'legendary';
   if (roll < RARE_BELOW) return 'rare';
   if (roll < UNCOMMON_BELOW) return 'uncommon';

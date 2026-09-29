@@ -21,6 +21,7 @@
  * yields nothing (`TERRAIN_TABLE`), so most ground was interchangeable. Wheat and a herd
  * give some of it a reason to be walked.
  */
+import { seasonSalt } from './seasonSalt.js';
 import { TRICKLE_PER_HOUR, terrainForCell } from './terrain.js';
 import type { ResourceKind, ResourcePool, TerrainKind } from './terrain.js';
 import { DECAY_GRACE_HOURS } from './constants.js';
@@ -176,10 +177,10 @@ export function bountyOn(cell: Cell): BountyPick | null {
   const kind = terrainForCell(cell).kind;
   const candidates = [...legacyCandidates(kind), ...worldseedCandidates(kind, [])];
   if (candidates.length === 0) return null;
-  if (hash(`bounty:${cell.h3}`) >= BOUNTY_SHARE) return null;
+  if (hash(`bounty:${seasonSalt()}${cell.h3}`) >= BOUNTY_SHARE) return null;
 
   const totalWeight = candidates.reduce((t, c) => t + c.weight, 0);
-  let roll = hash(`bounty-kind:${cell.h3}`) * totalWeight;
+  let roll = hash(`bounty-kind:${seasonSalt()}${cell.h3}`) * totalWeight;
   for (const c of candidates) {
     roll -= c.weight;
     if (roll <= 0) return { id: c.id, pool: c.pool };

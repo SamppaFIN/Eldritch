@@ -14,6 +14,7 @@ import type { RumourApi } from '../data/deckStore.js';
 import type { ReckoningApi } from '../data/reckoningStore.js';
 import type { LegacyApi } from '../data/legacyTally.js';
 import type { HeirloomApi } from '../data/heirloomStore.js';
+import type { RuinApi } from '../data/ruinStore.js';
 
 export interface SeasonTwoApis {
   /** The Keep's level, citizens and granary (BRDC-PROG-001). */
@@ -34,4 +35,6 @@ export interface SeasonTwoApis {
   readonly legacy: LegacyApi;
   /** One thing carried across seasons (BRDC-SEASON-006). */
   readonly heirloom: HeirloomApi;
+  /** The last season's Fortresses, searched once each (BRDC-SEASON-007). */
+  readonly ruins: RuinApi;
 }

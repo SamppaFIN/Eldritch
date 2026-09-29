@@ -12,7 +12,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Modal, RitualButton } from '@es3/ui';
-import { clearAll, utcDay } from '@es3/core';
+import { clearAll, setSeasonSalt, utcDay } from '@es3/core';
 import type { GameRepository, HeirloomId, Legacy, Season } from '@es3/core';
 import { fetchBoards, seasonOnce } from '../../data/season.js';
 import { publishLegacy } from '../../data/legacy.js';
@@ -37,6 +37,8 @@ export function SeasonGate({ repository }: { repository: GameRepository | null }
     void (async () => {
       const season = await seasonOnce();
       if (!season) return;
+      // From Season 2 on, deposits and anomalies lie where this season's seed puts them.
+      setSeasonSalt(season.n >= 2 ? season.seed : null);
       const now = Date.now();
       const sealed = season.phase === 'sealed' || season.phase === 'interregnum' || season.phase === 'next';
       await repository.legacy.freeze(sealed);

@@ -72,3 +72,27 @@ test('the Keep shows the season board and the Hall of Records (BRDC-SEASON-005)'
   await expect(boards).toContainText('1 · Kaarnakuningas');
   await expect(boards).toContainText('Warden of Doors — Most gates sealed: Kaarnakuningas · 9');
 });
+
+test('a ruin of last season’s Fortress can be searched once (BRDC-SEASON-007)', async ({ page }) => {
+  await page.route('**/season', (route) => route.fulfill(json(season({ n: 1 }))));
+  // The ruin is the hex the player stands on — the Hearth's own, found from IndexedDB.
+  await openMap(page, HERE);
+  const home = await page.evaluate(
+    () =>
+      new Promise<string>((resolve) => {
+        const open = indexedDB.open('es3');
+        open.onsuccess = () => {
+          const get = open.result.transaction('kv', 'readonly').objectStore('kv').get('home');
+          get.onsuccess = () => resolve(get.result as string);
+        };
+      }),
+  );
+  await page.route('**/season/ruins', (route) => route.fulfill(json({ era: 'Season 1', cells: [home] })));
+  await page.reload();
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+  const ruin = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Ruins');
+  await expect(ruin).toContainText('Ruins of a Fortress', { timeout: 20_000 });
+  await ruin.getByRole('button', { name: 'Search the ruins' }).click();
+  await expect(ruin.getByRole('status')).not.toBeEmpty();
+  await expect(ruin.getByRole('button', { name: 'Search the ruins' })).toHaveCount(0);
+});

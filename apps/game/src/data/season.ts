@@ -114,3 +114,19 @@ export async function fetchAges(): Promise<{ realm: string; name: string; score:
     return null;
   }
 }
+
+let ruins: Promise<string[]> | null = null;
+/** The last season's Fortresses — this season's ruins (BRDC-SEASON-007) — once a session. */
+export function ruinsOnce(): Promise<string[]> {
+  ruins ??= (async () => {
+    try {
+      const res = await fetch(`${WORLD_API}/season/ruins`, { cache: 'no-store' });
+      if (res.status !== 200) return [];
+      const data = (await res.json().catch(() => null)) as { cells?: unknown } | null;
+      return Array.isArray(data?.cells) ? (data.cells as string[]) : [];
+    } catch {
+      return [];
+    }
+  })();
+  return ruins;
+}

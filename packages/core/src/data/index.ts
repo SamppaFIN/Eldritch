@@ -181,5 +181,7 @@ export { legacyApi } from './legacyTally.js';
 export type { LegacyApi } from './legacyTally.js';
 export { heirloomApi } from './heirloomStore.js';
 export type { HeirloomApi } from './heirloomStore.js';
+export { ruinApi } from './ruinStore.js';
+export type { RuinApi, RuinOutcome } from './ruinStore.js';
 export type { HallOfFameEntry } from './hallOfFameStore.js';
 export { fallbackChronicle } from './kingdomChronicle.js';

@@ -13,6 +13,7 @@
  * Pure. The passage of time is `now` read at the call, the same as decay and dwell — no
  * timer, no background job.
  */
+import { seasonSalt } from './seasonSalt.js';
 import { revealOf } from './reveal.js';
 import { canAfford, spend } from './terrain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
@@ -55,7 +56,7 @@ const clamp01 = (n: number): number => Math.max(0, Math.min(1, n));
  */
 export function anomalyAt(h3: string): AnomalyKind | null {
   if (revealOf(h3) !== 'rare') return null;
-  return hash(`anomaly:kind:${h3}`) < 0.5 ? 'chain' : 'reward';
+  return hash(`anomaly:kind:${seasonSalt()}${h3}`) < 0.5 ? 'chain' : 'reward';
 }
 
 /** How far an investigation has run, 0..1. `0` when none has started, `1` once done. */
@@ -116,7 +117,7 @@ export const ANOMALY_SIGNS: readonly AnomalySign[] = [
 
 /** The sign an anomaly at `h3` shows — deterministic, so every phone sees the same one. */
 export function anomalySignOf(h3: string): AnomalySign {
-  return ANOMALY_SIGNS[Math.floor(hash(`anomaly:sign:${h3}`) * ANOMALY_SIGNS.length)] as AnomalySign;
+  return ANOMALY_SIGNS[Math.floor(hash(`anomaly:sign:${seasonSalt()}${h3}`) * ANOMALY_SIGNS.length)] as AnomalySign;
 }
 
 /**

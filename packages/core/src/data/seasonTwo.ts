@@ -11,3 +11,4 @@ export { rumourApi, type RumourApi } from './deckStore.js';
 export { reckoningApi, type ReckoningApi } from './reckoningStore.js';
 export { legacyApi, type LegacyApi } from './legacyTally.js';
 export { heirloomApi, type HeirloomApi } from './heirloomStore.js';
+export { ruinApi, type RuinApi } from './ruinStore.js';

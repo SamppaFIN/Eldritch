@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | SEASON-004, SEASON-002 |
 | **Lähde** | Infinite 2026-09-29 (chat); `Eldritch-pelin uusi design systeemi/Eldritch-season.pdf` |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-09-29; raunioiden karttasprite [~] |
 
 ## 🔴 RED
 
@@ -25,13 +25,13 @@ Fortress-solut lisätään.
 
 ## 🟢 GREEN
 
-- [ ] Kauden siemen (`Season.seed`, SEASON-002) syöttää esiintymät, anomaliat ja porttipaikat (`terrainSeed`, `anomalySignOf`, …); ihmeet eivät (SEASON-008)
-- [ ] Kauden vaihdossa kaikki `cells` nollautuvat (paikallinen tallennus `seasonal`-avaimina SEASON-002:n mukaan, Workerin `player:*` SEASON-004:ssä); kaikki maa on vallattavissa
-- [ ] Workerin `GET /ruins` (tai `world.json`in kenttä): Season 1:n Fortress-solut, pysyvä kausikohtainen lista
-- [ ] `rules/ruins.ts`: `ruinRewardAt(h3, seasonSeed)` — seedattu, deterministinen: resursseja, tokeni, XP, harvinainen vihje tai lore-rivi (Civ goody hut). Kerran per pelaaja per raunio
-- [ ] Rauniot piirtyvät kartalle omana spritenään (ART-006-tapa: sortunut torni, ei hehkua) ja avautuvat kävelemällä päälle
-- [ ] Vitest palkinnoille (determinismi, kertakäyttö) + e2e: raunio avautuu kerran
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + `MSYS_NO_PATHCONV=1 pnpm build`
+- [x] (`rules/seasonSalt.ts`: tyhjä suola = Season 1 ennallaan, testattu; Season n ≥ 2 → `bountyOn`, `revealOf` (anomaliapaikat), `anomalyAt`/`anomalySignOf` siirtyvät; portit ja huhut ottavat siemenen suoraan; maasto pysyy) Kauden siemen (`Season.seed`, SEASON-002) syöttää esiintymät, anomaliat ja porttipaikat (`terrainSeed`, `anomalySignOf`, …); ihmeet eivät (SEASON-008)
+- [x] (retire → `resetForSeason`; Worker `POST /season/archive` `wipe:true`) Kauden vaihdossa kaikki `cells` nollautuvat (paikallinen tallennus `seasonal`-avaimina SEASON-002:n mukaan, Workerin `player:*` SEASON-004:ssä); kaikki maa on vallattavissa
+- [x] (`GET /season/ruins`, kirjoitetaan arkistoinnissa SEASON-004) Workerin `GET /ruins` (tai `world.json`in kenttä): Season 1:n Fortress-solut, pysyvä kausikohtainen lista
+- [x] (`ruinFindAt`, 8 löytöä: resurssit, vihjeet, XP, wisdom-kronikka; ei tokenia) `rules/ruins.ts`: `ruinRewardAt(h3, seasonSeed)` — seedattu, deterministinen: resursseja, tokeni, XP, harvinainen vihje tai lore-rivi (Civ goody hut). Kerran per pelaaja per raunio
+- [~] Rauniot heksakortilla (`CellRuin.tsx`: "Ruins of a Fortress", Search kerran, jalan) ✓. **Karttasprite ei vielä:** MapView on 399/400 — vaatii jaon ensin. Alkuperäinen: Rauniot piirtyvät kartalle omana spritenään (ART-006-tapa: sortunut torni, ei hehkua) ja avautuvat kävelemällä päälle
+- [x] Vitest (`ruin.repo.test.ts` 3) + e2e raunio etsitään kerran
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build (1912)
 
 ## Todennus
 

@@ -59,8 +59,8 @@ import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
 import { worksApi, type WorksApi } from './worksStore.js';
-import { gateApi, heirloomApi, keepApi, legacyApi, loreApi, masterworkApi, reckoningApi, riteApi, rumourApi } from './seasonTwo.js';
-import type { GateApi, HeirloomApi, KeepApi, LegacyApi, LoreApi, MasterworkApi, ReckoningApi, RiteApi, RumourApi } from './seasonTwo.js';
+import { gateApi, heirloomApi, keepApi, legacyApi, loreApi, masterworkApi, reckoningApi, riteApi, ruinApi, rumourApi } from './seasonTwo.js';
+import type { GateApi, HeirloomApi, KeepApi, LegacyApi, LoreApi, MasterworkApi, ReckoningApi, RiteApi, RuinApi, RumourApi } from './seasonTwo.js';
 import { assignCastle } from './castle.js';
 import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
 import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
@@ -365,6 +365,7 @@ export class MockRepository implements GameRepository {
   readonly reckoning: ReckoningApi = reckoningApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly legacy: LegacyApi = legacyApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly heirloom: HeirloomApi = heirloomApi(() => this.store);
+  readonly ruins: RuinApi = ruinApi(() => this.store, () => this.newId());
   hearthRing = (): Promise<number> => readHearthRing(this.store);
   growHearth = async (now: number): Promise<HearthGrowth> =>
     growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);
