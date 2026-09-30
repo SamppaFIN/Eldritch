@@ -14,7 +14,7 @@ import { ALLY_STROKE, CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territ
 import { cellMarksToGeoJson, cellsToGeoJson, marksFromPolygons } from './cellMarks.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
-import { addBannerSprites, addBountySprites, addTerrainSprites, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
+import { addBannerSprites, addBountySprites, addTerrainSprites, addTerrainTextures, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
 
 // The names live in `layerIds.ts` so `territoryImages.ts` can read them without importing
 // this file back — one id string in two places is how a layer quietly stops being toggled.
@@ -22,6 +22,7 @@ import {
   CELL_MARK_SOURCE,
   CELL_SOURCE,
   CELL_FILL_LAYER,
+  CELL_TEXTURE_LAYER,
   CELL_SHARED_LAYER,
   CELL_BLIGHT_LAYER,
   CELL_LINE_LAYER,
@@ -98,6 +99,21 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   void addTerrainSprites(map);
   void addBannerSprites(map);
   void addBountySprites(map);
+
+  /*
+   * The ground itself, textured like Civilization's board (Infinite 2026-09-30, reversing
+   * the 2026-09-15 "terrain never fills the hex"): under the ownership fill, so whose it is
+   * still reads on top, and see-through, so the streets under it still show.
+   */
+  map.addLayer({
+    id: CELL_TEXTURE_LAYER,
+    type: 'fill',
+    source: CELL_SOURCE,
+    minzoom: NATION_FADE_START,
+    layout: { visibility: 'none' },
+    paint: { 'fill-pattern': ['concat', 'tex-', ['get', 'ground']], 'fill-opacity': fadeAcrossBand(0, 0.7) },
+  });
+  void addTerrainTextures(map);
 
   // Below the trail, which is added later and therefore sits on top: the ley-line is
   // what the player is drawing right now and must never be buried by their own ground.

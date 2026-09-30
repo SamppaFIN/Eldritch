@@ -18,6 +18,8 @@ export const CELL_SOURCE = 'cells';
  */
 export const CELL_MARK_SOURCE = 'cell-marks';
 export const CELL_FILL_LAYER = 'cells-fill';
+/** The ground's texture under the ownership fill (2026-09-30). */
+export const CELL_TEXTURE_LAYER = 'cells-texture';
 export const CELL_SHARED_LAYER = 'cells-shared';
 export const CELL_BLIGHT_LAYER = 'cells-blight';
 export const CELL_RIVAL_LINE_LAYER = 'cells-rival-line';

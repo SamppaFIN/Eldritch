@@ -17,7 +17,8 @@ export { bannerSpriteId };
 import { TERRAIN_KINDS, rasteriseTerrain, terrainSpriteId } from './terrainSprites.js';
 import { BOUNTY_SPRITE_IDS, bountySpriteId, rasteriseBounty } from './bountySprites.js';
 import { WORLDSEED_BOUNTY_IDS, rasteriseWorldseedBounty, worldseedBountySpriteId } from './worldseedBountySprites.js';
-import { CELL_BOUNTY_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER } from './layerIds.js';
+import { CELL_BOUNTY_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER, CELL_TEXTURE_LAYER } from './layerIds.js';
+import { TEXTURE_KINDS, rasteriseTextures, textureId } from './terrainTextures.js';
 import { ENEMY_FILL, OWN_FILL } from './territoryFeatures.js';
 
 /**
@@ -115,4 +116,19 @@ export function sharedPatternImage(): { width: number; height: number; data: Uin
   ctx.fillRect(half, 0, half, half);
   ctx.fillRect(0, half, half, half);
   return ctx.getImageData(0, 0, size, size);
+}
+
+/**
+ * The ground textures (`terrainTextures.ts`), into this map's atlas once; the texture layer
+ * stays hidden until they are there, since a pattern that names nothing warns every frame.
+ */
+export async function addTerrainTextures(map: MapLibreMap): Promise<void> {
+  if (!TEXTURE_KINDS.every((k) => map.hasImage(textureId(k)))) {
+    const life = watchRemoval(map);
+    const images = await rasteriseTextures();
+    life.stop();
+    if (!images || life.gone()) return;
+    for (const [id, data] of images) if (!map.hasImage(id)) map.addImage(id, data, { pixelRatio: 2 });
+  }
+  if (map.getLayer(CELL_TEXTURE_LAYER)) map.setLayoutProperty(CELL_TEXTURE_LAYER, 'visibility', 'visible');
 }
