@@ -14,7 +14,7 @@ import {
   emptyCell,
   isCityState,
   neighboursOf,
-  terrainOf,
+  terrainForCell,
   TERRAIN_TABLE,
 } from '@es3/core';
 import { worksOn } from '@es3/core';
@@ -337,7 +337,7 @@ export function cellProperties(
   const mine = cell.ownerId !== null && cell.ownerId === me;
   const ally = !mine && cell.ally === true;
   const rival = cell.ownerId !== null && !mine && !ally;
-  const glyph = terrainGlyph(terrainOf(cell.h3).kind);
+  const glyph = terrainGlyph(terrainForCell(cell).kind);
   // Shown on any owner's cell — a rival's building on a bordering hex is intel. A cell
   // can hold several Works now (BUILD-007); the text layer marks the newest, which is
   // what makes a just-built one appear. BRDC-ART-003 draws them all as icons.
@@ -370,7 +370,7 @@ export function cellProperties(
     iconColor: glyph?.color ?? '',
     // The isometric tile's name, which is simply the terrain (Sigil §03). Kept beside the
     // glyph rather than replacing it: no canvas, no tiles, and the glyph layer stands in.
-    ground: terrainOf(cell.h3).kind,
+    ground: terrainForCell(cell).kind,
     anomaly: mine ? anomalyGlyphFor(cell) : '',
     // A landmark is drawn by its own layer instead, so it is never drawn twice.
     building: isLandmark ? '' : (bg?.char ?? ''),

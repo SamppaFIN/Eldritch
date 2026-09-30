@@ -103,7 +103,7 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
   },
   mine: {
     cost: { wood: 40, stone: 40 },
-    terrain: ['mountain'],
+    terrain: ['mountain', 'hill'],
     tech: 'mining',
     requires: [],
     produces: { iron: 5 },
@@ -111,7 +111,7 @@ export const BUILDINGS: Readonly<Record<BuildingId, Building>> = {
   // Deeper into the same rock; costs wood, which means a forest Sawmill somewhere.
   quarry: {
     cost: { wood: 60, stone: 60 },
-    terrain: ['mountain'],
+    terrain: ['mountain', 'hill'],
     tech: 'mining',
     requires: ['mine'],
     produces: { stone: 9 },

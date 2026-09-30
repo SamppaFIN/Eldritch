@@ -11,7 +11,7 @@ import { cardById, rumourAt } from '../rules/deck.js';
 import type { DeckCard } from '../rules/deck.js';
 import { FIRST_INVESTIGATOR, addClues, afterTest, diceFor, isHome, luckFor, recover, reroll, rollTest } from '../rules/investigator.js';
 import type { Investigator, Roll } from '../rules/investigator.js';
-import { terrainOf } from '../rules/terrain.js';
+import { terrainAt } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { commit, settlePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
@@ -52,7 +52,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
   const hasKeep = async (now: number) => (await settlePouch(store(), await owned(now), now)).keep !== undefined;
   const cardHere = async (h3: H3Index, seed: string) => {
     if ((await book()).done.includes(h3)) return null;
-    return rumourAt(seed, h3, terrainOf(h3).kind);
+    return rumourAt(seed, h3, terrainAt(h3).kind);
   };
 
   return {

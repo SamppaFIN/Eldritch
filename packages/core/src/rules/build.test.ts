@@ -282,3 +282,21 @@ describe('copies get dearer on a Season 2 save (BRDC-PROG-003)', () => {
     expect(buildCost('watchtower', 4)).toEqual({ wood: Math.round((base.wood ?? 0) * 1.25 ** 4), stone: Math.round((base.stone ?? 0) * 1.25 ** 4) });
   });
 });
+
+describe('Season 2 ground (field report 2026-09-30)', () => {
+  // Worldseed maps lake, coast, marsh, forest, hill, market, settlement and plain — never
+  // mountain. A Work that stood only on mountain could never be built in Härmälä.
+  const SEEDED = ['lake', 'coast', 'marsh', 'forest', 'hill', 'market', 'settlement', 'plain'];
+  it('every Work stands on some ground the Worldseed map has', () => {
+    const stranded = (Object.keys(BUILDINGS) as BuildingId[]).filter((id) => {
+      const t = BUILDINGS[id].terrain;
+      return !BUILDINGS[id].masterwork && t !== 'any' && !t.some((k) => SEEDED.includes(k));
+    });
+    expect(stranded).toEqual([]);
+  });
+
+  it('a Mine and a Quarry stand on a hill', () => {
+    expect(BUILDINGS.mine.terrain).toContain('hill');
+    expect(BUILDINGS.quarry.terrain).toContain('hill');
+  });
+});

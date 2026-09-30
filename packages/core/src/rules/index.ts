@@ -117,6 +117,7 @@ export {
   resourceOf,
   settleResources,
   spend,
+  terrainAt,
   terrainForCell,
   terrainOf,
   trickle,

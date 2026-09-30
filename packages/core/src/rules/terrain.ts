@@ -215,8 +215,17 @@ export function terrainForCell(cell: Cell): Terrain {
   );
 }
 
+/**
+ * The terrain of a hex nobody has stored — the same order as `terrainForCell` without a
+ * tile read. What the map, the Forge's iron and the rumour decks read, so they agree with
+ * the cell card (field report 2026-09-30: the hash said one ground, the card another).
+ */
+export function terrainAt(h3: H3Index): Terrain {
+  return paintedTerrainOf(h3) ?? worldseedTerrainOf(h3) ?? seededTerrainOf(h3) ?? terrainOf(h3);
+}
+
 export function resourceOf(h3: H3Index): ResourceKind | null {
-  return TERRAIN_TABLE[terrainOf(h3).kind].resource;
+  return TERRAIN_TABLE[terrainAt(h3).kind].resource;
 }
 
 /** The resource for a cell, preferring its stored terrain over the hash. */

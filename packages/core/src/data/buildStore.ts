@@ -12,7 +12,7 @@ import { TECHS } from '../rules/tech.js';
 
 import { BUILDINGS, buildCost, buildingsOf, canBuild, hasWork, refund, worksOn } from '../rules/build.js';
 import type { BuildRefusal, BuildingId } from '../rules/build.js';
-import { spend, terrainOf } from '../rules/terrain.js';
+import { spend, terrainAt } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { projectCell } from '../rules/decay.js';
 import { underFortressAt } from './cellStore.js';
@@ -29,14 +29,15 @@ import { forgetTree } from './worksTrees.js';
 const TECH_IDS = Object.keys(TECHS) as TechId[];
 
 /**
- * The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — a mountain within one ring, or
+ * The Forge's own gate (BRDC-BUILD-013): "adjacent iron" — high ground (a hill or a
+ * mountain: Worldseed maps no mountains, so Season 2's iron is in the hills) within one ring, or
  * a Mine already standing on one. A hill within reach counts whether the player owns it or
  * not (iron in the ground does not care who holds the deed); a Mine only counts once it is
  * actually built, so it has to be the player's own.
  */
 export function ironAdjacentTo(h3: H3Index, owned: readonly Cell[]): boolean {
   return neighboursOf(h3).some(
-    (n) => terrainOf(n).kind === 'mountain' || owned.some((c) => c.h3 === n && hasWork(c, 'mine')),
+    (n) => ['hill', 'mountain'].includes(terrainAt(n).kind) || owned.some((c) => c.h3 === n && hasWork(c, 'mine')),
   );
 }
 

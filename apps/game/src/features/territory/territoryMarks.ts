@@ -69,13 +69,15 @@ export function addMarkLayers(map: MapLibreMap): void {
     type: 'symbol',
     source: CELL_MARK_SOURCE,
     minzoom: CELL_DETAIL_MINZOOM,
-    filter: ['!=', ['get', 'ground'], ''],
+    // Not under a Work or a landmark: those carry the ground on their own plinth.
+    filter: ['all', ['!=', ['get', 'ground'], ''], ['==', ['get', 'building'], ''], ['==', ['get', 'landmark'], '']],
     layout: {
       visibility: 'none',
       'icon-image': ['concat', 'ground-', ['get', 'ground']],
-      // Sized against the hex rather than against the icon: at zoom 17 a res-11 cell is
-      // about eighty pixels across, and the tile should sit in it, not rattle around.
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.34, 16, 0.75, 17, 1.05, 19, 2.2],
+      // A badge about a third of the hex, at every zoom (2026-09-30): the full-hex size
+      // filled every cell and was switched off for clutter on 2026-09-15. The hex doubles
+      // each zoom level, so the size doubles too; 1.0 is 64 css px (measured on screen).
+      'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 13, 0.07, 17, 1.1, 20, 8.8],
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },

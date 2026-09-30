@@ -19,7 +19,7 @@
  */
 import { useCallback, useState } from 'react';
 import { RitualButton } from '@es3/ui';
-import { RESOURCE_KINDS, TERRAIN_TABLE, terrainOf } from '@es3/core';
+import { RESOURCE_KINDS, TERRAIN_TABLE, terrainAt } from '@es3/core';
 import type { Collected, GameRepository, H3Index, ResourceKind, ResourcePool } from '@es3/core';
 import { RESOURCE_COLOUR, RESOURCE_WORD, terrainGlyph } from '../territory/territoryFeatures.js';
 import { TERRAIN_NAME } from '../territory/names.js';
@@ -130,7 +130,7 @@ export function NewLands({ hexes, repository, now, onGain, afterReveal }: NewLan
         </p>
         <ul className="gpx__lands-list">
           {hexes.map((h3) => {
-            const kind = terrainOf(h3).kind;
+            const kind = terrainAt(h3).kind;
             const g = terrainGlyph(kind);
             const f = found[h3];
             return (
@@ -158,7 +158,7 @@ export function NewLands({ hexes, repository, now, onGain, afterReveal }: NewLan
   }
 
   const h3 = hexes[at] as H3Index;
-  const kind = terrainOf(h3).kind;
+  const kind = terrainAt(h3).kind;
   const g = terrainGlyph(kind);
   const resource = TERRAIN_TABLE[kind].resource;
   const f = found[h3];

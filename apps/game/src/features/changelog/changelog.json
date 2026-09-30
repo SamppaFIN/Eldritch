@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.7.7",
+    "date": "2026-09-30",
+    "notes": [
+      "Every hex shows its ground again — a small tile in the middle: forest, lake, hill, marsh, settlement, market or field. A hex with a Work shows the Work instead.",
+      "Mines and Quarries stand on hills. The Härmälä map has no mountains, so until now neither could be built anywhere.",
+      "A Forge finds its iron in the hills beside it, too.",
+      "The map, the rumour decks and a reveal's reward now read the same ground the hex card names. Before, some read an older guess."
+    ]
+  },
+  {
     "version": "0.7.6",
     "date": "2026-09-30",
     "notes": [

@@ -14,7 +14,7 @@ import { ALLY_STROKE, CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territ
 import { cellMarksToGeoJson, cellsToGeoJson, marksFromPolygons } from './cellMarks.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
-import { addBannerSprites, addBountySprites, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
+import { addBannerSprites, addBountySprites, addTerrainSprites, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
 
 // The names live in `layerIds.ts` so `territoryImages.ts` can read them without importing
 // this file back — one id string in two places is how a layer quietly stops being toggled.
@@ -90,14 +90,12 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
   addNationLayers(map);
   /*
-   * Terrain no longer covers the hex (Sigil §03: "Terrain never fills the hex; it tints
-   * the iso plinth under whatever stands there. Empty ground keeps the map visible
-   * through it — that is the point of claiming it").
-   *
-   * `addTerrainSprites` is what made the ground layer visible, so not calling it leaves
-   * it at its own `visibility: 'none'` — one line to put back if the field disagrees. It
-   * also spares seven image decodes at map open, which the phone will not miss.
+   * The ground is back on the map, small (field report 2026-09-30: *"heksan maan tyyppi ei
+   * näy, lisää grafiikka heksalle"*). It was off since 2026-09-15 because full-hex tiles
+   * cluttered the map; now the tile is a badge in the middle of an empty hex, and a hex
+   * with a Work shows the Work's own plinth instead (`territoryMarks.ts`).
    */
+  void addTerrainSprites(map);
   void addBannerSprites(map);
   void addBountySprites(map);
 

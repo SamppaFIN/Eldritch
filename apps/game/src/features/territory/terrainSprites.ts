@@ -18,8 +18,9 @@
 import type { TerrainKind } from '@es3/core';
 import { rasteriseSvgs } from './spriteRaster.js';
 
-/** Rendered size, device pixels. One tile sits inside one res-11 hex. */
-export const TERRAIN_PX = 64;
+/** Rendered size, device pixels. One tile sits inside one res-11 hex. 128 rather than 64
+ *  since 2026-09-30: the badge now grows with the hex, and at street zoom 64 went soft. */
+export const TERRAIN_PX = 128;
 
 /** kind → the `map.addImage` name, stable so `hasImage` short-circuits a re-add. */
 export const terrainSpriteId = (kind: TerrainKind): string => `ground-${kind}`;
