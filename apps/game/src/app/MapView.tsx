@@ -263,7 +263,7 @@ export function MapView({ onLeave }: MapViewProps) {
         <HearthPanel
           owned={territory.owned} resources={resources} places={places}
           level={levelState(profile?.xp ?? 0).level} levelName={levelState(profile?.xp ?? 0).name}
-          now={clock.now()} adventures={quest.adventures} repository={repository} onOpenLands={aside.openLands}
+          now={clock.now()} adventures={quest.adventures} repository={repository}
           onPouch={setResources} forecast={forecast}
           onPublish={settings.shareWorld ? world.publish : undefined}
           onWeakest={inspect.onCellTap} onGrown={() => void territory.refresh()} onClose={inspect.close}
@@ -343,7 +343,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onOpenCharacter={aside.openCharacter} onShowMap={aside.closeAll}
         onOpenResearch={isRoute ? undefined : inspect.openResearch}
         onOpenKeep={castle && !isRoute ? inspect.onCastleTap : undefined}
-        onHelp={aside.openHelp}
+        onHelp={aside.openHelp} nav={{ onOpenLands: aside.openLands, onOpenCounsel: aside.openCounsel }}
         onOpenLog={aside.openLog}
       />
 

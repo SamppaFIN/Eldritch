@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { gateApi } from './gateStore.js';
 import { keepApi } from './citizenStore.js';
+import { riteApi } from './riteStore.js';
+import { writePouch } from './pouch.js';
+import { EMPTY_POOL } from '../rules/terrain.js';
 import { K } from './keys.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
 import { GATE_DOOM_MS } from '../rules/gate.js';
@@ -83,5 +86,25 @@ describe('gateApi (BRDC-DOOM-002)', () => {
     await gates.sync({ seed: gate.id.split(':')[0] as string, opensAt: T0 - 2 * DAY }, 'me', gate.openedAt + GATE_DOOM_MS);
     await gates.sync({ seed: gate.id.split(':')[0] as string, opensAt: T0 - 2 * DAY }, 'me', gate.openedAt + GATE_DOOM_MS + 1_000);
     expect((await gates.outbox()).filter((o) => o.gateId === gate.id && o.delta === 1)).toHaveLength(1);
+  });
+
+  it('draws no gate while a Mirror Keep holds (BRDC-PROG-007)', async () => {
+    const { gate } = await withGate();
+    const r = await realm();
+    await r.store.set(K.rites, { schools: ['whisper'], learned: { 'mirror-keep': 1 }, castAt: { 'mirror-keep': T0 - 1_000 } });
+    await r.gates.sync({ seed: gate.id.split(':')[0] as string, opensAt: T0 - 2 * DAY }, 'me', T0);
+    expect((await r.gates.view(T0))?.gates).toEqual([]);
+  });
+
+  it('Elder Sign seals the nearest gate from afar and brings clues (BRDC-PROG-007)', async () => {
+    const { store, gates, gate } = await withGate();
+    const cells = async () => Promise.all(held.map(async (c) => (await store.get<Cell>(K.cell(c.h3))) as Cell));
+    await writePouch(store, { ...EMPTY_POOL, mana: 100 }, T0);
+    await store.set(K.rites, { schools: ['ward'], learned: { 'elder-sign': 1 }, castAt: {} });
+    expect((await riteApi(() => store, cells, () => gates).cast('elder-sign', T0)).ok).toBe(true);
+    const v = await gates.view(T0);
+    expect(v?.gates.some((g) => g.id === gate.id)).toBe(false);
+    expect(v?.investigator.clues).toBe(1);
+    expect(await gates.outbox()).toContainEqual({ gateId: gate.id, delta: -1 });
   });
 });

@@ -2,7 +2,7 @@
    The nav bar (Sigil screen 02)
    ========================================================================== */
 
-/* Its own glass surface under the walking sheet. Five equal columns, because the
+/* Its own glass surface under the walking sheet. Equal columns, because the
    document draws destinations as a set you scan rather than a row you read. */
 .hud-nav {
   /* `.hud` is pointer-events: none so the map stays draggable around it; every
@@ -12,7 +12,10 @@
   margin-inline: auto;
   margin-block-start: var(--space-1);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(min-content, 1fr);
+  column-gap: 6px;
+  padding-inline: 6px;
   align-items: center;
   block-size: 58px;
   border: 1px solid var(--glass-edge, oklch(1 0 0 / 0.16));
@@ -62,4 +65,13 @@
   outline: 2px solid var(--mystic-cyan);
   outline-offset: -2px;
   border-radius: var(--radius-sm);
+}
+
+/* Seven tabs on a 360px phone: the wide-tracked Orbitron labels would spill out of their
+   columns ("Research", "Counsel"), so the tracking closes up there. */
+@media (max-width: 420px) {
+  .hud-nav__label {
+    font-size: 8px;
+    letter-spacing: 0.02em;
+  }
 }

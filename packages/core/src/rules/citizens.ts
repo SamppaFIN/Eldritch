@@ -116,10 +116,11 @@ export const calmAt = (keep: KeepState, now: number): number => (keep.calm && ke
 /** How many a Keep houses, Manors included. */
 export const keepHousing = (keep: KeepState): number => housing(keep.level) + (keep.extraHousing ?? 0);
 
-/** A cast rite whose effect lasts: `value` food/h, on one Farmstead or on every Farmstead hand. */
+/** A cast rite whose effect lasts: `value` food/h, on one Farmstead or on every Farmstead
+ *  hand — or, scope `yield`, `value` per cent on everything staffed buildings make. */
 export interface Boon {
   rite: string;
-  scope: 'target' | 'workers';
+  scope: 'target' | 'workers' | 'yield';
   value: number;
   until: number;
   target?: string;

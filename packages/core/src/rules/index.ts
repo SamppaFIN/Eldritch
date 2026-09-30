@@ -305,6 +305,7 @@ export {
   RITES,
   RITE_COOLDOWN_MS,
   RITE_IDS,
+  castsOnHex,
   RITE_MANA,
   castRite,
   dedicate,

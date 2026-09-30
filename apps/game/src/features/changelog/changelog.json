@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.7.6",
+    "date": "2026-09-30",
+    "notes": [
+      "Every temple rite works now — none says \"not yet in the game\". The ones aimed at rivals keep their names with an effect on your own realm: Birch Ward guards a hex and its ring, Unseen Hand claims free ground beside yours, Mirror Keep holds the gates shut, and more.",
+      "Rites that land on a hex (Salt Circle, Birch Ward, Stone Sleep, Call the Shoal, Dream-Sight) are cast from that hex's card.",
+      "Your lands and the Keeper's Counsel are tabs on the bar at the bottom, no longer inside the Keep."
+    ]
+  },
+  {
     "version": "0.7.5",
     "date": "2026-09-30",
     "notes": [

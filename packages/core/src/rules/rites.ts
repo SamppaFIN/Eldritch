@@ -7,10 +7,10 @@
  * I → III; the numbers are the rank values. The Age is the ceiling for the tier and caps
  * the rank at min(Age, 3). Replaces `spell.ts` for a Season 2 save.
  *
- * Only the effects the game can already carry are `wired`; the rest name the ticket that
- * gives them something to act on (gates and clues: DOOM-002, sanity: PROG-008, the
- * Ancient One: DOOM-004). Faction-wide effects act on the caster's own realm — factions
- * are parked (Infinite 2026-09-29).
+ * Every rite acts on the caster's own realm — factions are parked (Infinite 2026-09-29).
+ * The ones the document aims at rivals or at things a phone cannot see (rival claims and
+ * stores, the Mythos card, shared-world strength) keep their names and take a local effect
+ * instead (Infinite 2026-09-30: none may say "not yet in the game").
  */
 import { ageOf } from './lore.js';
 import type { Age, LoreId } from './lore.js';
@@ -20,10 +20,26 @@ export type Tier = 1 | 2 | 3 | 4 | 5;
 export type Rank = 1 | 2 | 3;
 
 export type RiteEffect =
-  | { kind: 'cellStrength'; scope: 'target' | 'all' }
+  | { kind: 'cellStrength'; scope: 'target' | 'ring' | 'all' }
+  | { kind: 'cellFloor' }
   | { kind: 'farmFood'; scope: 'target' | 'workers'; hours: number }
   | { kind: 'granaryFill' }
-  | { kind: 'waits'; on: string };
+  | { kind: 'calm'; hours: number }
+  /** Nothing at the cast: the Reckoning reads the cast time while it burns (`reckoningStore`). */
+  | { kind: 'lamp' }
+  | { kind: 'walkedMana' }
+  | { kind: 'pouchShare' }
+  | { kind: 'restore' }
+  | { kind: 'yieldBoon'; hours: number }
+  | { kind: 'reveal' }
+  | { kind: 'dice'; hours: number }
+  | { kind: 'blessed' }
+  | { kind: 'clues' }
+  | { kind: 'claimNear' }
+  /** Seal gates from afar: one and `v` clues, or `v` gates. */
+  | { kind: 'seal'; per: 'clues' | 'gates' }
+  /** Read by the gate sync while it lasts (`gateStore`). */
+  | { kind: 'gateShield' };
 
 export interface Rite {
   name: string;
@@ -34,39 +50,43 @@ export interface Rite {
   effect: RiteEffect;
 }
 
-const W = (on: string): RiteEffect => ({ kind: 'waits', on });
-
 export const RITES = {
   // The Ward — birch and salt.
   'salt-circle': { name: 'Salt Circle', school: 'ward', tier: 1, values: [60, 100, 160], text: 'A cell gains +{v} strength.', effect: { kind: 'cellStrength', scope: 'target' } },
-  'birch-ward': { name: 'Birch Ward', school: 'ward', tier: 2, values: [1.5, 2, 2.5], text: 'Rival claims inside ring 1 cost ×{v}.', effect: W('rival claims (PROG-006)') },
-  'elder-sign': { name: 'Elder Sign', school: 'ward', tier: 3, values: [1, 2, 3], text: 'Sealing a gate also lowers Doom by 1 and grants +{v} clues.', effect: W('gates (DOOM-002)') },
-  'stone-sleep': { name: 'Stone Sleep', school: 'ward', tier: 3, values: [48, 72, 96], text: 'One building cannot be taken for {v} h.', effect: W('building capture (PROG-006)') },
-  'watchers-calm': { name: 'Watcher’s Calm', school: 'ward', tier: 4, values: [3, 5, 8], text: 'Realm sanity +{v} for a day.', effect: W('sanity (PROG-008)') },
-  'lamp-under-the-lake': { name: 'The Lamp Under the Lake', school: 'ward', tier: 5, values: [25, 40, 60], text: 'You deal +{v}% to the Ancient One.', effect: W('the Reckoning (DOOM-004)') },
+  'birch-ward': { name: 'Birch Ward', school: 'ward', tier: 2, values: [30, 50, 80], text: 'A cell and the six around it gain +{v} strength.', effect: { kind: 'cellStrength', scope: 'ring' } },
+  'elder-sign': { name: 'Elder Sign', school: 'ward', tier: 3, values: [1, 2, 3], text: 'The nearest open gate is sealed from afar, and you gain {v} clues.', effect: { kind: 'seal', per: 'clues' } },
+  'stone-sleep': { name: 'Stone Sleep', school: 'ward', tier: 3, values: [200, 350, 500], text: 'A cell’s strength rises to {v}, if it is lower.', effect: { kind: 'cellFloor' } },
+  'watchers-calm': { name: 'Watcher’s Calm', school: 'ward', tier: 4, values: [3, 5, 8], text: 'Realm sanity +{v} for a day.', effect: { kind: 'calm', hours: 24 } },
+  'lamp-under-the-lake': { name: 'The Lamp Under the Lake', school: 'ward', tier: 5, values: [25, 40, 60], text: 'You deal +{v}% to the Ancient One for a day.', effect: { kind: 'lamp' } },
   'unbroken-ring': { name: 'Unbroken Ring', school: 'ward', tier: 5, values: [30, 50, 80], text: 'Every cell you hold +{v} strength.', effect: { kind: 'cellStrength', scope: 'all' } },
 
   // The Tide — water and growth.
   'call-the-shoal': { name: 'Call the Shoal', school: 'tide', tier: 1, values: [4, 6, 9], text: 'A Farmstead gains +{v} food/h for 12 h.', effect: { kind: 'farmFood', scope: 'target', hours: 12 } },
-  'brackish-blessing': { name: 'Brackish Blessing', school: 'tide', tier: 2, values: [1, 2, 3], text: 'Blessed cells give +{v} mana when walked.', effect: W('walk rewards') },
+  'brackish-blessing': { name: 'Brackish Blessing', school: 'tide', tier: 2, values: [1, 2, 3], text: '+{v} mana for every cell of yours walked in the last day.', effect: { kind: 'walkedMana' } },
   'drowned-harvest': { name: 'Drowned Harvest', school: 'tide', tier: 3, values: [20, 30, 40], text: 'The granary fills +{v}% at once.', effect: { kind: 'granaryFill' } },
-  undertow: { name: 'Undertow', school: 'tide', tier: 3, values: [10, 15, 20], text: 'Pull {v}% of a rival’s stored stock at a walked cell.', effect: W('rival stores') },
+  undertow: { name: 'Undertow', school: 'tide', tier: 3, values: [10, 15, 20], text: 'The tide brings {v}% more of every stock in the pouch, mana aside.', effect: { kind: 'pouchShare' } },
   'high-water': { name: 'High Water', school: 'tide', tier: 4, values: [1, 2, 3], text: 'Every Farmstead worker yields +{v} food for 24 h.', effect: { kind: 'farmFood', scope: 'workers', hours: 24 } },
-  'the-tide-remembers': { name: 'The Tide Remembers', school: 'tide', tier: 5, values: [1, 2, 3], text: 'Restore a lost building at {v} levels below its old level.', effect: W('building loss records') },
-  'second-lake': { name: 'Second Lake', school: 'tide', tier: 5, values: [12, 24, 36], text: 'Copy one masterwork’s effect for {v} h.', effect: W('masterworks (PROG-006)') },
+  'the-tide-remembers': { name: 'The Tide Remembers', school: 'tide', tier: 5, values: [1, 2, 3], text: 'Your investigator rises rested and sane, with {v} clues more.', effect: { kind: 'restore' } },
+  'second-lake': { name: 'Second Lake', school: 'tide', tier: 5, values: [25, 40, 60], text: 'Every staffed building yields +{v}% for 12 h.', effect: { kind: 'yieldBoon', hours: 12 } },
 
   // The Whisper — dream and rumour.
-  'dream-sight': { name: 'Dream-Sight', school: 'whisper', tier: 1, values: [2, 3, 4], text: 'Reveal every cell within {v} rings for 6 h.', effect: W('timed reveal') },
-  'borrowed-voice': { name: 'Borrowed Voice', school: 'whisper', tier: 2, values: [1, 2, 3], text: 'Your next skill test rolls +{v} dice.', effect: W('skill tests (DOOM-002)') },
-  'madness-seed': { name: 'Madness Seed', school: 'whisper', tier: 3, values: [30, 40, 50], text: 'A rival cell yields −{v}% for 12 h.', effect: W('rival yields') },
-  'hollow-clue': { name: 'Hollow Clue', school: 'whisper', tier: 3, values: [1, 2, 3], text: 'Gain {v} clues at once.', effect: W('clues (DOOM-002)') },
-  'unseen-hand': { name: 'Unseen Hand', school: 'whisper', tier: 4, values: [1, 2, 3], text: 'Complete a claim without walking, up to {v} cells away.', effect: W('remote claims') },
-  'name-between-names': { name: 'The Name Between Names', school: 'whisper', tier: 5, values: [1, 2, 3], text: 'Cancel tomorrow’s Mythos card for your realm.', effect: W('the Mythos card (DOOM-001)') },
-  'mirror-keep': { name: 'Mirror Keep', school: 'whisper', tier: 5, values: [0.5, 0.3, 0], text: 'Rivals see your strength ×{v} for 24 h.', effect: W('shared-world strength') },
+  'dream-sight': { name: 'Dream-Sight', school: 'whisper', tier: 1, values: [3, 5, 8], text: 'Reveal every cell within {v} rings of a hex.', effect: { kind: 'reveal' } },
+  'borrowed-voice': { name: 'Borrowed Voice', school: 'whisper', tier: 2, values: [1, 2, 3], text: 'Every test rolls +{v} dice for 12 h.', effect: { kind: 'dice', hours: 12 } },
+  'madness-seed': { name: 'Madness Seed', school: 'whisper', tier: 3, values: [6, 12, 24], text: 'For {v} h every test is blessed — a 4 succeeds too.', effect: { kind: 'blessed' } },
+  'hollow-clue': { name: 'Hollow Clue', school: 'whisper', tier: 3, values: [1, 2, 3], text: 'Gain {v} clues at once.', effect: { kind: 'clues' } },
+  'unseen-hand': { name: 'Unseen Hand', school: 'whisper', tier: 4, values: [3, 5, 8], text: 'Claim up to {v} free hexes beside your ground without walking.', effect: { kind: 'claimNear' } },
+  'name-between-names': { name: 'The Name Between Names', school: 'whisper', tier: 5, values: [1, 2, 3], text: 'Up to {v} of the nearest open gates are sealed from afar.', effect: { kind: 'seal', per: 'gates' } },
+  'mirror-keep': { name: 'Mirror Keep', school: 'whisper', tier: 5, values: [24, 48, 72], text: 'No new gate opens on your realm for {v} h.', effect: { kind: 'gateShield' } },
 } as const satisfies Record<string, Rite>;
 
 export type RiteId = keyof typeof RITES;
 export const RITE_IDS = Object.keys(RITES) as RiteId[];
+
+/** A rite that lands on one of your hexes — cast from the hex card, not the Keep. */
+export function castsOnHex(id: RiteId): boolean {
+  const e: RiteEffect = RITES[id].effect;
+  return e.kind === 'cellFloor' || e.kind === 'reveal' || ('scope' in e && (e.scope === 'target' || e.scope === 'ring'));
+}
 
 /** Mana per cast, by tier (the document's price list). */
 export const RITE_MANA: Readonly<Record<Tier, number>> = { 1: 20, 2: 30, 3: 45, 4: 60, 5: 90 };

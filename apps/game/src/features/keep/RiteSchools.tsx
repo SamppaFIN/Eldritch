@@ -7,6 +7,7 @@
  * Season 1 save.
  */
 import { useEffect, useState } from 'react';
+import { castsOnHex } from '@es3/core';
 import type { GameRepository, RiteRow, RiteView, School } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { riteRefusal } from './riteCopy.js';
@@ -23,9 +24,6 @@ export interface RiteSchoolsProps {
   repository: GameRepository | null;
   now: number;
 }
-
-/** A rite that lands on one hex is cast from the hex card, not from here. */
-export const castsOnHex = (id: string): boolean => id === 'salt-circle' || id === 'call-the-shoal';
 
 export function RiteSchools({ repository, now }: RiteSchoolsProps) {
   const [view, setView] = useState<RiteView | null>(null);
@@ -61,7 +59,7 @@ export function RiteSchools({ repository, now }: RiteSchoolsProps) {
     if (row.state !== 'learned') return null;
     return (
       <div className="cell-staff__buttons">
-        {row.wired && !castsOnHex(row.id) ? (
+        {!castsOnHex(row.id) ? (
           <RitualButton variant="ghost" disabled={busy || row.readyAt !== null || view.mana < row.mana} onClick={() => act(() => repository.rites.cast(row.id, now))}>
             {row.readyAt !== null ? 'Resting' : `Cast · ${row.mana} mana`}
           </RitualButton>
@@ -102,7 +100,6 @@ export function RiteSchools({ repository, now }: RiteSchoolsProps) {
                 {ROMAN[row.tier - 1]} · {row.name}
               </strong>
               {row.rank ? ` · rank ${ROMAN[row.rank - 1]}` : ` · ${row.state}`} — {row.text}
-              {row.wired ? '' : ' (not yet in the game)'}
             </p>
             {button(row)}
           </div>

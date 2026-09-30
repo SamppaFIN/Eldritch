@@ -25,6 +25,10 @@ export interface Investigator {
   homeAt?: number;
   /** Last time stamina and sanity were topped up by rest. */
   restedAt: number;
+  /** Borrowed Voice: extra dice on every test until `until` (PROG-007). */
+  voice?: { dice: number; until: number };
+  /** Madness Seed: every test is blessed until this moment (PROG-007). */
+  blessedUntil?: number;
 }
 
 export const STAMINA_MAX = 7;
@@ -41,7 +45,11 @@ export const FIRST_INVESTIGATOR = (now: number): Investigator => ({
   restedAt: now,
 });
 
-export const diceFor = (inv: Investigator, skill: Skill): number => 2 + inv.skills[skill];
+export const diceFor = (inv: Investigator, skill: Skill, now = 0): number =>
+  2 + inv.skills[skill] + (inv.voice && inv.voice.until > now ? inv.voice.dice : 0);
+/** The luck a test rolls with: blessed while a Madness Seed lasts. */
+export const luckFor = (inv: Investigator, now: number): Luck =>
+  inv.blessedUntil !== undefined && inv.blessedUntil > now ? 'blessed' : 'normal';
 export const successFloor = (luck: Luck): number => (luck === 'blessed' ? 4 : luck === 'cursed' ? 6 : BALANCE.successOn);
 export const sealClues = (lore: readonly LoreId[]): number => (lore.includes('elder-signs') ? 3 : BALANCE.sealClues);
 

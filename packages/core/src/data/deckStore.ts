@@ -9,7 +9,7 @@
  */
 import { cardById, rumourAt } from '../rules/deck.js';
 import type { DeckCard } from '../rules/deck.js';
-import { FIRST_INVESTIGATOR, addClues, afterTest, diceFor, isHome, recover, reroll, rollTest } from '../rules/investigator.js';
+import { FIRST_INVESTIGATOR, addClues, afterTest, diceFor, isHome, luckFor, recover, reroll, rollTest } from '../rules/investigator.js';
 import type { Investigator, Roll } from '../rules/investigator.js';
 import { terrainOf } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
@@ -73,7 +73,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
       if (standing !== h3) return { ok: false, refused: 'not-there' };
       const inv = await readInv(now);
       if (isHome(inv, now)) return { ok: false, refused: 'home' };
-      const roll = rollTest(diceFor(inv, card.skill), card.need, 'normal', rng);
+      const roll = rollTest(diceFor(inv, card.skill, now), card.need, luckFor(inv, now), rng);
       await store().set(K.investigator, afterTest(inv, 1, 0, now));
       await store().set(K.rumours, { ...(await book()), pending: { h3, cardId: card.id, roll } });
       return { ok: true, roll };

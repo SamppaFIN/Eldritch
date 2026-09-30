@@ -101,6 +101,10 @@ export function staffedBonus(
     if (f !== 1) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.floor((out[k] ?? 0) * f);
   }
 
+  // Second Lake (PROG-007): every staffed building makes a share more while it lasts.
+  const lift = boons.reduce((s, b) => s + (b.scope === 'yield' && b.until > now ? b.value : 0), 0);
+  if (lift > 0) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.round((out[k] ?? 0) * (1 + lift / 100));
+
   // Rites of the Tide (PROG-007): Call the Shoal on one Farmstead, High Water on every hand.
   for (const b of boons) {
     if (b.until <= now) continue;

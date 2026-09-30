@@ -12,6 +12,8 @@ const REFUSAL: Readonly<Record<string, string>> = {
   'cannot-afford': 'Not enough mana yet.',
   'no-keep': 'This realm has no Keep yet.',
   'no-target': 'Cast it from the hex card of your own ground.',
+  'no-gate': 'No gate is open. Keep it for when one is.',
+  'nothing-near': 'No free ground borders yours. Walk out to find some.',
 };
 
 export const riteRefusal = (refused: string): string => REFUSAL[refused] ?? 'That did not work.';

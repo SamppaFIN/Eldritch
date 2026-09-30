@@ -12,7 +12,7 @@ import { RITES } from '../rules/rites.js';
 import type { RiteBook } from '../rules/rites.js';
 import { RITE_MANA_COST, STRIKE_COOLDOWN_MS, riteDamage, strikeDamage } from '../rules/reckoning.js';
 import type { RealmMight } from '../rules/reckoning.js';
-import { FIRST_INVESTIGATOR, afterTest, diceFor, isHome, recover, rollTest } from '../rules/investigator.js';
+import { FIRST_INVESTIGATOR, afterTest, diceFor, isHome, luckFor, recover, rollTest } from '../rules/investigator.js';
 import type { Investigator, Roll } from '../rules/investigator.js';
 import { worksOn } from '../rules/build.js';
 import { commit, settlePouch } from './pouch.js';
@@ -75,7 +75,7 @@ export function reckoningApi(store: () => KeyValueStore, owned: (now: number) =>
       if (b.lastStrikeAt !== undefined && now - b.lastStrikeAt < STRIKE_COOLDOWN_MS) return { ok: false, refused: 'resting' };
       const i = await inv(now);
       if (isHome(i, now)) return { ok: false, refused: 'home' };
-      const roll = rollTest(diceFor(i, 'fight'), 1, 'normal', rng);
+      const roll = rollTest(diceFor(i, 'fight', now), 1, luckFor(i, now), rng);
       await store().set(K.investigator, afterTest(i, 1, 0, now));
       const damage = strikeDamage(roll, await might(now));
       await store().set(K.reckoning, { ...b, lastStrikeAt: now });

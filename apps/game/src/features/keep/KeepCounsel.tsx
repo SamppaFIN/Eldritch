@@ -11,14 +11,15 @@ import { RitualButton } from '@es3/ui';
 import './keep.css';
 
 const WHERE: Record<Counsel['where'], string> = {
-  keep: 'Here in the Keep, below.',
+  keep: 'In the Keep.',
   hex: 'On the hex card of your own ground.',
   lore: 'In Research — the Lore.',
   map: 'Out on the map, on foot.',
 };
 
 export function KeepCounsel({ repository, now }: { repository: GameRepository | null; now: number }) {
-  const [counsel, setCounsel] = useState<Counsel[] | null>(null);
+  // undefined while it is read; null on a realm with no Keep.
+  const [counsel, setCounsel] = useState<Counsel[] | null | undefined>(undefined);
   const [card, setCard] = useState<{ id: string; title: string; text: string } | null>(null);
   const [at, setAt] = useState(0);
 
@@ -31,12 +32,14 @@ export function KeepCounsel({ repository, now }: { repository: GameRepository | 
     })();
   }, [repository, now]);
 
-  if (!repository || !counsel || counsel.length === 0) return null;
+  if (!repository || counsel === undefined) return null;
+  if (!counsel || counsel.length === 0) {
+    return <p className="hearth-panel__line">{counsel ? 'Nothing needs you today. The realm is in order.' : 'The Keeper counsels a realm once its Keep is raised.'}</p>;
+  }
   const shown = counsel[at % counsel.length] as Counsel;
 
   return (
     <>
-      <h3 className="hearth-panel__section">The Keeper’s Counsel</h3>
       {card ? (
         <section className="keep-citizens keep-codex" aria-label="Codex">
           <p className="hearth-panel__line">

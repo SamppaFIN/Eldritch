@@ -26,7 +26,6 @@ import { KeepRealm } from '../keep/KeepRealm.js';
 import { HearthGrowth } from '../keep/HearthGrowth.js';
 import { KeepCitizens } from '../keep/KeepCitizens.js';
 import { KeepDoom } from '../keep/KeepDoom.js';
-import { KeepCounsel } from '../keep/KeepCounsel.js';
 import { KeepReckoning } from '../keep/KeepReckoning.js';
 import { KeepLegacy } from '../keep/LegacyTally.js';
 import { SeasonBoards } from '../season/SeasonBoards.js';
@@ -64,8 +63,6 @@ export interface HearthPanelProps {
   onWeakest: (h3: string) => void;
   /** New ground appeared without a step — Hearth growth (BRDC-HEARTH-003). Redraw the map. */
   onGrown?: (() => void) | undefined;
-  /** Opens the ledger of held ground (Infinite 2026-09-30: own lands live in the Keep). */
-  onOpenLands?: (() => void) | undefined;
   onClose: () => void;
 }
 
@@ -84,7 +81,6 @@ export function HearthPanel({
   onPublish,
   onWeakest,
   onGrown,
-  onOpenLands,
   onClose,
 }: HearthPanelProps) {
   useEscape(true, onClose);
@@ -160,17 +156,10 @@ export function HearthPanel({
         </div>
       </dl>
 
-      <KeepCounsel repository={repository} now={now} />
       <KeepDoom now={now} />
       <KeepReckoning repository={repository} now={now} />
       <KeepGates repository={repository} now={now} />
       <KeepCitizens repository={repository} now={now} onPouch={onPouch} onGrown={onGrown ?? (() => {})} />
-
-      {onOpenLands ? (
-        <RitualButton variant="ghost" onClick={onOpenLands}>
-          Your lands · every hex you hold
-        </RitualButton>
-      ) : null}
 
       <h3 className="hearth-panel__section">The pouch</h3>
       <KeepResources

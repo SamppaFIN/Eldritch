@@ -24,6 +24,7 @@ import {
   afterTest,
   diceFor,
   isHome,
+  luckFor,
   recover,
   reroll,
   rollTest,
@@ -31,6 +32,8 @@ import {
 } from '../rules/investigator.js';
 import type { Investigator, Roll } from '../rules/investigator.js';
 import { MAX_STRENGTH } from '../rules/constants.js';
+import { RITES } from '../rules/rites.js';
+import type { RiteBook } from '../rules/rites.js';
 import { hexDistance } from '../geo/cells.js';
 import { readLore } from './loreStore.js';
 import { commit, settlePouch } from './pouch.js';
@@ -99,6 +102,13 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
   const book = async () => (await store().get<GateBook>(K.gates)) ?? EMPTY;
   const inv = async (now: number): Promise<InvestigatorBook> =>
     recover((await store().get<InvestigatorBook>(K.investigator)) ?? FIRST_INVESTIGATOR(now), now);
+  /** A Mirror Keep cast within its hours: no gate is drawn for this realm (PROG-007). */
+  const mirrorHolds = async (now: number) => {
+    const rites = await store().get<RiteBook>(K.rites);
+    const at = rites?.castAt['mirror-keep'];
+    const rank = rites?.learned['mirror-keep'];
+    return at !== undefined && rank !== undefined && now - at < (RITES['mirror-keep'].values[rank - 1] as number) * 3_600_000;
+  };
   const hasKeep = async (now: number) => (await settlePouch(store(), await owned(now), now)).keep !== undefined;
   /** Tell the Keep how many gates weigh on the realm's sanity (PROG-008). */
   const weigh = async (gates: readonly Gate[], now: number) => {
@@ -119,8 +129,9 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
       const b = await book();
       const today = dawnsSince(season.opensAt, now);
       const gates = [...b.gates];
+      const mirrored = await mirrorHolds(now);
       for (let d = Math.max(b.dawn + 1, today - 2); d <= today; d += 1) {
-        const g = gateAtDawn(season.seed, d, realm, cells, now);
+        const g = mirrored ? null : gateAtDawn(season.seed, d, realm, cells, now);
         if (g && !gates.some((x) => x.id === g.id)) gates.push(g);
       }
       // Left open 48 h, a gate adds one to the Doom — once.
@@ -164,7 +175,7 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
       if (gate.h3 !== standing) return { ok: false, refused: 'not-there' };
       const i = await inv(now);
       if (isHome(i, now)) return { ok: false, refused: 'home' };
-      const roll = rollTest(diceFor(i, 'lore'), GATE_TEST_NEED, 'normal', rng);
+      const roll = rollTest(diceFor(i, 'lore', now), GATE_TEST_NEED, luckFor(i, now), rng);
       await store().set(K.investigator, { ...afterTest(i, 1, 0, now), pending: { gateId, roll } });
       return { ok: true, roll };
     },

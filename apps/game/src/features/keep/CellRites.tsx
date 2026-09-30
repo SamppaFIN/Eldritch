@@ -1,11 +1,11 @@
 /**
- * Rites cast on this hex (BRDC-PROG-007): Salt Circle on any of your hexes, Call the
- * Shoal on a Farmstead. Only learned ones show; nothing at all on a Season 1 save.
+ * Rites cast on this hex (BRDC-PROG-007): the ones `castsOnHex` names, on any of your
+ * hexes. Only learned ones show; nothing at all on a Season 1 save.
  */
 import { useEffect, useState } from 'react';
+import { castsOnHex } from '@es3/core';
 import type { GameRepository, H3Index, RiteRow } from '@es3/core';
 import { RitualButton } from '@es3/ui';
-import { castsOnHex } from './RiteSchools.js';
 import { riteRefusal } from './riteCopy.js';
 
 export interface CellRitesProps {
