@@ -12,7 +12,7 @@ import type { Settings } from '../hud/settings.js';
 import { Heptagram } from './heptagram.js';
 import './cipher-reveal.css';
 
-const SAFETY_MS = 15_000;
+// It stays until tapped (2026-09-30: no timer — a find is read when the walker sits down).
 
 export interface CipherRevealProps {
   found: number | null;
@@ -25,8 +25,6 @@ export function CipherReveal({ found, view, settings, onDismiss }: CipherRevealP
   useEffect(() => {
     if (found === null) return;
     if (settings.sound) playPling();
-    const timer = setTimeout(onDismiss, SAFETY_MS);
-    return () => clearTimeout(timer);
   }, [found, onDismiss, settings.sound]);
 
   if (found === null) return null;

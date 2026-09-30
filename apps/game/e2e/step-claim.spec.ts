@@ -87,7 +87,8 @@ test('a fresh game shows the ground already held before a single step', async ({
   expect(await cellsOnMap(page)).toBeGreaterThanOrEqual(7);
 });
 
-test('walking past the Hearth ring raises "New ground", which closes itself', async ({ page }) => {
+test('walking past the Hearth ring raises "New ground", and it waits to be read', async ({ page }) => {
+  // Infinite 2026-09-30: no timer — finds pile up in a pocket and are read sitting down.
   test.setTimeout(150_000);
   await openMap(page);
 
@@ -97,9 +98,10 @@ test('walking past the Hearth ring raises "New ground", which closes itself', as
   await expect(dialog.getByRole('button', { name: 'Reveal what it holds' })).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Open its card' })).toBeVisible();
 
-  // It must not sit in the way of the next step. The window is 4.5 s; the generous timeout
-  // is for Chromium throttling a background context's timers, not for the app.
-  await expect(newGround(page)).toBeHidden({ timeout: 25_000 });
+  // Well past the old 4.5 s: still up.
+  await page.waitForTimeout(8_000);
+  await expect(newGround(page)).toBeVisible();
+  await dialog.getByRole('button', { name: /^(Later|Next)$/ }).click();
 });
 
 test('a step says what it took — the claim line appears (BRDC-CLAIM-013)', async ({ page }) => {

@@ -19,15 +19,12 @@ export interface QuestRevealProps {
   settings: Settings;
 }
 
-/** It stays until tapped, but never longer than this. */
-const SAFETY_MS = 15_000;
+// It stays until tapped (2026-09-30: no timer — a find is read when the walker sits down).
 
 export function QuestReveal({ found, onDismiss, settings }: QuestRevealProps) {
   useEffect(() => {
     if (!found) return;
     if (settings.sound) playPling();
-    const timer = setTimeout(onDismiss, SAFETY_MS);
-    return () => clearTimeout(timer);
   }, [found, onDismiss, settings.sound]);
 
   if (!found) return null;

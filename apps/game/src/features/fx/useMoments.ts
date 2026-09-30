@@ -3,10 +3,10 @@
  *
  * The game is visually silent at the moments it should own — a level, a rite learned, an
  * adventure's end. This is the queue that draws them: one component, one named effect at
- * a time, and a cap so a long walk does not become fireworks.
+ * a time. Since 2026-09-30 nothing is dropped and nothing times out — a moment waits to be
+ * tapped, and the ones behind it wait their turn (read when the walker sits down).
  *
- * Deliberately not a store: a moment is a here-and-now thing, gone in under two seconds,
- * and nothing else in the game needs to read it.
+ * Deliberately not a store: nothing else in the game needs to read a moment.
  */
 import { useCallback, useRef, useState } from 'react';
 
@@ -22,40 +22,26 @@ export interface Moment {
   key: number;
 }
 
-/** At most this many moments start in any rolling 60 s. The rest are dropped, silently. */
-export const MOMENTS_PER_MIN = 4;
-const WINDOW_MS = 60_000;
-
-/** True when another moment may start now — fewer than the cap began in the last minute. */
-export function withinCap(startedAt: readonly number[], now: number): boolean {
-  return startedAt.filter((t) => now - t < WINDOW_MS).length < MOMENTS_PER_MIN;
-}
-
 export interface MomentsApi {
   /** The moment on screen, or null. Always the head of the queue. */
   current: Moment | null;
-  /** Enqueue a moment. Dropped without error if the per-minute cap is already reached. */
+  /** How many wait behind it. */
+  waiting: number;
+  /** Enqueue a moment. None is dropped. */
   show: (kind: MomentKind, eyebrow: string, title: string) => void;
   /** End the current moment and let the next (if any) take the screen. */
   dismiss: () => void;
 }
 
-export function useMoments(now: () => number = Date.now): MomentsApi {
+export function useMoments(): MomentsApi {
   const [queue, setQueue] = useState<Moment[]>([]);
-  const startedAt = useRef<number[]>([]);
   const nextKey = useRef(1);
 
-  const show = useCallback(
-    (kind: MomentKind, eyebrow: string, title: string) => {
-      const t = now();
-      if (!withinCap(startedAt.current, t)) return;
-      startedAt.current = [...startedAt.current.filter((x) => t - x < WINDOW_MS), t];
-      setQueue((q) => [...q, { kind, eyebrow, title, key: nextKey.current++ }]);
-    },
-    [now],
-  );
+  const show = useCallback((kind: MomentKind, eyebrow: string, title: string) => {
+    setQueue((q) => [...q, { kind, eyebrow, title, key: nextKey.current++ }]);
+  }, []);
 
   const dismiss = useCallback(() => setQueue((q) => q.slice(1)), []);
 
-  return { current: queue[0] ?? null, show, dismiss };
+  return { current: queue[0] ?? null, waiting: Math.max(0, queue.length - 1), show, dismiss };
 }

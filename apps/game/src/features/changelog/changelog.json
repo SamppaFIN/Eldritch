@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.7.9",
+    "date": "2026-09-30",
+    "notes": [
+      "Nothing you find disappears on a timer any more. New ground, a Temple, a quest item, a cipher fragment, a level or a wonder: each card waits to be read.",
+      "New finds pile on top of the old ones. Walk with the phone in your pocket, sit down, and go through them all. Close all clears the pile at once.",
+      "Open its card sets the rest aside. A small button at the top says how many finds are waiting."
+    ]
+  },
+  {
     "version": "0.7.8",
     "date": "2026-09-30",
     "notes": [

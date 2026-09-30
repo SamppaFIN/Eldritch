@@ -6,13 +6,14 @@
  * its detail card. It auto-dismisses in a few seconds — a step-claim lands about every
  * twenty-five metres and this must never be in the way of the next one.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Modal, Rarity, RitualButton, HexMandala } from '@es3/ui';
 import { revealOf, terrainForCell } from '@es3/core';
 import type { Cell, H3Index } from '@es3/core';
 import type { Discovery } from './useDiscovery.js';
 import './discovery-modal.css';
 import { GROUND_NAME } from './names.js';
+import { useCardStack } from '../hud/useCardStack.js';
 
 
 /*
@@ -29,8 +30,6 @@ const TIER: Readonly<Record<ReturnType<typeof revealOf>, string>> = {
   legendary: 'A place of power. Something waits here.',
 };
 
-const DISMISS_MS = 4500;
-
 export interface DiscoveryModalProps {
   discovered: Discovery | null;
   owned: readonly Cell[];
@@ -46,7 +45,8 @@ export function DiscoveryModal({
   onOpenCell,
   onReveal,
 }: DiscoveryModalProps) {
-  const [shown, setShown] = useState<Discovery | null>(null);
+  const stack = useCardStack<Discovery>();
+  const shown = stack.top;
   const seen = useRef(0);
 
   /*
@@ -60,31 +60,36 @@ export function DiscoveryModal({
   useEffect(() => {
     if (!discovered || discovered.at === seen.current) return;
     seen.current = discovered.at;
-    setShown(discovered);
-  }, [discovered]);
+    stack.push(discovered);
+  }, [discovered, stack.push]);
 
-  // Auto-dismiss is armed off `shown`, not folded into the effect above — so any re-run
-  // (a StrictMode remount included) re-arms it rather than leaving the screen up until it
-  // is tapped. A step-claim lands about every 25 m.
-  useEffect(() => {
-    if (!shown) return;
-    const t = setTimeout(() => setShown(null), DISMISS_MS);
-    return () => clearTimeout(t);
-  }, [shown]);
-
+  // Set aside by "Open its card": the pile waits behind one small button (2026-09-30).
+  if (shown && stack.aside) {
+    return (
+      <button type="button" className="discovery__waiting" onClick={() => stack.setAside(false)}>
+        {stack.count} {stack.count === 1 ? 'find' : 'finds'} waiting
+      </button>
+    );
+  }
   if (!shown) return null;
 
   const cell = owned.find((c) => c.h3 === shown.h3);
   const isRevealed = revealed[shown.h3] !== undefined;
   const learning = owned.length <= 5;
-  const close = () => setShown(null);
+  const close = stack.pop;
+  const beneath = stack.count - 1;
 
   return (
     <Modal
       open
       title="New ground"
       onClose={close}
-      footer={<RitualButton variant="ghost" onClick={close}>Later</RitualButton>}
+      footer={
+        <>
+          {beneath > 0 ? <RitualButton variant="ghost" onClick={stack.clear}>{`Close all · ${stack.count}`}</RitualButton> : null}
+          <RitualButton variant="ghost" onClick={close}>{beneath > 0 ? 'Next' : 'Later'}</RitualButton>
+        </>
+      }
     >
       <span className="discovery__sigil" aria-hidden>
         <HexMandala size={110} animate={1400} />
@@ -111,9 +116,10 @@ export function DiscoveryModal({
         </RitualButton>
       )}
 
-      <RitualButton className="discovery__open" onClick={() => { onOpenCell(shown.h3); close(); }}>
+      <RitualButton className="discovery__open" onClick={() => { onOpenCell(shown.h3); close(); if (beneath > 0) stack.setAside(true); }}>
         Open its card
       </RitualButton>
+      {beneath > 0 ? <p className="discovery__hint es-numeric">{beneath} more {beneath === 1 ? 'find' : 'finds'} beneath this one</p> : null}
     </Modal>
   );
 }

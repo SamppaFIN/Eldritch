@@ -9,7 +9,6 @@
  * the panel does not slide — but the moment still shows and still clears. The information
  * must not go with the motion (claude.md §14).
  */
-import { useEffect } from 'react';
 import { FlowerOfLife, HexMandala, MetatronsCube } from '@es3/ui';
 import type { GeometryProps } from '@es3/ui';
 import type { ComponentType } from 'react';
@@ -17,7 +16,6 @@ import type { MomentKind, MomentsApi } from './useMoments.js';
 import './moment-fx.css';
 
 /** Long enough to read two lines while walking, short enough to be gone before it matters. */
-const MOMENT_MS = 1_800;
 
 const GEOMETRY: Readonly<Record<MomentKind, ComponentType<GeometryProps>>> = {
   levelUp: FlowerOfLife,
@@ -42,13 +40,8 @@ export interface MomentFxProps {
 }
 
 export function MomentFx({ moments }: MomentFxProps) {
-  const { current, dismiss } = moments;
-
-  useEffect(() => {
-    if (!current) return;
-    const timer = setTimeout(dismiss, MOMENT_MS);
-    return () => clearTimeout(timer);
-  }, [current, dismiss]);
+  // No timer since 2026-09-30: a moment waits to be tapped, and the next follows.
+  const { current, dismiss, waiting } = moments;
 
   if (!current) return null;
 
@@ -66,6 +59,7 @@ export function MomentFx({ moments }: MomentFxProps) {
       <button type="button" className="moment-fx__panel" onClick={dismiss}>
         <span className="moment-fx__eyebrow">{current.eyebrow}</span>
         <span className="moment-fx__title">{current.title}</span>
+        {waiting > 0 ? <span className="moment-fx__eyebrow">{`Tap for the next · ${waiting} more`}</span> : null}
       </button>
     </div>
   );
