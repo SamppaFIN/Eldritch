@@ -16,6 +16,7 @@ import { ensureCastleLayer, removeCastleLayer } from '../territory/CastleMarker.
 import { ensurePathLayers, removePathLayers } from '../trail/PathLayer.js';
 import { ensurePlaceLayers, removePlaceLayers } from '../territory/PlaceMarkers.js';
 import { ensureQuestLayers, removeQuestLayers } from '../territory/QuestMarkers.js';
+import { ensureSeasonMarkLayers, removeSeasonMarkLayers } from '../season/SeasonMarkers.js';
 import { ensureArcLayer } from '../territory/strengthArcs.js';
 import { CELL_GROUND_LAYER, ensureTerritoryLayers, removeTerritoryLayers } from '../territory/TerritoryLayer.js';
 import { ensureTrailLayers, removeTrailLayers } from '../trail/TrailLayer.js';
@@ -30,6 +31,7 @@ export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
     ensureAuraLayers(map);
     ensureTrailLayers(map);
     ensurePlaceLayers(map);
+    ensureSeasonMarkLayers(map);
     ensureCastleLayer(map);
     ensureQuestLayers(map);
     ensureAwakeningLayers(map);
@@ -39,6 +41,7 @@ export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
         removeAwakeningLayers(map);
         removeQuestLayers(map);
         removeCastleLayer(map);
+        removeSeasonMarkLayers(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
         removeAuraLayers(map);

@@ -7,6 +7,7 @@
  */
 import { WONDER_ACTS, WONDER_ACT_COOLDOWN_MS } from '../rules/wonderActs.js';
 import type { WonderAct } from '../rules/wonderActs.js';
+import { WONDERS } from '../rules/wonder.js';
 import type { WonderId } from '../rules/wonder.js';
 import { growBox } from '../rules/balance.js';
 import { ageOf, loreCost } from '../rules/lore.js';
@@ -34,6 +35,8 @@ export interface WonderActApi {
   /** The wonder standing on this hex and whether its action is ready; null elsewhere. */
   at(h3: H3Index, now: number): Promise<WonderHere | null>;
   use(h3: H3Index, now: number, reckoning: boolean): Promise<WonderActOutcome>;
+  /** Every wonder this realm has found, and the hex it was found on — for the map. */
+  finds(): Promise<{ id: WonderId; name: string; h3: H3Index }[]>;
 }
 
 const SKILL_MAX = 5;
@@ -62,6 +65,11 @@ export function wonderActApi(
       if (!id) return null;
       const last = (await used())[id];
       return { id, act: WONDER_ACTS[id] as WonderAct, readyAt: last !== undefined && now - last < WONDER_ACT_COOLDOWN_MS ? last + WONDER_ACT_COOLDOWN_MS : null };
+    },
+
+    finds: async () => {
+      const finds = (await store().get<Partial<Record<WonderId, { h3: H3Index }>>>(K.wonderFinds)) ?? {};
+      return (Object.entries(finds) as [WonderId, { h3: H3Index }][]).map(([id, f]) => ({ id, name: WONDERS[id]?.name ?? id, h3: f.h3 }));
     },
 
     use: async (h3, now, inReckoning) => {

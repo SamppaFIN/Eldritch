@@ -16,8 +16,8 @@ test.use({ permissions: ['geolocation'], geolocation: HERE });
 async function openLands(page: Page) {
   await open(page, HERE);
   await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 25_000 });
-  // Own lands are a tab on the nav bar (Infinite 2026-09-30).
-  await page.getByRole('navigation', { name: 'Go to' }).getByRole('button', { name: 'Lands' }).click();
+  // Own lands are a button on the walking sheet (Infinite 2026-09-30).
+  await page.getByRole('button', { name: 'Lands', exact: true }).click();
   const lands = page.getByRole('region', { name: 'Your lands' });
   await expect(lands).toBeVisible({ timeout: 15_000 });
   return lands;
@@ -63,8 +63,8 @@ test('a row takes you to that hex, and ESC closes the ledger', async ({ page }) 
   await expect(page.getByRole('region', { name: 'Selected cell' })).toBeVisible({ timeout: 15_000 });
 
   await page.keyboard.press('Escape');
-  // Own lands are a tab on the nav bar (Infinite 2026-09-30).
-  await page.getByRole('navigation', { name: 'Go to' }).getByRole('button', { name: 'Lands' }).click();
+  // Own lands are a button on the walking sheet (Infinite 2026-09-30).
+  await page.getByRole('button', { name: 'Lands', exact: true }).click();
   const again = page.getByRole('region', { name: 'Your lands' });
   await expect(again).toBeVisible({ timeout: 15_000 });
   await page.keyboard.press('Escape');
@@ -83,8 +83,8 @@ test('revealed ground names what is on it (BRDC-BOUNTY-001)', async ({ page }) =
 
   const count = await seedRealm(page, { at: HERE, rings: 6, reveal: true });
   await page.reload();
-  // Own lands are a tab on the nav bar (Infinite 2026-09-30).
-  await page.getByRole('navigation', { name: 'Go to' }).getByRole('button', { name: 'Lands' }).click();
+  // Own lands are a button on the walking sheet (Infinite 2026-09-30).
+  await page.getByRole('button', { name: 'Lands', exact: true }).click();
   const lands = page.getByRole('region', { name: 'Your lands' });
   await expect(lands.locator('.lands__row')).toHaveCount(count, { timeout: 40_000 });
 

@@ -127,11 +127,11 @@ export function MapView({ onLeave }: MapViewProps) {
     enabled: settings.shareWorld,
   });
 
-  // Stable primitives (BRDC-ECON-003). `castle`: the Hearth founds *after* the repository
-  // exists, and the first read saw an empty pouch that nothing re-asked (BRDC-ECON-008).
-  const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length, castle];
-  const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
   const [collected, setCollected] = useState<Collected | null>(null);
+  // Stable primitives (BRDC-ECON-003). `castle`: the Hearth founds after the repository,
+  // so re-ask then (ECON-008); `collected`: a collect shows at once (field report 2026-09-30).
+  const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length, castle, collected];
+  const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
 
   // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
   const laps = trail.points.length + (territory.lastClaim?.at ?? 0);
@@ -139,7 +139,7 @@ export function MapView({ onLeave }: MapViewProps) {
     repository,
     clock.now,
     laps,
-    (h3) => inspect.onCellTap(h3), () => void territory.refresh(),
+    (h3) => { inspect.onCellTap(h3); mapRef.current?.focusCell(h3); }, () => void territory.refresh(),
     () => onSettingsChange({ ...settings, shareWorld: true }),
   );
 
@@ -222,7 +222,7 @@ export function MapView({ onLeave }: MapViewProps) {
         auraCells={inspect.auraCells}
         cells={shownCells}
         playerId={profile?.id ?? null}
-        places={places}
+        places={places} repository={repository}
         questSites={quest.questSites}
         castle={castle} hearthRing={territory.hearthRing}
         now={minuteNow}

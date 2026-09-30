@@ -119,6 +119,10 @@ export function isDormant(id: MasterworkId, cells: readonly Cell[]): boolean {
 }
 
 /** The masterworks standing and awake in a realm. */
+/** Raised already — a hex of yours carries it (dormant or not). */
+export const isRaised = (id: MasterworkId, cells: readonly Cell[]): boolean =>
+  cells.some((c) => worksOn(c).some((w) => w.id === MASTERWORKS[id].becomes));
+
 export function activeMasterworks(cells: readonly Cell[]): MasterworkId[] {
   const n = census(cells);
   return MASTERWORK_IDS.filter((id) => (n.get(MASTERWORKS[id].becomes) ?? 0) > 0 && !isDormant(id, cells));

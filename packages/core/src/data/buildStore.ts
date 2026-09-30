@@ -20,6 +20,7 @@ import { neighboursOf, regionOf } from '../geo/cells.js';
 import type { TechId } from '../rules/tech.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
+import { revealRings } from './revealStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
@@ -39,6 +40,16 @@ export function ironAdjacentTo(h3: H3Index, owned: readonly Cell[]): boolean {
   return neighboursOf(h3).some(
     (n) => ['hill', 'mountain'].includes(terrainAt(n).kind) || owned.some((c) => c.h3 === n && hasWork(c, 'mine')),
   );
+}
+
+/**
+ * The Library's and Temple Grove's gate (BRDC-BUILD-003): a temple on this hex or beside it —
+ * a revealed temple place, or (Season 2, field report 2026-09-30) one of your own Temple
+ * Groves, which the sanity formula already counts as the realm's temple.
+ */
+export function templeAdjacentTo(h3: H3Index, places: readonly { h3: H3Index }[], owned: readonly Cell[]): boolean {
+  const near = [h3, ...neighboursOf(h3)];
+  return places.some((p) => near.includes(p.h3)) || owned.some((c) => near.includes(c.h3) && hasWork(c, 'temple-grove'));
 }
 
 /** The Tavern's own gate (BRDC-TAVERN-001): true when the player already holds a Tavern
@@ -108,6 +119,9 @@ export async function buildOn(
   const kept = worksOn(live).filter((w) => !replaced.has(w.id));
   const built: Cell = { ...live, buildings: [...kept, { id, builtAt: now }] };
   await store.set(K.cell(h3), built);
+  // A Watchtower sees the six hexes around it the moment it stands (Eldritch-Progression.pdf
+  // WORK table: "Sight and +40 strength in ring 1"; field report 2026-09-30).
+  if (id === 'watchtower') await revealRings(store, h3, 1, now);
   await writeLogEntry(store, { at: now, kind: 'build', ref: id });
   return { ok: true, cell: built };
 }

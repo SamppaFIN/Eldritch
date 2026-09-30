@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cellAt, cellsWithin } from '../geo/cells.js';
-import { MASTERWORKS, activeMasterworks, isDormant, ladder } from './masterwork.js';
+import { MASTERWORKS, activeMasterworks, isDormant, isRaised, ladder } from './masterwork.js';
 import type { BuildingId, Cell } from '../types/domain.js';
 
 const T0 = Date.parse('2026-10-01T12:00:00Z');
@@ -39,5 +39,13 @@ describe('masterworks — count + Lore + level', () => {
 
   it('the Foundry wants two kinds of work', () => {
     expect(Object.keys(MASTERWORKS.foundry.count)).toEqual(['quarry', 'forge']);
+  });
+});
+
+describe('isRaised (field report 2026-09-30: the Counsel kept offering a raised Manor)', () => {
+  it('is true once a hex carries the masterwork, and only for that one', () => {
+    const cells = [at(0, 'manor'), at(1, 'farm')];
+    expect(isRaised('manor', cells)).toBe(true);
+    expect(isRaised('fortress', cells)).toBe(false);
   });
 });

@@ -14,7 +14,7 @@ import { staffKey } from '../rules/staffing.js';
 import { worksOn } from '../rules/build.js';
 import { BUILDING_NAMES_PLAIN } from './counselNames.js';
 import { LORE, LORE_IDS, ageOf, loreCost } from '../rules/lore.js';
-import { MASTERWORK_IDS, ladder } from '../rules/masterwork.js';
+import { MASTERWORK_IDS, isRaised, ladder } from '../rules/masterwork.js';
 import { STORE_MS } from '../rules/citizens.js';
 import { forecastRates, settlePouch } from './pouch.js';
 import { readLore } from './loreStore.js';
@@ -43,6 +43,9 @@ export async function counselFor(store: KeyValueStore, cells: readonly Cell[], n
   for (const c of cells) levels.set(c.h3, (await worksViewAt(store, c))?.level ?? 0);
   let nearly: { name: string; missing: string } | null = null;
   for (const id of MASTERWORK_IDS) {
+    // A raised one is done, not "within reach" — and raising it took one of its own
+    // ingredients, so its ladder would count one short (field report 2026-09-30, Manor).
+    if (isRaised(id, cells)) continue;
     const { needs } = ladder(id, cells, lore, (c) => levels.get(c.h3) ?? 0);
     const missing = needs.filter((n) => !n.met);
     if (missing.length === 1) {

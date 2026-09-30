@@ -1,7 +1,7 @@
 /**
  * The nav bar, drawn to the Sigil document's screen 02.
  *
- * Equal columns, a glyph over a wide-tracked label, the one you are on in cyan and
+ * Five equal columns, a glyph over a wide-tracked label, the one you are on in cyan and
  * the rest dim. It is its own glass bar below the walking sheet rather than a row of ghost
  * buttons inside it — the document draws them as two surfaces because they answer two
  * different questions: the sheet is *how am I doing*, this is *where do I go*.
@@ -22,9 +22,6 @@ export interface HudNavProps {
   onOpenKeep?: (() => void) | undefined;
   onOpenResearch?: (() => void) | undefined;
   onOpenCharacter?: (() => void) | undefined;
-  /** Your lands and the Keeper's Counsel (Infinite 2026-09-30: moved here from the Keep). */
-  onOpenLands?: (() => void) | undefined;
-  onOpenCounsel?: (() => void) | undefined;
 }
 
 function Item({
@@ -61,17 +58,13 @@ export function HudNav({
   onOpenKeep,
   onOpenResearch,
   onOpenCharacter,
-  onOpenLands,
-  onOpenCounsel,
 }: HudNavProps) {
   return (
     <nav className="hud-nav" aria-label="Go to">
       <Item glyph="◉" label="Map" active={!covered} onClick={covered ? onShowMap : undefined} />
       <Item glyph="◈" label="Here" onClick={onInspectHere} />
       <Item glyph="⌂" label="Keep" onClick={onOpenKeep} />
-      <Item glyph="⬡" label="Lands" onClick={onOpenLands} />
       <Item glyph="✳" label="Research" onClick={onOpenResearch} />
-      <Item glyph="☉" label="Counsel" onClick={onOpenCounsel} />
       <Item glyph="◇" label="You" onClick={onOpenCharacter} />
     </nav>
   );

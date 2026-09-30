@@ -22,6 +22,7 @@ export const WIRED: ReadonlySet<EffectKind> = new Set<EffectKind>([
   'convert',
   'produceFrom',
   'worksMult',
+  'reveal',
 ]);
 
 export type NodeState = 'learned' | 'available' | 'locked' | 'closed' | 'dormant';
@@ -32,17 +33,23 @@ export function tierNumberOf(def: BuildingDef, nodeId: string): number {
   return def.tree.tiers.findIndex((t) => t.nodes.some((n) => n.id === nodeId)) + 1;
 }
 
-/** A wider ring only matters when something reads it: the ring's own effect, or a node's. */
+/** A wider ring only matters when something reads it: the ring's own effect, or a node's —
+ *  a Watchtower's sight, which reveals out to its reach (field report 2026-09-30). */
 function ringMatters(def: BuildingDef): boolean {
   if (def.reach?.effect && isWired(def, def.reach.effect)) return true;
   return def.tree.tiers.some((t) =>
-    t.nodes.some((n) => n.effects.some((e) => e.kind === 'producePer' && e.per === 'cellInReach')),
+    t.nodes.some((n) => n.effects.some((e) => (e.kind === 'producePer' && e.per === 'cellInReach') || (e.kind === 'reveal' && e.around === 'self'))),
   );
 }
+
+/** Whether learning a node on this building widens what it reveals around itself. */
+export const revealsAround = (def: BuildingDef): boolean =>
+  def.tree.tiers.some((t) => t.nodes.some((n) => n.effects.some((e) => e.kind === 'reveal' && e.around === 'self')));
 
 export function isWired(def: BuildingDef, e: Effect): boolean {
   if (!WIRED.has(e.kind)) return false;
   if (e.kind === 'cellStrength') return e.scope === 'cell';
+  if (e.kind === 'reveal') return e.around === 'self'; // around temples: not yet
   if (e.kind === 'reach') return ringMatters(def);
   return true;
 }

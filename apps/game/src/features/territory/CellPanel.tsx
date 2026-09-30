@@ -250,6 +250,7 @@ export function CellPanel({
           resources={resources}
           researched={build.researched}
           lore={lore}
+          near={{ templeAdjacent: build.templeAdjacent, ironAdjacent: build.ironAdjacent }}
           myBuildings={build.myBuildings}
           onBuild={build.onBuild}
           onDemolish={build.onDemolish}

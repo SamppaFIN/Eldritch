@@ -1,5 +1,19 @@
 [
   {
+    "version": "0.7.8",
+    "date": "2026-09-30",
+    "notes": [
+      "Lands and Counsel are two buttons on the walking sheet, beside the Vigil. The bar at the bottom is back to five.",
+      "Collect shows at once: the pouch and the Keep's numbers update the moment you tap it.",
+      "A row in Your lands flies the map to that exact hex and opens its card.",
+      "An open gate stands on the map as a portal, and a wonder you have found stands where you found it, with its name.",
+      "A Library or Temple Grove can go beside your own Temple Grove, and the hex card no longer says every Library and Forge is refused.",
+      "A Watchtower reveals the six hexes around it when built. Its Lookout, Second Platform and Spyglass reveal further, as they say.",
+      "The Counsel stops saying a masterwork is within reach once you have raised it.",
+      "The ground type shows only on your own hexes, the ring beside them and ground you have scouted. A tap out in the fog opens nothing."
+    ]
+  },
+  {
     "version": "0.7.7",
     "date": "2026-09-30",
     "notes": [

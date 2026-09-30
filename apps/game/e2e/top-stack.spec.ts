@@ -15,7 +15,7 @@ test.use({ permissions: ['geolocation'], geolocation: HERE });
 async function openCellFromLands(page: Page) {
   await open(page, HERE);
   await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 25_000 });
-  await page.getByRole('navigation', { name: 'Go to' }).getByRole('button', { name: 'Lands' }).click();
+  await page.getByRole('button', { name: 'Lands', exact: true }).click();
   const lands = page.getByRole('region', { name: 'Your lands' });
   await expect(lands).toBeVisible({ timeout: 15_000 });
   await lands.locator('.lands__cell').first().click();

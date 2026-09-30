@@ -325,6 +325,7 @@ export {
   MASTERWORKS,
   MASTERWORK_IDS,
   activeMasterworks,
+  isRaised,
   isDormant as isMasterworkDormant,
   ladder as masterworkLadder,
 } from './masterwork.js';

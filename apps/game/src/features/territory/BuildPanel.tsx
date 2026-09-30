@@ -98,6 +98,8 @@ export interface BuildPanelProps {
   /** Open a building's Guide page (BRDC-WIKI-004). Absent → the name is plain text. */
   onWiki?: ((id: BuildingId) => void) | undefined;
   refusal: { why: BuildRefusal | 'nothing-here'; id: BuildingId | null } | null;
+  /** Whether a temple / iron stands beside this hex, as the store will ask when it builds. */
+  near?: { templeAdjacent: boolean; ironAdjacent: boolean };
   /** A Season 2 realm's learned Lore — it, not the old tree, gates the list. Null on Season 1. */
   lore?: readonly LoreId[] | null;
 }
@@ -163,9 +165,10 @@ export function BuildPanel({
   onWiki,
   refusal,
   lore = null,
+  near,
 }: BuildPanelProps) {
   const [showLocked, setShowLocked] = useState(false);
-  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings };
+  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings, ...near };
   // Masterworks are raised in the Keep, never built from this list; on a Season 2 save the
   // Fortress is one of them too.
   const all = (Object.keys(BUILDINGS) as BuildingId[]).filter((id) => !BUILDINGS[id].masterwork && !(lore && id === 'fortress'));

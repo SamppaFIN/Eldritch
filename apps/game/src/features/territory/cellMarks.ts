@@ -209,7 +209,11 @@ export function cellsToGeoJson(
       const fading =
         cell.ownerId === me && cell.h3 !== home && !sheltered &&
         hoursUntilReleased(cell.strength) - (now - cell.lastVisitedAt) / 3_600_000 <= FADING_WARNING_HOURS;
-      return { ...feature, properties: { ...feature.properties, hearth, blight, fading } };
+      // The ground is read only where the player can see it: their own hexes, the ring
+      // beside them, and anything scouted (field report 2026-09-30).
+      const seen = ownedH3.has(cell.h3) || revealed[cell.h3] !== undefined || cellNeighbours(cell.h3).some((n) => ownedH3.has(n));
+      const ground = seen ? feature.properties.ground : '';
+      return { ...feature, properties: { ...feature.properties, hearth, blight, fading, ground } };
     }),
   };
 }

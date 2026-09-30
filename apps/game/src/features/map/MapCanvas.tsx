@@ -9,12 +9,13 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Marker } from 'maplibre-gl';
 import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
-import { cellAt, QUEST_SITES, siteCell } from '@es3/core';
+import { cellAt, cellCentre, neighboursOf, QUEST_SITES, siteCell } from '@es3/core';
 import { useEditorPaint } from '../editor/useEditorPaint.js';
 import type { Editor } from '../editor/useEditor.js';
 import type {
   BBox,
   Cell,
+  GameRepository,
   H3Index,
   LatLng,
   PlayerId,
@@ -34,6 +35,7 @@ import { NATION_FILL_LAYER } from '../territory/layerIds.js';
 import { useMapLayers } from './useMapLayers.js';
 import { useBuildingIcons } from './useBuildingIcons.js';
 import { PLACE_CORE_LAYER, PLACE_HALO_LAYER, setPlaceData } from '../territory/PlaceMarkers.js';
+import { setSeasonMarkData, useSeasonMarks } from '../season/SeasonMarkers.js';
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, setCastleData } from '../territory/CastleMarker.js';
 import { QUEST_MARK_LAYER, setQuestData } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
@@ -74,6 +76,8 @@ export interface MapCanvasProps {
   cells?: readonly Cell[]; // visible territory
   playerId?: PlayerId | null;
   places?: readonly RevealedPlace[]; // cells the game has worked out are places
+  /** Read for the open gates and found wonders it draws (field report 2026-09-30). */
+  repository?: GameRepository | null;
   /** Adventure landmark ids the map should draw right now (BRDC-QUEST-001). */
   questSites?: readonly string[];
   /** The Keep — the published location, the Hearth cell (BRDC-CASTLE-001). Null before one exists. */
@@ -115,6 +119,8 @@ export interface MapCanvasProps {
 /** What the "Here" button reaches in for (BRDC-MAP-004). */
 export interface MapHandle {
   focusHere: () => void;
+  /** Fly to one hex and stop following the player — Your lands' rows (2026-09-30). */
+  focusCell: (h3: H3Index) => void;
 }
 
 export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanvas({
@@ -127,6 +133,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   cells,
   playerId = null,
   places,
+  repository = null,
   questSites,
   castle = null,
   hearthRing = 0,
@@ -198,6 +205,10 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     setArcData(map, cells, playerId, now);
   }, [map, ready, cells, playerId, now, castle, bannerId, revealed, places, hearthRing]);
 
+  const owned = new Set((cells ?? NO_CELLS).filter((c) => c.ownerId !== null && c.ownerId === playerId).map((c) => c.h3));
+  const seesRef = useRef<(h3: H3Index) => boolean>(() => false);
+  seesRef.current = (h3) => owned.size === 0 || owned.has(h3) || revealed[h3] !== undefined || neighboursOf(h3).some((n) => owned.has(n));
+
   /*
    * Tapping a hexagon. A rendered cell carries its H3 as the feature id; a tap on none
    * (a small fog ring, no ground yet) derives the hex from the coordinates instead, so
@@ -233,8 +244,11 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
         onCellTap(id);
         return;
       }
-      // Nothing drawn under the tap — take the hex from where it landed.
-      onCellTap(cellAt({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
+      // Nothing drawn under the tap — take the hex from where it landed, but only one the
+      // player can see: their own, the ring beside it, or scouted ground. Past that is the
+      // fog, and a tap there opens nothing (field report 2026-09-30).
+      const h3 = cellAt({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+      if (seesRef.current(h3)) onCellTap(h3);
     };
     const enter = () => {
       map.getCanvas().style.cursor = 'pointer';
@@ -321,6 +335,11 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     setPlaceData(map, places);
   }, [map, ready, places]);
 
+  const seasonMarks = useSeasonMarks(repository, now);
+  useEffect(() => {
+    if (map && ready) setSeasonMarkData(map, seasonMarks);
+  }, [map, ready, seasonMarks]);
+
   useEffect(() => {
     if (!map || !ready) return;
     setQuestData(map, questSites ?? []);
@@ -351,7 +370,14 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   useEditorPaint(map, ready, editor ?? null);
   useNationTap(map, ready, unfollow);
 
-  useImperativeHandle(ref, () => ({ focusHere }), [focusHere]);
+  useImperativeHandle(ref, () => ({
+    focusHere,
+    focusCell: (h3) => {
+      unfollow();
+      const { lat, lng } = cellCentre(h3);
+      map?.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 17) });
+    },
+  }), [focusHere, unfollow, map]);
 
   // Move the marker on each fix; the camera is the hook's job now.
   useEffect(() => {

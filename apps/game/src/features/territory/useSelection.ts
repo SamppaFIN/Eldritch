@@ -6,7 +6,7 @@
  * and it reads better here — nothing else in the map screen needs to know how it works.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BUILDINGS, buildingsOf, cellsWithin, emptyCell, fortified, hasWork, worksOn } from '@es3/core';
+import { BUILDINGS, buildingsOf, cellsWithin, emptyCell, fortified, hasWork, ironAdjacentTo, templeAdjacentTo, worksOn } from '@es3/core';
 import type {
   BuildRefusal,
   BuildingId,
@@ -55,6 +55,10 @@ export interface BuildBinding {
   /** True on the Fortress's own hex or one of the seven it protects (BRDC-BUILD-012's own
    *  remaining gap — the neighbour-hex card used to have no way to know this). */
   fortified: boolean;
+  /** A temple / iron beside the selected hex — the list checked without them and showed
+   *  every Library and Forge refused (field report 2026-09-30). */
+  templeAdjacent: boolean;
+  ironAdjacent: boolean;
 }
 
 /**
@@ -153,7 +157,8 @@ export function useSelection({
   // rival's, or the shared world's — carry their owner's Works, not the player's, so they
   // must not count against the cap (BRDC-BUILD-007 field bug: a Wager from a builder made
   // it impossible to build anything). An off-screen building can still under-count; fine.
-  const myBuildings = useMemo(() => buildingsOf(cells.filter((c) => !c.imported)), [cells]);
+  const mine = useMemo(() => cells.filter((c) => !c.imported), [cells]);
+  const myBuildings = useMemo(() => buildingsOf(mine), [mine]);
   // The cells already in view are enough to answer "is a Fortress within reach" for a
   // card, the same trust `templeAdjacent` already places in what is loaded (BRDC-CARD-001).
   const known = useMemo(() => new Map(cells.map((c) => [c.h3, c])), [cells]);
@@ -334,6 +339,8 @@ export function useSelection({
       onBuild,
       onDemolish,
       fortified: cell ? fortified(known, cell.h3) : false,
+      templeAdjacent: cell ? templeAdjacentTo(cell.h3, livePlaces, mine) : false,
+      ironAdjacent: cell ? ironAdjacentTo(cell.h3, mine) : false,
     },
     onCellTap,
     onPlaceTap,

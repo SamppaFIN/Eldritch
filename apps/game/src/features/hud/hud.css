@@ -256,6 +256,16 @@
   font-size: var(--text-sm);
 }
 
+/* Lands and Counsel beside the Vigil (2026-09-30): small enough that all three share one
+   row on a 360 px phone, still a full thumb high. */
+.hud__sheet-link {
+  flex: 0 0 auto;
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+}
+
 /* --- Vigil ------------------------------------------------------------- */
 
 .vigil__toggle {

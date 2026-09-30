@@ -23,7 +23,7 @@ import { wardAt } from './wardStore.js';
 import { closeWalk, submitWalk, type WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
-import { buildOn, demolishOn, ironAdjacentTo, tavernInProvince, type BuildOutcome, type DemolishOutcome } from './buildStore.js';
+import { buildOn, demolishOn, ironAdjacentTo, tavernInProvince, templeAdjacentTo, type BuildOutcome, type DemolishOutcome } from './buildStore.js';
 import { takeRazed } from './razedStore.js';
 import { cityAtDoor, tradeAt } from './cityStateStore.js';
 import type { CityState } from '../rules/cityState.js';
@@ -34,7 +34,6 @@ import { readPaths } from './pathStore.js';
 import { readRouteDistance } from './distanceStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
 import { walkedEdges, type WalkedEdge } from '../geo/paths.js';
-import { neighboursOf } from '../geo/cells.js';
 import { castSpellAt, readSpells, type CastOutcome } from './spellStore.js';
 import { activeSpells, type ActiveSpell, type SpellId } from '../rules/spell.js';
 import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
@@ -150,10 +149,9 @@ export class MockRepository implements GameRepository {
 
   /* --- Buildings and technology ----------------------------------------- */
   async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
-    const near = [h3, ...neighboursOf(h3)];
-    const nearTemple = (await this.getPlaces()).some((p) => near.includes(p.h3));
     const me = (await this.getProfile()).id;
     const owned = await this.getOwnedCells(now);
+    const nearTemple = templeAdjacentTo(h3, await this.getPlaces(), owned);
     return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple, ironAdjacentTo(h3, owned), tavernInProvince(h3, owned));
   }
 

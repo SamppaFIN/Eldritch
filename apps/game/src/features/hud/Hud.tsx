@@ -19,8 +19,9 @@ import { formatArea, formatDistance } from '../codex/figures.js';
 import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
-import { Vigil, vigilLine } from './Vigil.js';
-import { HudNav, type HudNavProps } from './HudNav.js';
+import { vigilLine } from './Vigil.js';
+import { HudNav } from './HudNav.js';
+import { SheetActions, type SheetLinks } from './SheetActions.js';
 import { useHudFold } from './useHudFold.js';
 import { HudClaim } from './HudClaim.js';
 import { useClaimFeedback } from './useClaimFeedback.js';
@@ -73,7 +74,7 @@ export interface HudProps {
   /** Opens the Keep — buildings and mana — from anywhere, not just its marker (BRDC-KEEP-003). */
   onOpenKeep?: (() => void) | undefined;
   onOpenResearch?: (() => void) | undefined;
-  nav?: Pick<HudNavProps, 'onOpenLands' | 'onOpenCounsel'>; // Lands and Counsel on the nav bar
+  nav?: SheetLinks; // Lands and Counsel, beside the Vigil
   /** Opens a codex entry (BRDC-WIKI-001). */
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
@@ -376,10 +377,9 @@ export function Hud({
             </span>
           </p>
 
-          {/* Vigil is a setting about recording, not a destination — it stays with the
-              readout it belongs to, and navigation moved to its own bar below. */}
+          {/* Vigil stays with the readout; Lands and Counsel sit beside it (2026-09-30). */}
           <div className="hud__actions">
-            <Vigil keepAlive={keepAlive} />
+            <SheetActions keepAlive={keepAlive} {...nav} />
           </div>
         </div>
         </>
@@ -392,7 +392,7 @@ export function Hud({
         onShowMap={onShowMap}
         onInspectHere={standing ? onInspectHere : undefined}
         onOpenKeep={onOpenKeep}
-        onOpenResearch={onOpenResearch} onOpenCharacter={onOpenCharacter} {...nav}
+        onOpenResearch={onOpenResearch} onOpenCharacter={onOpenCharacter}
       />
     </div>
   );
