@@ -125,7 +125,9 @@ describe('riteApi (BRDC-PROG-007)', () => {
   it('the Whisper reveals, lends dice, blesses tests and brings clues', async () => {
     const dream = await knowing('dream-sight');
     expect((await dream.rites.cast('dream-sight', T0, A)).ok).toBe(true);
-    expect(Object.keys((await dream.store.get<Record<string, number>>(K.revealed)) ?? {})).toHaveLength(cellsWithin(A, 3).length);
+    // Sight, not a find: the fog lifts, and nothing is marked revealed (2026-09-30).
+    expect(Object.keys((await dream.store.get<Record<string, number>>(K.sighted)) ?? {})).toHaveLength(cellsWithin(A, 3).length);
+    expect(await dream.store.get(K.revealed)).toBeUndefined();
 
     const voice = await knowing('borrowed-voice');
     expect((await voice.rites.cast('borrowed-voice', T0)).ok).toBe(true);

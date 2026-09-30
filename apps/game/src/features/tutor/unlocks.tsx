@@ -8,8 +8,10 @@
  * thumb, while walking. So: one sentence of what this is, one of what to do with it, both
  * under twenty words. Nothing here repeats a wiki page; `see` points at one instead.
  */
-import type { UnlockId } from '@es3/core';
+import { BUILDINGS } from '@es3/core';
+import type { BuildingId, ResourceKind, ResourceLesson, UnlockId } from '@es3/core';
 import type { WikiRef } from '../help/wikiPages.js';
+import { BUILDING_NAME } from '../territory/names.js';
 
 export interface UnlockCopy {
   /** What just became available, as a name. */
@@ -28,7 +30,51 @@ export interface UnlockCopy {
   see: WikiRef | null;
 }
 
+/**
+ * A resource met for the first time (field report 2026-09-30: *"jos löydät questin tai UUDEN
+ * resurssin, niin peli ilmoittaa mitä sillä voi tehdä"*). What it is, then what it buys —
+ * the Works that cost it, read from `BUILDINGS`, so the list never goes stale.
+ */
+const RESOURCE_WHAT: Readonly<Record<Exclude<ResourceKind, 'tokens'>, [string, string]>> = {
+  wood: ['Timber', 'Forest hexes and Sawmills give it.'],
+  stone: ['Stone', 'Hills and Quarries give it.'],
+  iron: ['Iron', 'Hills and Forges give it.'],
+  food: ['Food', 'Your citizens eat it. A full granary births a new one.'],
+  gold: ['Gold', 'Markets and settlements give it.'],
+  wisdom: ['Wisdom', 'Watchtowers, temples and the Keep give it.'],
+  mana: ['Mana', 'Temples and the Keep give it.'],
+  culture: ['Culture', 'Monuments and Taverns give it.'],
+};
+
+const HAND_USE: Partial<Record<ResourceKind, string>> = {
+  food: 'Staff Farmsteads and keep the granary filling.',
+  wisdom: 'Spend it in Research on the Lore — it opens new Works.',
+  mana: 'Cast Rites with it, from the Keep and from a hex card.',
+};
+
+function usesOf(kind: ResourceKind): string {
+  const works = (Object.keys(BUILDINGS) as BuildingId[])
+    .filter((id) => !BUILDINGS[id].masterwork && (BUILDINGS[id].cost[kind] ?? 0) > 0)
+    .map((id) => BUILDING_NAME[id]);
+  if (works.length === 0) return 'Keep it: the Keep and the Lore will ask for it.';
+  const shown = works.slice(0, 4);
+  return `Works that cost it: ${shown.join(', ')}${works.length > shown.length ? ' and more' : ''}.`;
+}
+
+const RESOURCE_COPY = Object.fromEntries(
+  (Object.keys(RESOURCE_WHAT) as Exclude<ResourceKind, 'tokens'>[]).map((k) => [
+    `res-${k}`,
+    {
+      title: `New resource · ${RESOURCE_WHAT[k][0]}`,
+      what: RESOURCE_WHAT[k][1],
+      now: HAND_USE[k] ? `${HAND_USE[k]} ${usesOf(k)}` : usesOf(k),
+      see: null,
+    },
+  ]),
+) as Record<ResourceLesson, UnlockCopy>;
+
 export const UNLOCK_COPY: Readonly<Record<UnlockId, UnlockCopy>> = {
+  ...RESOURCE_COPY,
   resources: {
     title: 'The ground pays',
     // "once when taken" went with the claim payout (2026-09-29, v0.6.67).
@@ -65,8 +111,9 @@ export const UNLOCK_COPY: Readonly<Record<UnlockId, UnlockCopy>> = {
   },
   siege: {
     title: 'Taking ground that is held',
-    what: 'Rival ground does not flip in one visit. Each walk takes strength off it.',
-    now: 'Two or three walks on separate days will take an established hex.',
+    // This season a walk takes red ground at once (v0.7.3); the old copy taught the siege.
+    what: 'Red ground is another realm’s. Walk onto it and it is yours at once.',
+    now: 'Their Hearth and a standing Fortress still hold — those take several walks.',
     see: 'corruption',
   },
 };

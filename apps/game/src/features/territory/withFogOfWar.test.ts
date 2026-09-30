@@ -66,10 +66,11 @@ describe('withFogOfWar', () => {
     expect(withFogOfWar([cell(RIVAL, 200)], [])).toEqual([]);
   });
 
-  it('draws every imported cell, however far, with no owned ground at all (BRDC-WAGER-JSON-006)', () => {
+  it('draws a rival’s shared ground only where it has been seen (2026-09-30)', () => {
     const far = cellAt({ lat: 60.17, lng: 24.94 });
     const imported: Cell = { ...cell(RIVAL, 200, far), imported: true };
-    const shown = withFogOfWar([imported], []);
-    expect(shown.map((c) => c.h3)).toEqual([far]);
+    expect(withFogOfWar([imported], [])).toEqual([]);
+    expect(withFogOfWar([imported], [], [], new Set([far])).map((c) => c.h3)).toEqual([far]);
+    expect(withFogOfWar([{ ...imported, ally: true }], []).map((c) => c.h3)).toEqual([far]);
   });
 });

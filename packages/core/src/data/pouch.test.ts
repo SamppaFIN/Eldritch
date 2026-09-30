@@ -18,6 +18,8 @@ import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
 import type { Cell, CaptureOutcome } from '../types/domain.js';
+import { BUILDINGS } from '../rules/build.js';
+import { loreCost } from '../rules/lore.js';
 
 describe('normalizePool', () => {
   it('fills the fields a pre-nine-resource pouch is missing', () => {
@@ -260,13 +262,15 @@ describe('the founding stash (BRDC-ECON-007)', () => {
     return { store, repo: new MockRepository({ store, newId: () => 'me' }) };
   };
 
-  it('a fresh Hearth grants exactly one Monument: 60 stone, 10 culture', async () => {
+  it('a fresh Hearth grants a Monument or a Watchtower and its Lore (2026-09-30)', async () => {
     const { repo } = await fresh();
     await repo.setHome(ORIGIN, T0);
     const pool = await repo.getResources(T0);
-    expect(pool.stone).toBe(60);
-    expect(pool.culture).toBe(10);
-    expect(RESOURCE_KINDS.filter((k) => pool[k] > 0)).toEqual(['stone', 'culture']);
+    expect([pool.wood, pool.stone, pool.culture, pool.wisdom]).toEqual([40, 60, 10, 30]);
+    expect(RESOURCE_KINDS.filter((k) => pool[k] > 0)).toEqual(['wood', 'stone', 'wisdom', 'culture']);
+    // Enough for one Watchtower (40 wood, 30 stone) and Lookouts (30 wisdom, Age I).
+    expect(pool.wood >= (BUILDINGS.watchtower.cost.wood ?? 0) && pool.stone >= (BUILDINGS.watchtower.cost.stone ?? 0)).toBe(true);
+    expect(pool.wisdom).toBeGreaterThanOrEqual(loreCost(1));
   });
 
   it('is given once — a second setHome does not stack it', async () => {

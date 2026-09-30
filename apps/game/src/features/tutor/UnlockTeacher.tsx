@@ -19,8 +19,8 @@
  *    the lesson returns on the next walk. Only the button marks it taught.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { nextUnlock } from '@es3/core';
-import type { GameRepository, Reach, UnlockId } from '@es3/core';
+import { RESOURCE_KINDS, nextUnlock } from '@es3/core';
+import type { GameRepository, Reach, ResourcePool, UnlockId } from '@es3/core';
 import { UnlockMoment } from './UnlockMoment.js';
 import type { WikiRef } from '../help/wikiPages.js';
 
@@ -62,6 +62,8 @@ export interface UnlockTeacherProps {
   onSee: (ref: WikiRef) => void;
   /** Called after a lesson is paid, so the pouch on screen catches up. */
   onPaid: () => void;
+  /** The pouch MapView already holds — a resource met the first time is taught (2026-09-30). */
+  pool?: ResourcePool | null;
 }
 
 export function UnlockTeacher({
@@ -71,6 +73,7 @@ export function UnlockTeacher({
   busy,
   onSee,
   onPaid,
+  pool = null,
 }: UnlockTeacherProps) {
   const [seen, setSeen] = useState<ReadonlySet<UnlockId> | null>(null);
   /** Waved away this session: not taught, not paid, back on the next walk. */
@@ -95,7 +98,10 @@ export function UnlockTeacher({
     };
   }, [repository]);
 
-  const id = seen ? nextUnlock(reach, seen) : null;
+  // The pouch MapView already holds, not a read of its own: settling the pouch is the
+  // heaviest store call there is, and it queued every other read behind it.
+  const pouchKinds = pool ? RESOURCE_KINDS.filter((k) => (pool[k] ?? 0) > 0) : [];
+  const id = seen ? nextUnlock({ ...reach, held: pouchKinds }, seen) : null;
   const quiet = paceMs === null || paceMs <= QUIET_SPEED_MS;
   const held = holdUntil > Date.now();
   const showing = id && !waved.has(id) && quiet && !busy && !held ? id : null;

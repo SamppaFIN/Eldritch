@@ -16,6 +16,7 @@ import { worksOn } from '../rules/build.js';
 import { worksViewAt } from './worksStore.js';
 import { widenHearth } from './hearthGrowthStore.js';
 import { K } from './keys.js';
+import { towerSight } from './towerSight.js';
 import { readLore } from './loreStore.js';
 import { counselFor, markCodexRead, unreadCodex } from './counselStore.js';
 import type { Counsel } from '../rules/counsel.js';
@@ -162,6 +163,8 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
       const r = assignWorker(keep.staff ?? {}, keep.granary.citizens, h3, id, delta, level);
       if (!r.ok) return r;
       await writeKeep(store(), { ...keep, staff: r.staff }, state.pool, now);
+      // A hand in a Watchtower lets it see a ring further (field report 2026-09-30).
+      if (id === 'watchtower' && delta > 0) await towerSight(store(), h3, now);
       return { ok: true };
     },
   };

@@ -131,6 +131,8 @@ export interface GameRepository extends SeasonTwoApis {
   revealCell(h3: H3Index, now: number): Promise<RevealOutcome>;
   /** Cells the player has revealed → the ms they were revealed. */
   getRevealed(): Promise<Record<H3Index, number>>;
+  /** Hexes seen from afar (a Watchtower, Dream-Sight) — the fog is lifted there. */
+  getSighted(): Promise<Record<H3Index, number>>;
   /**
    * What a newly claimed hex turned up, or null (BRDC-EVENT-002).
    *

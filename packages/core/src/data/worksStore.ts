@@ -5,8 +5,8 @@
  */
 import { MAX_STRENGTH } from '../rules/constants.js';
 import { WORKS_DEFS } from '../rules/works/defs/index.js';
-import { reachRings, researchNode, revealsAround, tierNumberOf, worksLevel } from '../rules/works/tree.js';
-import { revealRings } from './revealStore.js';
+import { researchNode, revealsAround, tierNumberOf, worksLevel } from '../rules/works/tree.js';
+import { towerSight } from './towerSight.js';
 import { ageOf } from '../rules/lore.js';
 import { readLore } from './loreStore.js';
 import type { WorksRefusal } from '../rules/works/tree.js';
@@ -71,10 +71,9 @@ export async function researchWorkAt(
     next = { ...cell, strength: Math.min(MAX_STRENGTH, cell.strength + boost) };
     await store.set(K.cell(h3), next);
   }
-  // A Watchtower sees out to its reach, and what it sees stays revealed (field report
-  // 2026-09-30: the tower revealed nothing). Ring 1 at least — the tower's own sight.
+  // A Watchtower's tree widens its sight, and what it sees stays seen (2026-09-30).
   if (revealsAround(def) && result.node.effects.some((e) => e.kind === 'reach' || e.kind === 'reveal')) {
-    await revealRings(store, h3, Math.max(1, reachRings(def, result.learned)), now);
+    await towerSight(store, h3, now);
   }
   return { ok: true, view: { kind, learned: result.learned, level: worksLevel(def, result.learned) }, cell: next };
 }

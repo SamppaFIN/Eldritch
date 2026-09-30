@@ -158,7 +158,7 @@ export function MapView({ onLeave }: MapViewProps) {
   });
 
   // What the map may draw: fog of war, minus wherever a Scrying is looking.
-  const shownCells = useShownCells({ cells: territory.cells, owned: territory.owned, active: inspect.spell.active, xp: profile?.xp ?? 0, now: clock.now });
+  const shownCells = useShownCells({ cells: territory.cells, owned: territory.owned, active: inspect.spell.active, xp: profile?.xp ?? 0, now: clock.now, repository });
 
   const pace = useMemo(() => {
     const pts = trail.points;
@@ -351,7 +351,7 @@ export function MapView({ onLeave }: MapViewProps) {
           (BRDC-MODE-001). */}
       {isRoute ? null : (
         <UnlockTeacher
-          repository={repository} paceMs={pace} onSee={aside.openHelp}
+          repository={repository} paceMs={pace} onSee={aside.openHelp} pool={resources}
           reach={{
             owned: territory.owned.length,
             researched: inspect.build.researched.length,

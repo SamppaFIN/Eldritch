@@ -68,8 +68,9 @@ export function SeasonPanel({ open, me, repository, now, onJoined, onClose }: Se
             , as of this moment — what you gain from here is what counts.
           </p>
           <p>
-            Your realm now shares itself as you walk, and the list below follows each walker’s
-            latest publish. Walk well.
+            Your banner is raised: your name, your kingdom’s name and the hexes you hold are
+            published as you walk, and the list below follows each walker’s latest publish.
+            Walk well.
           </p>
         </section>
       ) : null}
@@ -82,7 +83,7 @@ export function SeasonPanel({ open, me, repository, now, onJoined, onClose }: Se
             mark={<HexMandala size={56} />}
             ink="var(--r-token)"
             title="Nobody has joined yet"
-            body="Join the Weekly Tournament and your distance and hexes from right now become your starting line. Joining also turns on Share your realm, so what you gain reaches the list."
+            body="Join the Weekly Tournament and your distance and hexes from right now become your starting line. Joining raises your banner: your name, your kingdom’s name and the hexes you hold are published to the shared map and this list."
           />
           {joinButton}
         </>
@@ -105,7 +106,7 @@ export function SeasonPanel({ open, me, repository, now, onJoined, onClose }: Se
           <p className="season__note">
             {joined
               ? 'Gained since you joined. Follows each player’s latest publish.'
-              : 'Join to put your own starting line on this list.'}
+              : 'Join to put your own starting line on this list. Joining raises your banner: your name, your kingdom’s name and your hexes are published.'}
           </p>
           <ol className="season__list es-numeric">
             {state.rows.map((r, i) => (

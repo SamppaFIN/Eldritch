@@ -14,8 +14,8 @@ import { ageOf, loreCost } from '../rules/lore.js';
 import { riteDamage } from '../rules/reckoning.js';
 import { FIRST_INVESTIGATOR, SANITY_MAX, STAMINA_MAX, addClues, recover } from '../rules/investigator.js';
 import type { Investigator } from '../rules/investigator.js';
-import { cellsWithin } from '../geo/cells.js';
 import { readLore } from './loreStore.js';
+import { sightRings } from './revealStore.js';
 import { commit, settlePouch } from './pouch.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -98,12 +98,10 @@ export function wonderActApi(
             return { ...cur, keep: { ...cur.keep, granary: { ...g, box: Math.min(growBox(g.citizens), g.box + (growBox(g.citizens) * act.pct) / 100) } } };
           });
           break;
-        case 'reveal': {
-          const revealed = (await store().get<Record<H3Index, number>>(K.revealed)) ?? {};
-          for (const r of cellsWithin(h3, act.rings)) revealed[r] ??= now;
-          await store().set(K.revealed, revealed);
+        case 'reveal':
+          // Sight, not a find (2026-09-30): writing `revealed` refused each hex's own pay.
+          await sightRings(store(), h3, act.rings, now);
           break;
-        }
         case 'loreRefund': {
           const wisdom = loreCost(ageOf(await readLore(store())));
           await commit(store(), now, (cur) => ({ ...cur, pool: { ...cur.pool, wisdom: cur.pool.wisdom + wisdom } }));

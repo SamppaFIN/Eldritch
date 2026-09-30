@@ -12,7 +12,7 @@
  */
 import { K } from './keys.js';
 import { grantBonus } from './pouch.js';
-import { UNLOCK_REWARD } from '../rules/unlock.js';
+import { UNLOCK_REWARD, isResourceLesson } from '../rules/unlock.js';
 import type { UnlockId } from '../rules/unlock.js';
 import type { Cell } from '../types/domain.js';
 import type { KeyValueStore } from './kv.js';
@@ -39,6 +39,6 @@ export async function markUnlockSeen(
   const map = (await store.get<SeenMap>(K.unlocksSeen)) ?? {};
   if (map[id] !== undefined) return false;
   await store.set<SeenMap>(K.unlocksSeen, { ...map, [id]: now });
-  await grantBonus(store, owned, { wisdom: UNLOCK_REWARD }, now);
+  if (!isResourceLesson(id)) await grantBonus(store, owned, { wisdom: UNLOCK_REWARD }, now);
   return true;
 }

@@ -162,7 +162,7 @@ describe('build / demolish', () => {
     const store = new MemoryStore();
     await store.set(SCHEMA_KEY, SCHEMA_VERSION);
     const r = new MockRepository({ store, newId: () => 'me', seed: 3 });
-    const h = await r.setHome(ORIGIN, T0); // grants { stone: 60, culture: 10 }
+    const h = await r.setHome(ORIGIN, T0); // grants the founding stash (STARTER_STASH)
 
     const out = await r.build(h, 'monument', T0);
     expect(out.ok).toBe(true);

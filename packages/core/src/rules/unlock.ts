@@ -21,8 +21,12 @@
  * and `catalogue.tsx` make: numbers and conditions here, copy and glyphs there.
  */
 import { HEARTH_RING } from './constants.js';
+import { RESOURCE_KINDS } from './terrain.js';
+import type { ResourceKind } from './terrain.js';
 
-export type UnlockId = 'resources' | 'building' | 'temple' | 'magic' | 'neighbours' | 'siege';
+/** A resource met for the first time, taught by what it is for (field report 2026-09-30). */
+export type ResourceLesson = `res-${ResourceKind}`;
+export type UnlockId = 'resources' | 'building' | 'temple' | 'magic' | 'neighbours' | 'siege' | ResourceLesson;
 
 /**
  * The state every threshold is judged against.
@@ -37,6 +41,8 @@ export interface Reach {
   researched: number;
   /** Rival cells on screen. Seeing one is what makes sieging worth explaining. */
   rivalCells: number;
+  /** Resources the pouch holds any of — each is taught once, the first time it arrives. */
+  held?: readonly ResourceKind[];
 }
 
 /**
@@ -70,7 +76,16 @@ const GATES: readonly { id: UnlockId; open: (r: Reach) => boolean }[] = [
   // `tutor.spec` — founding taught "the ground pays" and then, with no pause, how to
   // take somebody else's. Sieging is last in teaching order for a reason.
   { id: 'siege', open: (r) => walked(r.owned) >= 1 && r.rivalCells > 0 },
+  // Last, so the founding stash does not queue a wall of them ahead of the core lessons;
+  // a resource first met weeks in is taught straight away.
+  ...RESOURCE_KINDS.filter((k) => k !== 'tokens').map((k) => ({
+    id: `res-${k}` as ResourceLesson,
+    open: (r: Reach) => r.held?.includes(k) === true,
+  })),
 ];
+
+/** A resource lesson is a note, not a milestone: it pays nothing. */
+export const isResourceLesson = (id: UnlockId): id is ResourceLesson => id.startsWith('res-');
 
 export const UNLOCK_IDS: readonly UnlockId[] = GATES.map((g) => g.id);
 

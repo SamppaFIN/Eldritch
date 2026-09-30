@@ -29,7 +29,7 @@ import { cityAtDoor, tradeAt } from './cityStateStore.js';
 import type { CityState } from '../rules/cityState.js';
 import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools, type ConsecrateOutcome, type ExpandOutcome, type SchoolOutcome } from './templeStore.js';
 import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
-import { readRevealed, reconcileSeedReveals, revealAt, type RevealOutcome } from './revealStore.js';
+import { readRevealed, readSighted, reconcileSeedReveals, revealAt, type RevealOutcome } from './revealStore.js';
 import { readPaths } from './pathStore.js';
 import { readRouteDistance } from './distanceStore.js';
 import { readLog, writeLogEntry } from './logStore.js';
@@ -138,6 +138,7 @@ export class MockRepository implements GameRepository {
   collect = async (now: number): Promise<Collected> =>
     collectPouch(this.store, await this.getOwnedCells(now), now);
   getRevealed = () => readRevealed(this.store);
+  getSighted = () => readSighted(this.store);
   /** Dev only (BRDC-ECON-002): top every resource up so a lost pouch is not a dead run. */
   debugGrant = async (now: number): Promise<void> => {
     await grantAll(this.store, await this.getOwnedCells(now), now, 200);

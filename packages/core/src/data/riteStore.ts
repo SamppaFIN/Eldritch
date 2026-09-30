@@ -35,6 +35,7 @@ import {
 } from '../rules/rites.js';
 import type { Rank, RiteBook, RiteEffect, RiteId, RiteRefusal, School, Tier } from '../rules/rites.js';
 import { readLore } from './loreStore.js';
+import { sightRings } from './revealStore.js';
 import { commit, settlePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
@@ -192,12 +193,10 @@ export function riteApi(
         case 'cellFloor':
           if (aim && aim.strength < v) await store().set(K.cell(aim.h3), { ...aim, strength: Math.min(MAX_STRENGTH, v) });
           break;
-        case 'reveal': {
-          const revealed = (await store().get<Record<H3Index, number>>(K.revealed)) ?? {};
-          for (const h of aim ? cellsWithin(aim.h3, v) : []) revealed[h] ??= now;
-          await store().set(K.revealed, revealed);
+        case 'reveal':
+          // Sight, not a find: the fog lifts, and each hex keeps its own reveal to pay.
+          if (aim) await sightRings(store(), aim.h3, v, now);
           break;
-        }
         case 'walkedMana':
           mana += v * cells.filter((c) => now - c.lastVisitedAt < 24 * 3_600_000).length;
           break;

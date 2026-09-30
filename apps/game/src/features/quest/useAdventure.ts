@@ -15,7 +15,7 @@
  * store — the HUD pouch, the build menu's "can I afford this" — queued behind it and
  * arrived seconds late, which is what "no button does anything" actually was.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AdventureView, GameRepository } from '@es3/core';
 
 export interface AdventureBinding {
@@ -24,6 +24,8 @@ export interface AdventureBinding {
   refusal: string | null;
   /** The title of an adventure that just reached its end, for one render (BRDC-FX-001). */
   justEnded: string | null;
+  /** True while a verb is being written and read back — the dialog waits, not shows Begin. */
+  busy: boolean;
   onStart: (id: string) => void;
   onChoose: (choiceIndex: number) => void;
   onAbandon: (id: string) => void;
@@ -38,9 +40,17 @@ export function useAdventure(
   const [list, setList] = useState<readonly AdventureView[]>([]);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [justEnded, setJustEnded] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
+  // Only the newest read may land. An older one — started when the hex count moved — can
+  // finish after the read that follows a start, and it used to put the tale back to "not
+  // begun": the dialog showed Begin, and Begin said it was already underway (2026-09-30).
+  const latest = useRef(0);
   const refetch = useCallback(async () => {
-    if (repository) setList(await repository.getAdventures(now()));
+    if (!repository) return;
+    const mine = ++latest.current;
+    const next = await repository.getAdventures(now());
+    if (mine === latest.current) setList(next);
   }, [repository, now]);
 
   useEffect(() => {
@@ -51,11 +61,16 @@ export function useAdventure(
 
   const run = useCallback(
     (act: () => Promise<{ ok: boolean; refused?: string; ended?: boolean } | void>, endedTitle?: string) => {
+      setBusy(true);
       void (async () => {
-        const r = await act();
-        setRefusal(r && !r.ok ? (r.refused ?? 'refused') : null);
-        setJustEnded(r && r.ok && r.ended && endedTitle ? endedTitle : null);
-        await refetch();
+        try {
+          const r = await act();
+          setRefusal(r && !r.ok ? (r.refused ?? 'refused') : null);
+          setJustEnded(r && r.ok && r.ended && endedTitle ? endedTitle : null);
+          await refetch();
+        } finally {
+          setBusy(false);
+        }
       })();
     },
     [refetch],
@@ -66,6 +81,7 @@ export function useAdventure(
     active,
     refusal,
     justEnded,
+    busy,
     onStart: (id) => repository && run(() => repository.startAdventure(id, now())),
     onChoose: (i) =>
       repository &&

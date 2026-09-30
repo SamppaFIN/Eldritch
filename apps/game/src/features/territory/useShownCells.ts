@@ -14,9 +14,9 @@
  * in a day. This is a real seam rather than a place to put spare lines: it answers one
  * question, and both halves of the answer belong to it.
  */
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { levelState, scriedCells } from '@es3/core';
-import type { ActiveSpell, Cell } from '@es3/core';
+import type { ActiveSpell, Cell, GameRepository } from '@es3/core';
 import { withFogOfWar } from './territoryFeatures.js';
 
 export interface UseShownCellsOptions {
@@ -29,15 +29,29 @@ export interface UseShownCellsOptions {
   /** The caster's XP — Scrying's reach grows with Consciousness. */
   xp: number;
   now: () => number;
+  /** Read for the hexes seen from afar and revealed, which the fog stays lifted over. */
+  repository?: GameRepository | null;
 }
 
-export function useShownCells({ cells, owned, active, xp, now }: UseShownCellsOptions): Cell[] {
+export function useShownCells({ cells, owned, active, xp, now, repository = null }: UseShownCellsOptions): Cell[] {
+  // Re-read whenever the ground changes: building, staffing and rites all refresh it.
+  const [seen, setSeen] = useState<ReadonlySet<string>>(new Set());
+  useEffect(() => {
+    if (!repository) return;
+    let live = true;
+    void Promise.all([repository.getSighted(), repository.getRevealed()]).then(([s, r]) => {
+      if (live) setSeen(new Set([...Object.keys(s), ...Object.keys(r)]));
+    });
+    return () => {
+      live = false;
+    };
+  }, [repository, cells, owned]);
   // The level, not the XP: every step's few XP used to hand the map a fresh array and a
   // full rebuild, and only the level changes what a Scrying sees (BRDC-PERF-002).
   const level = levelState(xp).level;
   return useMemo(
-    () => withFogOfWar(cells, owned, scriedCells(active, level, now())),
+    () => withFogOfWar(cells, owned, scriedCells(active, level, now()), seen),
     // `now` is a function identity, stable for the session; the real triggers are above it.
-    [cells, owned, active, level, now],
+    [cells, owned, active, level, now, seen],
   );
 }

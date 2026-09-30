@@ -187,7 +187,7 @@ export const ROUTE_CODEX_VERSION = 1;
  * The build's own version, shown in the menu and headed each `changelog.json` block
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2. */
-export const APP_VERSION = '0.7.9';
+export const APP_VERSION = '0.8.0';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -266,12 +266,13 @@ export const DEMOLISH_REFUND = 0.5;
 export const MS_PER_DAY = 86_400_000;
 
 /**
- * The founding pouch (BRDC-ECON-007): granted once when the Hearth is raised, sized to
- * exactly one Monument — `{ stone: 60, culture: 10 }`, the only building with no tech and
- * no terrain requirement, so it is the one a new player can actually raise. It replaces
- * `grantVersionGift`; after this, resources come only from claiming ground and holding it.
+ * The founding pouch (BRDC-ECON-007): granted once when the Hearth is raised. It covers one
+ * Monument (60 stone, 10 culture) — or, since 2026-09-30, one Watchtower on the border:
+ * its 40 wood and 30 stone, and the 30 wisdom Lookouts costs in the Lore (Infinite: *"anna
+ * uudelle pelille resurssit millä voi rakentaa rajoilleen yhden vartiotornin"*). After
+ * this, resources come only from claiming ground and holding it.
  */
-export const STARTER_STASH = { stone: 60, culture: 10 } as const;
+export const STARTER_STASH = { wood: 40, stone: 60, culture: 10, wisdom: 30 } as const;
 
 /* --- Mana (BRDC-MANA-001) -------------------------------------------- */
 

@@ -1,5 +1,19 @@
 [
   {
+    "version": "0.8.0",
+    "date": "2026-09-30",
+    "notes": [
+      "Other realms' red ground stays hidden until you have seen it: walked beside it, seen it from a Watchtower, or scouted it.",
+      "A Watchtower sees two rings around it, one more for every worker in it, and further with its upgrades.",
+      "Seeing ground from afar no longer uses up its reveal. Each hex still pays, and can still hold a wonder, when you reveal it.",
+      "A new game starts with enough for one Watchtower on your border: 40 wood, 60 stone, and 30 wisdom for the Lookouts Lore.",
+      "The Fuming Lake no longer tells the next place's story before you get there. Walk to it to hear what happens.",
+      "The first time a resource reaches your pouch, a card says what it is for and which Works cost it.",
+      "Joining the Weekly Tournament says plainly what goes out with your banner: your name, your kingdom's name and your hexes.",
+      "Beginning a tale no longer flashes a Begin button that answers \"already underway\". The dialog says it is opening the tale, then shows it."
+    ]
+  },
+  {
     "version": "0.7.9",
     "date": "2026-09-30",
     "notes": [

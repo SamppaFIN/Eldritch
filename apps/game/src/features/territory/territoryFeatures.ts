@@ -246,9 +246,10 @@ export function bountyInk(pick: BountyPick | null): string {
 
 /**
  * Fog of war: the only cells the map draws are the ones you hold, the ring of cells
- * around them, and every cell an import put on the map (BRDC-WAGER-JSON-006 — a Wager or
- * `world.json`: you asked to see their whole reach, so it is not hidden). Everything else
- * is left as bare basemap.
+ * around them, and what you have seen — revealed, or sighted from afar. A rival's ground
+ * from the shared world is drawn only there (2026-09-30; until then every imported cell
+ * showed, BRDC-WAGER-JSON-006). A clanmate's ground always shows. Everything else is
+ * left as bare basemap.
  *
  * A neighbour with no stored cell of its own still appears — as `emptyCell(h3)` — so it
  * can carry the pale reveal tint and its terrain glyph. The full set stays available to
@@ -260,6 +261,8 @@ export function withFogOfWar(
   owned: readonly Cell[],
   /** A running Scrying lifts the fog where it looks, and only while it runs. */
   scried: readonly Cell[] = [],
+  /** Hexes seen for good — sighted from afar (a Watchtower, Dream-Sight) or revealed. */
+  seen: ReadonlySet<string> = new Set(),
 ): Cell[] {
   // Owned first, so a held cell outside the viewport read never draws as bare ground and
   // then flicks purple when the next refresh lands (BRDC-PERF-002).
@@ -269,7 +272,10 @@ export function withFogOfWar(
     visible.add(cell.h3);
     for (const n of neighboursOf(cell.h3)) visible.add(n);
   }
-  for (const cell of all) if (cell.imported) visible.add(cell.h3);
+  // Seen ground stays lifted, and a rival's shows only there (field report 2026-09-30:
+  // *"näen jo punaisella yhden alueen"*). A clanmate's ground is shared sight.
+  for (const h3 of seen) visible.add(h3);
+  for (const cell of all) if (cell.imported && cell.ally) visible.add(cell.h3);
   // Added here rather than merged into `all`, because this is exactly what the Rite does:
   // it lifts the fog, it does not create ground. Nothing about it is written anywhere, so
   // when the spell stops running these simply stop arriving (BRDC-SPELL-002).

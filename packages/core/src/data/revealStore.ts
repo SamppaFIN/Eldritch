@@ -105,11 +105,18 @@ export async function reconcileSeedReveals(store: KeyValueStore): Promise<H3Inde
   if (current && current !== lastSeen) await store.set(K.seedBuiltAt, current);
   return stale;
 }
-/** Every hex within `rings` of `h3` becomes known, as a walk would leave it — a Watchtower's
- *  sight (BRDC-WORKS-003). Nothing is paid: sight is not a find. */
-export async function revealRings(store: KeyValueStore, h3: H3Index, rings: number, now: number): Promise<void> {
-  const revealed = await readRevealed(store);
-  for (const h of cellsWithin(h3, rings)) revealed[h] ??= now;
-  await store.set(K.revealed, revealed);
+export async function readSighted(store: KeyValueStore): Promise<Record<H3Index, number>> {
+  return (await store.get<Record<H3Index, number>>(K.sighted)) ?? {};
+}
+
+/**
+ * Every hex within `rings` of `h3` is seen: the fog lifts there for good, rival ground
+ * included. Not a reveal — nothing is found or paid, and the hex can still be revealed
+ * for its find when walked (v0.7.8 wrote `revealed` here, which refused that pay).
+ */
+export async function sightRings(store: KeyValueStore, h3: H3Index, rings: number, now: number): Promise<void> {
+  const sighted = await readSighted(store);
+  for (const h of cellsWithin(h3, rings)) sighted[h] ??= now;
+  await store.set(K.sighted, sighted);
 }
 

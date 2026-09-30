@@ -10,7 +10,7 @@
  * same shape as `HEARTH_RING`, which is what the game actually handed the player, so the
  * geometry is saying something true rather than decorating.
  */
-import { UNLOCK_REWARD } from '@es3/core';
+import { UNLOCK_REWARD, isResourceLesson } from '@es3/core';
 import type { UnlockId } from '@es3/core';
 import { UNLOCK_COPY } from './unlocks.js';
 import type { WikiRef } from '../help/wikiPages.js';
@@ -77,7 +77,7 @@ export function UnlockMoment({ id, onRead, onLater, onSee }: UnlockMomentProps) 
         <p className="unlock__now">{copy.now}</p>
         <div className="unlock__actions">
           <button type="button" className="unlock__read" onClick={onRead}>
-            Understood · +{UNLOCK_REWARD} wisdom
+            {isResourceLesson(id) ? 'Understood' : `Understood · +${UNLOCK_REWARD} wisdom`}
           </button>
           {copy.see ? (
             <button type="button" className="unlock__see" onClick={() => onSee(copy.see as WikiRef)}>

@@ -20,7 +20,7 @@ import { neighboursOf, regionOf } from '../geo/cells.js';
 import type { TechId } from '../rules/tech.js';
 import { settlePouch, writePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
-import { revealRings } from './revealStore.js';
+import { towerSight } from './towerSight.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
@@ -119,9 +119,9 @@ export async function buildOn(
   const kept = worksOn(live).filter((w) => !replaced.has(w.id));
   const built: Cell = { ...live, buildings: [...kept, { id, builtAt: now }] };
   await store.set(K.cell(h3), built);
-  // A Watchtower sees the six hexes around it the moment it stands (Eldritch-Progression.pdf
-  // WORK table: "Sight and +40 strength in ring 1"; field report 2026-09-30).
-  if (id === 'watchtower') await revealRings(store, h3, 1, now);
+  // A Watchtower sees the moment it stands (Eldritch-Progression.pdf WORK table: "Sight";
+  // field report 2026-09-30) — two rings, more with hands and its tree (`towerSight`).
+  if (id === 'watchtower') await towerSight(store, h3, now);
   await writeLogEntry(store, { at: now, kind: 'build', ref: id });
   return { ok: true, cell: built };
 }

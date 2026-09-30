@@ -7,6 +7,7 @@
  */
 import { useEffect } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
+import { QUEST_SITES, STAGE_SITE } from '@es3/core';
 import type { AdventureView } from '@es3/core';
 import { Portrait } from './portraits.js';
 import type { AdventureBinding } from './useAdventure.js';
@@ -57,6 +58,10 @@ export function AdventureDialog({ binding, onHex = true, onClose }: AdventureDia
   }, [onClose]);
 
   const a = binding.active;
+  // Away from where this stage happens, its page stays closed: the choice made at the last
+  // place used to show the next place's story at once (field report 2026-09-30).
+  const site = a ? STAGE_SITE[a.stageId ?? ''] : undefined;
+  const elsewhere = a && !onHex && site ? QUEST_SITES[site].label : null;
 
   return (
     <GlassPanel as="section" className="adventure" aria-label={a ? a.title : 'Adventures'}>
@@ -67,7 +72,9 @@ export function AdventureDialog({ binding, onHex = true, onClose }: AdventureDia
         </RitualButton>
       </div>
 
-      {a ? (
+      {a && elsewhere ? (
+        <p className="adventure__line">The tale moves on. Walk to {elsewhere} to hear what happens there.</p>
+      ) : a ? (
         <>
           <div className="adventure__speaker">
             <span className="adventure__portrait" aria-hidden>
@@ -102,6 +109,9 @@ export function AdventureDialog({ binding, onHex = true, onClose }: AdventureDia
             Abandon this tale
           </RitualButton>
         </>
+      ) : binding.busy ? (
+        // The tale is being opened: no Begin to tap twice (2026-09-30).
+        <p className="adventure__line">Opening the tale…</p>
       ) : (
         <Shelf list={binding.list} onStart={binding.onStart} />
       )}

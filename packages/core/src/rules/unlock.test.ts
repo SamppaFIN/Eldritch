@@ -1,8 +1,9 @@
 /** BRDC-TUTOR-001 — the gates, and the rule that they arrive one at a time. */
 import { describe, expect, it } from 'vitest';
 import { HEARTH_RING } from './constants.js';
-import { UNLOCK_IDS, nextUnlock, unlockedBy, walked } from './unlock.js';
+import { UNLOCK_IDS, isResourceLesson, nextUnlock, unlockedBy, walked } from './unlock.js';
 import type { Reach, UnlockId } from './unlock.js';
+import { RESOURCE_KINDS } from './terrain.js';
 
 const reach = (r: Partial<Reach> = {}): Reach => ({
   owned: 0,
@@ -69,7 +70,7 @@ describe('the gates', () => {
 });
 
 describe('one at a time', () => {
-  const rich = reach({ owned: HEARTH_RING + 20, researched: 3, rivalCells: 5 });
+  const rich = reach({ owned: HEARTH_RING + 20, researched: 3, rivalCells: 5, held: [...RESOURCE_KINDS] });
 
   it('hands back a single lesson even when everything is satisfied at once', () => {
     expect(unlockedBy(rich)).toHaveLength(UNLOCK_IDS.length);
@@ -92,5 +93,21 @@ describe('one at a time', () => {
 
   it('skips a lesson already read rather than repeating it', () => {
     expect(nextUnlock(rich, new Set<UnlockId>(['resources']))).toBe('building');
+  });
+});
+
+describe('resource lessons (field report 2026-09-30)', () => {
+  const taught = new Set<UnlockId>(['resources', 'building', 'temple', 'magic', 'neighbours', 'siege']);
+  it('teaches a resource the first time the pouch holds it, after the core lessons', () => {
+    const r: Reach = { owned: 20, researched: 1, rivalCells: 1, held: ['iron'] };
+    expect(nextUnlock(r, new Set())).toBe('resources');
+    expect(nextUnlock(r, taught)).toBe('res-iron');
+    expect(nextUnlock({ ...r, held: [] }, taught)).toBeNull();
+    expect(nextUnlock(r, new Set([...taught, 'res-iron']))).toBeNull();
+  });
+
+  it('pays no wisdom for a resource lesson', () => {
+    expect(isResourceLesson('res-iron')).toBe(true);
+    expect(isResourceLesson('siege')).toBe(false);
   });
 });
