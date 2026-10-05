@@ -178,3 +178,102 @@
 .lands__bounty {
   color: var(--sacred-gold);
 }
+
+/* --- The Ledger (BRDC-LEDGER-001): tabs, filter chips, sort, staffing --- */
+/* Tabs and chips each keep to one row that swipes sideways — wrapped, they ate the whole
+   sheet at 360 px before a single row showed. */
+.ledger__tabs,
+.ledger__chips {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ledger__tab,
+.ledger__chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.ledger__tab[aria-selected='true'],
+.ledger__chip[aria-pressed='true'] {
+  color: var(--mystic-cyan);
+  border-color: color-mix(in oklch, var(--mystic-cyan) 55%, transparent);
+}
+
+/* The sheet scrolls, its parts do not shrink: a sideways-scrolling row has no minimum
+   height of its own and the column would squeeze it to nothing. */
+.lands > * {
+  flex-shrink: 0;
+}
+
+/* Held to the sheet's width, so a row too long for it swipes instead of spilling out. */
+.ledger__tabs,
+.ledger__tools {
+  align-self: stretch;
+}
+
+.ledger__tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.ledger__sort {
+  align-self: flex-start;
+}
+
+.ledger__sort {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
+.ledger__sort select {
+  min-block-size: var(--touch-min);
+  background: var(--glass-bg);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+}
+
+.ledger__staff {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* The temple tour's bar (BRDC-LEDGER-003): top of the screen, clear of the card below. */
+.temple-tour {
+  position: fixed;
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: fit-content;
+  z-index: var(--z-hud);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.temple-tour__where {
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+}

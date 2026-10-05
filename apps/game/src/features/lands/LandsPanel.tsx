@@ -10,20 +10,17 @@
  * Same sheet as `CodexPanel` and `LogPanel`: non-modal, ESC closes, capped clear of the
  * HUD and scrolling inside.
  */
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { EmptyState, FlowerOfLife, GlassPanel, RitualButton } from '@es3/ui';
-import { MAX_STRENGTH } from '@es3/core';
-import type { Collected, GameRepository, Holding } from '@es3/core';
+import type { Collected, GameRepository, H3Index } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
-import { BUILDING_NAME } from '../territory/names.js';
-import { bountyPickGlyph, bountyPickName } from '../territory/bounty.js';
-import { RESOURCE_COLOUR, RESOURCE_WORD, terrainGlyph } from '../territory/territoryFeatures.js';
 import { useLands } from './useLands.js';
-import type { Revealed } from './useLands.js';
 import { WonderMoment } from '../wonder/WonderMoment.js';
+import { HexesTab } from './HexesTab.js';
+import { WorksTab } from './WorksTab.js';
+import { TemplesTab } from './TemplesTab.js';
+import { AnomaliesTab } from './AnomaliesTab.js';
 import './lands-panel.css';
-import { TERRAIN_NAME } from '../territory/names.js';
-import type { TerrainKind } from '@es3/core';
 
 export interface LandsPanelProps {
   open: boolean;
@@ -34,38 +31,24 @@ export interface LandsPanelProps {
   /** A payout from this page, for the toast and the pling the map already owns. */
   onGain: (collected: Collected) => void;
   onClose: () => void;
+  /** A hand moved from the Works tab: the map re-reads (BRDC-LEDGER-002). */
+  onChanged?: (() => void) | undefined;
+  /** Tour the temples, the card open on each (BRDC-LEDGER-003). */
+  onTour?: ((h3s: readonly H3Index[]) => void) | undefined;
 }
 
-/**
- * What a reveal turned up, in one line.
- *
- * Named resources rather than a bare total: "+12 timber" is a thing that happened to your
- * realm, "+12" is a number. The tier is said too, because on most ground it is the whole
- * of what was found and saying nothing there reads as a button that did nothing.
- */
-function foundLine(r: Revealed): string {
-  const parts = Object.entries(r.bonus)
-    .filter(([, n]) => (n ?? 0) > 0)
-    .map(([k, n]) => `+${n} ${RESOURCE_WORD[k as keyof typeof RESOURCE_WORD] ?? k}`);
-  const tier = r.tier === 'common' ? 'Common ground' : `${r.tier[0]?.toUpperCase()}${r.tier.slice(1)}`;
-  return parts.length > 0 ? `${tier} · ${parts.join(' · ')}` : `${tier} — nothing hidden here.`;
-}
+/** The Ledger's tabs (BRDC-LEDGER-001): every collection you hold, one list each. */
+const TABS = [
+  { id: 'hexes', label: 'Hexes' },
+  { id: 'works', label: 'Works' },
+  { id: 'temples', label: 'Temples' },
+  { id: 'anomalies', label: 'Anomalies' },
+] as const;
+type Tab = (typeof TABS)[number]['id'];
 
-/** "3 h" · "5 d" · "safe" for ground that cannot be lost. */
-function untilLost(hours: number | null): string {
-  if (hours === null) return 'safe';
-  return hours < 48 ? `${hours} h` : `${Math.round(hours / 24)} d`;
-}
-
-/** `terrainGlyph` hands back a char and a colour; the list wants both. */
-const glyph = (kind: string) => terrainGlyph(kind as Parameters<typeof terrainGlyph>[0]);
-
-
-/** The row's hex. A named reader so the reveal handler reads as an action on a land. */
-const h3OfRow = (h: Holding): string => h.h3;
-
-export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose }: LandsPanelProps) {
+export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose, onChanged = () => {}, onTour = () => {} }: LandsPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
+  const [tab, setTab] = useState<Tab>('hexes');
   const { list, summary, loading, reveal, revealAll, found, gain, wonder, clearWonder } = useLands(
     repository,
     open,
@@ -82,78 +65,6 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
 
   if (!open) return null;
 
-  const row = (h: Holding) => (
-    <li key={h.h3} className="lands__row">
-      <button type="button" className="lands__cell" onClick={() => onShowCell(h.h3)}>
-        <span className="lands__ground">
-          <span className="lands__glyph" style={{ color: glyph(h.terrain)?.color }} aria-hidden>
-            {glyph(h.terrain)?.char ?? '·'}
-          </span>
-          {TERRAIN_NAME[h.terrain as TerrainKind] ?? h.terrain}
-          {h.home ? <span className="lands__tag lands__tag--home">Hearth</span> : null}
-          {h.revealed ? null : <span className="lands__tag lands__tag--new">unrevealed</span>}
-        </span>
-
-        <span className="lands__facts es-numeric">
-          {h.resource ? (
-            <span className="lands__res">
-              <span
-                className="lands__pip"
-                style={{ background: RESOURCE_COLOUR[h.resource] }}
-                aria-hidden
-              />
-              {RESOURCE_WORD[h.resource]}
-            </span>
-          ) : (
-            <span className="lands__res lands__res--none">no yield</span>
-          )}
-          {/*
-            * Out of MAX_STRENGTH, not bare (BRDC-LANDS-003). This was `340` with
-            * `title="strength"` on it — and a title is a hover, which a phone does not
-            * have. `gateNote.ts` says so in its own docstring: on a touchscreen there is
-            * no hover to explain anything. The ratio needs no label; it is the same
-            * shape the cell card shows, and it says what the number is out of.
-            */}
-          <span>
-            {h.strength}/{MAX_STRENGTH}
-          </span>
-          <span>{h.days} d walked</span>
-          <span className={h.hoursLeft !== null && h.hoursLeft <= 24 ? 'lands__fading' : undefined}>
-            {untilLost(h.hoursLeft)}
-          </span>
-        </span>
-
-        {h.bounty || h.work ? (
-          <span className="lands__work">
-            {h.bounty ? (
-              <span className="lands__bounty">
-                <span aria-hidden>{bountyPickGlyph(h.bounty)}</span> {bountyPickName(h.bounty)}
-              </span>
-            ) : null}
-            {h.bounty && h.work ? ' · ' : ''}
-            {h.work ? BUILDING_NAME[h.work] : null}
-          </span>
-        ) : null}
-      </button>
-
-      {/* The ledger's whole opinion is "these want revealing", so the doing of it belongs
-          here and not two screens away (BRDC-LANDS-002). Pressing it does not close the
-          page: the next unrevealed hex is the row below. */}
-      {h.revealed ? null : (
-        <RitualButton
-          className="lands__reveal"
-          // Named, because "Reveal" seven times over is useless read aloud — and because
-          // the row's own button says "unrevealed", which a bare name match collides with.
-          aria-label={`Reveal this ${TERRAIN_NAME[h.terrain as TerrainKind] ?? h.terrain}`}
-          onClick={() => reveal(h3OfRow(h))}
-        >
-          Reveal
-        </RitualButton>
-      )}
-      {found[h.h3] ? <p className="lands__found">{foundLine(found[h.h3] as Revealed)}</p> : null}
-    </li>
-  );
-
   return (
     <GlassPanel as="section" ref={panelRef} className="lands" aria-label="Your lands" tabIndex={-1}>
       <div className="lands__bar">
@@ -163,33 +74,34 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose 
         </RitualButton>
       </div>
 
-      {loading && list.length === 0 ? <p className="lands__note">Counting your ground…</p> : null}
+      <div className="ledger__tabs" role="tablist" aria-label="What to list">
+        {TABS.map((t) => (
+          <button key={t.id} type="button" role="tab" className="ledger__tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {!loading && list.length === 0 ? (
-        <EmptyState
-          mark={<FlowerOfLife size={56} />}
-          ink="var(--awareness-green)"
-          title="No ground yet"
-          body="Walk into the hex beside you and it is yours. The first one costs nothing."
-          action={{ label: 'Back to the map', onClick: onClose }}
-        />
-      ) : null}
-
-      {list.length > 0 ? (
+      {tab === 'hexes' ? (
         <>
-          <p className="lands__note es-numeric">
-            {summary.total} held · <strong>{summary.unrevealed} unrevealed</strong> ·{' '}
-            {summary.works} {summary.works === 1 ? 'Work' : 'Works'}
-            {summary.fading > 0 ? ` · ${summary.fading} fading within a day` : ''}
-          </p>
-          {summary.unrevealed > 1 ? (
-            <RitualButton variant="ghost" onClick={revealAll}>
-              {`Reveal all · ${summary.unrevealed} hexes`}
-            </RitualButton>
+          {loading && list.length === 0 ? <p className="lands__note">Counting your ground…</p> : null}
+          {!loading && list.length === 0 ? (
+            <EmptyState
+              mark={<FlowerOfLife size={56} />}
+              ink="var(--awareness-green)"
+              title="No ground yet"
+              body="Walk into the hex beside you and it is yours. The first one costs nothing."
+              action={{ label: 'Back to the map', onClick: onClose }}
+            />
           ) : null}
-          <ul className="lands__list">{list.map(row)}</ul>
+          {list.length > 0 ? (
+            <HexesTab list={list} summary={summary} found={found} reveal={reveal} revealAll={revealAll} onShowCell={onShowCell} />
+          ) : null}
         </>
       ) : null}
+      {tab === 'works' ? <WorksTab repository={repository} open={open} now={now} onShowCell={onShowCell} onChanged={onChanged} /> : null}
+      {tab === 'temples' ? <TemplesTab repository={repository} open={open} now={now} onShowCell={onShowCell} onTour={onTour} /> : null}
+      {tab === 'anomalies' ? <AnomaliesTab repository={repository} open={open} now={now} onShowCell={onShowCell} /> : null}
 
       {/* A ledger reveal reaches any hex you hold, so a wonder can be found from here.
           The moment is the same one the map shows — finding one in silence because it was

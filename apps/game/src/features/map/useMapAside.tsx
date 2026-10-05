@@ -21,6 +21,7 @@ import { CodexPanel } from '../codex/CodexPanel.js';
 import { RouteCodexPanel } from '../codex/RouteCodexPanel.js';
 import { SeasonPanel } from '../season/SeasonPanel.js';
 import { LandsPanel } from '../lands/LandsPanel.js';
+import { TempleTour } from '../lands/TempleTour.js';
 import { CounselPanel } from '../keep/CounselPanel.js';
 import { GpxPanel } from '../gpx/GpxPanel.js';
 import { HallOfFamePanel } from '../hall/HallOfFamePanel.js';
@@ -93,6 +94,7 @@ export function useMapAside(
   const [seasonOpen, setSeasonOpen] = useState(false);
   const [landsOpen, setLandsOpen] = useState(false);
   const [counselOpen, setCounselOpen] = useState(false);
+  const [tour, setTour] = useState<{ list: readonly string[]; i: number } | null>(null);
   /** A payout earned on the ledger page, handed to the one toast the map owns. */
   const [landsGain, setLandsGain] = useState<Collected | null>(null);
   const [gpxOpen, setGpxOpen] = useState(false);
@@ -184,6 +186,21 @@ export function useMapAside(
         }}
         onGain={setLandsGain}
         onClose={() => setLandsOpen(false)}
+        onChanged={() => changed.current()}
+        onTour={(list) => {
+          setLandsOpen(false);
+          setTour({ list, i: 0 });
+          if (list[0]) showCell.current(list[0]);
+        }}
+      />
+      <TempleTour
+        tour={tour}
+        onStep={(i) => {
+          setTour((t) => (t ? { ...t, i } : t));
+          const h3 = tour?.list[i];
+          if (h3) showCell.current(h3);
+        }}
+        onDone={() => setTour(null)}
       />
       <CounselPanel open={counselOpen} repository={repository} now={now} onClose={() => setCounselOpen(false)} />
       <GpxPanel

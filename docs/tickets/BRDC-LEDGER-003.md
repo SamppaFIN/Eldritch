@@ -7,7 +7,7 @@
 | **Effort** | S |
 | **Riippuvuudet** | LEDGER-001 |
 | **Lähde** | Infiniten handoff 2026-10-05, F-22 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 (kierros `[~]`) |
 
 ## 🔴 RED
 
@@ -15,9 +15,9 @@ Temppeleitä ei voi käydä läpi listana.
 
 ## 🟢 GREEN
 
-- [ ] Lista: tila, löytäjä, bonus, viimeisin käynti (paikat + Temple Groves)
-- [ ] Kierros: Edellinen / Seuraava lentää ja avaa kortin
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Lista: tila, löytäjä, bonus, viimeisin käynti (paikat + Temple Groves) — tyhjä tila ajettu `ledger.spec.ts`:ssä
+- [~] Kierros: ‹ / › lentää ja avaa kortin (`TempleTour.tsx`) — toteutettu ja tyypitetty, mutta e2e ei aja sitä: tuoreessa valtakunnassa ei ole temppeliä. Testataan kun paikkojen siemen on olemassa
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 223 tiedostoa / 1963 testiä, tsc, rivit OK, build OK
 
 ## Todennus
 

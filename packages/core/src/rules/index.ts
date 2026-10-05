@@ -118,6 +118,7 @@ export {
   settleResources,
   spend,
   terrainAt,
+  DORMANT_AFTER_MS,
   terrainForCell,
   terrainOf,
   trickle,

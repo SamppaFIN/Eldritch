@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | LANDS-001 |
 | **Lähde** | Infiniten handoff 2026-10-05, F-20 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 |
 
 ## 🔴 RED
 
@@ -15,10 +15,10 @@ Ainoa lista on Your lands; muut kokoelmat (työt, temppelit, anomaliat, rauniot)
 
 ## 🟢 GREEN
 
-- [ ] `CollectionList`: rivit, suodatinsirut, lajittelu, tap → `MapHandle.focusCell` + kortti
-- [ ] Your lands siirretään ensin sen päälle (ei rinnakkaista listaa)
-- [ ] Yksi Ledger-arkki välilehdillä
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] `CollectionList`: rivit, suodatinsirut lukumäärineen, lajittelu, tap → `onShowCell` (sama kuin ennen: lentää ja avaa kortin) — `ledger.spec.ts`
+- [x] Your lands siirretään ensin sen päälle (ei rinnakkaista listaa) — `HexesTab.tsx`; `lands.spec.ts` vihreä paitsi :113, joka kaatuu samoin HEADissä (ensimmäinen paljastettava heksa on nyt ihme, jonka hetki peittää paneelin)
+- [x] Yksi Ledger-arkki välilehdillä: Hexes · Works · Temples · Anomalies; 360 px:ssä välilehdet ja sirut pyyhkäistään sivuttain
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 223 tiedostoa / 1963 testiä, tsc, rivit OK, build OK
 
 ## Todennus
 

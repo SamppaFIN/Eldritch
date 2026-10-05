@@ -7,7 +7,7 @@
 | **Effort** | S |
 | **Riippuvuudet** | LEDGER-001 |
 | **Lähde** | Infiniten handoff 2026-10-05, F-23 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 |
 
 ## 🔴 RED
 
@@ -15,9 +15,9 @@ Anomalioita ei näe listana.
 
 ## 🟢 GREEN
 
-- [ ] Suodatin aktiivinen / tutkittu / kadonnut
-- [ ] Rauniot samaan rakenteeseen
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [~] Suodatin koskematon / tutkinnassa / valmis — *kadonnut* ei ole mahdollinen: anomaliaa ei kirjata mihinkään, kun maa viedään. Vaatisi oman tietueen
+- [x] Rauniot samaan rakenteeseen — Anomalies-välilehden Ruins-suodatin (etsitty / etsimättä)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 223 tiedostoa / 1963 testiä, tsc, rivit OK, build OK
 
 ## Todennus
 
