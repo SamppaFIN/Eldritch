@@ -10,6 +10,7 @@
  * Without that, decay cannot be tested without waiting 20 real days.
  */
 import type { YieldApi } from '../data/yieldStore.js';
+import type { StandardApi } from '../data/standardStore.js';
 import type {
   BBox,
   Cell,
@@ -134,6 +135,8 @@ export interface GameRepository extends SeasonTwoApis {
   getRevealed(): Promise<Record<H3Index, number>>;
   /** Each held hex's yield per hour, itemised by where it comes from (BRDC-YIELD-001). */
   readonly yields: YieldApi;
+  /** Your standard, planted on the hex you stand on, your own ground only (BRDC-STANDARD-001). */
+  readonly standard: StandardApi;
   /** Hexes seen from afar (a Watchtower, Dream-Sight) — the fog is lifted there. */
   getSighted(): Promise<Record<H3Index, number>>;
   /**

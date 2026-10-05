@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | — |
 | **Lähde** | Infiniten handoff 2026-10-05, F-13 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 |
 
 ## 🔴 RED
 
@@ -15,12 +15,12 @@ Ei tapaa merkitä paikkaa kartalle. Nimi: **Plant your standard** — Raise your
 
 ## 🟢 GREEN
 
-- [ ] `repository.standard.plant(now)` GPS-heksalle; `not-yours` torjutaan storessa, ei vain UI:ssa
-- [ ] `K.standard {h3, at}`, yksi kerrallaan, siirtyy uudelleen pystytettäessä; ei mekaniikkaa (D1)
-- [ ] Lipputanko-sprite pelaajan lipun väreissä
-- [ ] Nappi arkissa; muualla kuin omalla maalla disabloitu + näkyvä syy-rivi
-- [ ] e2e: oma heksa → lippu; neutraali/vihollisen → estetty ja syy näkyy
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] `repository.standard.plant(now)` GPS-heksalle; `not-yours` torjutaan storessa, ei vain UI:ssa
+- [x] `K.standard {h3, at}`, yksi kerrallaan, siirtyy uudelleen pystytettäessä; ei mekaniikkaa (D1)
+- [x] Lipputanko-sprite valtakunnan väreissä (oma purppura, kultareuna); erillinen lippukerros jätettiin pois — kahden kokokäyrän kohdistus oli hauras
+- [x] ⚑-nappi arkin rivissä; muualla kuin omalla maalla `aria-disabled` + himmennys, ja napautus kertoo syyn näkyvällä rivillä (puhelimessa ei ole hoveria tooltipille)
+- [x] e2e `standard.spec.ts`: oma heksa → lippu kartalla, säilyy reloadin yli, toinen napautus kertoo syyn; torjunta vieraalla maalla testattu storessa (`standard.repo.test`) ja napin säännössä (`useStandard.test`) — e2e:ssä vieraalle heksalle ei pääse kävelemättä sitä omaksi
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 

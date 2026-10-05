@@ -221,7 +221,7 @@ test('daylight mode trades the glass for a solid plate, everywhere at once', asy
    * direct sun, which is the single condition this mode exists for. The handoff asks for
    * a token flip; this is the assertion that tells the difference between the two.
    */
-  const control = page.locator('.camera-control');
+  const control = page.locator('.camera-control:not(.camera-control--yields)');
   await expect(control).toBeVisible();
   await expect
     .poll(() => control.evaluate((el) => getComputedStyle(el).backdropFilter), { timeout: 5_000 })

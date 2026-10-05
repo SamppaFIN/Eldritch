@@ -28,6 +28,7 @@ export { cellsToLoad, planClaim } from './claiming.js';
 export type { ClaimPlan } from './claiming.js';
 export { forecastRates } from './pouch.js';
 export type { YieldApi } from './yieldStore.js';
+export type { PlantOutcome, Standard, StandardApi } from './standardStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';
 export type { StepClaimOutcome } from './stepStore.js';

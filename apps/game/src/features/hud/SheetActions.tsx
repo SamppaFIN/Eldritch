@@ -6,15 +6,31 @@
 import { RitualButton } from '@es3/ui';
 import { Vigil } from './Vigil.js';
 import type { VigilProps } from './Vigil.js';
+import type { StandardBinding } from '../territory/useStandard.js';
 
 export interface SheetLinks {
   onOpenLands?: (() => void) | undefined;
   onOpenCounsel?: (() => void) | undefined;
+  /** Plant your standard where you stand (BRDC-STANDARD-001). */
+  standard?: StandardBinding | undefined;
 }
 
-export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel }: VigilProps & SheetLinks) {
+export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard }: VigilProps & SheetLinks) {
   return (
     <>
+      {standard ? (
+        // Marked unavailable rather than disabled: a tap still says why (no hover on a phone).
+        <RitualButton
+          variant="ghost"
+          className="hud__sheet-link hud__standard"
+          aria-label="Plant your standard"
+          aria-disabled={!standard.can}
+          data-can={standard.can}
+          onClick={standard.plant}
+        >
+          <span aria-hidden>⚑</span>
+        </RitualButton>
+      ) : null}
       {onOpenLands ? (
         <RitualButton variant="ghost" className="hud__sheet-link" onClick={onOpenLands}>
           <span aria-hidden>⬡</span> Lands
@@ -26,6 +42,11 @@ export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel }: VigilPro
         </RitualButton>
       ) : null}
       <Vigil keepAlive={keepAlive} />
+      {standard?.said ? (
+        <p className="hud__sheet-note" role="status">
+          {standard.said}
+        </p>
+      ) : null}
     </>
   );
 }

@@ -266,6 +266,19 @@
   letter-spacing: 0.04em;
 }
 
+/* Plant your standard: dimmed off your own ground, its reason on the line below. */
+.hud__standard[data-can='false'] {
+  opacity: 0.55;
+}
+
+.hud__sheet-note {
+  flex: 1 0 100%;
+  margin: 0;
+  text-align: end;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}
+
 /* --- Vigil ------------------------------------------------------------- */
 
 .vigil__toggle {

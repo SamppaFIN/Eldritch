@@ -48,6 +48,8 @@ export const K = {
   /** Hexes seen from afar — a Watchtower, Dream-Sight — so the fog lifts there; nothing is
    *  found or paid by it, that stays `revealed`'s (field report 2026-09-30). */
   sighted: 'sighted',
+  /** The planted standard, `{ h3, at }` (BRDC-STANDARD-001). */
+  standard: 'standard',
   /** A temple's chosen element, `Record<H3Index, TempleSchool>` — missing h3 = not chosen yet (BRDC-TEMPLE-002). */
   templeSchool: 'temple-school',
   /** Set once the Hearth's founding stash has been granted, so it is never handed out twice (BRDC-ECON-007). */

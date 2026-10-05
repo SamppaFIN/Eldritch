@@ -10,6 +10,7 @@ import type { Cell, GameRepository, H3Index, HexYield } from '@es3/core';
 import { setSeasonMarkData, useSeasonMarks } from '../season/SeasonMarkers.js';
 import { setYieldData } from '../territory/yieldLayer.js';
 import { animateCitizens, setCitizenData } from '../territory/citizenLayer.js';
+import { setStandardData } from '../territory/standardLayer.js';
 
 export function useMapExtras(
   map: MapLibreMap | null,
@@ -52,4 +53,13 @@ export function useMapExtras(
     if (map && ready) setCitizenData(map, hands);
   }, [map, ready, hands]);
   useEffect(() => (map && ready ? animateCitizens(map) : undefined), [map, ready]);
+
+  // Your planted standard (BRDC-STANDARD-001): planting refreshes the territory, which re-reads here.
+  const [standard, setStandard] = useState<H3Index | null>(null);
+  useEffect(() => {
+    if (repository) void repository.standard.at().then((s) => setStandard(s?.h3 ?? null));
+  }, [repository, cells]);
+  useEffect(() => {
+    if (map && ready) setStandardData(map, standard);
+  }, [map, ready, standard]);
 }
