@@ -7,7 +7,7 @@
 | **Effort** | S |
 | **Riippuvuudet** | PROG-002 |
 | **Lähde** | Infiniten handoff 2026-10-05, F-12 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Miehitys näkyy vain kortilla; kartalla ei näe, missä väki on töissä.
 
 ## 🟢 GREEN
 
-- [ ] Ukkeli-ikoni miehitetyllä heksalla, useampi → ikoni + luku
-- [ ] Kaksi framea, yksi ajastin koko layerille (`icon-image`), ei per-heksa DOMia
-- [ ] Tauko kun sivu piilossa tai `prefers-reduced-motion`
-- [ ] Näkyy samalla zoomilla kuin MAP-008
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Ukkeli-ikoni miehitetyllä heksalla, useampi → ikoni + luku
+- [x] Kaksi framea, yksi ajastin koko layerille (`icon-image`), ei per-heksa DOMia
+- [x] Tauko kun sivu piilossa tai `prefers-reduced-motion`
+- [x] Näkyy hieman ennen MAP-008:aa (zoom 15.5), heksan vasemmassa yläkulmassa; `keep.handsByHex` (kevyt luku ilman settleä); miehitys kortilta päivittää kartan heti (`CellStaff.onChanged` → sama uudelleenluku kuin rakentamisessa). e2e `keep-citizens.spec.ts` (kun Keepin siemennys pitää — vanha kilpailutilanne)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 

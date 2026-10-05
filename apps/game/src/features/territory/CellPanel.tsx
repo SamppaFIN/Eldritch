@@ -224,7 +224,7 @@ export function CellPanel({
       {/* Every action this hex offers, in one row at the top — nothing to scroll for with
           one thumb while walking (BRDC-DETAIL-003). */}
       <CellActions actions={cellActions(offer)} open={open} onPress={press} status={status} />
-      {mine ? <CellStaff repository={repository} h3={cell.h3} now={now} /> : null}
+      {mine ? <CellStaff repository={repository} h3={cell.h3} now={now} onChanged={build?.refresh} /> : null}
       {mine ? <CellRites repository={repository} h3={cell.h3} now={now} /> : null}
       <CellGate repository={repository} h3={cell.h3} here={here} now={now} />
       <CellRumour repository={repository} h3={cell.h3} here={here} now={now} />

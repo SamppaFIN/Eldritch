@@ -59,6 +59,8 @@ export interface BuildBinding {
    *  every Library and Forge refused (field report 2026-09-30). */
   templeAdjacent: boolean;
   ironAdjacent: boolean;
+  /** Re-read the pouch and the map after a change the card made itself (a hand moved). */
+  refresh: () => void;
 }
 
 /**
@@ -341,6 +343,7 @@ export function useSelection({
       fortified: cell ? fortified(known, cell.h3) : false,
       templeAdjacent: cell ? templeAdjacentTo(cell.h3, livePlaces, mine) : false,
       ironAdjacent: cell ? ironAdjacentTo(cell.h3, mine) : false,
+      refresh: () => void afterSpend(),
     },
     onCellTap,
     onPlaceTap,

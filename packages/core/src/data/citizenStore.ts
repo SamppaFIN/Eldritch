@@ -7,6 +7,7 @@
  * trickle. This is the seam the Keep screen reads and the Raise button writes through —
  * a separate API object, like `worksApi`, because `MockRepository` is at its line limit.
  */
+import type { ResourceState } from '../rules/terrain.js';
 import { growBox } from '../rules/balance.js';
 import { FIRST_KEEP, STORE_MS, calmAt, foodBalance, keepHousing, hoursToNextCitizen, keepRaiseCost, raiseKeep } from '../rules/citizens.js';
 import type { KeepRaiseResult } from '../rules/citizens.js';
@@ -67,6 +68,9 @@ export interface KeepApi {
   found(now: number): Promise<void>;
   /** The buildings on an owned cell and their hands; empty on a Season 1 save. */
   staffOn(h3: H3Index, now: number): Promise<StaffSlot[]>;
+  /** Hands at work on each held hex, every Work summed — for the map (BRDC-MAP-009). A
+   *  plain read, no settle: the map asks often. */
+  handsByHex(now: number): Promise<Record<H3Index, number>>;
   /** Send an idle citizen to (+1) or call one back from (−1) a building. */
   staff(h3: H3Index, id: BuildingId, delta: 1 | -1, now: number): Promise<StaffOutcome>;
   /** The Keeper's Counsel, first true rule first; null on a Season 1 save (COUNSEL-001). */
@@ -147,6 +151,16 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
         hands: keep.staff?.[staffKey(h3, w.id)] ?? 0,
         slots: slotsFor(w.id, level),
       }));
+    },
+    handsByHex: async (now) => {
+      const held = new Set((await owned(now)).map((c) => c.h3));
+      const staff = (await store().get<ResourceState>('resources'))?.keep?.staff ?? {};
+      const out: Record<H3Index, number> = {};
+      for (const [key, n] of Object.entries(staff) as [string, number][]) {
+        const h3 = key.slice(0, key.indexOf('|'));
+        if (n > 0 && held.has(h3)) out[h3] = (out[h3] ?? 0) + n;
+      }
+      return out;
     },
     counsel: async (now) => counselFor(store(), await owned(now), now),
     codex: async () => unreadCodex(store()),

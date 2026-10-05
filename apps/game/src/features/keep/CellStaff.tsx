@@ -15,6 +15,8 @@ export interface CellStaffProps {
   repository: GameRepository | null;
   h3: H3Index;
   now: number;
+  /** A hand moved: the map's citizens and yields re-read (BRDC-MAP-009). */
+  onChanged?: (() => void) | undefined;
 }
 
 const REFUSAL: Record<string, string> = {
@@ -24,7 +26,7 @@ const REFUSAL: Record<string, string> = {
   'no-keep': 'This realm has no Keep yet.',
 };
 
-export function CellStaff({ repository, h3, now }: CellStaffProps) {
+export function CellStaff({ repository, h3, now, onChanged }: CellStaffProps) {
   const [rows, setRows] = useState<StaffSlot[]>([]);
   const [said, setSaid] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -43,6 +45,7 @@ export function CellStaff({ repository, h3, now }: CellStaffProps) {
       const r = await repository.keep.staff(h3, id, delta, now);
       setSaid(r.ok ? null : (REFUSAL[r.refused] ?? 'That did not work.'));
       setRows(await repository.keep.staffOn(h3, now));
+      if (r.ok) onChanged?.();
       setBusy(false);
     })();
   };

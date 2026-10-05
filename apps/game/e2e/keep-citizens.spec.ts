@@ -150,6 +150,14 @@ test('a building on a Season 2 save takes a citizen to work (BRDC-PROG-002)', as
   await workers.getByRole('button', { name: 'Send a citizen' }).click();
   await expect(workers).toContainText('Farm · 1 / 1 at work');
   await expect(workers.getByRole('button', { name: 'Call one back' })).toBeVisible();
+  // BRDC-MAP-009: the citizen stands on the map at once, not a minute later.
+  const citizens = () =>
+    page.evaluate(() => (globalThis as unknown as { __esMap: import('maplibre-gl').Map }).__esMap.querySourceFeatures('hex-citizens').length);
+  // The layer's tiles load only from its own zoom up; a zoom costs seconds in a headless,
+  // software-rendered browser, hence the room.
+  test.setTimeout(180_000);
+  await page.evaluate(() => (globalThis as unknown as { __esMap: import('maplibre-gl').Map }).__esMap.setZoom(17));
+  await expect.poll(citizens, { timeout: 20_000 }).toBeGreaterThan(0);
 });
 
 test('a Season 2 save studies the Lore, not the old tree (BRDC-PROG-004)', async ({ page }) => {

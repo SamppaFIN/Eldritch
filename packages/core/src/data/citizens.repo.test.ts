@@ -123,4 +123,14 @@ describe('raising the Keep widens the Hearth (Infinite 2026-09-30)', () => {
     expect((await store.get<{ ownerId: string }>(K.cell(ring2[0] as string)))?.ownerId).toBe('rival');
     expect((await store.get<{ ownerId: string }>(K.cell(ring2[1] as string)))?.ownerId).toBe('me');
   });
+
+  it('counts the hands at work on each held hex, every Work summed (BRDC-MAP-009)', async () => {
+    const store = new MemoryStore();
+    const farm: Cell = { h3: cellAt({ lat: 61.4729, lng: 23.7258 }), ownerId: 'me', strength: 100, lastVisitedAt: T0, visitDays: [], buildings: [{ id: 'farm', builtAt: T0 }] };
+    const keep = keepApi(() => store, async () => [farm]);
+    await keep.found(T0);
+    expect(await keep.handsByHex(T0)).toEqual({});
+    expect((await keep.staff(farm.h3, 'farm', 1, T0)).ok).toBe(true);
+    expect(await keep.handsByHex(T0)).toEqual({ [farm.h3]: 1 });
+  });
 });
