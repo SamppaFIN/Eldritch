@@ -60,7 +60,7 @@ v2's most concrete failure was 112 markdown files with no source of truth.
   "versio": "0.5.87",
   "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
   "tila": "toteutus",
-  "vaihe": "2.7 — Season 2: Progression + Season Codex (tiketit docs/tickets/README.md)",
+  "vaihe": "2.8 — Ominaisuuskierros lokakuu 2026 → v0.9.0, kautta katkaisematta (docs/tickets/README.md)",
   "edellinen_vaihe": "2.5 — Suunnanmuutos (valmis 2026-08-30)",
   "juurihakemisto": "c:/Projects/Klitoritari-FinalFantasy",
   "kohdelaite": "Samsung S23 Ultra (mobile-first), desktop simulaatiotilassa",
@@ -464,6 +464,12 @@ faster than a rainbow of rivals nobody can tell apart on a phone screen outdoors
 Ground seen only because it borders yours gets a neutral pale tint, never the enemy
 red. Contested cells pulse. **Fog of war:** the map draws only owned cells and their
 one-ring neighbours; everything else is bare basemap until you walk near it.
+
+**Terrain textures (Infinite 2026-09-30, after Civilization V):** every drawn hex carries a
+translucent, Lovecraft-themed texture of its ground (`terrainTextures.ts`, `fill-pattern`)
+*under* the ownership fill — deep water, roots and spores, slate contours, tarnished gold.
+This reverses the Sigil rule "terrain never fills the hex" (turned off for clutter on
+2026-09-15); keep it subtle, so whose ground it is still reads first.
 
 Map basemap must be dark and tinted toward `--void-black`. It should never look like plain
 OpenStreetMap — v2's raster OSM tiles were the weakest part of its presentation.
