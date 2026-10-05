@@ -380,4 +380,6 @@ export type { RuinFind } from './ruins.js';
 export { WONDER_ACTS, WONDER_ACT_COOLDOWN_MS } from './wonderActs.js';
 export type { WonderAct, WonderActKind } from './wonderActs.js';
 export { CODEX_CARDS, counselOf } from './counsel.js';
+export { computeHexYield, realmBonus, realmOnlyYield } from './hexYield.js';
+export type { HexYield, YieldContribution, YieldContext, YieldSource } from './hexYield.js';
 export type { Counsel, CounselState } from './counsel.js';

@@ -30,6 +30,7 @@ import { CellHeader } from './CellHeader.js';
 import { CellIncome } from './CellIncome.js';
 import { CellOn } from './CellOn.js';
 import { CellWorth } from './CellWorth.js';
+import { CellYield } from './CellYield.js';
 import { CellActions } from './CellActions.js';
 import { cellActions } from './hexActions.js';
 import type { ActionId } from './hexActions.js';
@@ -297,6 +298,7 @@ export function CellPanel({
       {history ? <p className="cell-panel__history">{history}</p> : null}
 
       <CellWorth cell={cell} now={now} showDetail={showDetail} fortified={build?.fortified ?? false} />
+      {mine ? <CellYield repository={repository} h3={cell.h3} now={now} /> : null}
       {mine ? (
         <p className="cell-panel__note">
           A ward adds strength. It does not reset the clock — only your feet do that.

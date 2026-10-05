@@ -9,7 +9,6 @@
  * time, in prose, directly under the `<dl>` that already said them. One place per number.
  */
 import {
-  CLAIM_YIELD,
   MAX_STRENGTH,
   NEIGHBOUR_BONUS,
   TRICKLE_PER_HOUR,
@@ -53,11 +52,13 @@ export function CellWorth({ cell, now, showDetail, fortified }: CellWorthProps) 
           <dd className="es-numeric">{Math.round(cellAreaM2(cell.h3))} m²</dd>
         </div>
         <div>
-          <dt>Yields</dt>
+          <dt>Ground gives</dt>
           {/* Same colour law as the resource banner above this panel and the map's own
               glyph — a resource number is never left grey (Sigil §01, BRDC-DETAIL-001). */}
           <dd className="es-numeric" style={resource ? { color: RESOURCE_COLOUR[resource] } : undefined}>
-            {resource ? `${CLAIM_YIELD} ${RESOURCE_WORD[resource]} · ${TRICKLE_PER_HOUR}/h` : 'nothing'}
+            {/* What the ground itself gives a holder; the card's own yield, every source, is
+                `CellYield` below (BRDC-CARD-006 — the claim payout this showed went in 2026-09). */}
+            {resource ? `${TRICKLE_PER_HOUR} ${RESOURCE_WORD[resource]}/h` : 'nothing'}
           </dd>
         </div>
         <div>

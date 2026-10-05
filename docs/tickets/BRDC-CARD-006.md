@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | YIELD-001 |
 | **Lähde** | Infiniten handoff 2026-10-05, F-02 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 |
 
 ## 🔴 RED
 
@@ -15,10 +15,10 @@ Kortin Yields-rivi näyttää vakiot `CLAIM_YIELD` ja `TRICKLE_PER_HOUR` — ei 
 
 ## 🟢 GREEN
 
-- [ ] Resurssi kerrallaan: `Food +6 → Terrain: Forest +1 · Farmstead +2 · Worker +2 · Lore +1`
-- [ ] Negatiiviset (Forgen puun ylläpito) punaisella
-- [ ] Kortin summa = `forecastRates`in heksakohtainen osuus (testi)
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Resurssi kerrallaan: `Food +6 → Terrain: Forest +1 · Farmstead +2 · Worker +2 · Lore +1`
+- [x] Negatiiviset (Forgen puun ylläpito) punaisella
+- [x] Kortin summa = heksan osuus siitä mitä pouch maksaa: luvut `repository.yields`istä (sama malli kuin tikki); summan vastaavuus testattu `hexYield.test.ts`:ssä, kortti `yield-card.spec.ts`:ssä. Ground gives -rivi näyttää enää maan oman tipan, ei poistettua valtausmaksua
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 
