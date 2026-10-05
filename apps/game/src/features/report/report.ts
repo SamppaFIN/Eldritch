@@ -10,6 +10,7 @@
  */
 import type { LogEntry } from '@es3/core';
 import { describeLogEntry, relativeTime } from '../log/describe.js';
+import { REPO } from '../../data/worldSource.js';
 
 export interface ReportContext {
   version: string;
@@ -43,4 +44,43 @@ export function buildReport({ version, now, position, log, note }: ReportContext
     'recent:',
     ...recent,
   ].join('\n');
+}
+
+export interface IssueContext {
+  kind: 'bug' | 'enhancement';
+  note: string;
+  version: string;
+  /** `navigator.platform`, or what stands in for it. */
+  platform: string;
+  /** User agent and screen size. */
+  device: string;
+  /** Where in the game the player was. */
+  view: string;
+}
+
+/** GitHub refuses very long prefill URLs; an "ä" costs six characters once encoded. */
+const MAX_NOTE = 1200;
+
+/**
+ * A prefilled GitHub issue (BRDC-BUGREPORT-002, handoff F-30). The browser opens it and
+ * the player submits it under their own account — no token anywhere in the client.
+ *
+ * The repo is public, so this carries less than the shared report: no position and no
+ * action log. Those still go by WhatsApp, to one person.
+ */
+export function issueUrl({ kind, note, version, platform, device, view }: IssueContext): string {
+  const text = note.trim().slice(0, MAX_NOTE) || '(no description given)';
+  const first = text.split('\n')[0] ?? text;
+  const title = `${kind === 'bug' ? 'Bug' : 'Idea'}: ${first.length > 70 ? `${first.slice(0, 69)}…` : first}`;
+  const body = [
+    text,
+    '',
+    '---',
+    `- Version: v${version}`,
+    `- Platform: ${platform}`,
+    `- Device: ${device}`,
+    `- View: ${view}`,
+  ].join('\n');
+  const params = new URLSearchParams({ title, body, labels: kind });
+  return `https://github.com/${REPO}/issues/new?${params.toString()}`;
 }

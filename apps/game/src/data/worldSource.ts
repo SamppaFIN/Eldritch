@@ -13,8 +13,8 @@ import type { SeasonJoinView, WorldSource } from '@es3/core';
 export const WORLD_API =
   import.meta.env.VITE_WORLD_API ?? 'https://eldritch-world.es3-world-worker.workers.dev';
 
-/** The old GitHub repo — kept only for `worldSubmissionUrl`, the manual fallback. */
-const REPO = 'SamppaFIN/Eldritch';
+/** The GitHub repo: `worldSubmissionUrl`'s manual fallback, and where reports become issues. */
+export const REPO = 'SamppaFIN/Eldritch';
 
 /**
  * Fetch the shards for these res-6 regions. A missing or unreachable shard (204, 404, no

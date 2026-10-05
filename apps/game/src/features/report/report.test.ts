@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LogEntry } from '@es3/core';
-import { buildReport } from './report.js';
+import { buildReport, issueUrl } from './report.js';
 
 const NOW = Date.parse('2026-09-01T12:00:00Z');
 
@@ -38,5 +38,34 @@ describe('buildReport', () => {
     const lines = text.split('\n').filter((l) => l.startsWith('  · '));
     expect(lines).toHaveLength(5);
     expect(lines[0]).toContain('just now');
+  });
+});
+
+describe('issueUrl (BRDC-BUGREPORT-002)', () => {
+  const base = { version: '0.9.0', platform: 'Linux armv8l', device: 'Mozilla/5.0 (Android) · 412×915', view: '/#map' };
+
+  it('prefills a new issue on the game repo with title, label and context', () => {
+    const url = new URL(issueUrl({ ...base, kind: 'bug', note: 'The flag stayed on the old hex\nafter planting it again' }));
+    expect(url.origin + url.pathname).toBe('https://github.com/SamppaFIN/Eldritch/issues/new');
+    expect(url.searchParams.get('title')).toBe('Bug: The flag stayed on the old hex');
+    expect(url.searchParams.get('labels')).toBe('bug');
+    const body = url.searchParams.get('body') ?? '';
+    expect(body).toContain('after planting it again');
+    expect(body).toContain('- Version: v0.9.0');
+    expect(body).toContain('- Platform: Linux armv8l');
+    expect(body).toContain('- Device: Mozilla/5.0 (Android) · 412×915');
+    expect(body).toContain('- View: /#map');
+  });
+
+  it('labels an improvement as an enhancement, and cuts a long title', () => {
+    const url = new URL(issueUrl({ ...base, kind: 'enhancement', note: 'x'.repeat(200) }));
+    expect(url.searchParams.get('labels')).toBe('enhancement');
+    expect(url.searchParams.get('title')).toMatch(/^Idea: x{69}…$/);
+  });
+
+  it('never carries a position, and stays a URL GitHub will open', () => {
+    const url = issueUrl({ ...base, kind: 'bug', note: 'ä'.repeat(20_000) });
+    expect(url).not.toMatch(/near|61\.47/);
+    expect(url.length).toBeLessThan(8000);
   });
 });

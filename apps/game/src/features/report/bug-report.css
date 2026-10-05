@@ -75,3 +75,30 @@
   font-size: var(--text-sm);
   line-height: 1.4;
 }
+
+/* Bug or improvement: the chosen one lit, the way the Ledger's chips are. */
+.bug-report .es-btn[aria-pressed='true'] {
+  --btn-accent: var(--mystic-cyan);
+}
+
+/* The GitHub issue is a link dressed as a button (BRDC-BUGREPORT-002). */
+.bug-report a.es-btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.bug-report a.es-btn[aria-disabled='true'] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* The sheet scrolls; its parts keep their size, or the column squeezes the note to a line. */
+.bug-report > * {
+  flex-shrink: 0;
+}
+
+/* Bug / Improvement share one row at 360 px. */
+.bug-report__kind {
+  padding-inline: var(--space-4);
+}

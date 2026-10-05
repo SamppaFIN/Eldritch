@@ -7,13 +7,17 @@
  * (desktop), it copies to the clipboard instead.
  *
  * Not a modal: like the rest of the map's panels, ESC and Cancel close it.
+ *
+ * Or straight to GitHub (BRDC-BUGREPORT-002): a prefilled issue the player submits under
+ * their own account. No token in the client, ever.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { APP_VERSION } from '@es3/core';
 import type { GameRepository, LogEntry } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
-import { buildReport } from './report.js';
+import { buildReport, issueUrl } from './report.js';
 import { useDictation } from './useDictation.js';
+import { useEscape } from '../hud/useEscape.js';
 import './bug-report.css';
 
 export interface BugReportProps {
@@ -29,6 +33,7 @@ export function BugReport({ open, onClose, repository, position }: BugReportProp
   const [note, setNote] = useState('');
   const [log, setLog] = useState<readonly LogEntry[]>([]);
   const [sent, setSent] = useState<Sent>('idle');
+  const [kind, setKind] = useState<'bug' | 'enhancement'>('bug');
   const areaRef = useRef<HTMLTextAreaElement>(null);
 
   const append = useCallback((chunk: string) => {
@@ -36,16 +41,18 @@ export function BugReport({ open, onClose, repository, position }: BugReportProp
   }, []);
   const dictation = useDictation(append);
 
+  // A fresh page on opening, and only then: `onClose` is a new arrow on every menu render
+  // and the menu re-renders on every GPS fix, so keyed on it this wiped the note mid-sentence.
   useEffect(() => {
     if (!open) return;
     setNote('');
     setSent('idle');
     areaRef.current?.focus();
-    void repository?.getLog().then(setLog);
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, repository, onClose]);
+  }, [open]);
+  useEffect(() => {
+    if (open) void repository?.getLog().then(setLog);
+  }, [open, repository]);
+  useEscape(open, onClose);
 
   const send = useCallback(async () => {
     const text = buildReport({ version: APP_VERSION, now: Date.now(), position, log, note });
@@ -65,6 +72,15 @@ export function BugReport({ open, onClose, repository, position }: BugReportProp
   }, [position, log, note, onClose]);
 
   if (!open) return null;
+  const issue = issueUrl({
+    kind,
+    note,
+    version: APP_VERSION,
+    platform: navigator.platform || 'unknown',
+    device: `${navigator.userAgent} · ${screen.width}×${screen.height}`,
+    view: `${location.pathname}${location.hash}`,
+  });
+  const empty = note.trim().length === 0;
 
   return (
     <GlassPanel as="section" className="bug-report" aria-label="Report a bug or improvement">
@@ -88,6 +104,15 @@ export function BugReport({ open, onClose, repository, position }: BugReportProp
         placeholder="What you expected, and what happened instead."
       />
 
+      <div className="bug-report__actions" role="group" aria-label="Kind of report">
+        <RitualButton variant="ghost" className="bug-report__kind" aria-pressed={kind === 'bug'} onClick={() => setKind('bug')}>
+          Bug
+        </RitualButton>
+        <RitualButton variant="ghost" className="bug-report__kind" aria-pressed={kind === 'enhancement'} onClick={() => setKind('enhancement')}>
+          Improvement
+        </RitualButton>
+      </div>
+
       <div className="bug-report__actions">
         {dictation.supported ? (
           <RitualButton
@@ -98,9 +123,19 @@ export function BugReport({ open, onClose, repository, position }: BugReportProp
             {dictation.listening ? '● Listening…' : '🎤 Speak'}
           </RitualButton>
         ) : null}
-        <RitualButton variant="primary" onClick={send} disabled={note.trim().length === 0}>
+        <RitualButton variant="primary" onClick={send} disabled={empty}>
           Send
         </RitualButton>
+        {/* A link, not a button: it goes somewhere. Without a note it has nowhere to go. */}
+        <a
+          className="es-btn es-btn--ghost"
+          href={empty ? undefined : issue}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-disabled={empty}
+        >
+          Open as GitHub issue
+        </a>
       </div>
 
       <p className="bug-report__note" role="status">
