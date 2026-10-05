@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import type { GameRepository, H3Index, HexYield, ResourceKind } from '@es3/core';
 import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
+import './cell-yield.css';
 
 /** One decimal at most, and none when it is whole: "+2", "+1.5", "−0.8". */
 export function signed(n: number): string {
