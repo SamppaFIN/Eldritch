@@ -573,3 +573,27 @@ Järjestys: SEASON-002 → PROG-001…005 → PROG-007 → PROG-006 → PROG-008
 | [BRDC-SEASON-008](BRDC-SEASON-008.md) | Maailmanihmeet jäävät kartalle ja saavat erikoistoiminnot | M | SEASON-007 |
 
 **Tehty heti 2026-09-29 (v0.6.67):** valtauksen kertamaksu `CLAIM_YIELD` (+10 heksan resurssia jokaisesta askeleesta) poistettu — *"tekee pelistä aivan liian nopean"*. `awardClaims` vain tilittää trickle-kertymän; `CLAIM_YIELD` jää paljastuspalkkion yksiköksi.
+
+## Ominaisuuskierros lokakuu 2026 (handoff 2026-10-05) → v0.9.0
+
+Kausi jatkuu: ei `SAVE_VERSION`-nostoa, kaikki tallennusmuutokset lisääviä. Päätökset 2026-10-05: lippu = *Plant your standard*, taitokokeet olemassa olevalla noppapoolilla, yksi iso julkaisu, `html-to-image` sallittu. Järjestys: YIELD-001 → CARD-006, QUEST-008 → MAP-008, MAP-009, STANDARD-001 → LEDGER-001…004 → BUGREPORT-002, HALL-004 → INVEST-001, QUEST-009 → ART-007, FX-004.
+
+| Tiketti | Mitä | Effort | Riippuu |
+|---|---|---|---|
+| [BRDC-YIELD-001](BRDC-YIELD-001.md) | Heksan tuotto eriteltynä: yksi funktio, kolme kuluttajaa | L | — |
+| [BRDC-CARD-006](BRDC-CARD-006.md) | Kortti näyttää, mistä tuotto tulee | M | YIELD-001 |
+| [BRDC-QUEST-008](BRDC-QUEST-008.md) | Tehtävän lopputulos jää kortille | S | — |
+| [BRDC-TERRAIN-006](BRDC-TERRAIN-006.md) | Maatyypin läpikuultava pinta | M | — |
+| [BRDC-MAP-008](BRDC-MAP-008.md) | Tuotto kartalla, Civ-tyyliin | M | YIELD-001 |
+| [BRDC-MAP-009](BRDC-MAP-009.md) | Asukas näkyy työpaikallaan | S | PROG-002 |
+| [BRDC-STANDARD-001](BRDC-STANDARD-001.md) | Pystytä viiri sinne missä seisot | M | — |
+| [BRDC-LEDGER-001](BRDC-LEDGER-001.md) | Yhteinen kokoelmalista (Ledger) | M | LANDS-001 |
+| [BRDC-LEDGER-002](BRDC-LEDGER-002.md) | Työt-välilehti ja miehitys listalta | M | LEDGER-001, YIELD-001 |
+| [BRDC-LEDGER-003](BRDC-LEDGER-003.md) | Temppelit-välilehti ja kierros | S | LEDGER-001 |
+| [BRDC-LEDGER-004](BRDC-LEDGER-004.md) | Anomaliat ja rauniot -välilehdet | S | LEDGER-001 |
+| [BRDC-BUGREPORT-002](BRDC-BUGREPORT-002.md) | Raportti suoraan GitHub-issueksi | S | BUGREPORT-001 |
+| [BRDC-HALL-004](BRDC-HALL-004.md) | Eläköityessä kuva Chroniclesiin | M | HALL-001 |
+| [BRDC-INVEST-001](BRDC-INVEST-001.md) | Tutkija valitaan: muotokuva, tarina, arvot, kyky | L | DOOM-002 |
+| [BRDC-QUEST-009](BRDC-QUEST-009.md) | Tehtävät ja mysteerit: moottori ja sisältö | L | QUEST-008, INVEST-001 |
+| [BRDC-ART-007](BRDC-ART-007.md) | Ikonien ja korttien visuaalinen nosto | M | — |
+| [BRDC-FX-004](BRDC-FX-004.md) | SVG-animaatiot | M | ART-007 |

@@ -53,24 +53,26 @@ export const slotsFor = (id: BuildingId, level: number): number => Math.min(rowF
 
 export const staffed = (staff: StaffMap): number => Object.values(staff).reduce((s, n) => s + n, 0);
 
+/** One labelled piece of a staffed hex's hourly yield (BRDC-YIELD-001). */
+export interface StaffedPart {
+  h3: H3Index;
+  resource: keyof ResourcePool;
+  amount: number;
+  /** `worker`: hands in a Work · `ground`: what the ground beside adds · `rite`: a Tide boon. */
+  kind: 'worker' | 'ground' | 'rite';
+  work: BuildingId | null;
+  hands: number;
+  rite?: string;
+}
+
 /**
- * Per-hour production of every awake, staffed building. A building with no hands yields
- * nothing. The ground adds to it (the document's NOTE column): a Farmstead on a food
+ * The staffed yield, hex by hex, before the realm's multipliers. A building with no hands
+ * yields nothing. The ground adds to it (the document's NOTE column): a Farmstead on a food
  * deposit doubles each worker's yield, a Sawmill gains a timber for every held forest hex
  * beside it, and a Market a gold for every held settlement (trade) hex beside it.
  */
-export function staffedBonus(
-  cells: readonly Cell[],
-  staff: StaffMap,
-  now: number,
-  boons: readonly Boon[] = [],
-  /** The Keep's citizens — given, the realm's sanity shapes the yield (PROG-008). */
-  citizens?: number,
-  gatesNear = 0,
-  calm = 0,
-): Partial<ResourcePool> {
-  const out: Partial<ResourcePool> = {};
-  const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
+export function staffedParts(cells: readonly Cell[], staff: StaffMap, now: number): StaffedPart[] {
+  const out: StaffedPart[] = [];
   const held = new Map(cells.map((c) => [c.h3, c]));
   const heldBeside = (h3: H3Index, kind: TerrainKind) =>
     neighboursOf(h3).filter((h) => {
@@ -84,36 +86,88 @@ export function staffedBonus(
       if (hands <= 0) continue;
       const mult = work.id === 'farm' && isFoodDeposit(cell) ? 2 : 1;
       for (const [k, v] of Object.entries(rowFor(work.id).perWorker) as [keyof ResourcePool, number][]) {
-        add(k, v * hands * (v > 0 ? mult : 1));
+        out.push({ h3: cell.h3, resource: k, amount: v * hands * (v > 0 ? mult : 1), kind: 'worker', work: work.id, hands });
       }
-      if (work.id === 'sawmill') add('wood', heldBeside(cell.h3, 'forest'));
-      if (work.id === 'market') add('gold', heldBeside(cell.h3, 'settlement')); // trade cells in reach
+      if (work.id === 'sawmill') out.push({ h3: cell.h3, resource: 'wood', amount: heldBeside(cell.h3, 'forest'), kind: 'ground', work: work.id, hands });
+      if (work.id === 'market') out.push({ h3: cell.h3, resource: 'gold', amount: heldBeside(cell.h3, 'settlement'), kind: 'ground', work: work.id, hands }); // trade cells in reach
     }
   }
-  // Masterworks (PROG-006): a Foundry lifts iron and stone by half, a Sunken Cathedral mana.
-  const awake = activeMasterworks(cells);
-  if (awake.includes('foundry')) for (const k of ['iron', 'stone'] as const) if (out[k]) out[k] = Math.round((out[k] ?? 0) * 1.5);
-  if (awake.includes('sunken-cathedral') && out.mana) out.mana = Math.round(out.mana * 1.5);
+  return out;
+}
 
-  // A mad realm works at four fifths (PROG-008) — what it makes, not what it spends.
-  if (citizens !== undefined) {
-    const f = sanityYield(realmSanity(cells, staff, citizens, gatesNear, calm));
-    if (f !== 1) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.floor((out[k] ?? 0) * f);
-  }
-
-  // Second Lake (PROG-007): every staffed building makes a share more while it lasts.
-  const lift = boons.reduce((s, b) => s + (b.scope === 'yield' && b.until > now ? b.value : 0), 0);
-  if (lift > 0) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.round((out[k] ?? 0) * (1 + lift / 100));
-
-  // Rites of the Tide (PROG-007): Call the Shoal on one Farmstead, High Water on every hand.
+/** The Tide boons, hex by hex: Call the Shoal on one Farmstead, High Water on every hand. */
+export function boonParts(cells: readonly Cell[], staff: StaffMap, now: number, boons: readonly Boon[]): StaffedPart[] {
+  const out: StaffedPart[] = [];
+  const held = new Map(cells.map((c) => [c.h3, c]));
   for (const b of boons) {
     if (b.until <= now) continue;
-    if (b.scope === 'target' && b.target && held.get(b.target)?.buildings?.some((w) => w.id === 'farm')) add('food', b.value);
+    if (b.scope === 'target' && b.target && held.get(b.target)?.buildings?.some((w) => w.id === 'farm')) {
+      out.push({ h3: b.target, resource: 'food', amount: b.value, kind: 'rite', work: 'farm', hands: 0, rite: b.rite });
+    }
     if (b.scope === 'workers') {
-      const hands = cells.reduce((s, c) => s + (staff[staffKey(c.h3, 'farm')] ?? 0), 0);
-      add('food', b.value * hands);
+      for (const c of cells) {
+        const hands = staff[staffKey(c.h3, 'farm')] ?? 0;
+        if (hands > 0) out.push({ h3: c.h3, resource: 'food', amount: b.value * hands, kind: 'rite', work: 'farm', hands, rite: b.rite });
+      }
     }
   }
+  return out;
+}
+
+/** What the realm puts on top of its staffed yield: masterworks, sanity, Second Lake. */
+export interface StaffedModifiers {
+  foundry: boolean;
+  cathedral: boolean;
+  /** The sanity factor (PROG-008), 1 when the realm is sane or no Keep counts citizens. */
+  sanity: number;
+  /** Second Lake's per cent, 0 when none runs. */
+  lift: number;
+}
+
+export function staffedModifiers(
+  cells: readonly Cell[],
+  staff: StaffMap,
+  now: number,
+  boons: readonly Boon[] = [],
+  citizens?: number,
+  gatesNear = 0,
+  calm = 0,
+): StaffedModifiers {
+  const awake = activeMasterworks(cells);
+  return {
+    foundry: awake.includes('foundry'),
+    cathedral: awake.includes('sunken-cathedral'),
+    sanity: citizens === undefined ? 1 : sanityYield(realmSanity(cells, staff, citizens, gatesNear, calm)),
+    lift: boons.reduce((s, b) => s + (b.scope === 'yield' && b.until > now ? b.value : 0), 0),
+  };
+}
+
+/**
+ * Per-hour production of every awake, staffed building — the parts above, summed, with the
+ * realm's multipliers applied in the order and rounding they always had, then the boons.
+ */
+export function staffedBonus(
+  cells: readonly Cell[],
+  staff: StaffMap,
+  now: number,
+  boons: readonly Boon[] = [],
+  /** The Keep's citizens — given, the realm's sanity shapes the yield (PROG-008). */
+  citizens?: number,
+  gatesNear = 0,
+  calm = 0,
+): Partial<ResourcePool> {
+  const out: Partial<ResourcePool> = {};
+  const add = (k: keyof ResourcePool, v: number) => (out[k] = (out[k] ?? 0) + v);
+  for (const p of staffedParts(cells, staff, now)) add(p.resource, p.amount);
+  const m = staffedModifiers(cells, staff, now, boons, citizens, gatesNear, calm);
+  // Masterworks (PROG-006): a Foundry lifts iron and stone by half, a Sunken Cathedral mana.
+  if (m.foundry) for (const k of ['iron', 'stone'] as const) if (out[k]) out[k] = Math.round((out[k] ?? 0) * 1.5);
+  if (m.cathedral && out.mana) out.mana = Math.round(out.mana * 1.5);
+  // A mad realm works at four fifths (PROG-008) — what it makes, not what it spends.
+  if (m.sanity !== 1) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.floor((out[k] ?? 0) * m.sanity);
+  // Second Lake (PROG-007): every staffed building makes a share more while it lasts.
+  if (m.lift > 0) for (const k of Object.keys(out) as (keyof ResourcePool)[]) if ((out[k] ?? 0) > 0) out[k] = Math.round((out[k] ?? 0) * (1 + m.lift / 100));
+  for (const p of boonParts(cells, staff, now, boons)) add(p.resource, p.amount);
   return out;
 }
 

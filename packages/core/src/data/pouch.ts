@@ -5,26 +5,21 @@
  * says split, not raise — and this is a coherent seam: everything here is about the
  * resource ledger and nothing else in the repository needs to know how it is stored.
  */
-import { STORE_MS, calmAt, feedGranary } from '../rules/citizens.js';
-import { staffedBonus, staffedCells } from '../rules/staffing.js';
+import { STORE_MS, feedGranary } from '../rules/citizens.js';
 import { EMPTY_POOL, RESOURCE_KINDS, capOf, settleResources } from '../rules/terrain.js';
 import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../rules/terrain.js';
-import { worksBonus, worksCapBonus } from '../rules/works/bonus.js';
+import { worksCapBonus } from '../rules/works/bonus.js';
+import { realmBonus } from '../rules/hexYield.js';
+import type { YieldContext } from '../rules/hexYield.js';
 import { worksContext, worksContextFrom, type WorksContext } from './worksTrees.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
-import { research, researchBonus } from '../rules/tech.js';
+import { research } from '../rules/tech.js';
 import type { ResearchResult, TechId } from '../rules/tech.js';
-import { buildingBonus, buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
+import { buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
-import { placeBonus } from '../rules/mana.js';
-import { bountyBonus } from '../rules/bounty.js';
-import { landmarkBonus } from '../rules/landmark.js';
-import { activeSpells } from '../rules/spell.js';
-import { domainSpellBonus } from '../rules/spellEffects.js';
 import type { ActiveSpell } from '../rules/spell.js';
-import { resourceAura } from '../rules/aura.js';
 import { darkTimeAt } from '../rules/darkTime.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
@@ -47,55 +42,46 @@ export function normalizePool(pool: Partial<ResourcePool> | null | undefined): R
   return out;
 }
 
-/** Add one partial pool into another, in place. */
-function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void {
-  for (const [k, v] of Object.entries(from) as [ResourceKind, number][]) {
-    into[k] = (into[k] ?? 0) + v;
-  }
+/**
+ * Everything the yield rules read, in one transaction (BRDC-WORKS-002) — the context the
+ * settle, the hex card and the map's overlay all share (BRDC-YIELD-001).
+ */
+export async function yieldContext(
+  store: KeyValueStore,
+  owned: readonly Cell[],
+  now: number,
+): Promise<{ ctx: YieldContext; works: WorksContext }> {
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY,
+  ]);
+  const home = (homeS as H3Index | undefined) ?? null;
+  const dwell = (dwellS as DwellMap | undefined) ?? {};
+  const works = worksContextFrom(treesS as WorksContext['trees'] | undefined, home, dwell);
+  const ctx: YieldContext = {
+    now,
+    owned,
+    keep: (pouchS as ResourceState | undefined)?.keep,
+    places: placesWithHome(dwell, home),
+    expansions: (expansionsS as Record<H3Index, number> | undefined) ?? {},
+    revealed: (revealedS as Record<H3Index, number> | undefined) ?? {},
+    researched: (researchedS as TechId[] | undefined) ?? [],
+    spells: (spellsS as ActiveSpell[] | undefined) ?? [],
+    trees: works.trees,
+    kindAt: works.kindAt,
+    factor: darkTimeAt(now).factor,
+  };
+  return { ctx, works };
 }
 
-/**
- * The per-hour bonus `settleResources` adds on top of the raw trickle: building
- * production (BRDC-BUILD-001), mana and wisdom from held places (BRDC-MANA-002), what
- * research pays on its own ground (PIVOT-2026-09-09 §3), a running research spell
- * (BRDC-SPELL-001), area auras from Libraries and the like (BRDC-BUILD-003), a bounty on
- * revealed ground, and culture from a real landmark held
- * (BRDC-LANDMARK-001), merged additively. Each is filtered by its own rule — kept here so
- * `rules/terrain.ts` stays blind to all of it.
- */
+/** The per-hour bonus `settleResources` adds on top of the raw trickle — `realmBonus`
+ *  (`rules/hexYield.ts`), so `rules/terrain.ts` stays blind to every source of it. */
 async function perHourBonus(
   store: KeyValueStore,
   owned: readonly Cell[],
   now: number,
 ): Promise<{ bonus: Partial<ResourcePool>; works: WorksContext }> {
-  // One transaction for every key, not one each — the pouch settles often (BRDC-WORKS-002).
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY,
-  ]);
-  const keep = (pouchS as ResourceState | undefined)?.keep;
-  const working = keep ? staffedCells(owned, keep.staff ?? {}) : owned; // Season 2: no hands, no harvest (PROG-002)
-  const dwell = (dwellS as DwellMap | undefined) ?? {};
-  const home = (homeS as H3Index | undefined) ?? null;
-  const expansions = (expansionsS as Record<H3Index, number> | undefined) ?? {};
-  const merged: Partial<ResourcePool> = keep ? staffedBonus(owned, keep.staff ?? {}, now, keep.boons, keep.granary.citizens, keep.gatesNear, calmAt(keep, now)) : { ...buildingBonus(owned, now) };
-  addInto(merged, placeBonus(placesWithHome(dwell, home), expansions, owned, now));
-
-  const spells = (spellsS as ActiveSpell[] | undefined) ?? [];
-  addInto(merged, domainSpellBonus(activeSpells(spells, now), now));
-  addInto(merged, resourceAura(owned, now));
-
-  const researched = (researchedS as TechId[] | undefined) ?? [];
-  addInto(merged, researchBonus(researched, owned, now));
-
-  // Bounties pay only on ground that has been revealed (BRDC-BOUNTY-001) — the reveal is
-  // how you find out what your own land is worth.
-  const revealed = (revealedS as Record<H3Index, number> | undefined) ?? {};
-  addInto(merged, bountyBonus(owned, revealed, now));
-
-  addInto(merged, landmarkBonus(owned, now));
-  const works = worksContextFrom(treesS as WorksContext['trees'] | undefined, home, dwell);
-  addInto(merged, worksBonus(working, works.trees, works.kindAt, now));
-  return { bonus: merged, works };
+  const { ctx, works } = await yieldContext(store, owned, now);
+  return { bonus: realmBonus(ctx), works };
 }
 
 /**

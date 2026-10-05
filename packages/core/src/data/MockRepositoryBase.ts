@@ -1,0 +1,389 @@
+/**
+ * The offline implementation of GameRepository.
+ *
+ * Phases 0-2 run entirely on this: no backend, no account, no network. It is not a
+ * stopgap. It is what makes the game playable in airplane mode, and in Phase 3 it stays
+ * on as the offline fallback that v1 had and v2 lost.
+ *
+ * It holds no game rules of its own. Loop detection, capture and decay are pure
+ * functions in packages/core/rules, and this class calls them. When SupabaseRepository
+ * arrives, the same rules exist a second time in SQL, and the golden-fixture tests
+ * (Phase 3) assert the two agree cell by cell.
+ */
+import { latLngToCell } from 'h3-js';
+import { readPlaces, readDwellFor, raiseAltarFor, type AltarOutcome } from './keepStore.js';
+import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
+import { allCells, cellsInBBox, loyaltyOver, setStoredTerrain, sweepAndPersist } from './cellStore.js';
+import { markUnlockSeen, seenUnlocks } from './unlockStore.js';
+import { dailyOmenFor, encounterOnStepFor, takeEncounterChoiceFor } from './encounterRepo.js';
+import type { UnlockId } from '../rules/unlock.js';
+import { EMPTY_POOL, type ResourcePool, type ResourceKind } from '../rules/terrain.js';
+import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch, type Collected, type Forecast } from './pouch.js';
+import { wardAt } from './wardStore.js';
+import { closeWalk, submitWalk, type WalkDeps } from './walkFlow.js';
+import type { WardResult } from '../rules/ward.js';
+import { readResearched, researchTech as doResearch } from './techStore.js';
+import { buildOn, demolishOn, ironAdjacentTo, tavernInProvince, templeAdjacentTo, type BuildOutcome, type DemolishOutcome } from './buildStore.js';
+import { takeRazed } from './razedStore.js';
+import { cityAtDoor, tradeAt } from './cityStateStore.js';
+import type { CityState } from '../rules/cityState.js';
+import { assignSchool, consecrateAt, expandTempleAt, readTempleSchools, type ConsecrateOutcome, type ExpandOutcome, type SchoolOutcome } from './templeStore.js';
+import { claimStepAt, type StepClaimOutcome } from './stepStore.js';
+import { readRevealed, readSighted, reconcileSeedReveals, revealAt, type RevealOutcome } from './revealStore.js';
+import { readPaths } from './pathStore.js';
+import { readRouteDistance } from './distanceStore.js';
+import { readLog, writeLogEntry } from './logStore.js';
+import { walkedEdges, type WalkedEdge } from '../geo/paths.js';
+import { castSpellAt, readSpells, type CastOutcome } from './spellStore.js';
+import { activeSpells, type ActiveSpell, type SpellId } from '../rules/spell.js';
+import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
+import type { BuildingId } from '../rules/build.js';
+import type { LogEntry } from '../rules/log.js';
+import { addXpTo, readProfile, setName } from './profileStore.js';
+import { achievementsFor } from './achievementRepo.js';
+import type { AchievementView } from './achievementStore.js';
+import type {
+  BBox, Cell, LatLng, RevealedPlace, ClaimResult, DecayResult, GameMode,
+  H3Index, PlayerId, PlayerProfile, Run, RunId, Terrain, TrailPoint,
+} from '../types/index.js';
+import { MemoryStore, type KeyValueStore } from './kv.js';
+import { versioned, type SchemaOutcome, type VersionedStore } from './schema.js';
+import { seedWorldAt } from './seed.js';
+import { K } from './keys.js';
+import { readDefence, writeDefence, type ImportResult, type WagerIdentity } from './wager.js';
+import { combatantFrom, exportChallengeFrom, importChallengeInto, muster } from './wagerRepo.js';
+import { exportWorldSource as sealWorld, mergeWorld } from './worldStore.js';
+import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
+import type { Combatant, Defence } from '../rules/wagerBattle.js';
+import { claimHearth } from './hearth.js';
+import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
+import { assignCastle } from './castle.js';
+import type { Anomaly, ChoiceOutcome, InvestigateOutcome, ResolveOutcome } from './anomalyStore.js';
+import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adventureStore.js';
+import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, getQuestFindsFor, investigateAnomalyFor, recordQuestFindFor, resolveAnomalyFor, startAdventureFor, type SecretSiteId } from './storyRepo.js';
+import { cipherView, recordShard, type CipherView } from './cipherStore.js';
+import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
+import { readHallOfFame, retireKingdom, setKingdomShared, setKingdomStory, type HallOfFameEntry } from './hallOfFameStore.js';
+
+export interface MockRepositoryOptions {
+  store?: KeyValueStore;
+  /** Deterministic id generator, for tests. */
+  newId?: () => string;
+  /** Seed for the neighbour layout. */
+  seed?: number;
+}
+
+/**
+ * The repository's own verbs, split from `MockRepository.ts` for the line limit
+ * (BRDC-YIELD-001). The doors — Works pages, the Season 2 APIs and what came after —
+ * live on the subclass there; this class is never used on its own.
+ */
+export class MockRepositoryBase {
+  protected readonly store: VersionedStore;
+  protected readonly newId: () => string;
+  private readonly seed: number;
+
+  constructor(opts: MockRepositoryOptions = {}) {
+    // The one wrap site (BRDC-PERSIST-002): a raw store handed straight in — every test,
+    // the offline fallback — gets the schema gate too. Nothing double-wraps.
+    this.store = versioned(opts.store ?? new MemoryStore());
+    this.newId = opts.newId ?? (() => globalThis.crypto.randomUUID());
+    this.seed = opts.seed ?? 20260826;
+  }
+
+  /** Was the store wiped on open for a schema mismatch? Read by `createRepository`. */
+  schemaOutcome = (): Promise<SchemaOutcome> => this.store.schema();
+
+  /* --- Profile and achievements — seams in profileStore.js / achievementRepo.js --- */
+  getProfile = (): Promise<PlayerProfile> => readProfile(this.store, this.newId);
+  // Only takes effect at first creation — `readProfile` no-ops otherwise (BRDC-MODE-001).
+  setMode = async (mode: GameMode): Promise<void> => void (await readProfile(this.store, this.newId, mode));
+  addXp(amount: number): Promise<PlayerProfile> {
+    return addXpTo(this.store, this.newId, amount);
+  }
+  setPlayerName(name: string): Promise<PlayerProfile> {
+    return setName(this.store, this.newId, name);
+  }
+  async getAchievements(now: number): Promise<AchievementView[]> {
+    return (await achievementsFor(this.store, this, now)).view;
+  }
+  async syncAchievements(now: number): Promise<string[]> {
+    return (await achievementsFor(this.store, this, now)).unlocked;
+  }
+
+  /* --- Runs — CRUD in `runStore.js`, one run at a time ---------------- */
+
+  startRun = (now: number): Promise<RunId> => beginRun(this.store, this.newId(), now);
+  getActiveRun = (): Promise<Run | null> => activeRunOf(this.store);
+  getTrailPoints = (runId: RunId): Promise<TrailPoint[]> => trailPointsOf(this.store, runId);
+
+  getWalkedPaths = async (): Promise<WalkedEdge[]> => walkedEdges(await readPaths(this.store));
+  getRouteDistance = (): Promise<number> => readRouteDistance(this.store);
+
+  /** The action log, newest first (BRDC-LOG-001). */
+  getLog = async (limit = 100): Promise<LogEntry[]> =>
+    (await readLog(this.store)).slice(-limit).reverse();
+
+  submitTrail = (runId: RunId, points: TrailPoint[]) => submitWalk(this.walkDeps(), runId, points);
+
+  endRun = (runId: RunId): Promise<void> => closeRun(this.store, runId);
+
+  seedAround = (position: LatLng, now: number): Promise<void> =>
+    this.ensureSeeded({ ...position, t: now, accuracy: 0 });
+
+  /* --- Resources -------------------------------------------------------- */
+  getResources = async (now: number): Promise<ResourcePool> =>
+    (await settlePouch(this.store, await this.getOwnedCells(now), now)).pool;
+  resetResources = (now: number) => resetPouch(this.store, now);
+  getForecast = async (now: number): Promise<Forecast> =>
+    forecastRates(this.store, await this.getOwnedCells(now), now);
+  /** What has come into the pouch since the last Collect press (BRDC-ECON-007). */
+  collect = async (now: number): Promise<Collected> =>
+    collectPouch(this.store, await this.getOwnedCells(now), now);
+  getRevealed = () => readRevealed(this.store);
+  getSighted = () => readSighted(this.store);
+  /** Dev only (BRDC-ECON-002): top every resource up so a lost pouch is not a dead run. */
+  debugGrant = async (now: number): Promise<void> => {
+    await grantAll(this.store, await this.getOwnedCells(now), now, 200);
+  };
+  async wardCell(h3: H3Index, now: number): Promise<WardResult> {
+    const me = await this.getProfile();
+    return wardAt(this.store, h3, me.id, await this.getOwnedCells(now), now);
+  }
+
+  /* --- Buildings and technology ----------------------------------------- */
+  async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
+    const me = (await this.getProfile()).id;
+    const owned = await this.getOwnedCells(now);
+    const nearTemple = templeAdjacentTo(h3, await this.getPlaces(), owned);
+    return buildOn(this.store, h3, id, me, owned, await this.getResearched(), now, nearTemple, ironAdjacentTo(h3, owned), tavernInProvince(h3, owned));
+  }
+
+  async demolish(h3: H3Index, now: number, id?: BuildingId): Promise<DemolishOutcome> {
+    return demolishOn(this.store, h3, await this.getOwnedCells(now), now, id);
+  }
+
+  async takeRazed(now: number): Promise<BuildingId[]> {
+    return takeRazed(this.store, await this.getOwnedCells(now), now);
+  }
+  reconcileSeedReveals = (): Promise<H3Index[]> => reconcileSeedReveals(this.store);
+
+  getResearched = (): Promise<TechId[]> => readResearched(this.store);
+
+  async researchTech(id: TechId, now: number): Promise<TechResult> {
+    return doResearch(this.store, id, await this.getOwnedCells(now), await this.getHome(), now);
+  }
+
+  /* --- The Wager, carried by hand — store half in `wagerRepo.js` -------- */
+
+  async exportChallenge(now: number, identity?: WagerIdentity): Promise<string> {
+    return exportChallengeFrom(await muster(this, now), now, identity);
+  }
+
+  importChallenge = async (text: string, now: number): Promise<ImportResult> =>
+    importChallengeInto(this.store, await muster(this, now), text, now);
+
+  importWorld = async (
+    text: string,
+    now: number,
+    allies?: ReadonlySet<PlayerId>,
+  ): Promise<WorldImportResult> => mergeWorld(this.store, text, (await this.getProfile()).id, now, allies);
+
+  exportWorldSource = (now: number, identity: WorldIdentity): Promise<WorldSource> =>
+    sealWorld(this, identity, now, this.store);
+
+  getDefence = (): Promise<Defence> => readDefence(this.store);
+
+  setDefence = (defence: Defence): Promise<void> => writeDefence(this.store, defence);
+
+  getCombatant = async (now: number): Promise<Combatant> =>
+    combatantFrom(await muster(this, now));
+
+  /* --- The Hearth ------------------------------------------------------- */
+
+  /** Fires twice (fresh `clock`, Strict Mode): `claimHearth`/`assignCastle` are idempotent
+   *  and the stash is *set*, not added — one building's worth, not two (BRDC-ECON-007). */
+  async setHome(position: LatLng, now: number): Promise<H3Index> {
+    const profile = await this.getProfile();
+    const h3 = await claimHearth(this.store, profile, position, now);
+    await assignCastle(this.store, position);
+    await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
+    // The founding stash: once per game, and only into an empty pouch — one building's worth.
+    if (!(await this.store.get<boolean>(K.starterGiven))) {
+      const bare = !Object.values(await this.getResources(now)).some((v) => v > 0);
+      if (bare) await writePouch(this.store, { ...EMPTY_POOL, ...STARTER_STASH }, now);
+      await this.store.set(K.starterGiven, true);
+    }
+    return h3;
+  }
+
+  getHome = async (): Promise<H3Index | null> => (await this.store.get<H3Index>(K.home)) ?? null;
+
+  /* --- The Keep ----------------------------------------------------------- */
+
+  async getCastle(): Promise<H3Index | null> {
+    return (await this.store.get<H3Index>(K.castle)) ?? null;
+  }
+
+  /* --- Places and the Keep's economy — seam in keepStore.js ------------- */
+  getPlaces = (): Promise<RevealedPlace[]> => readPlaces(this.store, () => this.getHome());
+  getDwellFor = (h3: string): Promise<number> => readDwellFor(this.store, h3);
+  raiseAltar = (now: number): Promise<AltarOutcome> => raiseAltarFor(this.store, this, now);
+  expandTemple = async (h3: H3Index, now: number): Promise<ExpandOutcome> =>
+    expandTempleAt(this.store, h3, await this.getPlaces(), await this.getOwnedCells(now), now);
+  consecrateTemple = async (h3: H3Index, now: number): Promise<ConsecrateOutcome> =>
+    consecrateAt(this.store, h3, await this.getOwnedCells(now), await this.getHome(), now);
+  getTempleSchools = (): Promise<Record<H3Index, TempleSchool>> => readTempleSchools(this.store);
+  assignTempleSchool = async (h3: H3Index, school: TempleSchool, now: number): Promise<SchoolOutcome> =>
+    assignSchool(this.store, h3, school, await this.getOwnedCells(now), now);
+
+  /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
+  getAnomalies = (now: number): Promise<Anomaly[]> => getAnomaliesFor(this, now);
+  investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome> {
+    return investigateAnomalyFor(this.store, this, h3, now);
+  }
+  resolveAnomaly(h3: H3Index, now: number): Promise<ResolveOutcome> {
+    return resolveAnomalyFor(this.store, this, h3, now);
+  }
+  chooseInChain(h3: H3Index, choiceIndex: number, now: number): Promise<ChoiceOutcome> {
+    return chooseInChainFor(this.store, this, h3, choiceIndex, now);
+  }
+  getAdventures = (now: number): Promise<AdventureView[]> => getAdventuresFor(this.store, this, now);
+  startAdventure(id: string, now: number): Promise<StartOutcome> {
+    return startAdventureFor(this.store, id, now);
+  }
+  chooseInAdventure(id: string, choiceIndex: number, now: number): Promise<AdventureChoiceOutcome> {
+    return chooseInAdventureFor(this.store, this, id, choiceIndex, now);
+  }
+  abandonAdventure = (id: string): Promise<void> => abandonAdventureFor(this.store, id);
+  getQuestFinds = (): Promise<SecretSiteId[]> => getQuestFindsFor(this.store);
+  recordQuestFind(id: SecretSiteId, now: number): Promise<SecretSiteId | null> {
+    return recordQuestFindFor(this.store, id, now);
+  }
+  getCipher(): Promise<CipherView> {
+    return cipherView(this.store);
+  }
+  recordCipherShard(index: number, now: number): Promise<number | null> {
+    return recordShard(this.store, index, now);
+  }
+
+  /* --- Territory -------------------------------------------------------- */
+  /** Cells in view, aged to `now` (a projection, written back only on a release). Imported
+   *  ground is added wherever it sits, not only in view (BRDC-WAGER-JSON-006). */
+  async getCells(bbox: BBox, now: number): Promise<Cell[]> {
+    const inView = await cellsInBBox(this.store, bbox);
+    const seen = new Set(inView.map((c) => c.h3));
+    const away = (await allCells(this.store)).filter((c) => c.imported && !seen.has(c.h3));
+    const all = away.length > 0 ? [...inView, ...away] : inView;
+    const [me, home] = [await this.getProfile(), await this.getHome()];
+    const loyalty = await loyaltyOver(this.store, me.id, home, all);
+    // Route-owner: null for adventure, else the save's own id (BRDC-MODE-002).
+    const sweep = await sweepAndPersist(this.store, all, now, loyalty, home, me.mode === 'route' ? me.id : null);
+    return sweep.cells;
+  }
+
+  async getOwnedCells(now: number): Promise<Cell[]> {
+    const me = await this.getProfile();
+    const home = await this.getHome();
+    const mine = (await allCells(this.store)).filter((c) => c.ownerId === me.id);
+    const loyalty = await loyaltyOver(this.store, me.id, home, mine);
+    const sweep = await sweepAndPersist(this.store, mine, now, loyalty, home, me.mode === 'route' ? me.id : null);
+    return sweep.cells;
+  }
+
+  /* --- Encounters (BRDC-EVENT-002) --- */
+  encounterOnStep = (h3: H3Index, now: number) => encounterOnStepFor(this.store, this, h3, now);
+  dailyOmen = (now: number) => dailyOmenFor(this.store, this, now);
+  takeEncounterChoice = (id: string, i: number, now: number) =>
+    takeEncounterChoiceFor(this.store, this, id, i, now);
+  async getUnlocksSeen(): Promise<Set<UnlockId>> {
+    return seenUnlocks(this.store);
+  }
+
+  /** Marks the lesson and pays its wisdom in one step, so the two cannot come apart. */
+  async markUnlockSeen(id: UnlockId, now: number): Promise<boolean> {
+    return markUnlockSeen(this.store, await this.getOwnedCells(now), id, now);
+  }
+
+  async setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void> {
+    await setStoredTerrain(this.store, h3, terrain);
+  }
+
+  /** Close the run's loop, if it has one, and take what it encloses. See `walkFlow.js`. */
+  async closeLoop(runId: RunId, now: number): Promise<ClaimResult> {
+    return closeWalk(this.walkDeps(), runId, now);
+  }
+
+  /** Claim the hex underfoot if it borders your ground (BRDC-CLAIM-009). See `stepStore.js`. */
+  async claimStep(standing: H3Index | null, now: number): Promise<StepClaimOutcome> {
+    return claimStepAt(
+      this.store, this.newId, standing,
+      await this.getOwnedCells(now), await this.getHome(), await this.getProfile(), now,
+    );
+  }
+
+  async revealCell(h3: H3Index, now: number): Promise<RevealOutcome> {
+    return revealAt(this.store, h3, await this.getOwnedCells(now), now);
+  }
+
+  async runDecay(now: number): Promise<DecayResult> {
+    const all = await allCells(this.store);
+    const [me, home] = [await this.getProfile(), await this.getHome()];
+    const loyalty = await loyaltyOver(this.store, me.id, home, all);
+    const sweep = await sweepAndPersist(this.store, all, now, loyalty, home, me.mode === 'route' ? me.id : null);
+    const lost = sweep.released.length;
+    if (lost > 0) await writeLogEntry(this.store, { at: now, kind: 'reclaim', count: lost });
+    return { weakened: sweep.weakened, released: sweep.released };
+  }
+
+  async getActiveSpells(now: number): Promise<ActiveSpell[]> {
+    return activeSpells(await readSpells(this.store), now);
+  }
+
+  async castSpell(id: SpellId, target: H3Index | null, now: number): Promise<CastOutcome> {
+    const me = await this.getProfile();
+    const owned = await this.getOwnedCells(now);
+    return castSpellAt(this.store, id, target, me, this.newId, owned, now);
+  }
+
+  /* --- Maintenance ------------------------------------------------------ */
+
+  resetAll = async (): Promise<void> => void (await this.store.clear());
+  retireKingdom = async (now: number, era?: string): Promise<HallOfFameEntry> =>
+    retireKingdom(this.store, await this.getProfile(), await this.getOwnedCells(now), now, this.newId, era);
+  getHallOfFame = (): Promise<HallOfFameEntry[]> => readHallOfFame(this.store);
+  setKingdomStory = (id: string, story: string): Promise<void> => setKingdomStory(this.store, id, story);
+  setKingdomShared = (id: string, at: number): Promise<void> => setKingdomShared(this.store, id, at);
+
+  /* --- Growing the Hearth with food (BRDC-HEARTH-003) --- */
+  hearthRing = (): Promise<number> => readHearthRing(this.store);
+  growHearth = async (now: number): Promise<HearthGrowth> =>
+    growHearthAt(this.store, await this.getProfile(), await this.getOwnedCells(now), now);
+
+  /* --- Internals -------------------------------------------------------- */
+
+  /** The handful of repository verbs `walkFlow.js` needs, with `ensureSeeded` kept private. */
+  private walkDeps(): WalkDeps {
+    return {
+      store: this.store,
+      getTrailPoints: (id) => this.getTrailPoints(id),
+      getProfile: () => this.getProfile(),
+      getOwnedCells: (t) => this.getOwnedCells(t),
+      addXp: (n) => this.addXp(n),
+      seed: (o) => this.ensureSeeded(o),
+    };
+  }
+
+  /** Cells only exist once we know where the player is; seeding is therefore lazy. */
+  private ensureSeeded = (origin: TrailPoint): Promise<void> =>
+    seedWorldAt(this.store, origin, this.seed);
+
+  /* --- Diplomacy (BRDC-DIPLO-001) ---------------------------------------- */
+  cityAt = (h3: H3Index): Promise<CityState | null> => cityAtDoor(this.store, h3);
+  trade = async (h3: H3Index, give: ResourceKind, want: ResourceKind, now: number) =>
+    tradeAt(this.store, h3, give, want, await this.getOwnedCells(now), now);
+}
+
+/** The ownership-resolution cell for a position, without importing h3-js downstream. */
+export const toOwnershipCell = (lat: number, lng: number): string =>
+  latLngToCell(lat, lng, H3_RES_OWNERSHIP);

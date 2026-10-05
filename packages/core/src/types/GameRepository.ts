@@ -9,6 +9,7 @@
  * Every method that depends on the passage of time takes `now` as a parameter.
  * Without that, decay cannot be tested without waiting 20 real days.
  */
+import type { YieldApi } from '../data/yieldStore.js';
 import type {
   BBox,
   Cell,
@@ -131,6 +132,8 @@ export interface GameRepository extends SeasonTwoApis {
   revealCell(h3: H3Index, now: number): Promise<RevealOutcome>;
   /** Cells the player has revealed → the ms they were revealed. */
   getRevealed(): Promise<Record<H3Index, number>>;
+  /** Each held hex's yield per hour, itemised by where it comes from (BRDC-YIELD-001). */
+  readonly yields: YieldApi;
   /** Hexes seen from afar (a Watchtower, Dream-Sight) — the fog is lifted there. */
   getSighted(): Promise<Record<H3Index, number>>;
   /**

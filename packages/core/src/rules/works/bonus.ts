@@ -39,6 +39,20 @@ export function worksBonus(
   now: number,
 ): Partial<ResourcePool> {
   const out: Partial<ResourcePool> = {};
+  for (const own of worksBonusByCell(owned, trees, kindAt, now).values()) {
+    for (const [k, v] of Object.entries(own) as [ResourceKind, number][]) add(out, k, v);
+  }
+  return out;
+}
+
+/** What learned research pays on each hex — `worksBonus`, before it is summed (BRDC-YIELD-001). */
+export function worksBonusByCell(
+  owned: readonly Cell[],
+  trees: WorksTrees,
+  kindAt: KindAt,
+  now: number,
+): Map<H3Index, Partial<ResourcePool>> {
+  const out = new Map<H3Index, Partial<ResourcePool>>();
   const byH3 = new Map(owned.map((c) => [c.h3, c] as const));
   const provinces = provinceCount(owned);
   const pages = owned.flatMap((c) => {
@@ -83,7 +97,7 @@ export function worksBonus(
     for (const e of p.effects) {
       if (e.kind === 'produceFrom') add(own, e.resource, ((base[e.from] ?? 0) + Math.max(0, own[e.from] ?? 0)) * e.ratio);
     }
-    for (const [k, v] of Object.entries(own) as [ResourceKind, number][]) add(out, k, v);
+    if (Object.keys(own).length > 0) out.set(p.cell.h3, own);
   }
   return out;
 }

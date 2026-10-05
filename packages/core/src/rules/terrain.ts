@@ -233,6 +233,14 @@ export function resourceForCell(cell: Cell): ResourceKind | null {
   return TERRAIN_TABLE[terrainForCell(cell).kind].resource;
 }
 
+/** One hex's ground trickle per hour, or null when it pays nothing (dormant, or bare
+ *  ground) — the one rate both the settle and the hex card read (BRDC-YIELD-001). */
+export function trickleRate(cell: Cell, now: number): { resource: ResourceKind; perHour: number } | null {
+  if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) return null;
+  const resource = resourceForCell(cell);
+  return resource ? { resource, perHour: TRICKLE_PER_HOUR * localShare(cell) } : null;
+}
+
 /**
  * What a set of cells produce over `ms`, counting only the ones awake at `now`.
  *
@@ -251,9 +259,8 @@ export function trickle(cells: readonly Cell[], ms: number, now: number): Resour
   const hours = Math.max(0, ms) / 3_600_000;
   const pool = { ...EMPTY_POOL };
   for (const cell of cells) {
-    if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) continue;
-    const resource = resourceForCell(cell);
-    if (resource) pool[resource] += TRICKLE_PER_HOUR * hours * localShare(cell);
+    const r = trickleRate(cell, now);
+    if (r) pool[r.resource] += r.perHour * hours;
   }
 
   const floored = { ...EMPTY_POOL };
