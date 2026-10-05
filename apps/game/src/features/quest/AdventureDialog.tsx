@@ -21,15 +21,31 @@ const REFUSAL: Readonly<Record<string, string>> = {
   'not-active': 'That tale is not open.',
 };
 
+/** "+560 XP · −20 wisdom" — what a closed tale paid, in one line. */
+export function rewardLine(r: { xp: number; pool: Partial<Record<string, number>> }): string {
+  const parts = r.xp ? [`+${r.xp} XP`] : [];
+  for (const [k, v] of Object.entries(r.pool)) if (v) parts.push(`${v > 0 ? '+' : '−'}${Math.abs(v)} ${k}`);
+  return parts.join(' · ');
+}
+
 function Shelf({ list, onStart }: { list: readonly AdventureView[]; onStart: (id: string) => void }) {
   return (
     <ul className="adventure__shelf">
       {list.map((a) => (
-        <li key={a.id} className="adventure__shelf-row">
+        <li key={a.id} className={`adventure__shelf-row${a.state === 'done' ? ' adventure__shelf-row--closed' : ''}`}>
           <span>{a.title}</span>
           {a.state === 'done' ? (
-            <span className="adventure__done" aria-label="finished">
-              ✦ finished
+            // A closed tale keeps its ending and what it paid (BRDC-QUEST-008).
+            <span className="adventure__done">
+              <span className="adventure__seal" aria-hidden>✦</span>
+              {a.outcome ? (
+                <>
+                  <span className="adventure__outcome">{a.outcome.text}</span>
+                  {rewardLine(a.outcome.rewards) ? <span className="adventure__rewards es-numeric">{rewardLine(a.outcome.rewards)}</span> : null}
+                </>
+              ) : (
+                'finished'
+              )}
             </span>
           ) : (
             <RitualButton variant="ghost" onClick={() => onStart(a.id)}>

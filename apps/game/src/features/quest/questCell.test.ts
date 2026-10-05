@@ -89,3 +89,10 @@ describe('atSite — GPS tolerance', () => {
     expect(atStageHex(view({ stageId: 'lake' }), siteCell('troll'))).toBe(false);
   });
 });
+
+describe('a finished tale (BRDC-QUEST-008)', () => {
+  it('the statue still opens it, to read how it ended', () => {
+    const info = questCellInfo(siteCell('statue'), { id: 'fuming-lake', title: 'The Fuming Lake', state: 'done' }, [], null);
+    expect(info).toMatchObject({ label: 'How the tale ended', canAct: true });
+  });
+});

@@ -101,6 +101,10 @@ export function questCellInfo(
   if (found) {
     return { site, label: SITE_VERB[site], canAct: false, history: 'You found this by walking here.' };
   }
+  // The statue keeps the closed tale: its ending and what it paid (BRDC-QUEST-008).
+  if (state === 'done' && site === 'statue') {
+    return { site, label: 'How the tale ended', canAct: true, history: 'The tale ended.' };
+  }
   if (state === 'done' && index(site) >= 0) {
     return { site, label: QUEST_SITES[site].label, canAct: false, history: 'The tale ended.' };
   }

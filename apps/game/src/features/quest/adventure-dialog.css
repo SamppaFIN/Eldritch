@@ -101,6 +101,40 @@
   font-size: var(--text-sm);
 }
 
+/* A closed tale: dimmed, sealed, its ending readable (BRDC-QUEST-008). */
+.adventure__shelf-row--closed {
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0.82;
+}
+
+.adventure__shelf-row--closed .adventure__done {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--space-2);
+  align-items: start;
+}
+
+.adventure__seal {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--sacred-gold);
+  color: var(--sacred-gold);
+}
+
+.adventure__outcome {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.adventure__rewards {
+  color: var(--sacred-gold);
+}
+
 .adventure__refusal {
   margin: 0;
   color: var(--danger, #d94a4a);

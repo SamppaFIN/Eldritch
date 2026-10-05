@@ -82,6 +82,11 @@ describe('the Fuming Lake', () => {
     expect(end).toMatchObject({ ok: true, ended: true, unlocks: 'cthulhu-awakening' });
 
     expect((await fuming())?.state).toBe('done');
+    // BRDC-QUEST-008: the closed tale keeps how it ended and what it paid, past a reload.
+    const reread = await new MockRepository({ store, newId: () => 'me' }).getAdventures(T0);
+    const outcome = reread.find((x) => x.id === 'fuming-lake')?.outcome;
+    expect(outcome).toMatchObject({ status: 'completed', completedAt: T0, rewards: { xp: 560, pool: { wisdom: -20 } } });
+    expect(outcome?.text.length).toBeGreaterThan(0);
     expect((await repo.getProfile()).xp).toBe(560); // 60 at the troll + 500 at the end
     expect(await store.get<string[]>(K.unlocked)).toContain('cthulhu-awakening');
     expect((await repo.getResources(T0)).wisdom).toBe(80); // 20 spent to outwit

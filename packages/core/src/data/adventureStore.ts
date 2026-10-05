@@ -21,7 +21,18 @@ import raw from './adventures.json';
 
 const ADVENTURES: Readonly<Record<string, Adventure>> = parseAdventures(raw);
 
-type State = { stage: string; done?: true };
+/** What a finished tale left behind, read back on its closed card (BRDC-QUEST-008). */
+export interface QuestOutcome {
+  status: 'completed' | 'failed';
+  /** Everything the tale paid along the way: XP and the pouch. */
+  rewards: { xp: number; pool: Partial<ResourcePool> };
+  /** The last page and the choice that closed it. */
+  text: string;
+  completedAt: number;
+}
+
+/** `gained` and `outcome` are additive (2026-10-05): a save from before has neither. */
+type State = { stage: string; done?: true; gained?: { xp: number; pool: Partial<ResourcePool> }; outcome?: QuestOutcome };
 type Book = Record<string, State>;
 
 export interface AdventureChoiceView {
@@ -37,6 +48,8 @@ export interface AdventureView {
   speaker?: string | undefined;
   text?: readonly string[] | undefined;
   choices?: readonly AdventureChoiceView[] | undefined;
+  /** How a finished tale ended; absent on one finished before outcomes were kept. */
+  outcome?: QuestOutcome | undefined;
 }
 
 export type StartOutcome = { ok: true } | { ok: false; refused: 'no-such-adventure' | 'already-begun' };
@@ -69,7 +82,7 @@ export async function listAdventures(
   return Object.values(ADVENTURES).map((adv) => {
     const s = book[adv.id];
     if (!s) return { id: adv.id, title: adv.title, state: 'available' };
-    if (s.done) return { id: adv.id, title: adv.title, state: 'done' };
+    if (s.done) return { id: adv.id, title: adv.title, state: 'done', ...(s.outcome ? { outcome: s.outcome } : {}) };
     const stage = adv.stages[s.stage];
     return {
       id: adv.id,
@@ -118,9 +131,15 @@ export async function chooseAt(
   }
 
   const ended = r.next === 'end';
+  const gained = { xp: (s.gained?.xp ?? 0) + (r.effect.xp ?? 0), pool: { ...(s.gained?.pool ?? {}) } };
+  for (const [k, v] of Object.entries(delta) as [ResourceKind, number][]) gained.pool[k] = (gained.pool[k] ?? 0) + v;
+  const page = adv.stages[s.stage];
+  const closing = [page?.text?.[page.text.length - 1], page?.choices?.[choiceIndex]?.text].filter(Boolean).join(' — ');
   await store.set(K.adventures, {
     ...book,
-    [id]: ended ? { stage: s.stage, done: true } : { stage: r.next as string },
+    [id]: ended
+      ? { stage: s.stage, done: true, gained, outcome: { status: 'completed', rewards: gained, text: closing, completedAt: now } }
+      : { stage: r.next as string, gained },
   });
   if (r.unlocks) {
     const unlocked = (await store.get<string[]>(K.unlocked)) ?? [];

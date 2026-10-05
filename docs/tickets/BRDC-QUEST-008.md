@@ -7,7 +7,7 @@
 | **Effort** | S |
 | **Riippuvuudet** | — |
 | **Lähde** | Infiniten handoff 2026-10-05, F-03 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-05 |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Seikkailu tallentaa vain `{stage, done}` — miten se päättyi ja mitä siitä 
 
 ## 🟢 GREEN
 
-- [ ] Tietueeseen lisäävästi `{status: active|completed|failed, outcome?: {rewards, text, completedAt}}`
-- [ ] Valmis kortti himmennetty, sinetti, lopputulos ja palkinnot luettavissa
-- [ ] Reloadin jälkeen yhä näkyvissä (e2e)
-- [ ] Vanha tallennus aukeaa muuttumattomana
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Tietueeseen lisäävästi `gained` (kertyvät palkinnot) ja `outcome {status, rewards, text, completedAt}`; `failed` varattu QUEST-009:n tehtäville (luopuminen poistaa tarinan kuten ennenkin)
+- [x] Valmis kortti himmennetty, sinetti, lopputulos ja palkinnot luettavissa (seikkailulista); patsas avaa päättyneen tarinan (How the tale ended) — ennen sitä päättynyttä tarinaa ei voinut avata mistään
+- [x] Reloadin jälkeen yhä näkyvissä (e2e)
+- [x] Vanha tallennus aukeaa muuttumattomana
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 

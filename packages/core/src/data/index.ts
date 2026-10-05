@@ -66,6 +66,7 @@ export type {
   AdventureChoiceView,
   StartOutcome,
   AdventureChoiceOutcome,
+  QuestOutcome,
 } from './adventureStore.js';
 export {
   MAX_CHALLENGE_CELLS,
