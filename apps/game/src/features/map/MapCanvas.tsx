@@ -35,7 +35,7 @@ import { NATION_FILL_LAYER } from '../territory/layerIds.js';
 import { useMapLayers } from './useMapLayers.js';
 import { useBuildingIcons } from './useBuildingIcons.js';
 import { PLACE_CORE_LAYER, PLACE_HALO_LAYER, setPlaceData } from '../territory/PlaceMarkers.js';
-import { setSeasonMarkData, useSeasonMarks } from '../season/SeasonMarkers.js';
+import { useMapExtras } from './useMapExtras.js';
 import { CASTLE_CORE_LAYER, CASTLE_HALO_LAYER, setCastleData } from '../territory/CastleMarker.js';
 import { QUEST_MARK_LAYER, setQuestData } from '../territory/QuestMarkers.js';
 import { useAwakening } from './useAwakening.js';
@@ -111,6 +111,8 @@ export interface MapCanvasProps {
   initialZoom?: number;
   /** Draw every Work as its own isometric icon (BRDC-ART-003). Off = the single glyph. */
   buildingIcons?: boolean;
+  /** Each hex's yield on the map, and its toggle beside the camera button (BRDC-MAP-008). */
+  yieldOverlay?: { on: boolean; onToggle: () => void };
   bannerId?: BannerId | null; // the Keep banner, drawn on held hexes (BRDC-BANNER-001)
   revealed?: Readonly<Record<H3Index, number>>; // revealed cells (BRDC-SIGIL-003) — gates the bounty layer
   onBasemapChange?: (state: BasemapState) => void;
@@ -141,6 +143,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   awakening = null,
   initialZoom,
   buildingIcons = true,
+  yieldOverlay,
   bannerId = null,
   revealed = EMPTY_REVEALED,
   onBasemapChange,
@@ -335,10 +338,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     setPlaceData(map, places);
   }, [map, ready, places]);
 
-  const seasonMarks = useSeasonMarks(repository, now);
-  useEffect(() => {
-    if (map && ready) setSeasonMarkData(map, seasonMarks);
-  }, [map, ready, seasonMarks]);
+  useMapExtras(map, ready, repository, now, cells, yieldOverlay?.on ?? false);
 
   useEffect(() => {
     if (!map || !ready) return;
@@ -390,7 +390,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   return (
     <>
       <div ref={containerRef} className="es-map" data-basemap={basemap} />
-      <CameraControl following={following} onRecenter={recenter} />
+      <CameraControl following={following} onRecenter={recenter} yields={yieldOverlay} />
       {atlasVisible && compareAvailable && (
         <AtlasCompareControl comparing={comparing} onToggle={toggleCompare} />
       )}

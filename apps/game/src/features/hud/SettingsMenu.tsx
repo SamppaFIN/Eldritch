@@ -87,6 +87,7 @@ const WALKING: [keyof Settings, string][] = [
 
 const MAP: [keyof Settings, string][] = [
   ['buildingIcons', 'Building icons'],
+  ['yieldOverlay', 'Yields on the map'],
   ['revealRivals', 'Rival cell detail'],
   ['daylight', 'Daylight mode'],
   ['shareWorld', 'Share your realm'],

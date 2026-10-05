@@ -228,7 +228,7 @@ export function MapView({ onLeave }: MapViewProps) {
         now={minuteNow}
         awakening={awakening}
         initialZoom={openingZoom}
-        buildingIcons={settings.buildingIcons}
+        buildingIcons={settings.buildingIcons} yieldOverlay={{ on: settings.yieldOverlay, onToggle: () => onSettingsChange({ ...settings, yieldOverlay: !settings.yieldOverlay }) }}
         // No nation identity for a route-mode save: no Keep screen sets one (BRDC-MODE-001).
         bannerId={isRoute ? null : nation.bannerId}
         revealed={discovery.revealed}

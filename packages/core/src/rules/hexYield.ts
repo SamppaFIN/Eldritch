@@ -14,7 +14,7 @@
 import type { Cell, H3Index } from '../types/domain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 import { trickleRate, terrainForCell } from './terrain.js';
-import { buildingBonus, worksOn } from './build.js';
+import { BUILDINGS, buildingBonus, worksOn } from './build.js';
 import { bountyBonus, bountyOn } from './bounty.js';
 import { landmarkBonus } from './landmark.js';
 import { placeBonus } from './mana.js';
@@ -26,6 +26,7 @@ import { activeSpells } from './spell.js';
 import type { ActiveSpell } from './spell.js';
 import { domainSpellBonus } from './spellEffects.js';
 import { boonParts, staffedBonus, staffedCells, staffedModifiers, staffedParts } from './staffing.js';
+import type { StaffedModifiers, StaffedPart } from './staffing.js';
 import { calmAt } from './citizens.js';
 import type { KeepState } from './citizens.js';
 import { worksBonus, worksBonusByCell } from './works/bonus.js';
@@ -101,9 +102,43 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   return out;
 }
 
+/** What every hex of a realm reads, worked out once per context — without it `all` is
+ *  quadratic: each hex re-ran the realm's staffing, Works tree and auras. */
+interface Prepared {
+  staffed: Map<H3Index, StaffedPart[]>;
+  boons: Map<H3Index, StaffedPart[]>;
+  works: Map<H3Index, Partial<ResourcePool>>;
+  modifiers: StaffedModifiers | null;
+  auraSources: readonly Cell[];
+}
+const prepared = new WeakMap<YieldContext, Prepared>();
+
+function byHex(parts: readonly StaffedPart[]): Map<H3Index, StaffedPart[]> {
+  const out = new Map<H3Index, StaffedPart[]>();
+  for (const p of parts) out.set(p.h3, [...(out.get(p.h3) ?? []), p]);
+  return out;
+}
+
+function prepare(ctx: YieldContext): Prepared {
+  const hit = prepared.get(ctx);
+  if (hit) return hit;
+  const { owned, now, keep } = ctx;
+  const staff = keep?.staff ?? {};
+  const p: Prepared = {
+    staffed: keep ? byHex(staffedParts(owned, staff, now)) : new Map(),
+    boons: keep ? byHex(boonParts(owned, staff, now, keep.boons ?? [])) : new Map(),
+    works: worksBonusByCell(working(ctx), ctx.trees, ctx.kindAt, now),
+    modifiers: keep ? staffedModifiers(owned, staff, now, keep.boons, keep.granary.citizens, keep.gatesNear, calmAt(keep, now)) : null,
+    auraSources: owned.filter((c) => worksOn(c).some((w) => BUILDINGS[w.id].aura)),
+  };
+  prepared.set(ctx, p);
+  return p;
+}
+
 /** One hex's yield per hour, itemised. Dormant ground yields nothing, as everywhere. */
 export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
-  const { now, owned, keep } = ctx;
+  const { now, keep } = ctx;
+  const pre = prepare(ctx);
   const out: YieldContribution[] = [];
   const push = (from: Partial<ResourcePool>, source: YieldSource, label: string, sourceId?: string) => {
     for (const [k, v] of Object.entries(from) as [ResourceKind, number][]) {
@@ -114,9 +149,8 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   const t = trickleRate(cell, now);
   if (t) push({ [t.resource]: t.perHour }, 'terrain', `Terrain: ${title(ground)}`, ground);
 
-  if (keep) {
-    const staff = keep.staff ?? {};
-    const mine = staffedParts(owned, staff, now).filter((p) => p.h3 === cell.h3);
+  if (keep && pre.modifiers) {
+    const mine = pre.staffed.get(cell.h3) ?? [];
     for (const p of mine) {
       const label = p.kind === 'ground' ? `${workName(p.work ?? '')}: ground in reach` : `${workName(p.work ?? '')} · ${p.hands} ${p.hands === 1 ? 'worker' : 'workers'}`;
       push({ [p.resource]: p.amount }, p.kind === 'ground' ? 'terrain' : 'citizen', label, p.work ?? undefined);
@@ -124,7 +158,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
     // The realm's multipliers, as this hex's raw share of what they do to the total.
     const base: Partial<ResourcePool> = {};
     for (const p of mine) base[p.resource] = (base[p.resource] ?? 0) + p.amount;
-    const m = staffedModifiers(owned, staff, now, keep.boons, keep.granary.citizens, keep.gatesNear, calmAt(keep, now));
+    const m = pre.modifiers;
     let running = { ...base };
     const step = (f: (k: ResourceKind, v: number) => number, label: string) => {
       const next: Partial<ResourcePool> = {};
@@ -138,7 +172,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
     if (m.cathedral) step((k, v) => (k === 'mana' ? v * 1.5 : v), 'Sunken Cathedral');
     if (m.sanity !== 1) step((_, v) => (v > 0 ? v * m.sanity : v), 'Sanity');
     if (m.lift > 0) step((_, v) => (v > 0 ? v * (1 + m.lift / 100) : v), 'Second Lake');
-    for (const p of boonParts(owned, staff, now, keep.boons ?? []).filter((b) => b.h3 === cell.h3)) {
+    for (const p of pre.boons.get(cell.h3) ?? []) {
       push({ [p.resource]: p.amount }, 'other', `Rite: ${title(p.rite ?? '')}`, p.rite);
     }
   } else {
@@ -148,12 +182,12 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   for (const p of ctx.places.filter((pl) => pl.h3 === cell.h3)) {
     push(placeBonus([p], ctx.expansions, [cell], now), 'temple', p.kind === 'anchor' ? 'Anchor Stone' : 'Temple', p.kind);
   }
-  push(resourceAura([cell], now, owned), 'building', 'Aura of nearby Works');
+  push(resourceAura([cell], now, pre.auraSources), 'building', 'Aura of nearby Works');
   push(researchBonus(ctx.researched, [cell], now), 'tech', 'Research');
   const bounty = bountyOn(cell);
   push(bountyBonus([cell], ctx.revealed, now), 'terrain', bounty ? `Find: ${title(bounty.id)}` : 'Find', bounty?.id);
   push(landmarkBonus([cell], now), 'other', 'Landmark');
-  push(worksBonusByCell(working(ctx), ctx.trees, ctx.kindAt, now).get(cell.h3) ?? {}, 'building', 'Works research');
+  push(pre.works.get(cell.h3) ?? {}, 'building', 'Works research');
 
   if (ctx.factor !== 1) {
     const sum: Partial<ResourcePool> = {};

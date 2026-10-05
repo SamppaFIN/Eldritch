@@ -41,6 +41,8 @@ export interface Settings {
    * nothing is fetched, until the player opts in.
    */
   shareWorld: boolean;
+  /** What each hex of yours makes, drawn on it at street zoom (BRDC-MAP-008). On by default. */
+  yieldOverlay: boolean;
 }
 
 const KEY = 'settings';
@@ -55,6 +57,7 @@ export const DEFAULT_SETTINGS: Settings = {
   daylight: false,
   revealRivals: true,
   shareWorld: false,
+  yieldOverlay: true,
 };
 
 export function loadSettings(): Settings {
@@ -67,6 +70,7 @@ export function loadSettings(): Settings {
     daylight: stored.daylight ?? DEFAULT_SETTINGS.daylight,
     revealRivals: stored.revealRivals ?? DEFAULT_SETTINGS.revealRivals,
     shareWorld: stored.shareWorld ?? DEFAULT_SETTINGS.shareWorld,
+    yieldOverlay: stored.yieldOverlay ?? DEFAULT_SETTINGS.yieldOverlay,
   };
 }
 

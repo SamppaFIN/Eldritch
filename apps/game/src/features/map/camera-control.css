@@ -43,3 +43,8 @@
     transition: none;
   }
 }
+
+/* The yield overlay's toggle (BRDC-MAP-008): the same control, one target-gap above. */
+.camera-control--yields {
+  inset-block-end: calc(var(--hud-height, 9rem) + var(--space-8) + var(--touch-min) + var(--space-3));
+}
