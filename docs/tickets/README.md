@@ -597,3 +597,41 @@ Kausi jatkuu: ei `SAVE_VERSION`-nostoa, kaikki tallennusmuutokset lisääviä. P
 | [BRDC-QUEST-009](BRDC-QUEST-009.md) | Tehtävät ja mysteerit: moottori ja sisältö | L | QUEST-008, INVEST-001 |
 | [BRDC-ART-007](BRDC-ART-007.md) | Ikonien ja korttien visuaalinen nosto | M | — |
 | [BRDC-FX-004](BRDC-FX-004.md) | SVG-animaatiot | M | ART-007 |
+
+## Season 3: 4X + Arkham (ideointi 2026-10-06) → haara `season-3`
+
+Infinite hyväksyi kaikki 24 ehdotusta: *"Nämä julkaistaan vasta Season kolmoselle"*. Työ tehdään
+haarassa `season-3`; v0.9.0:n hotfixit menevät suoraan `main`iin ja `main` yhdistetään haaraan.
+Numerot tiketeissä ovat oletuksia (merkitty), Infinite säätää.
+
+Järjestys: **1** ADJ-001, NEXT-001, EUREKA-001, ALLY-001, MYTHOS-001 →
+**2** CONDITION-001, INVEST-002, AMBITION-001, ERA-001, AGE-001, DREAM-001, MOON-001, CHIMNEY-001 →
+**3** GREAT-001, TRADEROUTE-001, SUZERAIN-001, PAGES-001, MASKS-001, CHOIR-001, AERODROME-001 →
+**4** OTHERWORLD-001, TERROR-001, MYSTERY-001, MONSTER-001 (jaettu maailma / suurimmat).
+
+| Tiketti | Mitä | Effort | Riippuu |
+|---|---|---|---|
+| [BRDC-EUREKA-001](BRDC-EUREKA-001.md) | Eurekat: kävely vie tutkimusta | S–M | PROG-004 |
+| [BRDC-ADJ-001](BRDC-ADJ-001.md) | Naapuribonukset Worksille | S | YIELD-001 |
+| [BRDC-AGE-001](BRDC-AGE-001.md) | Viikon kultainen ja pimeä aika | M | SEASON-003 |
+| [BRDC-ERA-001](BRDC-ERA-001.md) | Aikakauden luonne (Humankind) | M | PROG-004 |
+| [BRDC-AMBITION-001](BRDC-AMBITION-001.md) | Kauden tavoite | S–M | SEASON-003 |
+| [BRDC-GREAT-001](BRDC-GREAT-001.md) | Suurhenkilöt | M | WORKS-002, ALLY-001 |
+| [BRDC-TRADEROUTE-001](BRDC-TRADEROUTE-001.md) | Kauppareitit kävelemällä | M | TRAIL-003 |
+| [BRDC-SUZERAIN-001](BRDC-SUZERAIN-001.md) | Kylän suojelus | M | DIPLO-001, QUEST-009 |
+| [BRDC-NEXT-001](BRDC-NEXT-001.md) | Seuraavaksi valmistuu -nauha | S | — |
+| [BRDC-CONDITION-001](BRDC-CONDITION-001.md) | Tilat: Velka, Vainoharha, Kirous… | M | INVEST-001 |
+| [BRDC-INVEST-002](BRDC-INVEST-002.md) | Tutkijan oma tarina ja heikkous | M | INVEST-001, QUEST-009, CONDITION-001 |
+| [BRDC-OTHERWORLD-001](BRDC-OTHERWORLD-001.md) | Porttien läpi: Toinen maailma | M–L | DOOM-002, DOOM-003 |
+| [BRDC-TERROR-001](BRDC-TERROR-001.md) | Kaupungin kauhu | M | DOOM-001, SHARE-003 |
+| [BRDC-MYSTERY-001](BRDC-MYSTERY-001.md) | Kauden kolme mysteeriä | L | DOOM-004, TERROR-001 |
+| [BRDC-ALLY-001](BRDC-ALLY-001.md) | Liittolaiset | S–M | QUEST-009, INVEST-001 |
+| [BRDC-MYTHOS-001](BRDC-MYTHOS-001.md) | Mythos-kortti jatkumoksi | S–M | DOOM-001 |
+| [BRDC-MONSTER-001](BRDC-MONSTER-001.md) | Hirviöt liikkuvat | L | DOOM-002, ALLY-001 |
+| [BRDC-CHOIR-001](BRDC-CHOIR-001.md) | Pyhäjärven Hukkunut Kuoro | M | DOOM-003, DOOM-004 |
+| [BRDC-DREAM-001](BRDC-DREAM-001.md) | Unimatka yön yli | S–M | VIGIL-001 |
+| [BRDC-MOON-001](BRDC-MOON-001.md) | Kuu ja sää | M | WEATHER-001 |
+| [BRDC-MASKS-001](BRDC-MASKS-001.md) | Naamioiden muukalainen | M | DOOM-003, QUEST-009 |
+| [BRDC-AERODROME-001](BRDC-AERODROME-001.md) | Härmälän lentokenttä: Ulkoilman kiitorata | M | QUEST-008, DOOM-002 |
+| [BRDC-CHIMNEY-001](BRDC-CHIMNEY-001.md) | Finlaysonin piiput merkkitulina | S–M | LANDMARK-001, BUILD-013 |
+| [BRDC-PAGES-001](BRDC-PAGES-001.md) | Kirjan sivut | M | PROG-007, DOOM-003 |
