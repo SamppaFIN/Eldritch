@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | — |
 | **Lähde** | Infiniten handoff 2026-10-05, F-50 |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-06 |
 
 ## 🔴 RED
 
@@ -15,10 +15,10 @@ Ikonit ja kortit ovat eri aikoina piirrettyjä; viivat, hehku ja kehykset vaihte
 
 ## 🟢 GREEN
 
-- [ ] Yksi ikonityyli (viiva, hehku, tokenipaletti)
-- [ ] Korttikehykset (vesica-kulmat), hillitty kohina taustoissa
-- [ ] Cinzel/Inter kuten nyt
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Yksi ikonityyli (viiva, hehku, tokenipaletti) — `--icon-glow` / `--icon-glow-text` (tokens.css), `.es-icon` jokaisella SacredGeometry-SVG:llä, muotokuvilla ja navin valitulla glyfillä. Kartan GL-spritet eivät ota CSS:ää; ne pysyvät `designSprites.ts`:n tyylissä
+- [x] Korttikehykset (vesica-kulmat), hillitty kohina taustoissa — `.es-glass::after` neljä peilattua kaarta, `--glass-grain` staattinen SVG-tiili `::before`:ssa (maalataan kerran, ei suodinkierrosta per paneeli); 360 px kuvakaappaus tarkistettu. Vierittyvässä paneelissa alakulmat istuvat ensimmäisen näkymän alalaidassa, eivät sisällön lopussa
+- [x] Cinzel/Inter kuten nyt — ei kosketeltu
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 1999 testiä, tsc, rivit OK, build OK
 
 ## Todennus
 

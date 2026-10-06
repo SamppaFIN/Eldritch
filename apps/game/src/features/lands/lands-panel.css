@@ -277,3 +277,11 @@
   color: var(--sacred-gold);
   font-size: var(--text-sm);
 }
+
+/* A citizen at work beside its Work (BRDC-FX-004): a small bob, CSS only. */
+.ledger__citizen {
+  display: inline-block;
+  vertical-align: -2px;
+  color: var(--awareness-green);
+  animation: es-bob 0.65s ease-in-out infinite alternate;
+}

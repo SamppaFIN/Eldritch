@@ -87,7 +87,7 @@ export function FlowerOfLife({
       width={size}
       height={size}
       viewBox="0 0 100 100"
-      className={className}
+      className={className ? `es-icon ${className}` : 'es-icon'}
       style={style}
       {...a11y(label)}
     >
@@ -141,7 +141,7 @@ export function MetatronsCube({
       width={size}
       height={size}
       viewBox="0 0 100 100"
-      className={className}
+      className={className ? `es-icon ${className}` : 'es-icon'}
       style={style}
       {...a11y(label)}
     >
@@ -195,7 +195,7 @@ export function HexMandala({
       width={size}
       height={size}
       viewBox="0 0 100 100"
-      className={className}
+      className={className ? `es-icon ${className}` : 'es-icon'}
       style={style}
       {...a11y(label)}
     >
@@ -235,7 +235,7 @@ export function VesicaDivider({
       width={size}
       height={height}
       viewBox="0 0 200 24"
-      className={className}
+      className={className ? `es-icon ${className}` : 'es-icon'}
       style={style}
       {...a11y(label)}
     >

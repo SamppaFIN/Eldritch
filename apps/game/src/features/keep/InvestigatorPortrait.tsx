@@ -17,7 +17,7 @@ const MARK: Readonly<Record<ArchetypeId, string>> = {
 
 export function InvestigatorPortrait({ id, size = 64 }: { id: ArchetypeId; size?: number }) {
   return (
-    <svg className="investigator__portrait" viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
+    <svg className="investigator__portrait es-icon" viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
       <circle cx="32" cy="32" r="29" fill="none" stroke="var(--sacred-gold)" strokeWidth="1.5" />
       <path d={MARK[id]} fill="none" stroke="var(--mystic-cyan)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>

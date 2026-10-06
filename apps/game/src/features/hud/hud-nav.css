@@ -46,6 +46,11 @@
   color: var(--mystic-cyan);
 }
 
+/* The one icon style (BRDC-ART-007): the lit glyph glows like every drawn mark. */
+.hud-nav__item--on .hud-nav__glyph {
+  text-shadow: var(--icon-glow-text);
+}
+
 .hud-nav__glyph {
   font-size: 14px;
   line-height: 1;

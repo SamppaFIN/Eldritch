@@ -124,6 +124,8 @@
   border-radius: 50%;
   border: 1px solid var(--sacred-gold);
   color: var(--sacred-gold);
+  /* Pressed in as the ending is read (BRDC-FX-004). */
+  animation: es-stamp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .adventure__outcome {

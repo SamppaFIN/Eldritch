@@ -99,7 +99,17 @@ export function WorksTab({ repository, open, now, onShowCell, onChanged }: Works
               {RESOURCE_WORD[m.resource]} {signed(m.amount)}/h
             </span>
           ))}
-          {r.slots > 0 ? <span>{r.hands} / {r.slots} at work</span> : null}
+          {r.slots > 0 ? (
+            <span>
+              {r.hands > 0 ? (
+                <svg className="ledger__citizen" viewBox="0 0 12 14" width="10" height="12" aria-hidden="true">
+                  <circle cx="6" cy="3" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M2 13 V9 Q6 5 10 9 V13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                </svg>
+              ) : null}{' '}
+              {r.hands} / {r.slots} at work
+            </span>
+          ) : null}
           <span>{r.rings === 0 ? 'the Hearth' : `${r.rings} from the Hearth`}</span>
         </span>
       </button>

@@ -12,6 +12,9 @@ import { setYieldData } from '../territory/yieldLayer.js';
 import { animateCitizens, setCitizenData } from '../territory/citizenLayer.js';
 import { setStandardData } from '../territory/standardLayer.js';
 import { setAfarAnomalyData } from '../territory/afarAnomalyLayer.js';
+import { pulsePaint } from './layerPulse.js';
+import { PLACE_HALO_LAYER } from '../territory/PlaceMarkers.js';
+import { CELL_ANOMALY_LAYER } from '../territory/layerIds.js';
 
 export function useMapExtras(
   map: MapLibreMap | null,
@@ -77,4 +80,8 @@ export function useMapExtras(
   useEffect(() => {
     if (map && ready) setAfarAnomalyData(map, afar);
   }, [map, ready, afar]);
+
+  // A temple glows and an anomaly breathes (BRDC-FX-004): one stepped timer per layer.
+  useEffect(() => (map && ready ? pulsePaint(map, PLACE_HALO_LAYER, 'circle-opacity', 0.12, 0.34) : undefined), [map, ready]);
+  useEffect(() => (map && ready ? pulsePaint(map, CELL_ANOMALY_LAYER, 'text-opacity', 0.5, 1) : undefined), [map, ready]);
 }

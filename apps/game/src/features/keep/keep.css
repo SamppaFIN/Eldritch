@@ -283,3 +283,11 @@
   color: var(--text);
   font-family: var(--font-display);
 }
+
+/* The Keep's sigil draws itself in (BRDC-FX-004): stroke-dashoffset, not a JS loop. */
+.investigator__portrait path,
+.investigator__portrait circle {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: es-draw 1.2s ease-out forwards;
+}

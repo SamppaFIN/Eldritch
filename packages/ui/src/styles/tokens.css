@@ -111,6 +111,16 @@
      full border highlight, which reads as a sticker rather than as glass. */
   --glass-spec: oklch(1 0 0 / 0.42);
   --glass-bloom: radial-gradient(120% 70% at 8% -10%, oklch(1 0 0 / 0.22), transparent 56%);
+  /* BRDC-ART-007: a faint grain under the bloom — a static tile, painted once, not a filter
+     pass per pane — and the vesica-arc corners every card wears (§12: panel corners). */
+  --glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  --corner-tl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg%3E%3Cpath d='M1 15 A14 14 0 0 1 15 1 M1 9 A8 8 0 0 1 9 1' fill='none' stroke='%23ffd700' stroke-opacity='.55' stroke-width='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  --corner-tr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg transform='matrix(-1 0 0 1 20 0)'%3E%3Cpath d='M1 15 A14 14 0 0 1 15 1 M1 9 A8 8 0 0 1 9 1' fill='none' stroke='%23ffd700' stroke-opacity='.55' stroke-width='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  --corner-bl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg transform='matrix(1 0 0 -1 0 20)'%3E%3Cpath d='M1 15 A14 14 0 0 1 15 1 M1 9 A8 8 0 0 1 9 1' fill='none' stroke='%23ffd700' stroke-opacity='.55' stroke-width='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  --corner-br: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg transform='matrix(-1 0 0 -1 20 20)'%3E%3Cpath d='M1 15 A14 14 0 0 1 15 1 M1 9 A8 8 0 0 1 9 1' fill='none' stroke='%23ffd700' stroke-opacity='.55' stroke-width='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  /* One icon style: stroke in the palette, one glow, the same on every drawn mark. */
+  --icon-glow: drop-shadow(0 0 3px oklch(0.79 0.14 220 / 0.45));
+  --icon-glow-text: 0 0 6px oklch(0.79 0.14 220 / 0.55);
   /* Daylight, low battery and prefers-reduced-transparency all land on this one flip. */
   --plate: oklch(0.175 0.045 305 / 0.94);
 
@@ -300,9 +310,27 @@ svg {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--glass-bloom);
+  background: var(--glass-bloom), var(--glass-grain);
   pointer-events: none;
   z-index: -1;
+}
+
+/* The card frame (BRDC-ART-007): a vesica arc in each corner, inside the rounding. */
+.es-glass::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  background:
+    var(--corner-tl) top left / 16px 16px no-repeat,
+    var(--corner-tr) top right / 16px 16px no-repeat,
+    var(--corner-bl) bottom left / 16px 16px no-repeat,
+    var(--corner-br) bottom right / 16px 16px no-repeat;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.es-icon {
+  filter: var(--icon-glow);
 }
 
 /* Anything that must be *read* rather than seen through. Reading beats transparency. */
@@ -392,6 +420,25 @@ svg {
 /* =============================================================================
    Keyframes — every one of them neutralised by prefers-reduced-motion above
    ========================================================================== */
+
+/* A seal pressed into the page (BRDC-FX-004). */
+@keyframes es-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.6) rotate(-14deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A citizen at work, in a list (BRDC-FX-004). */
+@keyframes es-bob {
+  to {
+    transform: translateY(-2px);
+  }
+}
 
 @keyframes es-draw {
   to {
