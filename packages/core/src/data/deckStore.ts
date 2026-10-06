@@ -16,6 +16,8 @@ import type { ResourceKind } from '../rules/terrain.js';
 import { commit, settlePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
+import { mythosToday } from './mythosStore.js';
+import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
@@ -73,7 +75,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
       if (standing !== h3) return { ok: false, refused: 'not-there' };
       const inv = await readInv(now);
       if (isHome(inv, now)) return { ok: false, refused: 'home' };
-      const roll = rollTest(diceFor(inv, card.skill, now), card.need, luckFor(inv, now), rng);
+      const roll = rollTest(diceFor(inv, card.skill, now) + mythosDice(await mythosToday(store(), now), card.skill), card.need, luckFor(inv, now), rng);
       await store().set(K.investigator, afterTest(inv, 1, 0, now));
       await store().set(K.rumours, { ...(await book()), pending: { h3, cardId: card.id, roll } });
       return { ok: true, roll };

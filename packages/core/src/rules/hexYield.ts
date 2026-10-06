@@ -18,6 +18,7 @@ import type { ArchetypeId } from './archetype.js';
 import { DORMANT_AFTER_MS, trickleRate, terrainForCell } from './terrain.js';
 import { adjacencyFor } from './adjacency.js';
 import type { AdjacencyLine } from './adjacency.js';
+import type { MythosCard } from './doom.js';
 import { BUILDINGS, buildingBonus, worksOn } from './build.js';
 import { bountyBonus, bountyOn } from './bounty.js';
 import { landmarkBonus } from './landmark.js';
@@ -68,6 +69,8 @@ export interface YieldContext {
   factor: number;
   /** Who the investigator is (BRDC-INVEST-001) — the Librarian lifts wisdom. */
   archetype?: ArchetypeId | undefined;
+  /** Today's Mythos card, when a season is known (BRDC-MYTHOS-001). */
+  mythos?: MythosCard | null | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -104,6 +107,15 @@ function adjacencyMap(ctx: YieldContext): Map<H3Index, AdjacencyLine[]> {
   return out;
 }
 
+/** What today's Mythos card makes on one hex: its hands on a Farm or Market (BRDC-MYTHOS-001). */
+function mythosOnCell(cell: Cell, ctx: YieldContext): Partial<ResourcePool> {
+  const e = ctx.mythos?.effect;
+  if (e?.kind !== 'hands' || ctx.now - cell.lastVisitedAt > DORMANT_AFTER_MS) return {};
+  if (!worksOn(cell).some((w) => w.id === e.work)) return {};
+  const hands = ctx.keep ? (ctx.keep.staff?.[staffKey(cell.h3, e.work)] ?? 0) : 1;
+  return hands > 0 ? { [e.resource]: e.perHand * hands } : {};
+}
+
 /** The hourly bonus the settle pays — the pouch's own sum, in its own order (golden-tested). */
 export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   const { owned, now, keep } = ctx;
@@ -119,6 +131,9 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   addInto(merged, landmarkBonus(owned, now));
   addInto(merged, worksBonus(working(ctx), ctx.trees, ctx.kindAt, now));
   for (const lines of adjacencyMap(ctx).values()) for (const l of lines) merged[l.resource] = (merged[l.resource] ?? 0) + l.amount;
+  for (const c of owned) addInto(merged, mythosOnCell(c, ctx));
+  const realm = ctx.mythos?.effect;
+  if (realm?.kind === 'realm') merged[realm.resource] = (merged[realm.resource] ?? 0) + realm.perHour;
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   return merged;
@@ -139,6 +154,8 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
       out.push({ resource: k, amount: v, source: 'other', label: `Spell: ${title(s.id)}`, sourceId: s.id });
     }
   }
+  const e = ctx.mythos?.effect;
+  if (ctx.mythos && e?.kind === 'realm') out.push({ resource: e.resource, amount: e.perHour, source: 'other', label: `Mythos: ${ctx.mythos.headline}` });
   return [...out, ...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0))];
 }
 
@@ -229,6 +246,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   push(landmarkBonus([cell], now), 'other', 'Landmark');
   push(pre.works.get(cell.h3) ?? {}, 'building', 'Works research');
   for (const l of adjacencyMap(ctx).get(cell.h3) ?? []) push({ [l.resource]: l.amount }, 'adjacency', `${workName(l.work)} ${l.why}`, l.work);
+  if (ctx.mythos) push(mythosOnCell(cell, ctx), 'other', `Mythos: ${ctx.mythos.headline}`);
   out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
 
   if (ctx.factor !== 1) {

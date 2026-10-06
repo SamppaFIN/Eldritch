@@ -333,8 +333,8 @@ export {
 } from './masterwork.js';
 export type { Masterwork, Need } from './masterwork.js';
 export { SANITY_LEAVE_BELOW, SANITY_YIELD_PENALTY, realmSanity, sanityWord, sanityYield } from './sanity.js';
-export { DOOM_WARN_FROM, MYTHOS, dawnsSince, doomAt, mythosFor } from './doom.js';
-export type { MythosCard } from './doom.js';
+export { DOOM_WARN_FROM, MYTHOS, MYTHOS_CHAINS, dawnsSince, doomAt, mythosDice, mythosFor } from './doom.js';
+export type { MythosCard, MythosEffect } from './doom.js';
 export {
   FIRST_INVESTIGATOR,
   HOME_MS,

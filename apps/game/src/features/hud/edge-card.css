@@ -1,6 +1,6 @@
-/* The eureka card (BRDC-EUREKA-001): an edge card at the top, clear of the nav and the
-   sheet, so the rest of the screen still takes taps while it waits. */
-.eureka {
+/* An edge card at the top (BRDC-EUREKA-001, BRDC-MYTHOS-001): clear of the nav and the
+   sheet, so the rest of the screen still takes taps while it waits to be read. */
+.edge-card {
   position: fixed;
   inset-block-start: max(var(--space-3), env(safe-area-inset-top));
   inset-inline: max(var(--space-3), env(safe-area-inset-left)) max(var(--space-3), env(safe-area-inset-right));
@@ -19,28 +19,33 @@
   animation: es-rise var(--dur-slow) var(--ease-out) both;
 }
 
-.eureka:focus-visible {
+.edge-card:focus-visible {
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
 
-.eureka__sigil {
+.edge-card__sigil {
   flex: 0 0 auto;
   color: var(--sacred-gold);
 }
 
-.eureka__text {
+.edge-card__text {
   display: grid;
   gap: 2px;
 }
 
-.eureka__name {
+.edge-card__name {
   color: var(--sacred-gold);
   font-family: var(--font-display);
 }
 
-.eureka__line,
-.eureka__hint {
+.edge-card__line,
+.edge-card__hint {
   color: var(--text-muted);
   font-size: var(--text-sm);
+}
+
+/* Two at once (a eureka and the day's headline): the second sits below the first. */
+.edge-card ~ .edge-card {
+  inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top)) + 6rem);
 }

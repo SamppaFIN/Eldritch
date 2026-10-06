@@ -7,7 +7,7 @@
 | **Effort** | S–M |
 | **Riippuvuudet** | DOOM-001 |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus B7; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-06 (haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Päivän Mythos-kortti on yksittäinen sääntö ilman jatkumoa. Arkham Horrorin
 
 ## 🟢 GREEN
 
-- [ ] Mythos-kortit ryhmitellään 3–4 päivän ketjuiksi ("kalastaja katosi" → "löytyi rannalta" → "puhuu toisella äänellä") — sama siemen, deterministinen
-- [ ] Uutisotsikko näkyy kävelyarkissa kerran päivässä (pinoutuva kortti, ei ajastinta)
-- [ ] DOOM-001:n avoin `[~]`: Mythos-säännöillä on vihdoin vaikutus (tuotanto/noppa) — kytketään
-- [ ] Testit: ketju etenee päivittäin, sama kaikilla
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] 5 kolmen päivän ketjua (15 korttia, vanhat 10 mukana): kalastajan vene → järvi seisoo → kellot soivat; sato → varikset → yömarkkinat; sumu → kulkue → ovi; tähdet → kaukoputki → hiljainen yö; johdot → potkuripoika → tyyni taivas. Siemen + päivä, sama kaikilla (`mythos.test.ts`)
+- [x] Uutisotsikko reunakorttina kerran päivässä (`MythosHeadline`, `mythos.markSeen`); ei näy uudelleen saman päivän reloadissa — e2e `mythos.spec.ts`. Keepin Doom-osio näyttää kortin kuten ennen
+- [~] Vaikutukset kytketty niille, joilla on järjestelmä: nopat (Will/Wit/Lore ±1 portit, huhut, tehtävät, Reckoning), kädet (Farm +1 food, Market +2 gold per käsi), valtakunnan mana −1/h — hex-kortti näyttää rivin "Mythos: …" ja settle maksaa saman (`hexYield.test.ts`). **Odottaa yhä** (`waits`): varikset/vihjeet, kulkue/sanity, ovi/portti, tähdet/riittien hinta. Kauden kello opitaan Workerin seasonista (`K.mythos`); ilman sitä ei korttia eikä vaikutusta
+- [x] Testit: ketju etenee päivittäin, sama kaikilla (`mythos.test.ts`, `mythos.repo.test.ts`)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 2029 testiä
 
 ## Todennus
 

@@ -12,6 +12,7 @@ import { standardApi, type StandardApi } from './standardStore.js';
 import { chronicleImageApi, type ChronicleImageApi } from './chronicleImageStore.js';
 import { investigatorApi, type InvestigatorApi } from './investigatorStore.js';
 import { taskApi, type TaskApi } from './taskStore.js';
+import { mythosApi, type MythosApi } from './mythosStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -37,4 +38,7 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly chronicleImages: ChronicleImageApi = chronicleImageApi(() => this.store);
   readonly investigator: InvestigatorApi = investigatorApi(() => this.store);
   readonly tasks: TaskApi = taskApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces(), (xp) => this.addXp(xp));
+
+  /* --- Season 3 (branch `season-3`) ------------------------------------------ */
+  readonly mythos: MythosApi = mythosApi(() => this.store);
 }

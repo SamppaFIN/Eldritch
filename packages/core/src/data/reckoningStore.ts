@@ -17,6 +17,8 @@ import type { Investigator, Roll } from '../rules/investigator.js';
 import { worksOn } from '../rules/build.js';
 import { commit, settlePouch } from './pouch.js';
 import { K } from './keys.js';
+import { mythosToday } from './mythosStore.js';
+import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell } from '../types/domain.js';
 
@@ -75,7 +77,7 @@ export function reckoningApi(store: () => KeyValueStore, owned: (now: number) =>
       if (b.lastStrikeAt !== undefined && now - b.lastStrikeAt < STRIKE_COOLDOWN_MS) return { ok: false, refused: 'resting' };
       const i = await inv(now);
       if (isHome(i, now)) return { ok: false, refused: 'home' };
-      const roll = rollTest(diceFor(i, 'fight', now), 1, luckFor(i, now), rng);
+      const roll = rollTest(diceFor(i, 'fight', now) + mythosDice(await mythosToday(store(), now), 'fight'), 1, luckFor(i, now), rng);
       await store().set(K.investigator, afterTest(i, 1, 0, now));
       const damage = strikeDamage(roll, await might(now));
       await store().set(K.reckoning, { ...b, lastStrikeAt: now });

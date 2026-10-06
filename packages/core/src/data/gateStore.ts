@@ -39,6 +39,8 @@ import { readLore } from './loreStore.js';
 import { commit, settlePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
+import { mythosToday } from './mythosStore.js';
+import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
@@ -175,7 +177,7 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
       if (gate.h3 !== standing) return { ok: false, refused: 'not-there' };
       const i = await inv(now);
       if (isHome(i, now)) return { ok: false, refused: 'home' };
-      const roll = rollTest(diceFor(i, 'lore', now), GATE_TEST_NEED, luckFor(i, now), rng);
+      const roll = rollTest(diceFor(i, 'lore', now) + mythosDice(await mythosToday(store(), now), 'lore'), GATE_TEST_NEED, luckFor(i, now), rng);
       await store().set(K.investigator, { ...afterTest(i, 1, 0, now), pending: { gateId, roll } });
       return { ok: true, roll };
     },

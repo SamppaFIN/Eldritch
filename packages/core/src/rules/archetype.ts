@@ -76,6 +76,6 @@ export interface Check {
 }
 
 /** A skill test, by name: the investigator's dice and luck on the one dice pool. */
-export function resolveCheck(inv: Investigator, check: Check, rng: () => number, now = 0): Roll {
-  return rollTest(diceFor(inv, check.skill, now), check.need, luckFor(inv, now), rng);
+export function resolveCheck(inv: Investigator, check: Check, rng: () => number, now = 0, /** Today's Mythos dice. */ extra = 0): Roll {
+  return rollTest(diceFor(inv, check.skill, now) + extra, check.need, luckFor(inv, now), rng);
 }

@@ -67,8 +67,9 @@ import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 import type { WorksApi } from '../data/worksStore.js';
 import type { SeasonTwoApis } from './SeasonTwoApis.js';
 import type { OctoberApis } from './OctoberApis.js';
+import type { SeasonThreeApis } from './SeasonThreeApis.js';
 
-export interface GameRepository extends SeasonTwoApis, OctoberApis {
+export interface GameRepository extends SeasonTwoApis, OctoberApis, SeasonThreeApis {
   /* --- Profile ---------------------------------------------------------- */
   getProfile(): Promise<PlayerProfile>;
   /** Only takes effect the moment a profile is first created; a no-op once one

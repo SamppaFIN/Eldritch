@@ -22,6 +22,8 @@ import { commit } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import type { QuestOutcome } from './adventureStore.js';
 import { K } from './keys.js';
+import { mythosToday } from './mythosStore.js';
+import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
 
@@ -156,7 +158,7 @@ export function taskApi(
       if (!(await hasKeep())) return { ok: false, refused: 'no-keep' };
       const inv = recover((await store().get<Investigator>(K.investigator)) ?? FIRST_INVESTIGATOR(now), now);
       if (isHome(inv, now)) return { ok: false, refused: 'home' };
-      const roll = resolveCheck(inv, { skill: o.skill, need: o.need }, rng, now);
+      const roll = resolveCheck(inv, { skill: o.skill, need: o.need }, rng, now, mythosDice(await mythosToday(store(), now), o.skill));
       const sanity = roll.pass ? 0 : (task.fail?.sanity ?? 0);
       await store().set(K.investigator, afterTest(inv, 1, sanity, now));
       if (roll.pass) await pay(task, now);

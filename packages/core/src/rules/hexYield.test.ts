@@ -8,6 +8,7 @@ import { TECHS } from './tech.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
 import { staffKey } from './staffing.js';
 import { computeHexYield, realmBonus, realmOnlyYield } from './hexYield.js';
+import { MYTHOS } from './doom.js';
 import type { HexYield } from './hexYield.js';
 import type { ResourceKind } from './terrain.js';
 import type { BuildingId, Cell } from '../types/domain.js';
@@ -116,5 +117,26 @@ describe('the Librarian (BRDC-INVEST-001)', () => {
     const sum = summed(yields, realmOnlyYield(ctx));
     const paid = realmBonus(ctx);
     for (const k of RESOURCE_KINDS) expect(sum[k] ?? 0).toBeCloseTo(paid[k] ?? 0, 9);
+  });
+});
+
+describe('the Mythos on the hex card (BRDC-MYTHOS-001)', () => {
+  it('a harvest day: every Farm makes its extra food, card and settle agreeing', async () => {
+    const cells = realm();
+    const base = (await yieldContext(await store(cells, false), cells, NOW)).ctx;
+    const ctx = { ...base, mythos: MYTHOS.find((c) => c.id === 'good-harvest') ?? null };
+    const farm = computeHexYield(cells[1] as Cell, ctx).contributions.find((c) => c.label.startsWith('Mythos:'));
+    expect(farm).toMatchObject({ resource: 'food', amount: 1 });
+    expect((realmBonus(ctx).food ?? 0) - (realmBonus(base).food ?? 0)).toBe(1);
+    const sum = summed(cells.map((c) => computeHexYield(c, ctx)), realmOnlyYield(ctx));
+    for (const k of RESOURCE_KINDS) expect(sum[k] ?? 0).toBeCloseTo(realmBonus(ctx)[k] ?? 0, 9);
+  });
+
+  it('a still lake takes a mana an hour from the realm, said once, realm-wide', async () => {
+    const cells = realm();
+    const base = (await yieldContext(await store(cells, false), cells, NOW)).ctx;
+    const ctx = { ...base, mythos: MYTHOS.find((c) => c.id === 'still-lake') ?? null };
+    expect(realmOnlyYield(ctx)).toContainEqual({ resource: 'mana', amount: -1, source: 'other', label: 'Mythos: The Lake Is Still' });
+    expect((realmBonus(ctx).mana ?? 0) - (realmBonus(base).mana ?? 0)).toBe(-1);
   });
 });

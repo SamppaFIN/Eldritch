@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { FlowerOfLife } from '@es3/ui';
 import type { Cell, Eureka, GameRepository, LoreId } from '@es3/core';
 import { useCardStack } from '../hud/useCardStack.js';
-import './eureka.css';
+import '../hud/edge-card.css';
 
 interface Found {
   id: LoreId;
@@ -33,14 +33,14 @@ export function EurekaMoment({ repository, owned }: EurekaMomentProps) {
   const shown = stack.top;
   if (!shown) return null;
   return (
-    <button type="button" className="eureka es-glass" onClick={stack.pop} aria-label={`Eureka · ${shown.name} — dismiss`}>
-      <span className="eureka__sigil" aria-hidden>
+    <button type="button" className="edge-card es-glass" onClick={stack.pop} aria-label={`Eureka · ${shown.name} — dismiss`}>
+      <span className="edge-card__sigil" aria-hidden>
         <FlowerOfLife size={40} animate={1_200} />
       </span>
-      <span className="eureka__text">
-        <span className="eureka__name">Eureka · {shown.name}</span>
-        <span className="eureka__line">{shown.eureka.text} — done. It now costs half its wisdom.</span>
-        <span className="eureka__hint">{stack.count > 1 ? `Tap for the next · ${stack.count - 1} more` : 'Tap to dismiss'}</span>
+      <span className="edge-card__text">
+        <span className="edge-card__name">Eureka · {shown.name}</span>
+        <span className="edge-card__line">{shown.eureka.text} — done. It now costs half its wisdom.</span>
+        <span className="edge-card__hint">{stack.count > 1 ? `Tap for the next · ${stack.count - 1} more` : 'Tap to dismiss'}</span>
       </span>
     </button>
   );
