@@ -12,6 +12,7 @@ import { ARCHETYPES, DEBT_GOLD, SKILL_NAME, whenText } from '@es3/core';
 import type { ArchetypeId, GameRepository, InvestigatorView, Skill } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { InvestigatorPortrait } from './InvestigatorPortrait.js';
+import { TaskBoard } from '../quest/TaskBoard.js';
 
 const ORDER: readonly Skill[] = ['will', 'lore', 'fight', 'observe'];
 
@@ -41,13 +42,17 @@ export function InvestigatorPanel({ repository, now }: { repository: GameReposit
       <h3 className="hearth-panel__section">Your investigator</h3>
       <section className="keep-citizens investigator" aria-label="Your investigator">
         {chosen ? (
-          <div className="investigator__chosen">
-            <InvestigatorPortrait id={chosen.id} />
-            <div>
-              <p className="investigator__name">{chosen.name} · {chosen.title}</p>
-              <p className="hearth-panel__line">{chosen.perk}</p>
+          <>
+            <div className="investigator__chosen">
+              <InvestigatorPortrait id={chosen.id} />
+              <div>
+                <p className="investigator__name">{chosen.name} · {chosen.title}</p>
+                <p className="hearth-panel__line">{chosen.perk}</p>
+              </div>
             </div>
-          </div>
+            {/* Their own tale, a step at a time (BRDC-INVEST-002). */}
+            <TaskBoard repository={repository} which="personal" />
+          </>
         ) : (
           <>
             <p className="hearth-panel__line">Choose who walks for this kingdom. The choice holds until it retires.</p>

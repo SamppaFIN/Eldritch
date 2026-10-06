@@ -41,6 +41,7 @@ function row(
         <span className="hall__when">{relativeTime(entry.retiredAt, now)}</span>
       </div>
       {entry.era ? <p className="hall__era">{entry.era}</p> : null}
+      {entry.tale ? <p className="hall__era">✦ {entry.tale}</p> : null}
       {entry.image && repository ? <KingdomPicture repository={repository} id={entry.id} name={entry.name} /> : null}
       <p className="hall__level es-numeric">
         Level {entry.level} · {entry.xp.toLocaleString()} XP

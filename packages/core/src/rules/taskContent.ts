@@ -5,6 +5,7 @@
  * Management — and v2's Aurora, Hevy and the Wandering Merchant (EXTRACTION B2).
  */
 import type { Task } from './tasks.js';
+import { PERSONAL_TASKS } from './personalTasks.js';
 
 export const TASKS: readonly Task[] = [
   {
@@ -75,4 +76,5 @@ export const TASKS: readonly Task[] = [
   },
 ];
 
-export const taskById = (id: string): Task | null => TASKS.find((t) => t.id === id) ?? null;
+/** Any task, the Tavern's or an investigator's own (BRDC-INVEST-002). */
+export const taskById = (id: string): Task | null => TASKS.find((t) => t.id === id) ?? PERSONAL_TASKS.find((t) => t.id === id) ?? null;

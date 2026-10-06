@@ -14,6 +14,7 @@ import type { BuildingId } from './build.js';
 import type { Skill } from './investigator.js';
 import type { AllyId } from './ally.js';
 import type { ConditionId } from './condition.js';
+import type { ArchetypeId } from './archetype.js';
 import type { ResourcePool } from './terrain.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
@@ -38,6 +39,10 @@ export interface Task {
   fail?: { text: string; sanity: number; condition?: ConditionId };
   /** Who walks with you after it (BRDC-ALLY-001) — a Season 2 realm's investigator only. */
   ally?: AllyId;
+  /** An investigator's own tale (BRDC-INVEST-002): whose, the step before, and the last step. */
+  personal?: ArchetypeId;
+  after?: string;
+  finale?: true;
 }
 
 export interface TaskState {

@@ -16,6 +16,7 @@ const REFUSED: Readonly<Record<string, string>> = {
   'not-ready': 'Not done yet. Walk on.',
   home: 'Your investigator is home resting. Come back later.',
   'no-keep': 'This needs an investigator, and your realm has none yet.',
+  'not-yours': 'That step is not open to you yet.',
 };
 
 function action(v: TaskView): string | null {
@@ -25,10 +26,10 @@ function action(v: TaskView): string | null {
   return null;
 }
 
-export function TaskBoard({ repository }: { repository: GameRepository }) {
+export function TaskBoard({ repository, which = 'board' }: { repository: GameRepository; /** The Tavern's, or the investigator's own tale (BRDC-INVEST-002). */ which?: 'board' | 'personal' }) {
   const [views, setViews] = useState<TaskView[]>([]);
   const [said, setSaid] = useState<string | null>(null);
-  const load = useCallback(async () => setViews(await repository.tasks.board(Date.now())), [repository]);
+  const load = useCallback(async () => setViews(await (which === 'personal' ? repository.tasks.personal(Date.now()) : repository.tasks.board(Date.now()))), [repository, which]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -42,7 +43,7 @@ export function TaskBoard({ repository }: { repository: GameRepository }) {
   };
 
   return (
-    <ul className="task-board" aria-label="Tasks">
+    <ul className="task-board" aria-label={which === 'personal' ? 'Your tale' : 'Tasks'}>
       {views.map((v) => {
         const closed = v.state === 'completed' || v.state === 'failed';
         const label = action(v);

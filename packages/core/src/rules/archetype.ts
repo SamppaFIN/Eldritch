@@ -15,6 +15,7 @@ import type { Investigator, Roll, Skill } from './investigator.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 import { allyDiscount } from './ally.js';
 import type { AllyId } from './ally.js';
+import type { ConditionId } from './condition.js';
 
 export type ArchetypeId = 'librarian' | 'surveyor' | 'dockworker' | 'medium';
 
@@ -26,10 +27,17 @@ export interface Archetype {
   skill: Skill;
   perk: string;
   story: string;
+  /** What comes over them when sanity runs low (BRDC-INVEST-002). */
+  weakness: ConditionId;
 }
 
 export const ARCHETYPES = raw as readonly Archetype[];
 export const archetypeOf = (id: ArchetypeId | undefined): Archetype | null => ARCHETYPES.find((a) => a.id === id) ?? null;
+
+/** Below this sanity an investigator's weakness comes over them (BRDC-INVEST-002). */
+export const WEAKNESS_BELOW = 3;
+/** A finished tale raises the archetype's skill by one, up to this. */
+export const TALE_SKILL_MAX = 5;
 
 /** What the chosen skill is raised to — never lowered if it already stands higher. */
 export const ARCHETYPE_SKILL = 4;

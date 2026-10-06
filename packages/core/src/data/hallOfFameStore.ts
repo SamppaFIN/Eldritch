@@ -14,6 +14,8 @@ import { levelState } from '../rules/level.js';
 import { population, provinceCount } from '../rules/nation.js';
 import { totalAreaM2 } from '../geo/cells.js';
 import { K } from './keys.js';
+import { PERSONAL_TASKS } from '../rules/personalTasks.js';
+import { archetypeOf } from '../rules/archetype.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
 
@@ -43,6 +45,8 @@ export interface HallOfFameEntry {
   sharedAt?: number;
   /** A picture of the map was kept at retirement, under `K.chronicleImages` (BRDC-HALL-004). */
   image?: true;
+  /** The investigator's own tale, when it was finished (BRDC-INVEST-002): "The Librarian · Where Books Go to Rest". */
+  tale?: string;
 }
 
 export async function readHallOfFame(store: KeyValueStore): Promise<HallOfFameEntry[]> {
@@ -79,6 +83,14 @@ async function countAt(store: KeyValueStore, key: string): Promise<number> {
   return Array.isArray(value) ? value.length : Object.keys(value).length;
 }
 
+/** The investigator's finished tale, said as the Hall keeps it, or null (BRDC-INVEST-002). */
+async function finishedTale(store: KeyValueStore): Promise<string | null> {
+  const book = await store.get<{ outcomes?: Record<string, { status: string }> }>(K.tasks);
+  const done = PERSONAL_TASKS.find((t) => t.finale && book?.outcomes?.[t.id]?.status === 'completed');
+  const who = done?.personal ? archetypeOf(done.personal) : null;
+  return done && who ? `${who.title} · ${done.title}` : null;
+}
+
 export async function retireKingdom(
   store: KeyValueStore,
   profile: PlayerProfile,
@@ -89,11 +101,12 @@ export async function retireKingdom(
   era?: string,
 ): Promise<HallOfFameEntry> {
   const buildings = buildingsOf(owned).length;
-  const [achievements, secretSites, wonders, cipherShards] = await Promise.all([
+  const [achievements, secretSites, wonders, cipherShards, tale] = await Promise.all([
     countAt(store, K.achievements),
     countAt(store, K.questFinds),
     countAt(store, K.wonderFinds),
     countAt(store, K.cipherShards),
+    finishedTale(store),
   ]);
 
   const entry: HallOfFameEntry = {
@@ -111,6 +124,7 @@ export async function retireKingdom(
     wonders,
     cipherShards,
     ...(era?.trim() ? { era: era.trim().slice(0, 60) } : {}),
+    ...(tale ? { tale } : {}),
   };
 
   await store.set(K.hallOfFame, [...(await readHallOfFame(store)), entry]);

@@ -6,7 +6,8 @@
  * A Debt left unpaid takes the weakest hex you hold that is not the Hearth (released the
  * way decay releases one); a Dark Pact takes its sanity when it ends.
  */
-import { CONDITIONS, DEBT_GOLD, PACT_SANITY, activeConditions, cureByWalking, dropCondition, dueConditions, hasCondition, seizedBy } from '../rules/condition.js';
+import { CONDITIONS, DEBT_GOLD, PACT_SANITY, activeConditions, cureByWalking, dropCondition, dueConditions, gainCondition, hasCondition, seizedBy } from '../rules/condition.js';
+import { WEAKNESS_BELOW, archetypeOf } from '../rules/archetype.js';
 import type { ConditionId } from '../rules/condition.js';
 import { FIRST_INVESTIGATOR, afterTest, recover } from '../rules/investigator.js';
 import type { Investigator } from '../rules/investigator.js';
@@ -37,8 +38,11 @@ export interface ConditionWorld {
 /** Walking cures, then the prices of whatever ended. Returns the hex a debt took, if any. */
 export async function settleConditions(store: KeyValueStore, world: ConditionWorld, now: number): Promise<H3Index | null> {
   const stored = await store.get<Investigator>(K.investigator);
-  if (!stored?.conditions?.length) return null;
+  if (!stored) return null;
   let inv = cureByWalking(recover(stored, now), world.owned, world.home, world.temples);
+  // A weakness comes over them when sanity runs low (BRDC-INVEST-002), once at a time.
+  const weakness = archetypeOf(inv.archetype)?.weakness;
+  if (weakness && inv.sanity < WEAKNESS_BELOW && !hasCondition(inv, weakness, now)) inv = gainCondition(inv, weakness, now);
   const due = dueConditions(inv, now);
   let seized: H3Index | null = null;
   if (due.debt) {

@@ -9,7 +9,8 @@
  *
  * Skill tests need an investigator, so a Season 1 save sees the objective tasks only.
  */
-import { resolveCheck } from '../rules/archetype.js';
+import { TALE_SKILL_MAX, archetypeOf, resolveCheck } from '../rules/archetype.js';
+import { PERSONAL_TASKS } from '../rules/personalTasks.js';
 import { ALLIES } from '../rules/ally.js';
 import { gainCondition } from '../rules/condition.js';
 import { FIRST_INVESTIGATOR, afterTest, isHome, recover } from '../rules/investigator.js';
@@ -42,10 +43,12 @@ export interface TaskView {
 
 export type TaskOutcome =
   | { ok: true; outcome?: QuestOutcome }
-  | { ok: false; refused: 'unknown' | 'taken' | 'not-taken' | 'not-ready' | 'no-keep' | 'home' | 'finished' };
+  | { ok: false; refused: 'unknown' | 'taken' | 'not-taken' | 'not-ready' | 'no-keep' | 'home' | 'finished' | 'not-yours' };
 
 export interface TaskApi {
   board(now: number): Promise<TaskView[]>;
+  /** The investigator's own tale, steps open so far (BRDC-INVEST-002). Empty without one. */
+  personal(now: number): Promise<TaskView[]>;
   take(id: string, now: number): Promise<TaskOutcome>;
   /** Claim a finished objective, or face a skill test. */
   finish(id: string, now: number, rng?: () => number): Promise<TaskOutcome>;
@@ -106,6 +109,13 @@ export function taskApi(
     await store().set(K.investigator, { ...inv, allyOffer: task.ally });
     return ` ${name} offers to walk with you — answer in the Keep.`;
   };
+  /** The end of an investigator's own tale raises their skill (BRDC-INVEST-002). */
+  const finale = async (task: Task, now: number) => {
+    if (!task.finale) return;
+    const inv = await investigator(now);
+    const a = archetypeOf(inv.archetype);
+    if (a) await store().set(K.investigator, { ...inv, skills: { ...inv.skills, [a.skill]: Math.min(TALE_SKILL_MAX, inv.skills[a.skill] + 1) } });
+  };
   const pay = async (task: Task, now: number) => {
     await commit(store(), now, (cur) => {
       const pool = { ...cur.pool };
@@ -115,27 +125,43 @@ export function taskApi(
     await addXp(task.reward.xp);
   };
 
+  const investigator = async (now: number) => recover((await store().get<Investigator>(K.investigator)) ?? FIRST_INVESTIGATOR(now), now);
+  /** A personal step is open once it is this investigator's and the step before it is done. */
+  const opens = (task: Task, b: TaskBook, archetype: Investigator['archetype']) =>
+    task.personal === archetype && (!task.after || b.outcomes[task.after]?.status === 'completed');
+  const viewAll = async (tasks: readonly Task[], b: TaskBook, now: number) => {
+    const cells = await owned(now);
+    return tasks.map((task): TaskView => {
+      const outcome = b.outcomes[task.id];
+      const taken = b.taken[task.id];
+      const s = { owned: cells, since: taken?.at ?? now, templeDays: taken?.templeDays ?? [] };
+      const progress = taken ? progressOf(task.objective, s) : { have: 0, need: progressOf(task.objective, s).need };
+      if (outcome) return { task, state: outcome.status, progress, outcome };
+      if (!taken) return { task, state: 'open', progress };
+      return { task, state: isReady(task.objective, s) ? 'ready' : 'taken', progress };
+    });
+  };
+
   return {
     async board(now) {
       const b = await sync(now);
       const keep = await hasKeep();
-      const cells = await owned(now);
-      return TASKS.filter((t) => keep || t.objective.kind !== 'check').map((task): TaskView => {
-        const outcome = b.outcomes[task.id];
-        const taken = b.taken[task.id];
-        const s = { owned: cells, since: taken?.at ?? now, templeDays: taken?.templeDays ?? [] };
-        const progress = taken ? progressOf(task.objective, s) : { have: 0, need: progressOf(task.objective, s).need };
-        if (outcome) return { task, state: outcome.status, progress, outcome };
-        if (!taken) return { task, state: 'open', progress };
-        return { task, state: isReady(task.objective, s) ? 'ready' : 'taken', progress };
-      });
+      return viewAll(TASKS.filter((t) => keep || t.objective.kind !== 'check'), b, now);
+    },
+
+    async personal(now) {
+      if (!(await hasKeep())) return [];
+      const b = await sync(now);
+      const { archetype } = await investigator(now);
+      return viewAll(PERSONAL_TASKS.filter((t) => opens(t, b, archetype)), b, now);
     },
 
     async take(id, now) {
       const task = taskById(id);
       if (!task) return { ok: false, refused: 'unknown' };
-      if (task.objective.kind === 'check' && !(await hasKeep())) return { ok: false, refused: 'no-keep' };
+      if ((task.objective.kind === 'check' || task.personal) && !(await hasKeep())) return { ok: false, refused: 'no-keep' };
       const b = await book();
+      if (task.personal && !opens(task, b, (await investigator(now)).archetype)) return { ok: false, refused: 'not-yours' };
       if (b.taken[id]) return { ok: false, refused: 'taken' };
       await store().set(K.tasks, { ...b, taken: { ...b.taken, [id]: { at: now } } });
       return { ok: true };
@@ -152,6 +178,7 @@ export function taskApi(
       if (o.kind !== 'check') {
         if (!isReady(o, { owned: await owned(now), since: taken.at, templeDays: taken.templeDays ?? [] })) return { ok: false, refused: 'not-ready' };
         await pay(task, now);
+        await finale(task, now);
         const outcome: QuestOutcome = { status: 'completed', rewards: task.reward, text: task.done + (await befriend(task, now)), completedAt: now };
         await close(b, task, outcome, now);
         return { ok: true, outcome };
@@ -163,7 +190,10 @@ export function taskApi(
       const sanity = roll.pass ? 0 : (task.fail?.sanity ?? 0);
       const after = afterTest(inv, 1, sanity, now);
       await store().set(K.investigator, !roll.pass && task.fail?.condition ? gainCondition(after, task.fail.condition, now) : after);
-      if (roll.pass) await pay(task, now);
+      if (roll.pass) {
+        await pay(task, now);
+        await finale(task, now);
+      }
       const outcome: QuestOutcome = roll.pass
         ? { status: 'completed', rewards: task.reward, text: task.done + (await befriend(task, now)), completedAt: now }
         : { status: 'failed', rewards: { xp: 0, pool: {} }, text: task.fail?.text ?? 'It did not go your way.', completedAt: now };
