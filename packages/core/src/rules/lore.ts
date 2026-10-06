@@ -74,10 +74,15 @@ export function ageOf(learned: readonly LoreId[]): Age {
 export type StudyRefusal = 'learned' | 'sealed' | 'cannot-afford';
 
 /** Can this be studied now — not learned, not beyond the Age, and paid for in wisdom? */
-export function canStudy(id: LoreId, learned: readonly LoreId[], wisdom: number): { ok: true; cost: number } | { ok: false; refused: StudyRefusal } {
+export function canStudy(
+  id: LoreId,
+  learned: readonly LoreId[],
+  wisdom: number,
+  /** The price to pay — the Age's, unless a eureka halved it (BRDC-EUREKA-001). */
+  cost = loreCost(LORE[id].age),
+): { ok: true; cost: number } | { ok: false; refused: StudyRefusal } {
   if (learned.includes(id)) return { ok: false, refused: 'learned' };
   if (LORE[id].age > ageOf(learned)) return { ok: false, refused: 'sealed' };
-  const cost = loreCost(LORE[id].age);
   if (wisdom < cost) return { ok: false, refused: 'cannot-afford' };
   return { ok: true, cost };
 }

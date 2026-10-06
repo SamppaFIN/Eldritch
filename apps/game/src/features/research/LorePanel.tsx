@@ -6,7 +6,8 @@
  * the next one are sealed and shown as such, not hidden: the order is the lesson.
  */
 import { useState } from 'react';
-import type { LoreRow, LoreView, Unlock } from '@es3/core';
+import { loreCost } from '@es3/core';
+import type { Age, LoreRow, LoreView, Unlock } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME } from '../territory/names.js';
 import './lore.css';
@@ -63,7 +64,7 @@ export function LorePanel({ view, onStudy }: LorePanelProps) {
         return (
           <section key={age} className="lore__block" aria-label={`Age ${AGE_ROMAN[age - 1]}`}>
             <h3 className="lore__block-title">
-              Age {AGE_ROMAN[age - 1]} · <span className="es-numeric">{rows[0]?.cost} wisdom each · {learned} of 4</span>
+              Age {AGE_ROMAN[age - 1]} · <span className="es-numeric">{loreCost(age as Age)} wisdom each · {learned} of 4</span>
             </h3>
             <ul className="lore__list">
               {rows.map((t) => (
@@ -74,6 +75,12 @@ export function LorePanel({ view, onStudy }: LorePanelProps) {
                   </div>
                   <p className="lore__opens">Opens · {t.unlocks.map(opens).join(' · ')}</p>
                   <p className="lore__line">{t.lore}</p>
+                  {/* Do the thing and you half-know it (BRDC-EUREKA-001). */}
+                  {t.state !== 'learned' ? (
+                    <p className={`lore__eureka es-numeric${t.eureka.met ? ' lore__eureka--met' : ''}`}>
+                      {t.eureka.met ? `✦ Eureka · ${t.eureka.text} — half price` : `Eureka · ${t.eureka.text} · ${t.eureka.have}/${t.eureka.need}`}
+                    </p>
+                  ) : null}
                   {t.state === 'available' ? (
                     <RitualButton variant="ghost" disabled={busy || view.wisdom < t.cost} onClick={() => study(t)}>
                       {`Study · ${t.cost} wisdom`}

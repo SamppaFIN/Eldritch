@@ -357,6 +357,8 @@ export type { Archetype, ArchetypeId, Check } from './archetype.js';
 export { ADJ_KIN_CAP, ADJ_KIN_STEP, ADJ_TEMPLE_WISDOM, ADJ_WATER_FOOD, adjacencyFor, adjacencyOnCell } from './adjacency.js';
 export type { AdjacencyLine, AdjacencyWorld } from './adjacency.js';
 export { hoursToAfford, rankUpNext, upNextText, whenText } from './upNext.js';
+export { EUREKA_DISCOUNT, eurekaCost, eurekaFor } from './eureka.js';
+export type { Eureka, EurekaState } from './eureka.js';
 export type { UpNextItem } from './upNext.js';
 export { isReady, progressOf, templeDaysSeen } from './tasks.js';
 export type { Objective, Progress, Task, TaskState } from './tasks.js';

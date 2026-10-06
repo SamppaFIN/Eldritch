@@ -86,6 +86,8 @@ export const K = {
   rumours: 'rumours',
   /** The Tavern board's tasks: taken, and how each ended (BRDC-QUEST-009). Resets with the season. */
   tasks: 'tasks',
+  /** Lore whose eureka has been announced once (BRDC-EUREKA-001), `LoreId[]`. Resets with the season. */
+  eurekaSeen: 'eureka-seen',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

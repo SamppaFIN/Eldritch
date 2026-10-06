@@ -255,7 +255,7 @@ export function MapView({ onLeave }: MapViewProps) {
         quest={quest}
         cipher={cipher}
         settings={settings}
-        standingOn={standingOn}
+        standingOn={standingOn} repository={repository}
       />
       <PlaceReveal revealed={trail.revealed} />
 

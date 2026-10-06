@@ -6,7 +6,8 @@
  * this component only withholds the screens. Lifted out of `MapView`, which is at its
  * line ceiling.
  */
-import type { Cell, H3Index } from '@es3/core';
+import type { Cell, GameRepository, H3Index } from '@es3/core';
+import { EurekaMoment } from '../research/EurekaMoment.js';
 import { DiscoveryModal } from '../territory/DiscoveryModal.js';
 import type { DiscoveryState } from '../territory/useDiscovery.js';
 import { QuestReveal } from '../quest/QuestReveal.js';
@@ -27,6 +28,8 @@ export interface AdventureOverlaysProps {
   cipher: Cipher;
   settings: Settings;
   standingOn: H3Index | null;
+  /** For the moments that read the store themselves (BRDC-EUREKA-001). */
+  repository: GameRepository | null;
 }
 
 export function AdventureOverlays({
@@ -38,6 +41,7 @@ export function AdventureOverlays({
   cipher,
   settings,
   standingOn,
+  repository,
 }: AdventureOverlaysProps) {
   if (isRoute) return null;
 
@@ -56,6 +60,7 @@ export function AdventureOverlays({
         <AdventureDialog binding={quest.adventures} onHex={quest.atStageHex} onClose={() => quest.openQuestHex(null)} />
       ) : null}
       <EncounterDialog encounter={discovery.encounter} standingOn={standingOn} onChoose={discovery.onEncounterChoice} />
+      <EurekaMoment repository={repository} owned={owned} />
       {discovery.wonderFound ? <WonderMoment id={discovery.wonderFound} onClose={discovery.clearWonder} /> : null}
     </>
   );

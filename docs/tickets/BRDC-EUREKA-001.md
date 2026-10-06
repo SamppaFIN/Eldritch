@@ -7,7 +7,7 @@
 | **Effort** | S–M |
 | **Riippuvuudet** | PROG-004 |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus A1; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-06 (haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Lore tutkitaan vain maksamalla wisdomia. Civ VI:n paras keksintö — *tee asia,
 
 ## 🟢 GREEN
 
-- [ ] Jokaisella Lorella yksi eureka-ehto luettuna tilasta (esim. "kävele 3 metsäheksaa", "pidä temppeli hereillä 2 päivää", "rakenna Farm") — puhdas `eurekaFor(lore, state)` + testit
-- [ ] Täyttynyt eureka laskee Loren hinnan 50 % (oletus); näkyy Research-listassa rivinä "Eureka: …" ja kun täyttyy, kortti kertoo sen
-- [ ] Eureka kertyy vain kun Lore on vielä tutkimatta; ei takautuvasti ennen tiketin julkaisua (tila lasketaan julkaisusta lähtien)
-- [ ] Kävelyyn sidotut ehdot laskevat askeleita samasta lähteestä kuin `stepStore` (ei toista laskuria)
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Jokaisella 16 Lorella yksi eureka-ehto luettuna tilasta (pidetty maasto, Work pystyssä, löydetyt temppelit, paljastetut heksat, valmis anomalia) — puhdas `eurekaFor(id, state)` (`rules/eureka.ts`) + `eureka.test.ts`
+- [x] Täyttynyt eureka laskee hinnan 50 % (oletus, `EUREKA_DISCOUNT`) näkymässä ja maksussa (`canStudy` saa hinnan); Lore-rivillä "Eureka · Hold 3 forest hexes · 2/3" tai kullalla "✦ Eureka · … — half price"; täyttyessä kortti (`EurekaMoment`, pinoutuva) kerran (`K.eurekaSeen`) — `eureka.repo.test.ts`, e2e `eureka.spec.ts`
+- [x] Eureka koskee vain tutkimatonta Lorea; ehto luetaan valtakunnan nykytilasta, joten mitään ei lasketa taaksepäin (ei laskuria, jota pitäisi alustaa)
+- [x] Kävelyyn sidottu osa tulee pidetystä maasta (askel valtaa heksan) — ei toista laskuria; "askelia N" -tyyppisiä ehtoja ei tehty, koska solu ei muista kävelyhistoriaa
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 

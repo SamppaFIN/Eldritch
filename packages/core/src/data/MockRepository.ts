@@ -20,7 +20,7 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   /* --- Building pages (WORKS-002) and Season 2's doors --------------------- */
   readonly works: WorksApi = worksApi(() => this.store, async () => (await this.getProfile()).id, (t) => this.getOwnedCells(t));
   readonly keep: S2.KeepApi = S2.keepApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly lore: S2.LoreApi = S2.loreApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly lore: S2.LoreApi = S2.loreApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces());
   readonly rites: S2.RiteApi = S2.riteApi(() => this.store, (t) => this.getOwnedCells(t), () => this.gates);
   readonly masterworks: S2.MasterworkApi = S2.masterworkApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly gates: S2.GateApi = S2.gateApi(() => this.store, (t) => this.getOwnedCells(t));
