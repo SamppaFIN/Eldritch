@@ -7,7 +7,7 @@
 | **Effort** | S |
 | **Riippuvuudet** | — |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus A9; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-06 (haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Monta asiaa valmistuu (Lore, granary, tehtävät, ihmeteot), mutta mikään ei k
 
 ## 🟢 GREEN
 
-- [ ] Yksi rivi kävelyarkissa: kolme lähintä valmistuvaa ("Lore 2 h · Granary täynnä 5 h · Tehtävä 3/5"), napautus avaa kohteen
-- [ ] Puhdas `upNext(state, now)` järjestää ajan tai edistymisen mukaan + testit
-- [ ] Ei uutta tilaa — lukee olemassa olevista store-näkymistä
-- [ ] Mahtuu 360 px:iin yhdelle riville
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Yksi rivi kävelyarkissa: kolme lähintä valmistuvaa ("Next citizen 5 h · Learn Husbandry 5 h · Stores run out 12 h"); Lore-rivi avaa Researchin, Keepin rivit Keepin (e2e `up-next.spec.ts`), tehtävärivi on pelkkä teksti (ei omaa kohdetta). Season 1 -tallennuksella vain tehtävät (Lore ja Keep ovat kauden 2)
+- [x] Puhdas `rankUpNext(items)` + `hoursToAfford`, `upNextText` (`rules/upNext.ts`, `upNext.test.ts`): kellot ensin lyhin ensin, sitten edistyminen pisimmälle ensin, max 3
+- [x] Ei uutta tilaa — `useUpNext` lukee Loren, ennusteen, Keepin ja tehtävätaulun; MapView välittää yhden `useSheetLinks`-olion (pysyy 399 rivissä)
+- [x] Mahtuu 360 px:iin yhdelle riville: ylivuoto pyyhkäistään sivuttain (HUDin korkeusbudjetti), kohteet 44 px korkeita
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 2009 testiä
 
 ## Todennus
 

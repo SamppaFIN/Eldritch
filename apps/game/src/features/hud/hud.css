@@ -241,6 +241,8 @@
 
 .hud__foot .hud__actions {
   align-self: flex-end;
+  /* Never wider than the panel: the up-next strip (BRDC-NEXT-001) swipes inside it. */
+  max-inline-size: 100%;
 }
 
 .hud__actions {
@@ -277,6 +279,46 @@
   text-align: end;
   color: var(--text-dim);
   font-size: var(--text-sm);
+}
+
+/* What finishes next (BRDC-NEXT-001): one line, three at most, under the row. */
+.hud__upnext {
+  flex: 1 0 100%;
+  order: -1;
+  display: flex;
+  /* One line, swiped sideways if it must: the sheet has a height budget (BRDC-HUD-001). */
+  flex-wrap: nowrap;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: var(--space-3);
+  justify-content: flex-start;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.hud__upnext-item {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--touch-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+}
+
+button.hud__upnext-item {
+  color: var(--mystic-cyan);
+  cursor: pointer;
+}
+
+button.hud__upnext-item:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
 }
 
 /* --- Vigil ------------------------------------------------------------- */

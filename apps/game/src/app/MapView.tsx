@@ -36,7 +36,7 @@ import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { useMinuteNow } from '../features/time/useMinuteNow.js';
 import { ZOOM_FIRST_LOOK, ZOOM_WALKING, type BasemapState } from '../features/map/useMap.js';
-import { useStandard } from '../features/territory/useStandard.js';
+import { useSheetLinks } from '../features/hud/useSheetLinks.js';
 import { Hud } from '../features/hud/Hud.js';
 import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
@@ -167,7 +167,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // The cell underfoot — held against GPS jitter while still (BRDC-DWELL-002).
   const standingOn = useStandingCell(point, pace);
-  const standard = useStandard(repository, standingOn, territory.owned, clock.now, territory.refresh);
+  const nav = useSheetLinks({ repository, standingOn, owned: territory.owned, now: clock.now, onPlanted: territory.refresh, onOpenLands: aside.openLands, onOpenCounsel: aside.openCounsel, to: { research: isRoute ? undefined : inspect.openResearch, keep: castle && !isRoute ? inspect.onCastleTap : undefined } });
   const mapRef = useRef<MapHandle | null>(null);
 
   const moments = useMoments();
@@ -343,7 +343,7 @@ export function MapView({ onLeave }: MapViewProps) {
         onOpenCharacter={aside.openCharacter} onShowMap={aside.closeAll}
         onOpenResearch={isRoute ? undefined : inspect.openResearch}
         onOpenKeep={castle && !isRoute ? inspect.onCastleTap : undefined}
-        onHelp={aside.openHelp} nav={{ onOpenLands: aside.openLands, onOpenCounsel: aside.openCounsel, standard }}
+        onHelp={aside.openHelp} nav={nav}
         onOpenLog={aside.openLog}
       />
 
