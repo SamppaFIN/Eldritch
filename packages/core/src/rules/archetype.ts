@@ -9,7 +9,7 @@
  * Pure. The abilities are read where they act: the yield rules (Librarian), a Watchtower's
  * sight (Surveyor), a Work's price (Dockworker), the anomalies listed (Medium).
  */
-import raw from './investigators.json';
+import raw from './investigators.json' with { type: 'json' };
 import { diceFor, luckFor, rollTest } from './investigator.js';
 import type { Investigator, Roll, Skill } from './investigator.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
