@@ -41,6 +41,8 @@ export interface HallOfFameEntry {
   /** When this entry was last published to the shared Chronicles, if ever
    *  (BRDC-HALL-003) — lets `HallOfFamePanel` offer "Share" once, then "Shared". */
   sharedAt?: number;
+  /** A picture of the map was kept at retirement, under `K.chronicleImages` (BRDC-HALL-004). */
+  image?: true;
 }
 
 export async function readHallOfFame(store: KeyValueStore): Promise<HallOfFameEntry[]> {

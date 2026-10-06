@@ -71,6 +71,9 @@ export const K = {
   /** Retired kingdoms, `HallOfFameEntry[]` — the one record `retireKingdom` keeps back
    *  from the wipe it otherwise does (BRDC-HALL-001). */
   hallOfFame: 'hall-of-fame',
+  /** Retired kingdoms' pictures, `Record<id, data URL>` — kept through the wipe with the Hall
+   *  (BRDC-HALL-004). */
+  chronicleImages: 'chronicle-images',
   /** A Season 2 realm's learned Lore, `LoreId[]` (BRDC-PROG-004). Resets with the season. */
   lore: 'lore',
   /** A Season 2 realm's schools and learned rites, `RiteBook` (BRDC-PROG-007). */

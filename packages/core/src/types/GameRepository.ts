@@ -11,6 +11,7 @@
  */
 import type { YieldApi } from '../data/yieldStore.js';
 import type { StandardApi } from '../data/standardStore.js';
+import type { ChronicleImageApi } from '../data/chronicleImageStore.js';
 import type {
   BBox,
   Cell,
@@ -137,6 +138,8 @@ export interface GameRepository extends SeasonTwoApis {
   readonly yields: YieldApi;
   /** Your standard, planted on the hex you stand on, your own ground only (BRDC-STANDARD-001). */
   readonly standard: StandardApi;
+  /** A retired kingdom's picture (BRDC-HALL-004). */
+  readonly chronicleImages: ChronicleImageApi;
   /** Hexes seen from afar (a Watchtower, Dream-Sight) — the fog is lifted there. */
   getSighted(): Promise<Record<H3Index, number>>;
   /**

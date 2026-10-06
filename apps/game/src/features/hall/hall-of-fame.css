@@ -155,3 +155,47 @@
   color: var(--text-dim);
   font-size: var(--text-sm);
 }
+
+/* The kingdom as it stood (BRDC-HALL-004): a thumbnail on the row, the whole on a tap. */
+.hall__picture {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+  background: none;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.hall__picture img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.hall__picture-full {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  border: 0;
+  background: color-mix(in oklch, var(--void-black) 92%, transparent);
+  cursor: zoom-out;
+}
+
+.hall__picture-full img {
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+
+.hall__picture:focus-visible,
+.hall__picture-full:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

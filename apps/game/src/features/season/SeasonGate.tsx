@@ -18,6 +18,7 @@ import { fetchBoards, seasonOnce } from '../../data/season.js';
 import { publishLegacy } from '../../data/legacy.js';
 import { LegacyTable } from '../keep/LegacyTally.js';
 import { HeirloomChoice } from './HeirloomChoice.js';
+import { captureRealm } from '../hall/snapshot.js';
 import { SeasonIntro } from './SeasonIntro.js';
 import './season-panel.css';
 
@@ -90,8 +91,11 @@ export function SeasonGate({ repository }: { repository: GameRepository | null }
     if (busy) return;
     setBusy(true);
     void (async () => {
+      // The picture first, while the realm is still on the map (BRDC-HALL-004).
+      const image = await captureRealm();
       const profile = await repository.getProfile();
       const entry = await repository.retireKingdom(Date.now(), era);
+      if (image) await repository.chronicleImages.set(entry.id, image);
       const shared = await publishLegacy(profile.id, entry);
       if (shared) await repository.setKingdomShared(entry.id, Date.now());
       clearAll();

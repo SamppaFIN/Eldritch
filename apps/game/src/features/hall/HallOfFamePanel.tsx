@@ -15,6 +15,7 @@ import { relativeTime } from '../log/describe.js';
 import { formatArea } from '../codex/figures.js';
 import { useHallOfFame } from './useHallOfFame.js';
 import { useLegacy } from './useLegacy.js';
+import { KingdomPicture } from './KingdomPicture.js';
 import './hall-of-fame.css';
 
 export interface HallOfFamePanelProps {
@@ -31,6 +32,7 @@ function row(
   onReveal: (id: string) => void,
   sharing: boolean,
   onShare: (id: string) => void,
+  repository: GameRepository | null,
 ) {
   return (
     <li key={entry.id} className="hall__row">
@@ -39,6 +41,7 @@ function row(
         <span className="hall__when">{relativeTime(entry.retiredAt, now)}</span>
       </div>
       {entry.era ? <p className="hall__era">{entry.era}</p> : null}
+      {entry.image && repository ? <KingdomPicture repository={repository} id={entry.id} name={entry.name} /> : null}
       <p className="hall__level es-numeric">
         Level {entry.level} · {entry.xp.toLocaleString()} XP
       </p>
@@ -190,7 +193,7 @@ export function HallOfFamePanel({ open, repository, now, onClose }: HallOfFamePa
           {entries.length > 0 ? (
             <ul className="hall__list">
               {entries.map((e) =>
-                row(e, now(), revealing.has(e.id), reveal, sharing.has(e.id), share),
+                row(e, now(), revealing.has(e.id), reveal, sharing.has(e.id), share, repository),
               )}
             </ul>
           ) : null}

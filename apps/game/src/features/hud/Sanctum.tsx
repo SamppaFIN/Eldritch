@@ -15,6 +15,7 @@ import { Modal, RitualButton } from '@es3/ui';
 import { SAVE_VERSION, clearAll } from '@es3/core';
 import type { GameRepository } from '@es3/core';
 import { publishLegacy } from '../../data/legacy.js';
+import { captureRealm } from '../hall/snapshot.js';
 import './sanctum.css';
 
 export interface WithdrawDialogProps {
@@ -150,8 +151,11 @@ export function SanctumDialogs({
         open={confirming === 'retire'}
         onConfirm={(era) => {
           void (async () => {
+            // The picture first, while the realm is still on the map (BRDC-HALL-004).
+            const image = await captureRealm();
             const profile = await repository.getProfile();
             const entry = await repository.retireKingdom(now(), era);
+            if (image) await repository.chronicleImages.set(entry.id, image);
             const shared = await publishLegacy(profile.id, entry);
             if (shared) await repository.setKingdomShared(entry.id, now());
             clearAll();
