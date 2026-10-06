@@ -238,7 +238,7 @@ export class MockRepositoryBase {
     assignSchool(this.store, h3, school, await this.getOwnedCells(now), now);
 
   /* --- Story: anomalies, event chains, adventures — glue in storyRepo.js --- */
-  getAnomalies = (now: number): Promise<Anomaly[]> => getAnomaliesFor(this, now);
+  getAnomalies = (now: number): Promise<Anomaly[]> => getAnomaliesFor(this, now, this.store);
   investigateAnomaly(h3: H3Index, now: number): Promise<InvestigateOutcome> {
     return investigateAnomalyFor(this.store, this, h3, now);
   }

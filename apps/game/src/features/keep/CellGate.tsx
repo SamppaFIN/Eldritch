@@ -63,7 +63,7 @@ export function CellGate({ repository, h3, here, now }: CellGateProps) {
         side is reading your name.
       </p>
       <p className="hearth-panel__line es-numeric">
-        Stamina {inv.stamina} · Sanity {inv.sanity} · Clues {inv.clues}
+        Health {inv.stamina} · Sanity {inv.sanity} · Clues {inv.clues}
         {inv.home ? ' · sent home' : ''}
       </p>
       {pending ? (
@@ -83,7 +83,7 @@ export function CellGate({ repository, h3, here, now }: CellGateProps) {
       ) : (
         <div className="cell-staff__buttons">
           <RitualButton variant="ghost" disabled={busy || !here || inv.home} onClick={() => act(() => repository.gates.attempt(gate.id, here ? h3 : null, now))}>
-            {`Lore test · ${2 + inv.skills.lore} dice · costs 1 stamina`}
+            {`Lore test · ${2 + inv.skills.lore} dice · costs 1 health`}
           </RitualButton>
           {inv.clues >= view.sealClues ? (
             <RitualButton variant="ghost" disabled={busy || !here} onClick={() => act(() => repository.gates.seal(gate.id, here ? h3 : null, now), () => 'Sealed with clues. The Doom falls by one.')}>

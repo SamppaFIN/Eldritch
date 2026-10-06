@@ -13,13 +13,14 @@ import { CollectionList } from './CollectionList.js';
 export interface MysteryRow {
   h3: H3Index;
   name: string;
-  state: 'untouched' | 'study' | 'done' | 'ruin' | 'searched';
+  state: 'untouched' | 'study' | 'done' | 'ruin' | 'searched' | 'afar';
   /** What a row says beside its name. */
   note: string;
 }
 
 const STATE_NOTE: Readonly<Record<MysteryRow['state'], string>> = {
   untouched: 'untouched — study it from its card',
+  afar: 'beyond your border — take the hex to study it',
   study: 'under study',
   done: 'finished',
   ruin: 'not searched yet',
@@ -40,7 +41,7 @@ export function AnomaliesTab({ repository, open, now, onShowCell }: AnomaliesTab
     void (async () => {
       const t = now();
       const [live, cells, ruins, searched] = await Promise.all([repository.getAnomalies(t), repository.getOwnedCells(t), ruinsOnce().catch(() => []), repository.ruins.searched()]);
-      const anomalies: MysteryRow[] = live.map((a) => ({ h3: a.h3, name: a.sign.name, state: a.state === 'dormant' ? 'untouched' : 'study', note: '' }));
+      const anomalies: MysteryRow[] = live.map((a) => ({ h3: a.h3, name: a.sign.name, state: a.afar ? 'afar' : a.state === 'dormant' ? 'untouched' : 'study', note: '' }));
       // Finished ones drop out of the live list; the hex still remembers them.
       const done: MysteryRow[] = cells
         .filter((c) => c.anomaly?.done && anomalyAt(c.h3) !== null)

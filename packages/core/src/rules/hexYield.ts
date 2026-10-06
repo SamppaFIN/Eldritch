@@ -13,6 +13,8 @@
  */
 import type { Cell, H3Index } from '../types/domain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
+import { LIBRARIAN_WISDOM } from './archetype.js';
+import type { ArchetypeId } from './archetype.js';
 import { trickleRate, terrainForCell } from './terrain.js';
 import { BUILDINGS, buildingBonus, worksOn } from './build.js';
 import { bountyBonus, bountyOn } from './bounty.js';
@@ -62,6 +64,8 @@ export interface YieldContext {
   kindAt: KindAt;
   /** The dark-time factor on everything produced (BRDC-EVENT-001), 1 the rest of the year. */
   factor: number;
+  /** Who the investigator is (BRDC-INVEST-001) — the Librarian lifts wisdom. */
+  archetype?: ArchetypeId | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -88,7 +92,16 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   addInto(merged, bountyBonus(owned, ctx.revealed, now));
   addInto(merged, landmarkBonus(owned, now));
   addInto(merged, worksBonus(working(ctx), ctx.trees, ctx.kindAt, now));
+  // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
+  if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   return merged;
+}
+
+/** The Librarian's share of some wisdom, as a line of its own; nothing for anyone else. */
+function librarianLine(ctx: YieldContext, wisdom: number): YieldContribution[] {
+  return ctx.archetype === 'librarian' && wisdom > 0
+    ? [{ resource: 'wisdom', amount: wisdom * LIBRARIAN_WISDOM, source: 'other', label: 'Librarian' }]
+    : [];
 }
 
 /** What belongs to the realm and to no hex: a running domain spell. */
@@ -99,7 +112,7 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
       out.push({ resource: k, amount: v, source: 'other', label: `Spell: ${title(s.id)}`, sourceId: s.id });
     }
   }
-  return out;
+  return [...out, ...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0))];
 }
 
 /** What every hex of a realm reads, worked out once per context — without it `all` is
@@ -188,6 +201,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   push(bountyBonus([cell], ctx.revealed, now), 'terrain', bounty ? `Find: ${title(bounty.id)}` : 'Find', bounty?.id);
   push(landmarkBonus([cell], now), 'other', 'Landmark');
   push(pre.works.get(cell.h3) ?? {}, 'building', 'Works research');
+  out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
 
   if (ctx.factor !== 1) {
     const sum: Partial<ResourcePool> = {};

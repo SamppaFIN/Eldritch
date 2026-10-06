@@ -23,6 +23,7 @@ import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index, PlayerId } from '../types/domain.js';
+import { cellsWithin } from '../geo/cells.js';
 
 export interface Anomaly {
   h3: H3Index;
@@ -35,13 +36,15 @@ export interface Anomaly {
   stage?: { text: string; choices: readonly { text: string }[] };
   /** What the hex shows before and after it is studied (BRDC-EVENT-001, 2026-09-29). */
   sign: { name: string; text: string; found: string };
+  /** Seen beyond your ground by the Medium (BRDC-INVEST-001): take the hex to study it. */
+  afar?: true;
 }
 
 /**
  * The anomalies on ground the player holds, as the map and the panel need them. A
  * finished anomaly is not listed — it is spent, and the log remembers what it gave.
  */
-export function describeAnomalies(owned: readonly Cell[], now: number): Anomaly[] {
+export function describeAnomalies(owned: readonly Cell[], now: number, rings = 0): Anomaly[] {
   const out: Anomaly[] = [];
   for (const cell of owned) {
     const kind = anomalyAt(cell.h3);
@@ -66,6 +69,18 @@ export function describeAnomalies(owned: readonly Cell[], now: number): Anomaly[
       out.push({ h3: cell.h3, kind, state: 'ready', progress: 1, sign });
     } else {
       out.push({ h3: cell.h3, kind, state: 'investigating', progress: investigationProgress(cell, now), sign });
+    }
+  }
+  // The Medium sees past the border (BRDC-INVEST-001): untouched, and not yours to study yet.
+  if (rings > 0) {
+    const mine = new Set(owned.map((c) => c.h3));
+    const seen = new Set<H3Index>();
+    for (const c of owned) for (const h3 of cellsWithin(c.h3, rings)) if (!mine.has(h3)) seen.add(h3);
+    for (const h3 of seen) {
+      const kind = anomalyAt(h3);
+      if (kind === null) continue;
+      const s0 = anomalySignOf(h3);
+      out.push({ h3, kind, state: 'dormant', progress: 0, sign: { name: s0.name, text: s0.sign, found: s0.found }, afar: true });
     }
   }
   return out;

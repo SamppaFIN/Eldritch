@@ -6,6 +6,7 @@
  * Season 1 save, or before a season is open, or where the ground holds no rumour.
  */
 import { useEffect, useState } from 'react';
+import { SKILL_NAME } from '@es3/core';
 import type { GameRepository, H3Index, RumourView } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { seasonOnce } from '../../data/season.js';
@@ -19,7 +20,6 @@ export interface CellRumourProps {
   now: number;
 }
 
-const SKILL: Record<string, string> = { lore: 'Lore', will: 'Will', fight: 'Fight', observe: 'Observe' };
 const REFUSAL: Record<string, string> = {
   'not-there': 'Walk onto the hex to face it.',
   home: 'You were sent home. Rest twelve hours, then come back.',
@@ -75,7 +75,7 @@ export function CellRumour({ repository, h3, here, now }: CellRumourProps) {
         <strong>{card.title}.</strong> {card.text}
       </p>
       <p className="hearth-panel__line es-numeric">
-        {SKILL[card.skill]} test · {2 + inv.skills[card.skill]} dice, need {card.need} · Stamina {inv.stamina} · Sanity {inv.sanity} · Clues {inv.clues}
+        {SKILL_NAME[card.skill]} test · {2 + inv.skills[card.skill]} dice, need {card.need} · Health {inv.stamina} · Sanity {inv.sanity} · Clues {inv.clues}
       </p>
       {roll ? (
         <>
@@ -86,7 +86,7 @@ export function CellRumour({ repository, h3, here, now }: CellRumourProps) {
         </>
       ) : (
         <RitualButton variant="ghost" disabled={busy || !here || inv.home} onClick={() => act(() => repository.rumours.face(h3, here ? h3 : null, seed, now))}>
-          {here ? 'Face it · costs 1 stamina' : 'Walk onto the hex to face it'}
+          {here ? 'Face it · costs 1 health' : 'Walk onto the hex to face it'}
         </RitualButton>
       )}
       {said ? (

@@ -33,6 +33,17 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
   // Why not, beside the button rather than nowhere (BRDC-UI-002).
   const gate = affordable ? null : shortNote(shortOf(resources, ANOMALY_INVESTIGATE_COST));
 
+  // The Medium sees it past the border (BRDC-INVEST-001); studying it waits until it is yours.
+  if (a.afar) {
+    return (
+      <section className="cell-panel__anomaly" aria-label="Anomaly">
+        <p className="cell-panel__anomaly-name">{a.sign.name}</p>
+        <p className="cell-panel__anomaly-text">{a.sign.text}</p>
+        <p className="cell-panel__why">Your Medium senses it beyond your border. Take this hex to study it.</p>
+      </section>
+    );
+  }
+
   return (
     <section className="cell-panel__anomaly" aria-label="Anomaly">
       {a.state === 'dormant' ? (

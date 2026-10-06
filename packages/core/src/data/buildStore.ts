@@ -10,8 +10,12 @@ import { loreAllows } from '../rules/lore.js';
 import { readLore } from './loreStore.js';
 import { TECHS } from '../rules/tech.js';
 
-import { BUILDINGS, buildCost, buildingsOf, canBuild, hasWork, refund, worksOn } from '../rules/build.js';
-import type { BuildRefusal, BuildingId } from '../rules/build.js';
+import { BUILDINGS, buildCost, buildingsOf, hasWork, refund, worksOn } from '../rules/build.js';
+import type { BuildingId } from '../rules/build.js';
+import { canBuild } from '../rules/canBuild.js';
+import type { BuildRefusal } from '../rules/canBuild.js';
+import { priceFor } from '../rules/archetype.js';
+import type { Investigator } from '../rules/investigator.js';
 import { spend, terrainAt } from '../rules/terrain.js';
 import type { ResourceKind } from '../rules/terrain.js';
 import { projectCell } from '../rules/decay.js';
@@ -93,6 +97,7 @@ export async function buildOn(
   // Season 2 (PROG-004): the Lore decides what may be built; the old tree steps aside.
   if (state.keep && !loreAllows(id, await readLore(store))) return { ok: false, refused: 'locked' };
   if (state.keep && id === 'fortress') return { ok: false, refused: 'locked' }; // a masterwork now (PROG-006)
+  const archetype = (await store.get<Investigator>(K.investigator))?.archetype;
   const check = canBuild(
     {
       playerId: me,
@@ -103,13 +108,14 @@ export async function buildOn(
       ironAdjacent,
       tavernInProvince,
       copies,
+      archetype,
     },
     id,
     live,
   );
   if (!check.ok) return check;
 
-  const paid = spend(state.pool, buildCost(id, copies));
+  const paid = spend(state.pool, priceFor(buildCost(id, copies), archetype));
   if (!paid) return { ok: false, refused: 'cannot-afford' };
   await writePouch(store, paid, now);
 

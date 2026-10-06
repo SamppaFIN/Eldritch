@@ -12,17 +12,22 @@ import type { ResourceState } from '../rules/terrain.js';
 import { sightRings } from './revealStore.js';
 import { readTrees } from './worksTrees.js';
 import type { KeyValueStore } from './kv.js';
+import { K } from './keys.js';
+import { SURVEYOR_SIGHT } from '../rules/archetype.js';
+import type { Investigator } from '../rules/investigator.js';
 import type { H3Index } from '../types/domain.js';
 
 export const TOWER_SIGHT = 2;
 
-export function towerRings(hands: number, reach: number): number {
-  return TOWER_SIGHT + hands + reach;
+/** `extra`: the Surveyor's ring (BRDC-INVEST-001). */
+export function towerRings(hands: number, reach: number, extra = 0): number {
+  return TOWER_SIGHT + hands + reach + extra;
 }
 
 export async function towerSight(store: KeyValueStore, h3: H3Index, now: number): Promise<void> {
   const keep = (await store.get<ResourceState>('resources'))?.keep;
   const hands = keep?.staff?.[staffKey(h3, 'watchtower')] ?? 0;
   const reach = reachRings(WORKS_DEFS.watchtower, (await readTrees(store))[h3] ?? []);
-  await sightRings(store, h3, towerRings(hands, reach), now);
+  const surveyor = (await store.get<Investigator>(K.investigator))?.archetype === 'surveyor';
+  await sightRings(store, h3, towerRings(hands, reach, surveyor ? SURVEYOR_SIGHT : 0), now);
 }

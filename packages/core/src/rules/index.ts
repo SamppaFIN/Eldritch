@@ -42,14 +42,15 @@ export {
   buildingBonus,
   buildingDayBonus,
   buildingsOf,
-  canBuild,
   hasWork,
   keepOne,
   refund,
   storageCap,
   worksOn,
 } from './build.js';
-export type { Building, BuildingId, BuildCheck, BuildContext, BuildRefusal } from './build.js';
+export type { Building, BuildingId } from './build.js';
+export { canBuild } from './canBuild.js';
+export type { BuildCheck, BuildContext, BuildRefusal } from './canBuild.js';
 export {
   FORTRESS_REACH,
   defenceAura,
@@ -351,6 +352,8 @@ export {
   successFloor,
 } from './investigator.js';
 export type { Investigator, Luck, Roll, Skill } from './investigator.js';
+export { ARCHETYPES, ARCHETYPE_SKILL, DOCKWORKER_DISCOUNT, LIBRARIAN_WISDOM, MEDIUM_RINGS, SKILL_NAME, SURVEYOR_SIGHT, archetypeOf, chooseArchetype, priceFor, resolveCheck } from './archetype.js';
+export type { Archetype, ArchetypeId, Check } from './archetype.js';
 export { GATE_DOOM_MS, GATE_TEST_NEED, gateAtDawn, gatesNear, horrorBite, isOpen as isGateOpen, overdue } from './gate.js';
 export type { Gate } from './gate.js';
 export { DECKS, RUMOUR_SHARE, cardById, deckFor, rumourAt } from './deck.js';

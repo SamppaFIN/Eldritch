@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import type { GameRepository, GateView } from '@es3/core';
 import { fetchSeason, postDoom } from '../../data/season.js';
+import { InvestigatorPanel } from './InvestigatorPanel.js';
 import './keep.css';
 
 export interface KeepGatesProps {
@@ -39,10 +40,11 @@ export function KeepGates({ repository, now }: KeepGatesProps) {
 
   return (
     <>
+      <InvestigatorPanel repository={repository} now={now} />
       <h3 className="hearth-panel__section">Open gates</h3>
       <section className="keep-citizens" aria-label="Open gates">
         <p className="hearth-panel__line es-numeric">
-          Stamina {inv.stamina} · Sanity {inv.sanity} · Clues {inv.clues} / 8{inv.home ? ' · sent home to rest' : ''}
+          Health {inv.stamina} · Sanity {inv.sanity} · Clues {inv.clues} / 8{inv.home ? ' · sent home to rest' : ''}
         </p>
         {view.gates.length === 0 ? (
           <p className="hearth-panel__line">No gate is open near your realm.</p>

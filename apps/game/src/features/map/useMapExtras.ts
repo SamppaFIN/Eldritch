@@ -11,6 +11,7 @@ import { setSeasonMarkData, useSeasonMarks } from '../season/SeasonMarkers.js';
 import { setYieldData } from '../territory/yieldLayer.js';
 import { animateCitizens, setCitizenData } from '../territory/citizenLayer.js';
 import { setStandardData } from '../territory/standardLayer.js';
+import { setAfarAnomalyData } from '../territory/afarAnomalyLayer.js';
 
 export function useMapExtras(
   map: MapLibreMap | null,
@@ -62,4 +63,13 @@ export function useMapExtras(
   useEffect(() => {
     if (map && ready) setStandardData(map, standard);
   }, [map, ready, standard]);
+
+  // The Medium's anomalies one ring past your border (BRDC-INVEST-001); empty for anyone else.
+  const [afar, setAfar] = useState<H3Index[]>([]);
+  useEffect(() => {
+    if (repository) void repository.getAnomalies(now).then((all) => setAfar(all.filter((a) => a.afar).map((a) => a.h3)));
+  }, [repository, now, cells]);
+  useEffect(() => {
+    if (map && ready) setAfarAnomalyData(map, afar);
+  }, [map, ready, afar]);
 }

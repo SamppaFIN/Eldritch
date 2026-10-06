@@ -10,6 +10,7 @@ import * as S2 from './seasonTwo.js'; // Season 2's doors (SeasonTwoApis), gathe
 import { yieldApi, type YieldApi } from './yieldStore.js';
 import { standardApi, type StandardApi } from './standardStore.js';
 import { chronicleImageApi, type ChronicleImageApi } from './chronicleImageStore.js';
+import { investigatorApi, type InvestigatorApi } from './investigatorStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -33,4 +34,5 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly yields: YieldApi = yieldApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly standard: StandardApi = standardApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly chronicleImages: ChronicleImageApi = chronicleImageApi(() => this.store);
+  readonly investigator: InvestigatorApi = investigatorApi(() => this.store);
 }

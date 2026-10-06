@@ -16,12 +16,13 @@ import {
   buildCost,
   buildingBonus,
   buildingsOf,
-  canBuild,
   keepOne,
   refund,
   storageCap,
 } from './build.js';
-import type { BuildContext, BuildingId } from './build.js';
+import type { BuildingId } from './build.js';
+import { canBuild } from './canBuild.js';
+import type { BuildContext } from './canBuild.js';
 import type { Cell } from '../types/domain.js';
 
 const ALL = Object.keys(BUILDINGS) as BuildingId[];

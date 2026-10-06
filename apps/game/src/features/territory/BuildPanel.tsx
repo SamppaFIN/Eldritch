@@ -17,10 +17,11 @@ import {
   hasWork,
   loreAllows,
   loreFor,
+  priceFor,
   refund,
   worksOn,
 } from '@es3/core';
-import type { BuildCheck, BuildRefusal, BuildingId, Cell, LoreId, PlayerId, ResourcePool, TechId } from '@es3/core';
+import type { ArchetypeId, BuildCheck, BuildRefusal, BuildingId, Cell, LoreId, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
 import { costLine } from './gateNote.js';
@@ -102,6 +103,8 @@ export interface BuildPanelProps {
   near?: { templeAdjacent: boolean; ironAdjacent: boolean };
   /** A Season 2 realm's learned Lore — it, not the old tree, gates the list. Null on Season 1. */
   lore?: readonly LoreId[] | null;
+  /** Who the investigator is: the Dockworker's price is the one shown and checked (BRDC-INVEST-001). */
+  archetype?: ArchetypeId | undefined;
 }
 
 /**
@@ -166,9 +169,10 @@ export function BuildPanel({
   refusal,
   lore = null,
   near,
+  archetype,
 }: BuildPanelProps) {
   const [showLocked, setShowLocked] = useState(false);
-  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings, ...near };
+  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings, ...near, archetype };
   // Masterworks are raised in the Keep, never built from this list; on a Season 2 save the
   // Fortress is one of them too.
   const all = (Object.keys(BUILDINGS) as BuildingId[]).filter((id) => !BUILDINGS[id].masterwork && !(lore && id === 'fortress'));
@@ -179,7 +183,7 @@ export function BuildPanel({
     const c = canBuild({ ...ctx, researched: ALL_TECHS, copies: copies(id) }, id, cell);
     return c.ok && !loreAllows(id, lore) ? { ok: false, refused: 'locked' } : c;
   };
-  const price = (id: BuildingId) => (lore ? buildCost(id, copies(id)) : BUILDINGS[id].cost);
+  const price = (id: BuildingId) => priceFor(lore ? buildCost(id, copies(id)) : BUILDINGS[id].cost, archetype);
   const checks = new Map(all.map((id) => [id, check(id)] as const));
   const byName = (a: BuildingId, b: BuildingId) => NAME[a].localeCompare(NAME[b]);
   const here = worksOn(cell);

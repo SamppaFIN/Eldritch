@@ -10,6 +10,7 @@ import type { LoreApi } from '../data/loreStore.js';
 import type { RiteApi } from '../data/riteStore.js';
 import type { MasterworkApi } from '../data/masterworkStore.js';
 import type { GateApi } from '../data/gateStore.js';
+import type { InvestigatorApi } from '../data/investigatorStore.js';
 import type { RumourApi } from '../data/deckStore.js';
 import type { ReckoningApi } from '../data/reckoningStore.js';
 import type { LegacyApi } from '../data/legacyTally.js';
@@ -28,6 +29,8 @@ export interface SeasonTwoApis {
   readonly masterworks: MasterworkApi;
   /** Gates, clues and the investigator (BRDC-DOOM-002). */
   readonly gates: GateApi;
+  /** Who the investigator is, chosen once per kingdom (BRDC-INVEST-001). */
+  readonly investigator: InvestigatorApi;
   /** Rumours: terrain encounter decks (BRDC-DOOM-003). */
   readonly rumours: RumourApi;
   /** The realm's blows in the Reckoning (BRDC-DOOM-004). */

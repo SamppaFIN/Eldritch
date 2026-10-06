@@ -33,6 +33,9 @@ import {
 import type { SecretSiteId } from './questSites.js';
 export type { SecretSiteId } from './questSites.js';
 import type { KeyValueStore } from './kv.js';
+import { K } from './keys.js';
+import { MEDIUM_RINGS } from '../rules/archetype.js';
+import type { Investigator } from '../rules/investigator.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
 
@@ -44,8 +47,9 @@ export interface StoryDeps {
   addXp(amount: number): Promise<unknown>;
 }
 
-export function getAnomaliesFor(d: StoryDeps, now: number): Promise<Anomaly[]> {
-  return d.getOwnedCells(now).then((owned) => describeAnomalies(owned, now));
+export async function getAnomaliesFor(d: StoryDeps, now: number, store?: KeyValueStore): Promise<Anomaly[]> {
+  const medium = (await store?.get<Investigator>(K.investigator))?.archetype === 'medium';
+  return describeAnomalies(await d.getOwnedCells(now), now, medium ? MEDIUM_RINGS : 0);
 }
 
 export async function investigateAnomalyFor(

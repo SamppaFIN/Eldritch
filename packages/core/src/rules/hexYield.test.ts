@@ -91,3 +91,30 @@ describe('computeHexYield (BRDC-YIELD-001)', () => {
     expect(Object.keys(await api.all(NOW))).toHaveLength(cells.length);
   });
 });
+
+describe('the Librarian (BRDC-INVEST-001)', () => {
+  async function librarian(cells: Cell[], keep: boolean) {
+    const s = await store(cells, keep);
+    await s.set(K.investigator, { stamina: 7, sanity: 6, clues: 0, skills: { lore: 4, will: 2, fight: 2, observe: 2 }, restedAt: NOW, archetype: 'librarian' });
+    return s;
+  }
+
+  it('the settle pays a fifth more wisdom, and nothing more of anything else', async () => {
+    const cells = realm();
+    const plain = realmBonus((await yieldContext(await store(cells, false), cells, NOW)).ctx);
+    const read = realmBonus((await yieldContext(await librarian(cells, false), cells, NOW)).ctx);
+    expect(plain.wisdom ?? 0).toBeGreaterThan(0);
+    expect(read.wisdom).toBeCloseTo((plain.wisdom as number) * 1.2, 9);
+    for (const k of RESOURCE_KINDS) if (k !== 'wisdom') expect(read[k] ?? 0).toBe(plain[k] ?? 0);
+  });
+
+  it('the hex cards say so on a line of its own, and still sum to the settle', async () => {
+    const cells = realm();
+    const { ctx } = await yieldContext(await librarian(cells, false), cells, NOW);
+    const yields = cells.map((c) => computeHexYield(c, ctx));
+    expect(yields.some((y) => y.contributions.some((c) => c.label === 'Librarian'))).toBe(true);
+    const sum = summed(yields, realmOnlyYield(ctx));
+    const paid = realmBonus(ctx);
+    for (const k of RESOURCE_KINDS) expect(sum[k] ?? 0).toBeCloseTo(paid[k] ?? 0, 9);
+  });
+});

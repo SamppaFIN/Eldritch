@@ -238,7 +238,8 @@ test('a Season 2 realm sees its open gates and its investigator (BRDC-DOOM-002)'
   await foundKeep(page);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
   const gates = page.getByLabel('Your sanctuary').getByLabel('Open gates');
-  await expect(gates).toContainText('Stamina 7 · Sanity 6 · Clues 0 / 8');
+  // The gates draw only after the Doom is posted, and the e2e build's Worker is dead on purpose.
+  await expect(gates).toContainText('Health 7 · Sanity 6 · Clues 0 / 8', { timeout: 20_000 });
   await expect(gates).toContainText(/No gate is open near your realm\.|rings? out|Inside your border/);
 });
 

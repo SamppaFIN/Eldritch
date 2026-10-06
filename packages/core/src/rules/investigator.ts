@@ -12,6 +12,7 @@
  */
 import { BALANCE } from './balance.js';
 import type { LoreId } from './lore.js';
+import type { ArchetypeId } from './archetype.js';
 
 export type Skill = 'lore' | 'will' | 'fight' | 'observe';
 export type Luck = 'normal' | 'blessed' | 'cursed';
@@ -29,6 +30,8 @@ export interface Investigator {
   voice?: { dice: number; until: number };
   /** Madness Seed: every test is blessed until this moment (PROG-007). */
   blessedUntil?: number;
+  /** Who they are, chosen once per kingdom (BRDC-INVEST-001). Absent until chosen. */
+  archetype?: ArchetypeId;
 }
 
 export const STAMINA_MAX = 7;

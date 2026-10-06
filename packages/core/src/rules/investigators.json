@@ -1,0 +1,34 @@
+[
+  {
+    "id": "librarian",
+    "name": "Agnes Lowe",
+    "title": "The Librarian",
+    "skill": "lore",
+    "perk": "Wisdom flows 20 % faster in your realm.",
+    "story": "Agnes kept the reading room of the Härmälä lending library for thirty years, until a book came back with more pages than it left with. She has been counting them since."
+  },
+  {
+    "id": "surveyor",
+    "name": "Tobias Wren",
+    "title": "The Surveyor",
+    "skill": "observe",
+    "perk": "Every Watchtower sees one ring further.",
+    "story": "Tobias mapped the shoreline for the county and found the lake a metre wider every spring, though no water rose. His theodolite now points at things that are not on any map."
+  },
+  {
+    "id": "dockworker",
+    "name": "Mara Quill",
+    "title": "The Dockworker",
+    "skill": "fight",
+    "perk": "Works cost 10 % less to raise.",
+    "story": "Mara unloaded timber barges on Pyhäjärvi until the night a crate answered back. She still has the crowbar, and she still knows what a fair day's lumber costs."
+  },
+  {
+    "id": "medium",
+    "name": "Elias Dunmore",
+    "title": "The Medium",
+    "skill": "will",
+    "perk": "Anomalies show themselves one ring beyond your ground.",
+    "story": "Elias held séances for paying guests and faked every one of them, until the evening the table rapped back in a voice none of them had brought. Now he listens for free."
+  }
+]

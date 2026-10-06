@@ -30,6 +30,7 @@ export { forecastRates } from './pouch.js';
 export type { YieldApi } from './yieldStore.js';
 export type { PlantOutcome, Standard, StandardApi } from './standardStore.js';
 export type { ChronicleImageApi } from './chronicleImageStore.js';
+export type { ChooseOutcome, InvestigatorApi, InvestigatorView } from './investigatorStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';
 export type { StepClaimOutcome } from './stepStore.js';
