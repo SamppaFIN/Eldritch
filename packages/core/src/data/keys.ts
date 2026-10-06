@@ -84,6 +84,8 @@ export const K = {
   investigator: 'investigator',
   /** Rumours faced this season and a roll still pending (BRDC-DOOM-003). */
   rumours: 'rumours',
+  /** The Tavern board's tasks: taken, and how each ended (BRDC-QUEST-009). Resets with the season. */
+  tasks: 'tasks',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

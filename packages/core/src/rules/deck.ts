@@ -81,6 +81,28 @@ export const DECKS: readonly DeckCard[] = [
     { text: 'You hold the door shut until the knocking stops. Iron in the rubble.', gain: { iron: 25 } }, { text: 'It opens.', sanity: 2, stamina: 1 }),
   card('hill', 'lookout', 'The Lookout', 'From the top you can see the whole lake, and a boat that has no oars.', 'observe', 1,
     { text: 'You watch where it lands. That is a clue.', clues: 1 }, { text: 'It watches where you stand.', sanity: 1 }),
+
+  // Ten mysteries (BRDC-QUEST-009), in the Fuming Lake's voice (docs/backlog/fuming-lake.md).
+  card('lake', 'fume-sign', 'DO NOT BREATHE THE FUMES', 'A fallen sign lists side effects: death, un-death, sideways-death and mild indigestion.', 'observe', 2,
+    { text: 'You read the small print. It is a map, and a clue.', clues: 1, gain: { wisdom: 15 } }, { text: 'You breathe. Mild indigestion, and worse.', sanity: 2 }),
+  card('lake', 'burnt-algebra', 'The Smell of Burnt Algebra', 'The mist over the water smells of burnt algebra and disappointed expectations.', 'lore', 2,
+    { text: 'You solve for x. The mist thins where you did.', clues: 2 }, { text: 'x solves for you.', sanity: 2 }),
+  card('lake', 'propeller-boy', 'The Boy With the Propeller', 'A child on the shore holds a propeller that is aggressively possible.', 'will', 1,
+    { text: 'You do not ask where he got it. He gives you a coin for not asking.', gain: { gold: 30 } }, { text: 'You ask.', sanity: 1 }),
+  card('forest', 'void-spawn', 'A Void Spawn in the Ferns', 'Something small and very far away is standing very close.', 'fight', 2,
+    { text: 'It pops like a soap bubble full of night. What is left is mana.', gain: { mana: 25 } }, { text: 'It follows you home for a while.', sanity: 1, stamina: 1 }),
+  card('forest', 'grove-of-eternity', 'The Grove of Eternity', 'In this clearing it has been the same Tuesday for some time.', 'lore', 1,
+    { text: 'You leave before Wednesday notices. The grove gives you its wood gladly.', gain: { wood: 40 } }, { text: 'You stay for a Tuesday. Then another.', stamina: 2 }),
+  card('settlement', 'management-memo', 'A Memo From Management', 'Pinned to a door: "Reality is closed for renovations. -Management"', 'observe', 2,
+    { text: 'You find the date on it. The renovations finished last week. A clue.', clues: 1 }, { text: 'The memo was addressed to you.', sanity: 2 }),
+  card('settlement', 'dental-plan', 'An Excellent Dental Plan', 'A recruiter in black robes promises excellent dental for life, and after.', 'will', 2,
+    { text: 'You decline politely. He respects that and buys you a meal.', gain: { food: 30, culture: 10 } }, { text: 'You read the contract. Most of it reads you.', sanity: 2 }),
+  card('settlement', 'sanity-shrine', 'The Sanity Shrine', 'A shrine by the bus stop promises calm to anyone who sits still long enough.', 'will', 1,
+    { text: 'You sit. It is the quietest minute of your season.', clues: 1, gain: { mana: 10 } }, { text: 'You cannot sit still.', stamina: 1 }),
+  card('hill', 'troll-toll', 'A Toll Without a Bridge', 'A troll sits on a hill with no bridge, collecting tolls on principle.', 'lore', 2,
+    { text: 'You argue that a toll needs a bridge. He builds one, to be fair, and pays you for the idea.', gain: { stone: 30, gold: 10 } }, { text: 'He deconstructs your argument in three sentences.', sanity: 2 }),
+  card('hill', 'chaos-beast', 'Tracks of a Chaos Beast', 'Prints in the scree: four toes, then seven, then a hand.', 'fight', 2,
+    { text: 'You meet it on the ridge and it thinks better of you. Iron in its wake.', gain: { iron: 30 } }, { text: 'It thinks worse of you.', stamina: 2, sanity: 1 }),
 ];
 
 /** The deck a ground draws from; ground none is fitted to shows no rumours. */

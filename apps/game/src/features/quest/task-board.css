@@ -1,0 +1,53 @@
+/* The Tavern board's tasks (BRDC-QUEST-009). A closed one borrows the tale's seal (QUEST-008). */
+.task-board {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-board__task {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+}
+
+.task-board__task--closed {
+  opacity: 0.82;
+}
+
+.task-board__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+}
+
+.task-board__giver,
+.task-board__facts {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.task-board__text {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.task-board__done {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--space-2);
+  align-items: start;
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.task-board__said {
+  color: var(--accent-warm);
+  font-size: var(--text-sm);
+}

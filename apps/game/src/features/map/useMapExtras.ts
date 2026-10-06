@@ -64,6 +64,11 @@ export function useMapExtras(
     if (map && ready) setStandardData(map, standard);
   }, [map, ready, standard]);
 
+  // A temple day counts for a Tavern task as you walk, not only when the board is open (BRDC-QUEST-009).
+  useEffect(() => {
+    if (repository) void repository.tasks.sync(now);
+  }, [repository, now, cells]);
+
   // The Medium's anomalies one ring past your border (BRDC-INVEST-001); empty for anyone else.
   const [afar, setAfar] = useState<H3Index[]>([]);
   useEffect(() => {

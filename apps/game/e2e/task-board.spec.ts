@@ -1,0 +1,77 @@
+import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { openMap } from './hearth.js';
+
+/**
+ * BRDC-QUEST-009 — the Tavern board carries tasks: take one and it stays taken; a
+ * finished one is dimmed and sealed with its ending, through a reload.
+ */
+const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
+test.use({ permissions: ['geolocation'], geolocation: HERE });
+
+/** A Tavern on the Hearth hex, and (optionally) a task book — both rarely written by the app. */
+async function seed(page: Page, tasks?: unknown) {
+  await page.evaluate((book) => new Promise<void>((resolve) => {
+    const open = indexedDB.open('es3');
+    open.onsuccess = () => {
+      const tx = open.result.transaction('kv', 'readwrite');
+      const kv = tx.objectStore('kv');
+      if (book) kv.put(book, 'tasks');
+      const home = kv.get('home');
+      home.onsuccess = () => {
+        const cursor = kv.openCursor();
+        cursor.onsuccess = () => {
+          const c = cursor.result;
+          if (!c) return;
+          if (String(c.key).startsWith('cell:') && String(c.key).endsWith(`:${home.result}`)) {
+            c.update({ ...c.value, buildings: [{ id: 'tavern', builtAt: Date.now() }] });
+            return;
+          }
+          c.continue();
+        };
+      };
+      tx.oncomplete = () => { open.result.close(); resolve(); };
+    };
+  }), tasks);
+}
+
+async function board(page: Page) {
+  for (let i = 0; i < 3; i += 1) {
+    const n = page.getByRole('button', { name: 'Not now' }).first();
+    if (await n.isVisible().catch(() => false)) await n.click();
+  }
+  await page.getByRole('button', { name: 'Here', exact: true }).click();
+  return page.getByRole('region', { name: 'Selected cell' }).getByRole('list', { name: 'Tasks' });
+}
+
+test('the Tavern board offers tasks, keeps a taken one, and seals a finished one', async ({ page }) => {
+  test.setTimeout(150_000);
+  await openMap(page, HERE);
+  const done = Date.now();
+  await seed(page, {
+    taken: { 'cornelius-company': { at: done - 3_600_000 }, 'aurora-errand': { at: done } },
+    outcomes: { 'cornelius-company': { status: 'completed', rewards: { xp: 60, pool: { food: 30 } }, text: 'Cornelius nods at each name you give him, and tells the rocks. The rocks are thrilled.', completedAt: done } },
+  });
+  await page.reload();
+
+  const tasks = await board(page);
+  await expect(tasks).toContainText('Apologetic Signage', { timeout: 20_000 });
+  // A Season 1 save: the objective tasks only, no skill tests.
+  await expect(tasks.getByRole('listitem')).toHaveCount(7);
+
+  const sealed = tasks.getByRole('listitem').filter({ hasText: 'Cornelius Needs Company' });
+  await expect(sealed).toHaveClass(/task-board__task--closed/);
+  await expect(sealed).toContainText('The rocks are thrilled.');
+  await expect(sealed).toContainText('+60 XP');
+
+  const signage = tasks.getByRole('listitem').filter({ hasText: 'Apologetic Signage' });
+  await signage.getByRole('button', { name: 'Take it' }).click();
+  await expect(signage).toContainText('0 / 1');
+  await expect(signage.getByRole('button')).toHaveCount(0);
+  await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/task-board.png' });
+
+  await page.reload();
+  const again = await board(page);
+  await expect(again.getByRole('listitem').filter({ hasText: 'Apologetic Signage' })).toContainText('0 / 1', { timeout: 20_000 });
+  await expect(again.getByRole('listitem').filter({ hasText: 'Cornelius Needs Company' })).toHaveClass(/task-board__task--closed/);
+});

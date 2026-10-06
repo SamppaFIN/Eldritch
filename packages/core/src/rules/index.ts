@@ -354,6 +354,9 @@ export {
 export type { Investigator, Luck, Roll, Skill } from './investigator.js';
 export { ARCHETYPES, ARCHETYPE_SKILL, DOCKWORKER_DISCOUNT, LIBRARIAN_WISDOM, MEDIUM_RINGS, SKILL_NAME, SURVEYOR_SIGHT, archetypeOf, chooseArchetype, priceFor, resolveCheck } from './archetype.js';
 export type { Archetype, ArchetypeId, Check } from './archetype.js';
+export { isReady, progressOf, templeDaysSeen } from './tasks.js';
+export type { Objective, Progress, Task, TaskState } from './tasks.js';
+export { TASKS, taskById } from './taskContent.js';
 export { GATE_DOOM_MS, GATE_TEST_NEED, gateAtDawn, gatesNear, horrorBite, isOpen as isGateOpen, overdue } from './gate.js';
 export type { Gate } from './gate.js';
 export { DECKS, RUMOUR_SHARE, cardById, deckFor, rumourAt } from './deck.js';

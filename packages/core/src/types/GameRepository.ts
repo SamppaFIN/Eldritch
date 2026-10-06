@@ -9,9 +9,6 @@
  * Every method that depends on the passage of time takes `now` as a parameter.
  * Without that, decay cannot be tested without waiting 20 real days.
  */
-import type { YieldApi } from '../data/yieldStore.js';
-import type { StandardApi } from '../data/standardStore.js';
-import type { ChronicleImageApi } from '../data/chronicleImageStore.js';
 import type {
   BBox,
   Cell,
@@ -69,8 +66,9 @@ import type { CipherView } from '../data/cipherStore.js';
 import type { HallOfFameEntry } from '../data/hallOfFameStore.js';
 import type { WorksApi } from '../data/worksStore.js';
 import type { SeasonTwoApis } from './SeasonTwoApis.js';
+import type { OctoberApis } from './OctoberApis.js';
 
-export interface GameRepository extends SeasonTwoApis {
+export interface GameRepository extends SeasonTwoApis, OctoberApis {
   /* --- Profile ---------------------------------------------------------- */
   getProfile(): Promise<PlayerProfile>;
   /** Only takes effect the moment a profile is first created; a no-op once one
@@ -134,12 +132,6 @@ export interface GameRepository extends SeasonTwoApis {
   revealCell(h3: H3Index, now: number): Promise<RevealOutcome>;
   /** Cells the player has revealed → the ms they were revealed. */
   getRevealed(): Promise<Record<H3Index, number>>;
-  /** Each held hex's yield per hour, itemised by where it comes from (BRDC-YIELD-001). */
-  readonly yields: YieldApi;
-  /** Your standard, planted on the hex you stand on, your own ground only (BRDC-STANDARD-001). */
-  readonly standard: StandardApi;
-  /** A retired kingdom's picture (BRDC-HALL-004). */
-  readonly chronicleImages: ChronicleImageApi;
   /** Hexes seen from afar (a Watchtower, Dream-Sight) — the fog is lifted there. */
   getSighted(): Promise<Record<H3Index, number>>;
   /**

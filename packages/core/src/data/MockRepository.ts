@@ -11,6 +11,7 @@ import { yieldApi, type YieldApi } from './yieldStore.js';
 import { standardApi, type StandardApi } from './standardStore.js';
 import { chronicleImageApi, type ChronicleImageApi } from './chronicleImageStore.js';
 import { investigatorApi, type InvestigatorApi } from './investigatorStore.js';
+import { taskApi, type TaskApi } from './taskStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -35,4 +36,5 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly standard: StandardApi = standardApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly chronicleImages: ChronicleImageApi = chronicleImageApi(() => this.store);
   readonly investigator: InvestigatorApi = investigatorApi(() => this.store);
+  readonly tasks: TaskApi = taskApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces(), (xp) => this.addXp(xp));
 }
