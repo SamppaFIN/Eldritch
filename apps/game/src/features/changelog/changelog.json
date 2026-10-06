@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.9.0",
+    "date": "2026-10-06",
+    "notes": [
+      "A hex card now says what that hex makes each hour and where every bit comes from: its ground, its Work and the hands in it, a temple, a rite, your realm's sanity.",
+      "At street zoom each of your hexes shows its yield on the map. The hex button above the compass hides it again.",
+      "Citizens stand on the hexes where they work.",
+      "Plant your standard: the flag button on the walking sheet plants it on the hex you stand on, if it is yours. Plant it again and it moves.",
+      "Your lands is now a ledger with four tabs: Hexes, Works, Temples and Anomalies. Each can be filtered and sorted, and a row opens its hex.",
+      "Send a citizen to a Work, or call one back, straight from the Works tab. The Temples tab can tour every temple you hold.",
+      "A finished tale keeps its ending and what it paid, sealed, after a reload.",
+      "A report can open as a GitHub issue with the version and device filled in. It carries no position. Your note no longer vanishes while you type.",
+      "A retired kingdom keeps a picture of its map in the Hall of Fame. Tap it to see it whole.",
+      "Choose your investigator in the Keep: the Librarian, the Surveyor, the Dockworker or the Medium. Each raises one skill and has one gift, and the choice holds until the kingdom retires.",
+      "Skills read Will, Lore, Vigor and Wit, and stamina is called Health.",
+      "The Tavern board has ten tasks to take, from Cornelius, Grug, Management and others. Ten new mysteries wait on the ground as rumours.",
+      "Cards have gilded corners, and temples and anomalies breathe slowly on the map. Reduced motion stops all of it."
+    ]
+  },
+  {
     "version": "0.8.1",
     "date": "2026-09-30",
     "notes": [
