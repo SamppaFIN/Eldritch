@@ -39,6 +39,7 @@ import { readLore } from './loreStore.js';
 import { commit, settlePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
+import { hasCondition } from '../rules/condition.js';
 import { mythosToday } from './mythosStore.js';
 import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
@@ -72,7 +73,7 @@ export interface GateView {
 
 export type GateOutcome =
   | { ok: true; roll?: Roll; sealed?: boolean }
-  | { ok: false; refused: 'no-keep' | 'not-there' | 'home' | 'no-gate' | 'no-clues' | 'nothing-pending' };
+  | { ok: false; refused: 'no-keep' | 'not-there' | 'home' | 'no-gate' | 'no-clues' | 'nothing-pending' | 'amnesia' };
 
 export interface SeasonClock {
   seed: string;
@@ -186,6 +187,7 @@ export function gateApi(store: () => KeyValueStore, owned: (now: number) => Prom
       const i = await inv(now);
       if (!i.pending) return { ok: false, refused: 'nothing-pending' };
       if (i.clues < 1) return { ok: false, refused: 'no-clues' };
+      if (hasCondition(i, 'amnesia', now)) return { ok: false, refused: 'amnesia' };
       const roll = reroll(i.pending.roll, index, rng);
       await store().set(K.investigator, { ...addClues(i, -1), pending: { ...i.pending, roll } });
       return { ok: true, roll };

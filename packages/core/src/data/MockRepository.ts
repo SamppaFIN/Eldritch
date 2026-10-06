@@ -36,7 +36,7 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly yields: YieldApi = yieldApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly standard: StandardApi = standardApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly chronicleImages: ChronicleImageApi = chronicleImageApi(() => this.store);
-  readonly investigator: InvestigatorApi = investigatorApi(() => this.store);
+  readonly investigator: InvestigatorApi = investigatorApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getHome(), () => this.getPlaces());
   readonly tasks: TaskApi = taskApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces(), (xp) => this.addXp(xp));
 
   /* --- Season 3 (branch `season-3`) ------------------------------------------ */

@@ -14,6 +14,10 @@ import { FIRST_INVESTIGATOR, isHome, recover } from '../rules/investigator.js';
 import type { Investigator, Skill } from '../rules/investigator.js';
 import type { ResourceState } from '../rules/terrain.js';
 import { K } from './keys.js';
+import { conditionViews, payDebt, settleConditions } from './conditionStore.js';
+import type { ConditionView, PayOutcome } from './conditionStore.js';
+import { worksOn } from '../rules/build.js';
+import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
 import type { KeyValueStore } from './kv.js';
 
 export interface InvestigatorView {
@@ -27,6 +31,8 @@ export interface InvestigatorView {
   /** Who walks with them, and who offered to (BRDC-ALLY-001). */
   ally: Ally | null;
   allyOffer: Ally | null;
+  /** Lasting conditions, with how each ends (BRDC-CONDITION-001). */
+  conditions: ConditionView[];
 }
 
 export type ChooseOutcome =
@@ -40,6 +46,9 @@ export interface InvestigatorApi {
   choose(id: ArchetypeId, now: number): Promise<ChooseOutcome>;
   /** Take the ally on offer in place of the one you have, or send them on their way. */
   answerAlly(take: boolean, now: number): Promise<InvestigatorView | null>;
+  /** Apply walking cures and due prices; the map calls this as you walk. */
+  settle(now: number): Promise<void>;
+  payDebt(now: number): Promise<PayOutcome>;
 }
 
 const viewOf = (inv: Investigator, now: number): InvestigatorView => ({
@@ -51,14 +60,27 @@ const viewOf = (inv: Investigator, now: number): InvestigatorView => ({
   home: isHome(inv, now),
   ally: allyOf(inv.ally),
   allyOffer: allyOf(inv.allyOffer),
+  conditions: conditionViews(inv, now),
 });
 
-export function investigatorApi(store: () => KeyValueStore): InvestigatorApi {
+export function investigatorApi(
+  store: () => KeyValueStore,
+  owned: (now: number) => Promise<readonly Cell[]> = async () => [],
+  home: () => Promise<H3Index | null> = async () => null,
+  places: () => Promise<readonly RevealedPlace[]> = async () => [],
+): InvestigatorApi {
   const hasKeep = async () => Boolean((await store().get<ResourceState>('resources'))?.keep);
+  const settle = async (now: number) => {
+    const [cells, h, found] = await Promise.all([owned(now), home(), places()]);
+    const temples = new Set([...found.filter((p) => p.kind === 'temple').map((p) => p.h3), ...cells.filter((c) => worksOn(c).some((w) => w.id === 'temple-grove')).map((c) => c.h3)]);
+    await settleConditions(store(), { owned: cells, home: h, temples }, now);
+  };
   const read = async (now: number) => recover((await store().get<Investigator>(K.investigator)) ?? FIRST_INVESTIGATOR(now), now);
   return {
     async view(now) {
-      return (await hasKeep()) ? viewOf(await read(now), now) : null;
+      if (!(await hasKeep())) return null;
+      await settle(now);
+      return viewOf(await read(now), now);
     },
     async choose(id, now) {
       if (!(await hasKeep())) return { ok: false, refused: 'no-keep' };
@@ -77,6 +99,10 @@ export function investigatorApi(store: () => KeyValueStore): InvestigatorApi {
       const next: Investigator = take ? { ...rest, ally: allyOffer } : rest;
       await store().set(K.investigator, next);
       return viewOf(next, now);
+    },
+    settle,
+    async payDebt(now) {
+      return payDebt(store(), await owned(now), now);
     },
   };
 }

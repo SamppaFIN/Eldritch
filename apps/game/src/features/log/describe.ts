@@ -85,6 +85,7 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
       };
     case 'quest': {
       if (e.ref?.startsWith('shard:')) return { text: 'Found a fragment of the cipher', topic };
+      if (e.ref?.startsWith('debt:')) return { text: 'A debt fell due and took a hex', topic };
       if (e.ref?.startsWith('task:')) return { text: e.ref.endsWith(':failed') ? 'Failed a task from the Tavern board' : 'Finished a task from the Tavern board', topic };
       const found = e.ref?.startsWith('found:') ? (e.ref.slice(6) as SecretSiteId) : null;
       return {

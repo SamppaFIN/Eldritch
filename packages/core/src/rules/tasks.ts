@@ -13,6 +13,7 @@ import { worksOn } from './build.js';
 import type { BuildingId } from './build.js';
 import type { Skill } from './investigator.js';
 import type { AllyId } from './ally.js';
+import type { ConditionId } from './condition.js';
 import type { ResourcePool } from './terrain.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
@@ -34,7 +35,7 @@ export interface Task {
   /** The page read on completing it. */
   done: string;
   /** A test's other ending, and what it costs. */
-  fail?: { text: string; sanity: number };
+  fail?: { text: string; sanity: number; condition?: ConditionId };
   /** Who walks with you after it (BRDC-ALLY-001) — a Season 2 realm's investigator only. */
   ally?: AllyId;
 }

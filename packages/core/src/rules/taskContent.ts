@@ -37,7 +37,7 @@ export const TASKS: readonly Task[] = [
     text: 'Grug has pinned his riddle to the board. He has also pinned the last person who answered it wrong.',
     objective: { kind: 'check', skill: 'lore', need: 2 }, reward: { xp: 120, pool: { wisdom: 30 } },
     done: 'You answer. Grug thinks about it with both hands, and lets you keep the board.',
-    fail: { text: 'Grug deconstructs your answer in three sentences, then starts on you.', sanity: 2 },
+    fail: { text: 'Grug deconstructs your answer in three sentences, then starts on you.', sanity: 2, condition: 'paranoia' },
     ally: 'grug',
   },
   {
@@ -57,7 +57,7 @@ export const TASKS: readonly Task[] = [
     text: 'Hevy offers a storm in a jar. Holding it shut takes nerve, not muscle.',
     objective: { kind: 'check', skill: 'will', need: 2 }, reward: { xp: 120, pool: { mana: 30 } },
     done: 'The jar stays shut. Hevy laughs like thunder far off and leaves it with you.',
-    fail: { text: 'The lid lifts a hair. The storm remembers your face.', sanity: 1 },
+    fail: { text: 'The lid lifts a hair. The storm remembers your face.', sanity: 1, condition: 'cursed' },
   },
   {
     id: 'merchant-timber', title: 'Timber for the Wandering Merchant', giver: 'The Wandering Merchant',

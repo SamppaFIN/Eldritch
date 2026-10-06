@@ -11,6 +11,7 @@
  */
 import { resolveCheck } from '../rules/archetype.js';
 import { ALLIES } from '../rules/ally.js';
+import { gainCondition } from '../rules/condition.js';
 import { FIRST_INVESTIGATOR, afterTest, isHome, recover } from '../rules/investigator.js';
 import type { Investigator } from '../rules/investigator.js';
 import { isReady, progressOf, templeDaysSeen } from '../rules/tasks.js';
@@ -160,7 +161,8 @@ export function taskApi(
       if (isHome(inv, now)) return { ok: false, refused: 'home' };
       const roll = resolveCheck(inv, { skill: o.skill, need: o.need }, rng, now, mythosDice(await mythosToday(store(), now), o.skill));
       const sanity = roll.pass ? 0 : (task.fail?.sanity ?? 0);
-      await store().set(K.investigator, afterTest(inv, 1, sanity, now));
+      const after = afterTest(inv, 1, sanity, now);
+      await store().set(K.investigator, !roll.pass && task.fail?.condition ? gainCondition(after, task.fail.condition, now) : after);
       if (roll.pass) await pay(task, now);
       const outcome: QuestOutcome = roll.pass
         ? { status: 'completed', rewards: task.reward, text: task.done + (await befriend(task, now)), completedAt: now }

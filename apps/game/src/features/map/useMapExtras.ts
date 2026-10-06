@@ -74,6 +74,8 @@ export function useMapExtras(
   // A temple day counts for a Tavern task as you walk, not only when the board is open (BRDC-QUEST-009).
   useEffect(() => {
     if (repository) void repository.tasks.sync(now);
+    // Conditions lift as you walk (a Curse at a temple) and fall due on their clock (BRDC-CONDITION-001).
+    if (repository) void repository.investigator.settle(now);
   }, [repository, now, cells]);
 
   // The Medium's anomalies one ring past your border (BRDC-INVEST-001); empty for anyone else.

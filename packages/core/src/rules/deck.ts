@@ -11,6 +11,7 @@
  */
 import type { ResourcePool, TerrainKind } from './terrain.js';
 import type { Skill } from './investigator.js';
+import type { ConditionId } from './condition.js';
 import type { H3Index } from '../types/domain.js';
 
 export type Deck = 'forest' | 'lake' | 'settlement' | 'hill';
@@ -22,8 +23,9 @@ export interface DeckCard {
   text: string;
   skill: Skill;
   need: number;
-  pass: { text: string; clues?: number; gain?: Partial<ResourcePool>; skillUp?: Skill };
-  fail: { text: string; stamina?: number; sanity?: number };
+  pass: { text: string; clues?: number; gain?: Partial<ResourcePool>; skillUp?: Skill; condition?: ConditionId };
+  /** A failure may leave a lasting condition (BRDC-CONDITION-001). */
+  fail: { text: string; stamina?: number; sanity?: number; condition?: ConditionId };
 }
 
 const card = (deck: Deck, id: string, title: string, text: string, skill: Skill, need: number, pass: DeckCard['pass'], fail: DeckCard['fail']): DeckCard =>
@@ -35,24 +37,24 @@ export const DECKS: readonly DeckCard[] = [
   card('forest', 'the-path-back', 'The Path Back', 'The trail you came in on is not behind you any more.', 'observe', 2,
     { text: 'You read the moss and walk out with an armful of good timber.', gain: { wood: 30 } }, { text: 'Hours later you find the road.', stamina: 2 }),
   card('forest', 'the-hunter', 'A Hunter With No Tracks', 'A man in old furs asks which way the lake lies.', 'lore', 1,
-    { text: 'You know the old word for "lake". He smiles too widely and leaves a pouch of coin.', gain: { gold: 25 } }, { text: 'You point. He thanks you in your own voice.', sanity: 1 }),
+    { text: 'You know the old word for "lake". He smiles too widely and leaves a pouch of coin.', gain: { gold: 25 } }, { text: 'You point. He thanks you in your own voice. You start checking behind you.', sanity: 1, condition: 'paranoia' }),
   card('forest', 'wolf-circle', 'The Wolf Circle', 'Grey shapes keep pace with you between the trunks.', 'fight', 2,
     { text: 'You hold your ground. They fall back, and you find their kill: meat for the Keep.', gain: { food: 40 } }, { text: 'You run. They let you.', stamina: 2 }),
   card('forest', 'mushroom-ring', 'The Mushroom Ring', 'A perfect ring of pale caps. The grass inside is dry in the rain.', 'lore', 2,
-    { text: 'You step around it, not across. Two clues lie at its edge.', clues: 2 }, { text: 'You step in. You step out an hour later.', sanity: 2 }),
+    { text: 'You step around it, not across. Two clues lie at its edge.', clues: 2 }, { text: 'You step in. You step out an hour later, and cannot say what you knew.', sanity: 2, condition: 'amnesia' }),
   card('forest', 'charcoal-burner', 'The Charcoal Burner', 'A kiln smokes in a clearing. Nobody tends it.', 'observe', 1,
     { text: 'The charcoal is good, and nobody comes for it.', gain: { iron: 15 } }, { text: 'Somebody does come for it.', stamina: 1 }),
 
   card('lake', 'the-water-stands', 'The Water Stands Upright', 'At the shore the lake has lifted into a wall of still water.', 'lore', 2,
     { text: 'You read the name it is reading, and it lies back down. A clue floats ashore.', clues: 1 }, { text: 'It reads you instead.', sanity: 2 }),
   card('lake', 'drowned-bell', 'The Drowned Bell', 'Under the ice, slow and far down, a bell is ringing.', 'will', 2,
-    { text: 'You stop your ears and count. The count is a clue.', clues: 1 }, { text: 'You listen to the end.', sanity: 2 }),
+    { text: 'You stop your ears and count. The count is a clue.', clues: 1 }, { text: 'You listen to the end, and something agrees to help you. For now.', sanity: 2, condition: 'dark-pact' }),
   card('lake', 'the-catch', 'The Catch', 'Your line comes up heavy, and the fish on it has an old, patient face.', 'fight', 1,
     { text: 'It does not struggle. It is very good to eat.', gain: { food: 50 } }, { text: 'It struggles.', stamina: 1 }),
   card('lake', 'ferryman', 'The Ferryman', 'A flat boat waits at a jetty that was not there yesterday.', 'observe', 2,
     { text: 'You see the coins on his eyes and leave your own. He leaves you mana.', gain: { mana: 20 } }, { text: 'You ride. You come back.', sanity: 1, stamina: 1 }),
   card('lake', 'reed-voices', 'Reed Voices', 'The reeds whisper the names of the people who drowned here.', 'lore', 1,
-    { text: 'One of the names is useful.', clues: 1 }, { text: 'One of the names is yours.', sanity: 1 }),
+    { text: 'One of the names is useful.', clues: 1 }, { text: 'One of the names is yours. It follows you home.', sanity: 1, condition: 'cursed' }),
   card('lake', 'ice-crossing', 'The Ice Crossing', 'The short way home is across the ice.', 'observe', 1,
     { text: 'You pick the dark ice. It holds.', gain: { culture: 10 } }, { text: 'You pick the white ice.', stamina: 2 }),
 
@@ -65,7 +67,7 @@ export const DECKS: readonly DeckCard[] = [
   card('settlement', 'the-sermon', 'A Sermon in the Square', 'A preacher speaks of the water rising.', 'will', 2,
     { text: 'You do not flinch. The crowd remembers you for it.', skillUp: 'will' }, { text: 'You flinch.', sanity: 1 }),
   card('settlement', 'market-rumour', 'A Market Rumour', 'Two traders stop talking when you come near.', 'observe', 1,
-    { text: 'You catch the end of it. It is a clue, and a price.', clues: 1, gain: { gold: 15 } }, { text: 'They start talking about you.', sanity: 1 }),
+    { text: 'You catch the end of it. It is a clue, and a price.', clues: 1, gain: { gold: 15 } }, { text: 'They start talking about you, and lend you money you never asked for.', sanity: 1, condition: 'debt' }),
   card('settlement', 'the-lost-child', 'The Lost Child', 'A child asks you to walk them home. They do not say where home is.', 'will', 1,
     { text: 'You walk them to the church. The family gives what they have.', gain: { food: 20, culture: 10 } }, { text: 'You walk them to the lake.', sanity: 2 }),
 
@@ -98,7 +100,7 @@ export const DECKS: readonly DeckCard[] = [
   card('settlement', 'dental-plan', 'An Excellent Dental Plan', 'A recruiter in black robes promises excellent dental for life, and after.', 'will', 2,
     { text: 'You decline politely. He respects that and buys you a meal.', gain: { food: 30, culture: 10 } }, { text: 'You read the contract. Most of it reads you.', sanity: 2 }),
   card('settlement', 'sanity-shrine', 'The Sanity Shrine', 'A shrine by the bus stop promises calm to anyone who sits still long enough.', 'will', 1,
-    { text: 'You sit. It is the quietest minute of your season.', clues: 1, gain: { mana: 10 } }, { text: 'You cannot sit still.', stamina: 1 }),
+    { text: 'You sit. It is the quietest minute of your season, and you rise blessed.', clues: 1, gain: { mana: 10 }, condition: 'blessed' }, { text: 'You cannot sit still.', stamina: 1 }),
   card('hill', 'troll-toll', 'A Toll Without a Bridge', 'A troll sits on a hill with no bridge, collecting tolls on principle.', 'lore', 2,
     { text: 'You argue that a toll needs a bridge. He builds one, to be fair, and pays you for the idea.', gain: { stone: 30, gold: 10 } }, { text: 'He deconstructs your argument in three sentences.', sanity: 2 }),
   card('hill', 'chaos-beast', 'Tracks of a Chaos Beast', 'Prints in the scree: four toes, then seven, then a hand.', 'fight', 2,

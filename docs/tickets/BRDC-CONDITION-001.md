@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | INVEST-001 |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus B1; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-06 (haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Epäonnistuminen maksaa vain sanityä tai healthia. Eldritch Horrorin tilat (Con
 
 ## 🟢 GREEN
 
-- [ ] 4–6 tilaa (oletus: Velka, Vainoharha, Kirous, Muistinmenetys, Siunaus, Synkkä sopimus) — jokaisella vaikutus ja purkutapa (maksa, nuku kotona, kävele temppeliin, aika)
-- [ ] Huhukortin tai tehtävän epäonnistuminen voi antaa tilan; tila näkyy Keepin tutkijan kohdalla ja vaikuttaa noppiin/tuotantoon
-- [ ] Puhtaat säännöt + testit; tilat tutkijan tietueeseen (valinnainen kenttä)
-- [ ] Tila ei koskaan vie peliä lukkoon: jokaisella on aikaraja
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] 6 tilaa (`rules/condition.ts`): Debt (maksa 50 gold Keepissä, muuten heikoin ei-Hearth-heksa viedään 72 h:ssa), Paranoia (Wit −1 noppa; kävele Hearth-heksasi), Cursed (vain 6 onnistuu; kävele temppeli), Amnesia (vihjettä ei voi käyttää uusintaan; 24 h), Blessed (4+ onnistuu; 24 h), Dark Pact (Lore +2 noppaa, lopussa −3 sanity; 72 h). Kävelyparannus luetaan solujen `lastVisitedAt`ista — ei askelkoukkua
+- [x] 5 huhukorttia ja 2 tehtävää antavat tilan epäonnistuessa, Sanity Shrine siunauksen onnistuessa; Keepin "Conditions"-lista kertoo vaikutuksen, purkutavan ja ajan; nopat/onni `diceFor`/`luckFor`issa → kaikki kokeet — e2e `condition.spec.ts`
+- [x] Puhtaat säännöt + `condition.test.ts`, `condition.repo.test.ts`; `conditions` valinnainen kenttä tutkijan tietueessa
+- [x] Jokaisella aikaraja (24–72 h); hinnat (velka, sopimus) toteutuvat `settle`ssa, jota kartta kutsuu kävellessä ja Keep avatessa
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 

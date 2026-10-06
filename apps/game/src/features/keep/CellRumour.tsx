@@ -24,6 +24,7 @@ const REFUSAL: Record<string, string> = {
   'not-there': 'Walk onto the hex to face it.',
   home: 'You were sent home. Rest twelve hours, then come back.',
   'no-clues': 'Not enough clues.',
+  amnesia: 'Amnesia: you cannot recall the clue. It passes in a day.',
   'none-here': 'The rumour has gone quiet.',
   'nothing-pending': 'Roll first.',
   'no-keep': 'This realm has no Keep yet.',

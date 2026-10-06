@@ -23,6 +23,7 @@ const REFUSAL: Record<string, string> = {
   'not-there': 'Walk onto the gate to face it.',
   home: 'You were sent home. Rest twelve hours, then come back.',
   'no-clues': 'Not enough clues.',
+  amnesia: 'Amnesia: you cannot recall the clue. It passes in a day.',
   'no-gate': 'The gate is already shut.',
   'nothing-pending': 'Roll first.',
   'no-keep': 'This realm has no Keep yet.',

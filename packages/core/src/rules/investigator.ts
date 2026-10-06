@@ -15,6 +15,8 @@ import type { LoreId } from './lore.js';
 import type { ArchetypeId } from './archetype.js';
 import { allyDice } from './ally.js';
 import type { AllyId } from './ally.js';
+import { conditionDice, conditionLuck } from './condition.js';
+import type { HeldCondition } from './condition.js';
 
 export type Skill = 'lore' | 'will' | 'fight' | 'observe';
 export type Luck = 'normal' | 'blessed' | 'cursed';
@@ -37,6 +39,8 @@ export interface Investigator {
   /** Who walks with them (BRDC-ALLY-001), and one who offered to, awaiting an answer. */
   ally?: AllyId;
   allyOffer?: AllyId;
+  /** Lasting consequences, each on its own clock (BRDC-CONDITION-001). */
+  conditions?: HeldCondition[];
 }
 
 export const STAMINA_MAX = 7;
@@ -54,10 +58,10 @@ export const FIRST_INVESTIGATOR = (now: number): Investigator => ({
 });
 
 export const diceFor = (inv: Investigator, skill: Skill, now = 0): number =>
-  2 + inv.skills[skill] + (inv.voice && inv.voice.until > now ? inv.voice.dice : 0) + allyDice(inv.ally, skill);
+  2 + inv.skills[skill] + (inv.voice && inv.voice.until > now ? inv.voice.dice : 0) + allyDice(inv.ally, skill) + conditionDice(inv, skill, now);
 /** The luck a test rolls with: blessed while a Madness Seed lasts. */
 export const luckFor = (inv: Investigator, now: number): Luck =>
-  inv.blessedUntil !== undefined && inv.blessedUntil > now ? 'blessed' : 'normal';
+  conditionLuck(inv, now) ?? (inv.blessedUntil !== undefined && inv.blessedUntil > now ? 'blessed' : 'normal');
 export const successFloor = (luck: Luck): number => (luck === 'blessed' ? 4 : luck === 'cursed' ? 6 : BALANCE.successOn);
 export const sealClues = (lore: readonly LoreId[]): number => (lore.includes('elder-signs') ? 3 : BALANCE.sealClues);
 

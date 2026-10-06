@@ -16,6 +16,7 @@ import type { ResourceKind } from '../rules/terrain.js';
 import { commit, settlePouch } from './pouch.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';
+import { gainCondition, hasCondition } from '../rules/condition.js';
 import { mythosToday } from './mythosStore.js';
 import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
@@ -34,7 +35,7 @@ export interface RumourView {
 
 export type RumourOutcome =
   | { ok: true; roll: Roll; said?: string }
-  | { ok: false; refused: 'no-keep' | 'none-here' | 'not-there' | 'home' | 'no-clues' | 'nothing-pending' };
+  | { ok: false; refused: 'no-keep' | 'none-here' | 'not-there' | 'home' | 'no-clues' | 'nothing-pending' | 'amnesia' };
 
 export interface RumourApi {
   /** The rumour on a hex this season, not yet faced — or null. */
@@ -86,6 +87,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
       if (!b.pending) return { ok: false, refused: 'nothing-pending' };
       const inv = await readInv(now);
       if (inv.clues < 1) return { ok: false, refused: 'no-clues' };
+      if (hasCondition(inv, 'amnesia', now)) return { ok: false, refused: 'amnesia' };
       const roll = reroll(b.pending.roll, index, rng);
       await store().set(K.investigator, addClues(inv, -1));
       await store().set(K.rumours, { ...b, pending: { ...b.pending, roll } });
@@ -103,6 +105,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
         inv = addClues(inv, card.pass.clues ?? 0);
         const up = card.pass.skillUp;
         if (up) inv = { ...inv, skills: { ...inv.skills, [up]: Math.min(SKILL_MAX, inv.skills[up] + 1) } };
+        if (card.pass.condition) inv = gainCondition(inv, card.pass.condition, now);
         const gain = card.pass.gain ?? {};
         if (Object.keys(gain).length > 0) {
           await commit(store(), now, (cur) => {
@@ -113,6 +116,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
         }
       } else {
         inv = afterTest(inv, card.fail.stamina ?? 0, card.fail.sanity ?? 0, now);
+        if (card.fail.condition) inv = gainCondition(inv, card.fail.condition, now);
       }
       await store().set(K.investigator, inv);
       await store().set(K.rumours, { done: [...b.done, h3] });

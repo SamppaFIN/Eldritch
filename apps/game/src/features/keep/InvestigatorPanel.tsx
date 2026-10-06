@@ -8,7 +8,7 @@
  * a Season 1 save.
  */
 import { useEffect, useState } from 'react';
-import { ARCHETYPES, SKILL_NAME } from '@es3/core';
+import { ARCHETYPES, DEBT_GOLD, SKILL_NAME, whenText } from '@es3/core';
 import type { ArchetypeId, GameRepository, InvestigatorView, Skill } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { InvestigatorPortrait } from './InvestigatorPortrait.js';
@@ -18,6 +18,7 @@ const ORDER: readonly Skill[] = ['will', 'lore', 'fight', 'observe'];
 export function InvestigatorPanel({ repository, now }: { repository: GameRepository | null; now: number }) {
   const [view, setView] = useState<InvestigatorView | null>(null);
   const [picked, setPicked] = useState<ArchetypeId | null>(null);
+  const [paid, setPaid] = useState<string | null>(null);
   useEffect(() => {
     if (repository) void repository.investigator.view(now).then(setView);
     // Once per opening of the Keep, as the gates beside it.
@@ -26,6 +27,11 @@ export function InvestigatorPanel({ repository, now }: { repository: GameReposit
   if (!view || !repository) return null;
   const chosen = view.archetype;
   const choice = ARCHETYPES.find((a) => a.id === picked) ?? null;
+  const pay = () =>
+    void repository.investigator.payDebt(now).then(async (r) => {
+      setPaid(!r.ok && r.refused === 'cannot-afford' ? 'Not enough gold yet.' : null);
+      setView(await repository.investigator.view(now));
+    });
   const begin = () => {
     if (picked) void repository.investigator.choose(picked, now).then((r) => r.ok && setView(r.view));
   };
@@ -66,6 +72,22 @@ export function InvestigatorPanel({ repository, now }: { repository: GameReposit
         <p className="hearth-panel__line es-numeric">
           {ORDER.map((s) => `${SKILL_NAME[s]} ${view.skills[s]}`).join(' · ')}
         </p>
+        {/* Lasting conditions (BRDC-CONDITION-001): what each does, and how it ends. */}
+        {view.conditions.length > 0 ? (
+          <ul className="investigator__conditions" aria-label="Conditions">
+            {view.conditions.map((c) => (
+              <li key={c.id}>
+                <strong>{c.name}</strong> · {c.text} <span className="investigator__cure">{c.cure} Ends {whenText((c.endsAt - now) / 3_600_000)} from now.</span>
+                {c.id === 'debt' ? (
+                  <RitualButton variant="ghost" onClick={pay}>
+                    {`Pay ${DEBT_GOLD} gold`}
+                  </RitualButton>
+                ) : null}
+              </li>
+            ))}
+            {paid ? <li role="status">{paid}</li> : null}
+          </ul>
+        ) : null}
         {/* Who walks with them (BRDC-ALLY-001): one at a time, swapped only when asked. */}
         {view.ally ? <p className="hearth-panel__line">Walks with you: {view.ally.name} · {view.ally.gift}</p> : null}
         {view.allyOffer ? (

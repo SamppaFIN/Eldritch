@@ -10,3 +10,5 @@ export { EUREKA_DISCOUNT, eurekaCost, eurekaFor } from './eureka.js';
 export type { Eureka, EurekaState } from './eureka.js';
 export { ALLIES, allyDice, allyDiscount, allyOf } from './ally.js';
 export type { Ally, AllyId } from './ally.js';
+export { CONDITIONS, DEBT_GOLD, PACT_SANITY, activeConditions, conditionDice, conditionLuck, gainCondition, hasCondition } from './condition.js';
+export type { ConditionDef, ConditionId, HeldCondition } from './condition.js';
