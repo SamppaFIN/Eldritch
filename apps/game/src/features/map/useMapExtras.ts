@@ -32,13 +32,17 @@ export function useMapExtras(
 
   const [yields, setYields] = useState<Readonly<Record<H3Index, HexYield>>>({});
   useEffect(() => {
-    if (!repository || !yieldOverlay) return;
+    if (!repository || !yieldOverlay || !map) return;
     let live = true;
-    void repository.yields.all(now).then((y) => live && setYields(y));
+    const run = () => void repository.yields.all(now).then((y) => live && setYields(y));
+    // Every held hex is priced here; the map draws first (claim.spec's 5 000-hex budget).
+    if (map.areTilesLoaded() && !map.isMoving()) run();
+    else map.once('idle', run);
     return () => {
       live = false;
+      map.off('idle', run);
     };
-  }, [repository, now, cells, yieldOverlay]);
+  }, [repository, map, now, cells, yieldOverlay]);
   useEffect(() => {
     if (map && ready) setYieldData(map, yields, yieldOverlay);
   }, [map, ready, yields, yieldOverlay]);
@@ -75,7 +79,12 @@ export function useMapExtras(
   // The Medium's anomalies one ring past your border (BRDC-INVEST-001); empty for anyone else.
   const [afar, setAfar] = useState<H3Index[]>([]);
   useEffect(() => {
-    if (repository) void repository.getAnomalies(now).then((all) => setAfar(all.filter((a) => a.afar).map((a) => a.h3)));
+    if (!repository) return;
+    // Only the Medium sees past the border; nobody else pays for reading every hex.
+    void repository.investigator.view(now).then(async (v) => {
+      if (v?.archetype?.id !== 'medium') return setAfar((a) => (a.length ? [] : a));
+      setAfar((await repository.getAnomalies(now)).filter((a) => a.afar).map((a) => a.h3));
+    });
   }, [repository, now, cells]);
   useEffect(() => {
     if (map && ready) setAfarAnomalyData(map, afar);

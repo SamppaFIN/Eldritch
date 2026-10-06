@@ -8,6 +8,7 @@
  */
 import type { FeatureCollection, Point } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
+import { motionGate, reducedMotion } from '../map/layerPulse.js';
 import { cellCentre } from '@es3/core';
 import type { H3Index } from '@es3/core';
 import { rasteriseSvgs } from './spriteRaster.js';
@@ -87,21 +88,29 @@ async function addFrames(map: MapLibreMap): Promise<void> {
   if (map.getLayer(LAYER)) map.setLayoutProperty(LAYER, 'visibility', 'visible');
 }
 
+/** Whether anyone is at work at all — no swing, and no repaint, for an empty layer. */
+let working = false;
+
 export function setCitizenData(map: MapLibreMap, hands: Readonly<Record<H3Index, number>>): void {
+  working = Object.values(hands).some((n) => n > 0);
   (map.getSource(SOURCE) as { setData?: (d: FeatureCollection<Point>) => void } | undefined)?.setData?.(citizenFeatures(hands));
 }
 
 /** Swing the picks: one timer for the whole layer. Returns the stop. */
 export function animateCitizens(map: MapLibreMap): () => void {
-  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  if (reduced) return () => {};
+  if (reducedMotion()) return () => {};
+  // Same gate as the pulses (BRDC-FX-004): a rested map, a shown layer, someone at work.
+  const gate = motionGate(map, LAYER);
   let frame: Frame = 'up';
   const id = window.setInterval(() => {
-    if (document.hidden || !map.getLayer(LAYER)) return;
+    if (!working || !gate.open()) return;
     frame = frame === 'up' ? 'down' : 'up';
     map.setLayoutProperty(LAYER, 'icon-image', citizenSpriteId(frame));
   }, FRAME_MS);
-  return () => window.clearInterval(id);
+  return () => {
+    window.clearInterval(id);
+    gate.stop();
+  };
 }
 
 export function removeCitizenLayer(map: MapLibreMap): void {
