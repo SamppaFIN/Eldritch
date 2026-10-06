@@ -15,7 +15,9 @@ import type { Cell, H3Index } from '../types/domain.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
 import { LIBRARIAN_WISDOM } from './archetype.js';
 import type { ArchetypeId } from './archetype.js';
-import { trickleRate, terrainForCell } from './terrain.js';
+import { DORMANT_AFTER_MS, trickleRate, terrainForCell } from './terrain.js';
+import { adjacencyFor } from './adjacency.js';
+import type { AdjacencyLine } from './adjacency.js';
 import { BUILDINGS, buildingBonus, worksOn } from './build.js';
 import { bountyBonus, bountyOn } from './bounty.js';
 import { landmarkBonus } from './landmark.js';
@@ -27,7 +29,7 @@ import { resourceAura } from './aura.js';
 import { activeSpells } from './spell.js';
 import type { ActiveSpell } from './spell.js';
 import { domainSpellBonus } from './spellEffects.js';
-import { boonParts, staffedBonus, staffedCells, staffedModifiers, staffedParts } from './staffing.js';
+import { boonParts, staffKey, staffedBonus, staffedCells, staffedModifiers, staffedParts } from './staffing.js';
 import type { StaffedModifiers, StaffedPart } from './staffing.js';
 import { calmAt } from './citizens.js';
 import type { KeepState } from './citizens.js';
@@ -35,7 +37,7 @@ import { worksBonus, worksBonusByCell } from './works/bonus.js';
 import type { KindAt, WorksTrees } from './works/bonus.js';
 import { BUILDING_NAMES_PLAIN } from '../data/counselNames.js';
 
-export type YieldSource = 'terrain' | 'building' | 'citizen' | 'tech' | 'temple' | 'anomaly' | 'other';
+export type YieldSource = 'terrain' | 'building' | 'citizen' | 'tech' | 'temple' | 'anomaly' | 'adjacency' | 'other';
 
 export interface YieldContribution {
   resource: ResourceKind;
@@ -78,6 +80,30 @@ function addInto(into: Partial<ResourcePool>, from: Partial<ResourcePool>): void
 /** The cells a Works tree pays on: every held cell, or only the staffed ones on a Season 2 save. */
 const working = (ctx: YieldContext): readonly Cell[] => (ctx.keep ? staffedCells(ctx.owned, ctx.keep.staff ?? {}) : ctx.owned);
 
+/**
+ * What each awake hex's Works earn from their neighbours (BRDC-ADJ-001). On a Season 2 save
+ * only a Work with hands in it counts, as for every other yield. Cached per context.
+ */
+const adjacencyCache = new WeakMap<YieldContext, Map<H3Index, AdjacencyLine[]>>();
+function adjacencyMap(ctx: YieldContext): Map<H3Index, AdjacencyLine[]> {
+  const hit = adjacencyCache.get(ctx);
+  if (hit) return hit;
+  const world = {
+    owned: new Map(ctx.owned.map((c) => [c.h3, c] as const)),
+    temples: new Set(ctx.places.filter((p) => p.kind === 'temple').map((p) => p.h3)),
+  };
+  const staff = ctx.keep?.staff ?? {};
+  const out = new Map<H3Index, AdjacencyLine[]>();
+  for (const c of ctx.owned) {
+    if (ctx.now - c.lastVisitedAt > DORMANT_AFTER_MS) continue;
+    const works = worksOn(c).filter((w) => !ctx.keep || (staff[staffKey(c.h3, w.id)] ?? 0) > 0);
+    const lines = works.flatMap((w) => adjacencyFor(c.h3, w.id, world));
+    if (lines.length > 0) out.set(c.h3, lines);
+  }
+  adjacencyCache.set(ctx, out);
+  return out;
+}
+
 /** The hourly bonus the settle pays — the pouch's own sum, in its own order (golden-tested). */
 export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   const { owned, now, keep } = ctx;
@@ -92,6 +118,7 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   addInto(merged, bountyBonus(owned, ctx.revealed, now));
   addInto(merged, landmarkBonus(owned, now));
   addInto(merged, worksBonus(working(ctx), ctx.trees, ctx.kindAt, now));
+  for (const lines of adjacencyMap(ctx).values()) for (const l of lines) merged[l.resource] = (merged[l.resource] ?? 0) + l.amount;
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   return merged;
@@ -201,6 +228,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   push(bountyBonus([cell], ctx.revealed, now), 'terrain', bounty ? `Find: ${title(bounty.id)}` : 'Find', bounty?.id);
   push(landmarkBonus([cell], now), 'other', 'Landmark');
   push(pre.works.get(cell.h3) ?? {}, 'building', 'Works research');
+  for (const l of adjacencyMap(ctx).get(cell.h3) ?? []) push({ [l.resource]: l.amount }, 'adjacency', `${workName(l.work)} ${l.why}`, l.work);
   out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
 
   if (ctx.factor !== 1) {

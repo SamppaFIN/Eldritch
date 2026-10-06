@@ -21,7 +21,7 @@ import {
   refund,
   worksOn,
 } from '@es3/core';
-import type { ArchetypeId, BuildCheck, BuildRefusal, BuildingId, Cell, LoreId, PlayerId, ResourcePool, TechId } from '@es3/core';
+import type { AdjacencyLine, ArchetypeId, BuildCheck, BuildRefusal, BuildingId, Cell, LoreId, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
 import { costLine } from './gateNote.js';
@@ -105,6 +105,8 @@ export interface BuildPanelProps {
   lore?: readonly LoreId[] | null;
   /** Who the investigator is: the Dockworker's price is the one shown and checked (BRDC-INVEST-001). */
   archetype?: ArchetypeId | undefined;
+  /** What each Work would earn from its neighbours here (BRDC-ADJ-001). */
+  neighbours?: ((id: BuildingId) => readonly AdjacencyLine[]) | undefined;
 }
 
 /**
@@ -170,6 +172,7 @@ export function BuildPanel({
   lore = null,
   near,
   archetype,
+  neighbours,
 }: BuildPanelProps) {
   const [showLocked, setShowLocked] = useState(false);
   const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings, ...near, archetype };
@@ -209,6 +212,11 @@ export function BuildPanel({
             {BUILDING_BLURB[id]}
             {buildingEffect(id) ? <> · {renderEffect(buildingEffect(id))}</> : null}
           </span>
+          {neighbours?.(id).map((l) => (
+            <span key={l.why} className="cell-panel__build-adj">
+              {' · '}+{l.amount} {l.resource} {l.why}
+            </span>
+          ))}
         </span>
         {verdict.ok ? (
           <RitualButton className="cell-panel__build-btn" onClick={() => onBuild(cell.h3, id)}>

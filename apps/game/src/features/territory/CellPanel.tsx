@@ -26,6 +26,7 @@ import { useEffect, useRef, useState } from 'react';
 import { GlassPanel } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BuildPanel } from './BuildPanel.js';
+import { useAdjacencyHint } from './useAdjacencyHint.js';
 import { CellHeader } from './CellHeader.js';
 import { CellIncome } from './CellIncome.js';
 import { CellOn } from './CellOn.js';
@@ -159,6 +160,7 @@ export function CellPanel({
   const [known, setKnown] = useState(false);
   const [lore, setLore] = useState<LoreId[] | null>(null);
   const [archetype, setArchetype] = useState<ArchetypeId | undefined>(undefined);
+  const neighbours = useAdjacencyHint(repository ?? null, h3 ?? null);
   useEffect(() => {
     setKnown(false);
     if (h3 && repository) void repository.getRevealed().then((r) => setKnown(r[h3] !== undefined));
@@ -255,6 +257,7 @@ export function CellPanel({
           researched={build.researched}
           lore={lore}
           archetype={archetype}
+          neighbours={neighbours}
           near={{ templeAdjacent: build.templeAdjacent, ironAdjacent: build.ironAdjacent }}
           myBuildings={build.myBuildings}
           onBuild={build.onBuild}

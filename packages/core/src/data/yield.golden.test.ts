@@ -5,6 +5,9 @@
  * Season 2 (a Keep, staffed Works, rite boons, calm, gates, sanity below zero) — and the
  * per-hour forecast each produced on 2026-10-05, before `hexYield.ts` took over the sum.
  * The refactor must not move a single number: these values are the contract.
+ *
+ * Moved once on purpose since (BRDC-ADJ-001, 2026-10-06): food +1 in both — the Farm on
+ * ring[1] stands beside the Farm on ring[6] (`adjacency.test.ts` pins exactly that).
  */
 import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
@@ -61,7 +64,7 @@ describe('the hourly yield before the per-hex model (golden, 2026-10-05)', () =>
     expect(f.perHour).toMatchInlineSnapshot(`
       {
         "culture": 2,
-        "food": 11,
+        "food": 12,
         "gold": 2,
         "iron": 2,
         "mana": 6,
@@ -103,7 +106,7 @@ describe('the hourly yield before the per-hex model (golden, 2026-10-05)', () =>
     expect(f.perHour).toMatchInlineSnapshot(`
       {
         "culture": 1,
-        "food": 18,
+        "food": 19,
         "gold": 3,
         "iron": 4,
         "mana": 6,

@@ -56,6 +56,11 @@
   color: var(--text-dim);
 }
 
+/* What the neighbours would add here (BRDC-ADJ-001): a gain, so in the growing green. */
+.cell-panel__build-adj {
+  color: var(--awareness-green);
+}
+
 .cell-panel__build-why {
   color: var(--text-dim);
   text-align: end;

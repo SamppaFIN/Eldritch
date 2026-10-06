@@ -354,6 +354,8 @@ export {
 export type { Investigator, Luck, Roll, Skill } from './investigator.js';
 export { ARCHETYPES, ARCHETYPE_SKILL, DOCKWORKER_DISCOUNT, LIBRARIAN_WISDOM, MEDIUM_RINGS, SKILL_NAME, SURVEYOR_SIGHT, archetypeOf, chooseArchetype, priceFor, resolveCheck } from './archetype.js';
 export type { Archetype, ArchetypeId, Check } from './archetype.js';
+export { ADJ_KIN_CAP, ADJ_KIN_STEP, ADJ_TEMPLE_WISDOM, ADJ_WATER_FOOD, adjacencyFor, adjacencyOnCell } from './adjacency.js';
+export type { AdjacencyLine, AdjacencyWorld } from './adjacency.js';
 export { isReady, progressOf, templeDaysSeen } from './tasks.js';
 export type { Objective, Progress, Task, TaskState } from './tasks.js';
 export { TASKS, taskById } from './taskContent.js';
