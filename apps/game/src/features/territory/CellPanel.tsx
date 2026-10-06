@@ -18,7 +18,7 @@ import {
   revealProgress,
 } from '@es3/core';
 import { WORKS_DEFS, terrainForCell } from '@es3/core';
-import type { ArchetypeId, Cell, GameRepository, LoreId, PlayerId, ResourcePool, WardRefusal } from '@es3/core';
+import type { AllyId, ArchetypeId, Cell, GameRepository, LoreId, PlayerId, ResourcePool, WardRefusal } from '@es3/core';
 import { WorksPage } from '../works/WorksPage.js';
 import { useWorksPage } from '../works/useWorksPage.js';
 import { GROUND_NAME } from './names.js';
@@ -159,14 +159,14 @@ export function CellPanel({
   // the map's copy yet, and the card offered to reveal known ground (field report 2026-09-30).
   const [known, setKnown] = useState(false);
   const [lore, setLore] = useState<LoreId[] | null>(null);
-  const [archetype, setArchetype] = useState<ArchetypeId | undefined>(undefined);
+  const [who, setWho] = useState<{ archetype?: ArchetypeId | undefined; ally?: AllyId | undefined }>({});
   const neighbours = useAdjacencyHint(repository ?? null, h3 ?? null);
   useEffect(() => {
     setKnown(false);
     if (h3 && repository) void repository.getRevealed().then((r) => setKnown(r[h3] !== undefined));
     // Season 2 builds by the Lore; null on a Season 1 save (field report 2026-09-30).
     if (h3 && repository) void repository.lore.view(Date.now()).then((v) => setLore(v ? v.learned : null));
-    if (h3 && repository) void repository.investigator.view(Date.now()).then((v) => setArchetype(v?.archetype?.id));
+    if (h3 && repository) void repository.investigator.view(Date.now()).then((v) => setWho({ archetype: v?.archetype?.id, ally: v?.ally?.id }));
   }, [h3, repository]);
 
   if (!cell) return null;
@@ -256,7 +256,8 @@ export function CellPanel({
           resources={resources}
           researched={build.researched}
           lore={lore}
-          archetype={archetype}
+          archetype={who.archetype}
+          ally={who.ally}
           neighbours={neighbours}
           near={{ templeAdjacent: build.templeAdjacent, ironAdjacent: build.ironAdjacent }}
           myBuildings={build.myBuildings}

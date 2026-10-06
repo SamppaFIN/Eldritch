@@ -7,7 +7,7 @@
 | **Effort** | S–M |
 | **Riippuvuudet** | QUEST-009, INVEST-001 |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus B6; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-06 (haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ NPC:t (Cornelius, Grug, Merchant) ovat vain tekstiä. Arkham Horrorin liittolais
 
 ## 🟢 GREEN
 
-- [ ] Tietyt tehtävät antavat liittolaisen: Cornelius +1 Lore-noppa, Grug +1 Vigor-noppa, Merchant −10 % Workien hinta (oletus)
-- [ ] Yksi liittolainen kerrallaan; uusi korvaa vanhan valinnalla
-- [ ] Liittolainen näkyy tutkijan kohdalla Keepissä muotokuvan vieressä
-- [ ] Puhtaat säännöt + testit; noppavaikutus käyttää olemassa olevaa lisänoppamallia
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Tehtävät antavat liittolaisen: *Cornelius Needs Company* → Cornelius +1 Lore-noppa, *Grug's riddle* → Grug +1 Vigor-noppa, *Timber for the Merchant* → Merchant −10 % Workien hinta (`rules/ally.ts`); hinta pinoutuu Dockworkerin kanssa jäljelle jäävästä (100 → 81)
+- [x] Yksi kerrallaan; toinen tarjoutuu (`allyOffer`) ja Keepissä valitaan "Take Grug" / "Keep Cornelius" (`investigator.answerAlly`) — `task.repo.test.ts`, e2e `ally.spec.ts`
+- [x] Keepin tutkija-osiossa "Walks with you: Cornelius, the hermit · +1 die on Lore tests"
+- [x] Puhtaat säännöt + `ally.test.ts`; noppa `diceFor`issa, joten kaikki kokeet (portit, huhut, tehtävät) saavat sen. Season 1 -valtakunta suorittaa tehtävän ilman liittolaista (ei tutkijaa)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
 
 ## Todennus
 

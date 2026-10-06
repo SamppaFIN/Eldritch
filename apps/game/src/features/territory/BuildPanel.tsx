@@ -21,7 +21,7 @@ import {
   refund,
   worksOn,
 } from '@es3/core';
-import type { AdjacencyLine, ArchetypeId, BuildCheck, BuildRefusal, BuildingId, Cell, LoreId, PlayerId, ResourcePool, TechId } from '@es3/core';
+import type { AdjacencyLine, AllyId, ArchetypeId, BuildCheck, BuildRefusal, BuildingId, Cell, LoreId, PlayerId, ResourcePool, TechId } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { BUILDING_NAME as NAME, titleCase } from './names.js';
 import { costLine } from './gateNote.js';
@@ -105,6 +105,8 @@ export interface BuildPanelProps {
   lore?: readonly LoreId[] | null;
   /** Who the investigator is: the Dockworker's price is the one shown and checked (BRDC-INVEST-001). */
   archetype?: ArchetypeId | undefined;
+  /** An ally who bargains (BRDC-ALLY-001). */
+  ally?: AllyId | undefined;
   /** What each Work would earn from its neighbours here (BRDC-ADJ-001). */
   neighbours?: ((id: BuildingId) => readonly AdjacencyLine[]) | undefined;
 }
@@ -172,10 +174,11 @@ export function BuildPanel({
   lore = null,
   near,
   archetype,
+  ally,
   neighbours,
 }: BuildPanelProps) {
   const [showLocked, setShowLocked] = useState(false);
-  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings, ...near, archetype };
+  const ctx = { playerId: me, researched, pool: resources ?? EMPTY_POOL, buildings: myBuildings, ...near, archetype, ally };
   // Masterworks are raised in the Keep, never built from this list; on a Season 2 save the
   // Fortress is one of them too.
   const all = (Object.keys(BUILDINGS) as BuildingId[]).filter((id) => !BUILDINGS[id].masterwork && !(lore && id === 'fortress'));
@@ -186,7 +189,7 @@ export function BuildPanel({
     const c = canBuild({ ...ctx, researched: ALL_TECHS, copies: copies(id) }, id, cell);
     return c.ok && !loreAllows(id, lore) ? { ok: false, refused: 'locked' } : c;
   };
-  const price = (id: BuildingId) => priceFor(lore ? buildCost(id, copies(id)) : BUILDINGS[id].cost, archetype);
+  const price = (id: BuildingId) => priceFor(lore ? buildCost(id, copies(id)) : BUILDINGS[id].cost, archetype, ally);
   const checks = new Map(all.map((id) => [id, check(id)] as const));
   const byName = (a: BuildingId, b: BuildingId) => NAME[a].localeCompare(NAME[b]);
   const here = worksOn(cell);

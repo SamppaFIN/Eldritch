@@ -291,3 +291,15 @@
   stroke-dashoffset: 200;
   animation: es-draw 1.2s ease-out forwards;
 }
+
+/* An ally's offer (BRDC-ALLY-001): the two answers side by side. */
+.investigator__offer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+
+.investigator__offer .hearth-panel__line {
+  flex: 1 0 100%;
+}

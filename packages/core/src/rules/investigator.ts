@@ -13,6 +13,8 @@
 import { BALANCE } from './balance.js';
 import type { LoreId } from './lore.js';
 import type { ArchetypeId } from './archetype.js';
+import { allyDice } from './ally.js';
+import type { AllyId } from './ally.js';
 
 export type Skill = 'lore' | 'will' | 'fight' | 'observe';
 export type Luck = 'normal' | 'blessed' | 'cursed';
@@ -32,6 +34,9 @@ export interface Investigator {
   blessedUntil?: number;
   /** Who they are, chosen once per kingdom (BRDC-INVEST-001). Absent until chosen. */
   archetype?: ArchetypeId;
+  /** Who walks with them (BRDC-ALLY-001), and one who offered to, awaiting an answer. */
+  ally?: AllyId;
+  allyOffer?: AllyId;
 }
 
 export const STAMINA_MAX = 7;
@@ -49,7 +54,7 @@ export const FIRST_INVESTIGATOR = (now: number): Investigator => ({
 });
 
 export const diceFor = (inv: Investigator, skill: Skill, now = 0): number =>
-  2 + inv.skills[skill] + (inv.voice && inv.voice.until > now ? inv.voice.dice : 0);
+  2 + inv.skills[skill] + (inv.voice && inv.voice.until > now ? inv.voice.dice : 0) + allyDice(inv.ally, skill);
 /** The luck a test rolls with: blessed while a Madness Seed lasts. */
 export const luckFor = (inv: Investigator, now: number): Luck =>
   inv.blessedUntil !== undefined && inv.blessedUntil > now ? 'blessed' : 'normal';

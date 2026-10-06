@@ -12,6 +12,7 @@ export const TASKS: readonly Task[] = [
     text: '"Walk your ground for me. Five hexes. Rocks are excellent conversationalists, but they never go anywhere."',
     objective: { kind: 'visit', count: 5 }, reward: { xp: 60, pool: { food: 30 } },
     done: 'Cornelius nods at each name you give him, and tells the rocks. The rocks are thrilled.',
+    ally: 'cornelius',
   },
   {
     id: 'apologetic-signage', title: 'Apologetic Signage', giver: '-Management',
@@ -37,6 +38,7 @@ export const TASKS: readonly Task[] = [
     objective: { kind: 'check', skill: 'lore', need: 2 }, reward: { xp: 120, pool: { wisdom: 30 } },
     done: 'You answer. Grug thinks about it with both hands, and lets you keep the board.',
     fail: { text: 'Grug deconstructs your answer in three sentences, then starts on you.', sanity: 2 },
+    ally: 'grug',
   },
   {
     id: 'healing-vigil', title: 'The Healing Shrine Vigil', giver: 'The keeper of the Healing Shrine',
@@ -62,6 +64,7 @@ export const TASKS: readonly Task[] = [
     text: '"A Sawmill, friend. I sell maps, charms and boost potions, and none of them float without planks."',
     objective: { kind: 'build', id: 'sawmill' }, reward: { xp: 70, pool: { gold: 40 } },
     done: 'The Merchant pays in coin that is almost certainly local currency.',
+    ally: 'merchant',
   },
   {
     id: 'count-the-lurkers', title: 'Count the Shadow Lurkers', giver: 'The Night Watch',

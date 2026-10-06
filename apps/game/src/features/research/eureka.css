@@ -1,0 +1,46 @@
+/* The eureka card (BRDC-EUREKA-001): an edge card at the top, clear of the nav and the
+   sheet, so the rest of the screen still takes taps while it waits. */
+.eureka {
+  position: fixed;
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  inset-inline: max(var(--space-3), env(safe-area-inset-left)) max(var(--space-3), env(safe-area-inset-right));
+  z-index: var(--z-modal);
+  margin-inline: auto;
+  max-inline-size: 26rem;
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-block-size: var(--touch-min);
+  padding: var(--space-2) var(--space-3);
+  border-color: color-mix(in oklch, var(--sacred-gold) 55%, transparent);
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+  animation: es-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.eureka:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+.eureka__sigil {
+  flex: 0 0 auto;
+  color: var(--sacred-gold);
+}
+
+.eureka__text {
+  display: grid;
+  gap: 2px;
+}
+
+.eureka__name {
+  color: var(--sacred-gold);
+  font-family: var(--font-display);
+}
+
+.eureka__line,
+.eureka__hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

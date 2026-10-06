@@ -8,6 +8,7 @@ import { canAfford, terrainForCell } from './terrain.js';
 import type { ResourcePool } from './terrain.js';
 import { priceFor } from './archetype.js';
 import type { ArchetypeId } from './archetype.js';
+import type { AllyId } from './ally.js';
 import { hasTech } from './tech.js';
 import type { TechId } from './tech.js';
 import { BUILDINGS, buildCost, worksOn } from './build.js';
@@ -40,6 +41,8 @@ export interface BuildContext {
   copies?: number;
   /** Who the investigator is: the Dockworker builds for less (BRDC-INVEST-001). */
   archetype?: ArchetypeId | undefined;
+  /** An ally who bargains (BRDC-ALLY-001). */
+  ally?: AllyId | undefined;
 }
 
 export type BuildCheck = { ok: true } | { ok: false; refused: BuildRefusal };
@@ -86,7 +89,7 @@ export function canBuild(ctx: BuildContext, id: BuildingId, cell: Cell): BuildCh
   if (!upgrading && here.length >= CELL_BUILDING_CAP) {
     return { ok: false, refused: 'cell-full' };
   }
-  if (!canAfford(ctx.pool, priceFor(buildCost(id, ctx.copies), ctx.archetype))) return { ok: false, refused: 'cannot-afford' };
+  if (!canAfford(ctx.pool, priceFor(buildCost(id, ctx.copies), ctx.archetype, ctx.ally))) return { ok: false, refused: 'cannot-afford' };
 
   return { ok: true };
 }

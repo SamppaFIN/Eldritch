@@ -97,7 +97,9 @@ export async function buildOn(
   // Season 2 (PROG-004): the Lore decides what may be built; the old tree steps aside.
   if (state.keep && !loreAllows(id, await readLore(store))) return { ok: false, refused: 'locked' };
   if (state.keep && id === 'fortress') return { ok: false, refused: 'locked' }; // a masterwork now (PROG-006)
-  const archetype = (await store.get<Investigator>(K.investigator))?.archetype;
+  const who = await store.get<Investigator>(K.investigator);
+  const archetype = who?.archetype;
+  const ally = who?.ally;
   const check = canBuild(
     {
       playerId: me,
@@ -109,13 +111,14 @@ export async function buildOn(
       tavernInProvince,
       copies,
       archetype,
+      ally,
     },
     id,
     live,
   );
   if (!check.ok) return check;
 
-  const paid = spend(state.pool, priceFor(buildCost(id, copies), archetype));
+  const paid = spend(state.pool, priceFor(buildCost(id, copies), archetype, ally));
   if (!paid) return { ok: false, refused: 'cannot-afford' };
   await writePouch(store, paid, now);
 

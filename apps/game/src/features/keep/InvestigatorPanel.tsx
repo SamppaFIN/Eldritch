@@ -66,6 +66,21 @@ export function InvestigatorPanel({ repository, now }: { repository: GameReposit
         <p className="hearth-panel__line es-numeric">
           {ORDER.map((s) => `${SKILL_NAME[s]} ${view.skills[s]}`).join(' · ')}
         </p>
+        {/* Who walks with them (BRDC-ALLY-001): one at a time, swapped only when asked. */}
+        {view.ally ? <p className="hearth-panel__line">Walks with you: {view.ally.name} · {view.ally.gift}</p> : null}
+        {view.allyOffer ? (
+          <div className="investigator__offer" role="group" aria-label="An ally offers">
+            <p className="hearth-panel__line">
+              {view.allyOffer.name} offers to walk with you instead · {view.allyOffer.gift}
+            </p>
+            <RitualButton onClick={() => void repository.investigator.answerAlly(true, now).then((v) => v && setView(v))}>
+              {`Take ${view.allyOffer.name.split(',')[0]}`}
+            </RitualButton>
+            <RitualButton variant="ghost" onClick={() => void repository.investigator.answerAlly(false, now).then((v) => v && setView(v))}>
+              {`Keep ${view.ally?.name.split(',')[0] ?? 'as you are'}`}
+            </RitualButton>
+          </div>
+        ) : null}
       </section>
     </>
   );

@@ -42,7 +42,7 @@ test('a eureka is announced, and the Lore shows every condition', async ({ page 
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
   // The Hearth ring is plain ground here: Husbandry's three plain hexes are already held.
-  const card = page.getByRole('button', { name: 'Dismiss' }).filter({ hasText: /Eureka · / });
+  const card = page.getByRole('button', { name: /^Eureka · .* — dismiss$/ });
   await expect(card.first()).toBeVisible({ timeout: 20_000 });
   await expect(card.first()).toContainText('costs half');
   while (await card.first().isVisible().catch(() => false)) await card.first().click();

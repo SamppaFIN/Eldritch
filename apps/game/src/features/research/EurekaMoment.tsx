@@ -1,12 +1,13 @@
 /**
- * "Eureka" (BRDC-EUREKA-001): the moment a Lore's condition comes true, said once — the
- * same card a temple's reveal uses, piled like every find (cards wait, never time out).
+ * "Eureka" (BRDC-EUREKA-001): the moment a Lore's condition comes true, said once. Piled
+ * like every find and waiting to be tapped, but an edge card, not the temple's full-screen
+ * reveal: a half price is good news, not a reason to stop the walker's thumb.
  */
 import { useEffect } from 'react';
 import { FlowerOfLife } from '@es3/ui';
 import type { Cell, Eureka, GameRepository, LoreId } from '@es3/core';
 import { useCardStack } from '../hud/useCardStack.js';
-import '../territory/place-reveal.css';
+import './eureka.css';
 
 interface Found {
   id: LoreId;
@@ -32,13 +33,15 @@ export function EurekaMoment({ repository, owned }: EurekaMomentProps) {
   const shown = stack.top;
   if (!shown) return null;
   return (
-    <button type="button" className="reveal" onClick={stack.pop} aria-label="Dismiss">
-      <span className="reveal__sigil" aria-hidden>
-        <FlowerOfLife size={150} animate={1_800} />
+    <button type="button" className="eureka es-glass" onClick={stack.pop} aria-label={`Eureka · ${shown.name} — dismiss`}>
+      <span className="eureka__sigil" aria-hidden>
+        <FlowerOfLife size={40} animate={1_200} />
       </span>
-      <span className="reveal__name">Eureka · {shown.name}</span>
-      <span className="reveal__line">{shown.eureka.text} — done. {shown.name} now costs half its wisdom.</span>
-      <span className="reveal__hint">{stack.count > 1 ? `Tap for the next · ${stack.count - 1} more` : 'Tap to dismiss'}</span>
+      <span className="eureka__text">
+        <span className="eureka__name">Eureka · {shown.name}</span>
+        <span className="eureka__line">{shown.eureka.text} — done. It now costs half its wisdom.</span>
+        <span className="eureka__hint">{stack.count > 1 ? `Tap for the next · ${stack.count - 1} more` : 'Tap to dismiss'}</span>
+      </span>
     </button>
   );
 }

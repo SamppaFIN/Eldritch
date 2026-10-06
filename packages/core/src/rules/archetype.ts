@@ -13,6 +13,8 @@ import raw from './investigators.json' with { type: 'json' };
 import { diceFor, luckFor, rollTest } from './investigator.js';
 import type { Investigator, Roll, Skill } from './investigator.js';
 import type { ResourceKind, ResourcePool } from './terrain.js';
+import { allyDiscount } from './ally.js';
+import type { AllyId } from './ally.js';
 
 export type ArchetypeId = 'librarian' | 'surveyor' | 'dockworker' | 'medium';
 
@@ -51,11 +53,19 @@ export function chooseArchetype<T extends Investigator>(inv: T, id: ArchetypeId)
   return { ...inv, archetype: id, skills: { ...inv.skills, [a.skill]: Math.max(inv.skills[a.skill], ARCHETYPE_SKILL) } };
 }
 
-/** A Work's price for this investigator: the Dockworker's tenth off, each part floored. */
-export function priceFor(cost: Readonly<Partial<ResourcePool>>, archetype: ArchetypeId | undefined): Readonly<Partial<ResourcePool>> {
-  if (archetype !== 'dockworker') return cost;
+/**
+ * A Work's price for this investigator: the Dockworker's tenth off, and an ally's
+ * (BRDC-ALLY-001) on top — each a share of what is left, each part floored once.
+ */
+export function priceFor(
+  cost: Readonly<Partial<ResourcePool>>,
+  archetype: ArchetypeId | undefined,
+  ally?: AllyId | undefined,
+): Readonly<Partial<ResourcePool>> {
+  const keep = (archetype === 'dockworker' ? 1 - DOCKWORKER_DISCOUNT : 1) * (1 - allyDiscount(ally));
+  if (keep === 1) return cost;
   const out: Partial<ResourcePool> = {};
-  for (const [k, v] of Object.entries(cost) as [ResourceKind, number][]) out[k] = Math.floor(v * (1 - DOCKWORKER_DISCOUNT));
+  for (const [k, v] of Object.entries(cost) as [ResourceKind, number][]) out[k] = Math.floor(v * keep);
   return out;
 }
 

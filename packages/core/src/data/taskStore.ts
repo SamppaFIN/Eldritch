@@ -10,6 +10,7 @@
  * Skill tests need an investigator, so a Season 1 save sees the objective tasks only.
  */
 import { resolveCheck } from '../rules/archetype.js';
+import { ALLIES } from '../rules/ally.js';
 import { FIRST_INVESTIGATOR, afterTest, isHome, recover } from '../rules/investigator.js';
 import type { Investigator } from '../rules/investigator.js';
 import { isReady, progressOf, templeDaysSeen } from '../rules/tasks.js';
@@ -89,6 +90,19 @@ export function taskApi(
     await store().set(K.tasks, { ...b, outcomes: { ...b.outcomes, [task.id]: outcome } });
     await writeLogEntry(store(), { at: now, kind: 'quest', ref: `task:${task.id}:${outcome.status}` });
   };
+  /** Their ally walks with you, or offers to if one already does (BRDC-ALLY-001). */
+  const befriend = async (task: Task, now: number): Promise<string> => {
+    if (!task.ally || !(await hasKeep())) return '';
+    const inv = recover((await store().get<Investigator>(K.investigator)) ?? FIRST_INVESTIGATOR(now), now);
+    if (inv.ally === task.ally) return '';
+    const name = ALLIES[task.ally].name;
+    if (!inv.ally) {
+      await store().set(K.investigator, { ...inv, ally: task.ally });
+      return ` ${name} will walk with you.`;
+    }
+    await store().set(K.investigator, { ...inv, allyOffer: task.ally });
+    return ` ${name} offers to walk with you — answer in the Keep.`;
+  };
   const pay = async (task: Task, now: number) => {
     await commit(store(), now, (cur) => {
       const pool = { ...cur.pool };
@@ -135,7 +149,7 @@ export function taskApi(
       if (o.kind !== 'check') {
         if (!isReady(o, { owned: await owned(now), since: taken.at, templeDays: taken.templeDays ?? [] })) return { ok: false, refused: 'not-ready' };
         await pay(task, now);
-        const outcome: QuestOutcome = { status: 'completed', rewards: task.reward, text: task.done, completedAt: now };
+        const outcome: QuestOutcome = { status: 'completed', rewards: task.reward, text: task.done + (await befriend(task, now)), completedAt: now };
         await close(b, task, outcome, now);
         return { ok: true, outcome };
       }
@@ -147,7 +161,7 @@ export function taskApi(
       await store().set(K.investigator, afterTest(inv, 1, sanity, now));
       if (roll.pass) await pay(task, now);
       const outcome: QuestOutcome = roll.pass
-        ? { status: 'completed', rewards: task.reward, text: task.done, completedAt: now }
+        ? { status: 'completed', rewards: task.reward, text: task.done + (await befriend(task, now)), completedAt: now }
         : { status: 'failed', rewards: { xp: 0, pool: {} }, text: task.fail?.text ?? 'It did not go your way.', completedAt: now };
       await close(b, task, outcome, now);
       return { ok: true, outcome };

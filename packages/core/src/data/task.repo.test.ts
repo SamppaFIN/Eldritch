@@ -4,6 +4,7 @@ import { EMPTY_POOL } from '@es3/core';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
 import { taskApi } from './taskStore.js';
+import { investigatorApi } from './investigatorStore.js';
 import type { Cell, RevealedPlace } from '../types/domain.js';
 
 const T0 = Date.parse('2026-10-06T12:00:00Z');
@@ -70,5 +71,33 @@ describe('the Tavern board', () => {
     await t.api.sync(T0 + 25 * H);
     const view = (await t.api.board(T0 + 25 * H)).find((v) => v.task.id === 'healing-vigil');
     expect(view).toMatchObject({ state: 'ready', progress: { have: 2, need: 2 } });
+  });
+
+  it('a finished task brings its ally; a second one is offered, and answered (BRDC-ALLY-001)', async () => {
+    const t = await setup({ keep: true });
+    t.setCells(['a', 'b', 'c', 'd', 'e'].map((h) => cell(h, { lastVisitedAt: T0 + H })));
+    await t.api.take('cornelius-company', T0);
+    const first = await t.api.finish('cornelius-company', T0 + 2 * H);
+    expect(first.ok && first.outcome?.text).toContain('Cornelius, the hermit will walk with you.');
+    expect((await t.store.get<{ ally?: string }>(K.investigator))?.ally).toBe('cornelius');
+
+    await t.api.take('grug-riddle', T0);
+    const second = await t.api.finish('grug-riddle', T0, () => 0.99);
+    expect(second.ok && second.outcome?.text).toContain('offers to walk with you');
+    const inv = await t.store.get<{ ally?: string; allyOffer?: string }>(K.investigator);
+    expect(inv).toMatchObject({ ally: 'cornelius', allyOffer: 'grug' });
+
+    const taken = await investigatorApi(() => t.store).answerAlly(true, T0);
+    expect(taken?.ally?.id).toBe('grug');
+    expect(taken?.allyOffer).toBeNull();
+  });
+
+  it('a Season 1 realm finishes the task but gains no ally', async () => {
+    const t = await setup();
+    t.setCells(['a', 'b', 'c', 'd', 'e'].map((h) => cell(h, { lastVisitedAt: T0 + H })));
+    await t.api.take('cornelius-company', T0);
+    const r = await t.api.finish('cornelius-company', T0 + 2 * H);
+    expect(r.ok && r.outcome?.text).not.toContain('walk with you');
+    expect(await t.store.get(K.investigator)).toBeUndefined();
   });
 });

@@ -16,7 +16,7 @@ Lore tutkitaan vain maksamalla wisdomia. Civ VI:n paras keksintö — *tee asia,
 ## 🟢 GREEN
 
 - [x] Jokaisella 16 Lorella yksi eureka-ehto luettuna tilasta (pidetty maasto, Work pystyssä, löydetyt temppelit, paljastetut heksat, valmis anomalia) — puhdas `eurekaFor(id, state)` (`rules/eureka.ts`) + `eureka.test.ts`
-- [x] Täyttynyt eureka laskee hinnan 50 % (oletus, `EUREKA_DISCOUNT`) näkymässä ja maksussa (`canStudy` saa hinnan); Lore-rivillä "Eureka · Hold 3 forest hexes · 2/3" tai kullalla "✦ Eureka · … — half price"; täyttyessä kortti (`EurekaMoment`, pinoutuva) kerran (`K.eurekaSeen`) — `eureka.repo.test.ts`, e2e `eureka.spec.ts`
+- [x] Täyttynyt eureka laskee hinnan 50 % (oletus, `EUREKA_DISCOUNT`) näkymässä ja maksussa (`canStudy` saa hinnan); Lore-rivillä "Eureka · Hold 3 forest hexes · 2/3" tai kullalla "✦ Eureka · … — half price"; täyttyessä reunakortti ylhäällä (`EurekaMoment`, pinoutuva, ei peitä ruutua — täysruutukortti esti Keepin napin) kerran (`K.eurekaSeen`) — `eureka.repo.test.ts`, e2e `eureka.spec.ts`
 - [x] Eureka koskee vain tutkimatonta Lorea; ehto luetaan valtakunnan nykytilasta, joten mitään ei lasketa taaksepäin (ei laskuria, jota pitäisi alustaa)
 - [x] Kävelyyn sidottu osa tulee pidetystä maasta (askel valtaa heksan) — ei toista laskuria; "askelia N" -tyyppisiä ehtoja ei tehty, koska solu ei muista kävelyhistoriaa
 - [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build

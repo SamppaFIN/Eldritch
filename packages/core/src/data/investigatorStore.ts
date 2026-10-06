@@ -7,6 +7,8 @@
  * spreads it, so a gate roll pending there rides through a choice untouched.
  */
 import { archetypeOf, chooseArchetype } from '../rules/archetype.js';
+import { allyOf } from '../rules/ally.js';
+import type { Ally } from '../rules/ally.js';
 import type { Archetype, ArchetypeId } from '../rules/archetype.js';
 import { FIRST_INVESTIGATOR, isHome, recover } from '../rules/investigator.js';
 import type { Investigator, Skill } from '../rules/investigator.js';
@@ -22,6 +24,9 @@ export interface InvestigatorView {
   sanity: number;
   clues: number;
   home: boolean;
+  /** Who walks with them, and who offered to (BRDC-ALLY-001). */
+  ally: Ally | null;
+  allyOffer: Ally | null;
 }
 
 export type ChooseOutcome =
@@ -33,6 +38,8 @@ export interface InvestigatorApi {
   view(now: number): Promise<InvestigatorView | null>;
   /** Once per kingdom: the archetype is locked from then until the season wipe. */
   choose(id: ArchetypeId, now: number): Promise<ChooseOutcome>;
+  /** Take the ally on offer in place of the one you have, or send them on their way. */
+  answerAlly(take: boolean, now: number): Promise<InvestigatorView | null>;
 }
 
 const viewOf = (inv: Investigator, now: number): InvestigatorView => ({
@@ -42,6 +49,8 @@ const viewOf = (inv: Investigator, now: number): InvestigatorView => ({
   sanity: inv.sanity,
   clues: inv.clues,
   home: isHome(inv, now),
+  ally: allyOf(inv.ally),
+  allyOffer: allyOf(inv.allyOffer),
 });
 
 export function investigatorApi(store: () => KeyValueStore): InvestigatorApi {
@@ -59,6 +68,15 @@ export function investigatorApi(store: () => KeyValueStore): InvestigatorApi {
       const next = chooseArchetype(inv, id);
       await store().set(K.investigator, next);
       return { ok: true, view: viewOf(next, now) };
+    },
+    async answerAlly(take, now) {
+      if (!(await hasKeep())) return null;
+      const inv = await read(now);
+      if (!inv.allyOffer) return viewOf(inv, now);
+      const { allyOffer, ...rest } = inv;
+      const next: Investigator = take ? { ...rest, ally: allyOffer } : rest;
+      await store().set(K.investigator, next);
+      return viewOf(next, now);
     },
   };
 }
