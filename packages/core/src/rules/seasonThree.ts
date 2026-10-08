@@ -26,3 +26,5 @@ export { STORM_ACCURACY, WEATHER_LINE, WEATHER_NAME, sightRings, skyLine, weathe
 export type { Weather } from './weather.js';
 export { CHIMNEYS, CHIMNEY_SIGHT_RINGS, chimneyAt, chimneysLit } from './chimney.js';
 export type { Chimney, ChimneyId } from './chimney.js';
+export { GREAT, GREAT_FIRST, GREAT_KINDS, greatCost, greatName, greatRate } from './greatPeople.js';
+export type { GreatDeed, GreatKind } from './greatPeople.js';

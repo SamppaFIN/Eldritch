@@ -17,6 +17,7 @@ import { K } from './keys.js';
 import { PERSONAL_TASKS } from '../rules/personalTasks.js';
 import { archetypeOf } from '../rules/archetype.js';
 import { eraChain } from '../rules/era.js';
+import { greatSaid } from './greatStore.js';
 import type { EraId } from '../rules/era.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
@@ -53,6 +54,8 @@ export interface HallOfFameEntry {
   ambition?: string;
   /** The realm's character at each Age, as a chain: "Merchants → Seers" (BRDC-ERA-001). */
   eras?: string;
+  /** The great people whose deed was done this season (BRDC-GREAT-001). */
+  greats?: string;
 }
 
 export async function readHallOfFame(store: KeyValueStore): Promise<HallOfFameEntry[]> {
@@ -109,13 +112,14 @@ export async function retireKingdom(
   ambition?: string | null,
 ): Promise<HallOfFameEntry> {
   const buildings = buildingsOf(owned).length;
-  const [achievements, secretSites, wonders, cipherShards, tale, eras] = await Promise.all([
+  const [achievements, secretSites, wonders, cipherShards, tale, eras, greats] = await Promise.all([
     countAt(store, K.achievements),
     countAt(store, K.questFinds),
     countAt(store, K.wonderFinds),
     countAt(store, K.cipherShards),
     finishedTale(store),
     store.get<EraId[]>(K.eras),
+    greatSaid(store),
   ]);
 
   const entry: HallOfFameEntry = {
@@ -136,6 +140,7 @@ export async function retireKingdom(
     ...(tale ? { tale } : {}),
     ...(ambition ? { ambition } : {}),
     ...(eras?.length ? { eras: eraChain(eras) } : {}),
+    ...(greats ? { greats } : {}),
   };
 
   await store.set(K.hallOfFame, [...(await readHallOfFame(store)), entry]);

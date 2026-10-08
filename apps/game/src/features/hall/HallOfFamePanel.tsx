@@ -44,6 +44,7 @@ function row(
       {entry.tale ? <p className="hall__era">✦ {entry.tale}</p> : null}
       {entry.ambition ? <p className="hall__era">Ambition · {entry.ambition}</p> : null}
       {entry.eras ? <p className="hall__era">Ages · {entry.eras}</p> : null}
+      {entry.greats ? <p className="hall__era">Great people · {entry.greats}</p> : null}
       {entry.image && repository ? <KingdomPicture repository={repository} id={entry.id} name={entry.name} /> : null}
       <p className="hall__level es-numeric">
         Level {entry.level} · {entry.xp.toLocaleString()} XP

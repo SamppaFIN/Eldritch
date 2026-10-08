@@ -8,6 +8,7 @@ import type { EraApi } from '../data/eraStore.js';
 import type { WeekApi } from '../data/ageStore.js';
 import type { DreamApi } from '../data/dreamStore.js';
 import type { ChimneyApi } from '../data/chimneyStore.js';
+import type { GreatApi } from '../data/greatStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -22,4 +23,6 @@ export interface SeasonThreeApis {
   readonly dreams: DreamApi;
   /** The three chimneys: landmarks, and beacons once all three are held (BRDC-CHIMNEY-001). */
   readonly chimneys: ChimneyApi;
+  /** Great people: born of Works' points, one deed each, kept by the Hall (BRDC-GREAT-001). */
+  readonly great: GreatApi;
 }
