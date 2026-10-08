@@ -1,12 +1,13 @@
 /**
- * The Fuming Lake, wired for the map screen (BRDC-QUEST-001, -002).
+ * The tales, wired for the map screen (BRDC-QUEST-001, -002) — the Fuming Lake, and since
+ * BRDC-AERODROME-001 its sequel: every tale on the shelf, each begun from its own first stop.
  *
  * One hook so MapView holds one line, not eight: the adventure book, the secrets found by
  * walking, which landmarks the map should draw, the action for the selected hex, and the
  * "new waypoint" announcement. The dialogue is opened from a hex — `questHex` is which one.
  */
 import { useMemo, useState } from 'react';
-import { hasWork, siteCell, visibleQuestSites } from '@es3/core';
+import { ADVENTURE_PATH, hasWork, siteCell, visibleAdventureSites } from '@es3/core';
 import type { Cell, GameRepository, H3Index } from '@es3/core';
 import { useAdventure } from './useAdventure.js';
 import type { AdventureBinding } from './useAdventure.js';
@@ -48,30 +49,28 @@ export function useFumingLake(
   // The clock itself, not a reading taken during render: a fresh millisecond every render
   // turned this into a loop that hammered the store (BRDC-ECON-009).
   const adventures = useAdventure(repository, now, ownedCount);
+  // The secrets on the way are the Fuming Lake's own.
   const fuming = adventures.list.find((a) => a.id === 'fuming-lake');
-  const stage = fuming?.state === 'done' ? 'deep' : (fuming?.stageId ?? null);
   const finds = useQuestFinds(repository, standingOn, fuming?.state === 'active', now);
-  const questSites = useMemo(() => visibleQuestSites(stage, finds.finds), [stage, finds.finds]);
+  const questSites = useMemo(() => visibleAdventureSites(adventures.list, finds.finds), [adventures.list, finds.finds]);
   const wp = useQuestWaypoint(questSites, clearWaypointKey);
-  const notStarted = fuming?.state !== 'active' && fuming?.state !== 'done';
 
   return {
     adventures,
     questSites,
-    questCell: selected ? questCellInfo(selected, fuming, finds.finds, standingOn) : null,
+    questCell: selected ? questCellInfo(selected, adventures.list, finds.finds, standingOn) : null,
     waypoint: wp.waypoint,
     onWaypointSeen: wp.dismiss,
     justFound: finds.justFound,
     dismissFound: finds.dismiss,
     questHex,
-    atStageHex: atStageHex(fuming, standingOn),
+    atStageHex: atStageHex(adventures.active ?? undefined, standingOn),
     board: selectedCell && hasWork(selectedCell, 'tavern') ? questBoardEntries(adventures.list) : null,
-    // Tapping the statue's action begins the tale and shows its first page in one step —
-    // and only from the statue's own hex (BRDC-QUEST-003).
+    // Tapping a tale's first stop begins it and shows its first page in one step — and
+    // only from that stop's own hex (BRDC-QUEST-003).
     openQuestHex: (h3: H3Index | null) => {
-      if (h3 && notStarted && h3 === siteCell('statue') && atSite(h3, standingOn)) {
-        adventures.onStart('fuming-lake');
-      }
+      const begins = adventures.list.find((a) => a.state === 'available' && ADVENTURE_PATH[a.id]?.[0] && siteCell(ADVENTURE_PATH[a.id]?.[0] as Parameters<typeof siteCell>[0]) === h3);
+      if (h3 && begins && atSite(h3, standingOn)) adventures.onStart(begins.id);
       setQuestHex(h3);
     },
   };

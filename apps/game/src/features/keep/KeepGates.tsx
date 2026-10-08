@@ -11,6 +11,7 @@ import { fetchSeason, postDoom } from '../../data/season.js';
 import { InvestigatorPanel } from './InvestigatorPanel.js';
 import { KeepBook } from './KeepBook.js';
 import { KeepStranger } from './KeepStranger.js';
+import { KeepPropeller } from './KeepPropeller.js';
 import './keep.css';
 
 export interface KeepGatesProps {
@@ -65,6 +66,7 @@ export function KeepGates({ repository, now }: KeepGatesProps) {
         {view.gates.length > 0 ? (
           <p className="hearth-panel__line">Walk to a gate and open its hex to face it. Every gate left open drains your sanity.</p>
         ) : null}
+        {repository ? <KeepPropeller repository={repository} now={now} onSealed={() => void repository.gates.view(now).then(setView)} /> : null}
       </section>
     </>
   );

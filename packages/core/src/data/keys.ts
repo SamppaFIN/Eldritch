@@ -112,6 +112,8 @@ export const K = {
   pages: 'pages',
   /** The stranger's masks met, the naming and the choice (BRDC-MASKS-001). Resets with the season. */
   masks: 'masks',
+  /** Gate seals the Skyward Runway left in hand, `{ charges }` (BRDC-AERODROME-001). Resets with the season. */
+  propeller: 'propeller',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

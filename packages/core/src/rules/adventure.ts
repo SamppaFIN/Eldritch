@@ -49,6 +49,10 @@ export interface Adventure {
   title: string;
   start: string;
   stages: Record<string, AdventureStage>;
+  /** A sequel: it opens only once this tale is finished (BRDC-AERODROME-001). */
+  after?: string;
+  /** What finishing it leaves in hand: one gate sealed from afar, used when you choose. */
+  grants?: 'gate-seal';
 }
 
 /** Everything a gate is checked against, resolved by the repository. */
@@ -102,8 +106,14 @@ export function parseAdventures(raw: unknown): Record<string, Adventure> {
         }
       }
     }
-    out[id] = { id, title: a.title, start: a.start, stages: a.stages as Record<string, AdventureStage> };
+    if (a.grants !== undefined && a.grants !== 'gate-seal') throw new Error(`adventure "${id}": unknown grant "${String(a.grants)}"`);
+    out[id] = {
+      id, title: a.title, start: a.start, stages: a.stages as Record<string, AdventureStage>,
+      ...(typeof a.after === 'string' ? { after: a.after } : {}),
+      ...(a.grants ? { grants: a.grants } : {}),
+    };
   }
+  for (const a of Object.values(out)) if (a.after && !out[a.after]) throw new Error(`adventure "${a.id}": after "${a.after}" is not an adventure`);
   return out;
 }
 

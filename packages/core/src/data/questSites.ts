@@ -33,7 +33,14 @@ export type QuestSiteId =
   | 'wisdom'
   | 'deep'
   | 'healing-shrine'
-  | 'sanity-shrine';
+  | 'sanity-shrine'
+  // The Skyward Runway, at the old Härmälä airfield (BRDC-AERODROME-001). Default places,
+  // measured from the statue — Infinite checks them against the real field.
+  | 'hangar'
+  | 'tower'
+  | 'windsock'
+  | 'runway'
+  | 'sky-gate';
 
 export const QUEST_SITES: Readonly<Record<QuestSiteId, LatLng & { label: string }>> = {
   statue: { lat: 61.47290805294704, lng: 23.725882485862012, label: 'Statue of the Boy' },
@@ -46,6 +53,11 @@ export const QUEST_SITES: Readonly<Record<QuestSiteId, LatLng & { label: string 
   deep: { lat: 61.477750840409435, lng: 23.7272125677718, label: 'The Deep' },
   'healing-shrine': { lat: 61.47295360880876, lng: 23.726675342590156, label: 'Healing Shrine' },
   'sanity-shrine': { lat: 61.476970066258765, lng: 23.730978272652262, label: 'Sanity Shrine' },
+  hangar: { lat: 61.47037279, lng: 23.72395047, label: 'The Old Hangar' },
+  tower: { lat: 61.47023709, lng: 23.72029044, label: 'The Control Tower' },
+  windsock: { lat: 61.47077933, lng: 23.71632579, label: 'The Windsock' },
+  runway: { lat: 61.46775108, lng: 23.71832302, label: 'The Runway That Is Not There' },
+  'sky-gate': { lat: 61.46799389, lng: 23.71362284, label: 'The Sky Gate' },
 };
 
 export const QUEST_SITE_IDS = Object.keys(QUEST_SITES) as QuestSiteId[];
@@ -211,6 +223,42 @@ export function siteCell(id: QuestSiteId): H3Index {
  */
 export const FUMING_PATH = ['statue', 'lake', 'hermit', 'troll', 'deep'] as const;
 
+/** The Skyward Runway's stops, in order (BRDC-AERODROME-001). */
+export const AIRFIELD_PATH = ['hangar', 'tower', 'windsock', 'runway', 'sky-gate'] as const;
+
+/** Each tale's stops, the first being where it begins. */
+export const ADVENTURE_PATH: Readonly<Record<string, readonly QuestSiteId[]>> = {
+  'fuming-lake': FUMING_PATH,
+  'skyward-runway': AIRFIELD_PATH,
+};
+
+/** The tale a stop belongs to; a secret is the Fuming Lake's. */
+export const adventureOfSite = (site: QuestSiteId): string =>
+  Object.entries(ADVENTURE_PATH).find(([, path]) => path.includes(site))?.[0] ?? 'fuming-lake';
+
+/**
+ * The stops the map draws for every tale the player can see (BRDC-AERODROME-001): a tale
+ * not begun shows where it begins, one under way its next stop too, a finished one all of
+ * them — and any secret already walked into. A tale still locked is not in `tales` at all.
+ */
+export function visibleAdventureSites(
+  tales: readonly { id: string; state: string; stageId?: string | undefined }[],
+  finds: readonly string[],
+): QuestSiteId[] {
+  const out: QuestSiteId[] = [];
+  for (const t of tales) {
+    const path = ADVENTURE_PATH[t.id];
+    if (!path) continue;
+    if (t.state === 'available') out.push(path[0] as QuestSiteId);
+    else if (t.state === 'done') out.push(...path);
+    else {
+      const i = path.indexOf(STAGE_SITE[t.stageId ?? ''] as QuestSiteId);
+      out.push(...(i < 0 ? path : path.slice(0, Math.min(i + 2, path.length))));
+    }
+  }
+  return [...out, ...SECRET_SITES.filter((s) => finds.includes(s))];
+}
+
 /** The three ways past the troll. Never on the map — found by walking onto the cell. */
 export const SECRET_SITES = ['trinket', 'staff', 'wisdom'] as const;
 export type SecretSiteId = (typeof SECRET_SITES)[number];
@@ -269,6 +317,11 @@ export const STAGE_SITE: Readonly<Record<string, QuestSiteId>> = {
   troll: 'troll',
   deep: 'deep',
   servitude: 'deep',
+  hangar: 'hangar',
+  tower: 'tower',
+  windsock: 'windsock',
+  runway: 'runway',
+  'sky-gate': 'sky-gate',
 };
 
 /** The verb on a quest site's action button, per site. Copy, kept beside the sites. */
@@ -283,4 +336,9 @@ export const SITE_VERB: Readonly<Record<QuestSiteId, string>> = {
   wisdom: 'The Wisdom Stone lies here',
   'healing-shrine': 'A Healing Shrine',
   'sanity-shrine': 'A Sanity Shrine',
+  hangar: 'Begin — The Skyward Runway',
+  tower: 'Climb the control tower',
+  windsock: 'Read the windsock',
+  runway: 'Walk the runway',
+  'sky-gate': 'Face the sky gate',
 };

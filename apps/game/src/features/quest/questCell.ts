@@ -1,18 +1,19 @@
 /**
  * What a quest site's hex offers when you tap it (BRDC-QUEST-002, -003).
  *
- * The Fuming Lake is begun and advanced from the hex it happens at — and only while the
+ * A tale is begun and advanced from the hex it happens at — and only while the
  * player is *standing on* that hex, not merely looking at it from across the map. This is
  * the pure decision: given the selected cell, where the player actually is, the adventure
  * view and the secrets found — is there a step to take here, what does the button say,
  * and what has happened at this spot.
  */
 import {
-  FUMING_PATH,
+  ADVENTURE_PATH,
   QUEST_SITE_IDS,
   QUEST_SITES,
   SITE_VERB,
   STAGE_SITE,
+  adventureOfSite,
   hexDistance,
   siteCell,
 } from '@es3/core';
@@ -43,8 +44,6 @@ export function atSite(site: H3Index, standingOn: H3Index | null): boolean {
   return standingOn !== null && hexDistance(site, standingOn) <= 1;
 }
 
-const index = (site: QuestSiteId): number =>
-  FUMING_PATH.indexOf(site as (typeof FUMING_PATH)[number]);
 
 /**
  * Whether the player is standing on the hex the active stage is acted on (BRDC-QUEST-003).
@@ -54,36 +53,42 @@ const index = (site: QuestSiteId): number =>
  * always allowed, and a tale not under way has nothing to gate.
  */
 export function atStageHex(
-  fuming: AdventureView | undefined,
+  active: AdventureView | undefined,
   standingOn: H3Index | null,
 ): boolean {
-  if (fuming?.state !== 'active') return true;
-  const site = STAGE_SITE[fuming.stageId ?? ''];
+  if (active?.state !== 'active') return true;
+  const site = STAGE_SITE[active.stageId ?? ''];
   return !site || atSite(siteCell(site), standingOn);
 }
 
 export function questCellInfo(
   h3: string,
-  fuming: AdventureView | undefined,
+  /** Every tale on the player's shelf; a sequel not yet open is not in it (BRDC-AERODROME-001). */
+  tales: readonly AdventureView[],
   finds: readonly string[],
   standingOn: H3Index | null = h3,
 ): QuestCellInfo | null {
   const site = siteOf(h3);
   if (!site) return null;
+  const tale = tales.find((t) => t.id === adventureOfSite(site));
+  if (!tale) return null;
+  const path = ADVENTURE_PATH[tale.id] ?? [];
+  const index = (s: QuestSiteId): number => path.indexOf(s);
+  const start = path[0];
 
   const found = finds.includes(site);
-  const state = fuming?.state;
+  const state = tale.state;
   const here = atSite(h3, standingOn);
 
-  // The statue starts the tale — until it is under way.
-  if (site === 'statue' && (state === undefined || state === 'available')) {
+  // Its first stop starts the tale — until it is under way.
+  if (site === start && state === 'available') {
     return here
-      ? { site, label: SITE_VERB.statue, canAct: true, history: 'The tale starts here.' }
-      : { site, label: SITE_VERB.statue, canAct: false, history: 'Walk to the statue to begin.' };
+      ? { site, label: SITE_VERB[site], canAct: true, history: 'The tale starts here.' }
+      : { site, label: SITE_VERB[site], canAct: false, history: `Walk to ${QUEST_SITES[site].label.replace(/^(The )?/, 'the ')} to begin.` };
   }
 
   if (state === 'active') {
-    const stageSite = STAGE_SITE[fuming?.stageId ?? ''];
+    const stageSite = STAGE_SITE[tale.stageId ?? ''];
     if (site === stageSite) {
       return here
         ? { site, label: SITE_VERB[site], canAct: true, history: 'You are at this point in the tale.' }
@@ -101,8 +106,8 @@ export function questCellInfo(
   if (found) {
     return { site, label: SITE_VERB[site], canAct: false, history: 'You found this by walking here.' };
   }
-  // The statue keeps the closed tale: its ending and what it paid (BRDC-QUEST-008).
-  if (state === 'done' && site === 'statue') {
+  // The first stop keeps the closed tale: its ending and what it paid (BRDC-QUEST-008).
+  if (state === 'done' && site === start) {
     return { site, label: 'How the tale ended', canAct: true, history: 'The tale ended.' };
   }
   if (state === 'done' && index(site) >= 0) {

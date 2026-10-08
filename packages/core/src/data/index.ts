@@ -43,6 +43,7 @@ export type { RouteRow, TradeRouteApi } from './tradeRouteStore.js';
 export type { EnvoyRow, SuzerainApi, VillageStanding } from './suzerainStore.js';
 export type { PageApi, PageOutcome, PageView } from './pageStore.js';
 export type { MaskApi, MaskOutcome, MaskView } from './maskStore.js';
+export type { PropellerApi, PropellerOutcome } from './propellerStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';
@@ -59,6 +60,10 @@ export type {
 } from './anomalyStore.js';
 export {
   FUMING_PATH,
+  AIRFIELD_PATH,
+  ADVENTURE_PATH,
+  adventureOfSite,
+  visibleAdventureSites,
   QUEST_ITEMS,
   QUEST_SITES,
   QUEST_SITE_IDS,

@@ -103,5 +103,67 @@
         "choices": [{ "text": "Pick yourself up and try again", "next": "troll" }]
       }
     }
+  },
+  "skyward-runway": {
+    "title": "The Skyward Runway",
+    "start": "hangar",
+    "after": "fuming-lake",
+    "grants": "gate-seal",
+    "stages": {
+      "hangar": {
+        "speaker": "Narrator",
+        "text": [
+          "The statue's propeller is gone. In its place, a typed note: \"Borrowed. Will return. Probably. — Management\"",
+          "The old hangar on the airfield stands open for the first time since 1979. Inside, the propeller hangs from a chain, turning slowly, pointing at the sky."
+        ],
+        "choices": [{ "text": "Take the propeller down and walk to the control tower", "effect": { "xp": 20 }, "next": "tower" }]
+      },
+      "tower": {
+        "speaker": "Management",
+        "text": [
+          "The radio in the control tower is still on. A flight plan crackles through, filed in 1936, for a flight that has not landed yet.",
+          "\"Management regrets the delay. The aircraft is holding above the field. It has been holding for some time. Please do not answer it. -Management\""
+        ],
+        "choices": [
+          { "text": "Copy down the flight plan", "effect": { "xp": 30, "pool": { "wisdom": 15 } }, "next": "windsock" },
+          { "text": "Answer the radio", "next": "radio-answer" }
+        ]
+      },
+      "radio-answer": {
+        "speaker": "Narrator",
+        "text": [
+          "You key the microphone. Something above the clouds answers in your own voice, a few seconds before you speak. You put the microphone down very carefully."
+        ],
+        "choices": [{ "text": "Go back to the flight plan", "next": "tower" }]
+      },
+      "windsock": {
+        "speaker": "Narrator",
+        "text": [
+          "The windsock on its pole does not point downwind. It points straight up, rigid as a finger, and the cloud above it is turning."
+        ],
+        "choices": [
+          { "text": "Feed the propeller mana until it hums", "requires": { "pool": { "mana": 20 } }, "effect": { "pool": { "mana": -20 }, "xp": 40 }, "next": "runway" },
+          { "text": "Wait for the wind to turn", "next": "windsock" }
+        ]
+      },
+      "runway": {
+        "speaker": "Narrator",
+        "text": [
+          "Lights come on along a runway that was paved over decades ago. They lead to a point in the air above the field, where something is waiting to land."
+        ],
+        "choices": [
+          { "text": "Hold the field: walk on with fifteen hexes of your own behind you", "requires": { "ownedCells": 15 }, "effect": { "xp": 50 }, "next": "sky-gate" },
+          { "text": "Run for the hangar", "next": "tower" }
+        ]
+      },
+      "sky-gate": {
+        "speaker": "The Deep",
+        "text": [
+          "A gate hangs open in the sky above the runway, its edges the colour of the Fuming Lake. The propeller fits the hole at its centre exactly. It was always a key.",
+          "You turn it. The gate closes with the sound of a hangar door, very far up, and the propeller stays warm in your hand — enough for one more gate, anywhere."
+        ],
+        "choices": [{ "text": "Turn the propeller", "effect": { "xp": 150, "pool": { "culture": 40 } }, "next": "end" }]
+      }
+    }
   }
 }

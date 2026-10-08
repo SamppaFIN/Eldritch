@@ -52,7 +52,7 @@ export interface AdventureView {
   outcome?: QuestOutcome | undefined;
 }
 
-export type StartOutcome = { ok: true } | { ok: false; refused: 'no-such-adventure' | 'already-begun' };
+export type StartOutcome = { ok: true } | { ok: false; refused: 'no-such-adventure' | 'already-begun' | 'locked' };
 export type AdventureChoiceOutcome =
   | { ok: true; xp: number; unlocks?: string; ended: boolean }
   | { ok: false; refused: 'not-active' | 'no-such-stage' | 'no-such-choice' | 'gate' | 'cannot-afford' };
@@ -79,7 +79,8 @@ export async function listAdventures(
 ): Promise<AdventureView[]> {
   const book = await readBook(store);
   const ctx = ctxOf(owned, pool);
-  return Object.values(ADVENTURES).map((adv) => {
+  // A sequel stays off the shelf until the tale before it is finished (BRDC-AERODROME-001).
+  return Object.values(ADVENTURES).filter((adv) => !adv.after || book[adv.after]?.done).map((adv) => {
     const s = book[adv.id];
     if (!s) return { id: adv.id, title: adv.title, state: 'available' };
     if (s.done) return { id: adv.id, title: adv.title, state: 'done', ...(s.outcome ? { outcome: s.outcome } : {}) };
@@ -101,6 +102,7 @@ export async function startAt(store: KeyValueStore, id: string, now: number): Pr
   if (!adv) return { ok: false, refused: 'no-such-adventure' };
   const book = await readBook(store);
   if (book[id]) return { ok: false, refused: 'already-begun' };
+  if (adv.after && !book[adv.after]?.done) return { ok: false, refused: 'locked' };
 
   await store.set(K.adventures, { ...book, [id]: { stage: adv.start } });
   await writeLogEntry(store, { at: now, kind: 'quest', ref: id });
@@ -141,6 +143,11 @@ export async function chooseAt(
       ? { stage: s.stage, done: true, gained, outcome: { status: 'completed', rewards: gained, text: closing, completedAt: now } }
       : { stage: r.next as string, gained },
   });
+  // A tale that leaves something in hand: the propeller's one gate, sealed from afar.
+  if (ended && adv.grants === 'gate-seal') {
+    const held = (await store.get<{ charges: number }>(K.propeller))?.charges ?? 0;
+    await store.set(K.propeller, { charges: held + 1 });
+  }
   if (r.unlocks) {
     const unlocked = (await store.get<string[]>(K.unlocked)) ?? [];
     if (!unlocked.includes(r.unlocks)) await store.set(K.unlocked, [...unlocked, r.unlocks]);

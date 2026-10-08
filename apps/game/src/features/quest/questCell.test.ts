@@ -12,42 +12,42 @@ const view = (over: Partial<AdventureView>): AdventureView => ({
 
 describe('questCellInfo', () => {
   it('offers Begin on the statue before the tale starts', () => {
-    expect(questCellInfo(siteCell('statue'), undefined, [])).toMatchObject({
+    expect(questCellInfo(siteCell('statue'), [view({ state: 'available' })], [])).toMatchObject({
       canAct: true,
       label: expect.stringContaining('Begin'),
     });
-    expect(questCellInfo(siteCell('statue'), view({ state: 'available' }), [])?.canAct).toBe(true);
+    expect(questCellInfo(siteCell('statue'), [view({ state: 'available' })], [])?.canAct).toBe(true);
   });
 
   it('offers the stage verb on the current stage’s site', () => {
-    const info = questCellInfo(siteCell('lake'), view({ stageId: 'lake' }), []);
+    const info = questCellInfo(siteCell('lake'), [view({ stageId: 'lake' })], []);
     expect(info).toMatchObject({ site: 'lake', canAct: true, label: 'Investigate the lake' });
   });
 
   it('shows a site ahead of the stage as a landmark, no action', () => {
-    expect(questCellInfo(siteCell('hermit'), view({ stageId: 'lake' }), [])).toBeNull();
-    const behind = questCellInfo(siteCell('statue'), view({ stageId: 'hermit' }), []);
+    expect(questCellInfo(siteCell('hermit'), [view({ stageId: 'lake' })], [])).toBeNull();
+    const behind = questCellInfo(siteCell('statue'), [view({ stageId: 'hermit' })], []);
     expect(behind?.canAct).toBe(false);
   });
 
   it('shows a found secret with no action', () => {
-    const info = questCellInfo(siteCell('wisdom'), view({ stageId: 'troll' }), ['wisdom']);
+    const info = questCellInfo(siteCell('wisdom'), [view({ stageId: 'troll' })], ['wisdom']);
     expect(info).toMatchObject({ site: 'wisdom', canAct: false });
     expect(info?.history).toMatch(/found/i);
   });
 
   it('is null on a cell that is not a quest site', () => {
-    expect(questCellInfo('8c1fb46741 near-nonsense', view({ stageId: 'lake' }), [])).toBeNull();
+    expect(questCellInfo('8c1fb46741 near-nonsense', [view({ stageId: 'lake' })], [])).toBeNull();
   });
 
   it('locks the step when the player is not standing on the site (BRDC-QUEST-003)', () => {
-    const info = questCellInfo(siteCell('lake'), view({ stageId: 'lake' }), [], siteCell('hermit'));
+    const info = questCellInfo(siteCell('lake'), [view({ stageId: 'lake' })], [], siteCell('hermit'));
     expect(info).toMatchObject({ site: 'lake', canAct: false });
     expect(info?.history).toMatch(/walk here/i);
   });
 
   it('locks Begin on the statue from across the map', () => {
-    const info = questCellInfo(siteCell('statue'), view({ state: 'available' }), [], siteCell('lake'));
+    const info = questCellInfo(siteCell('statue'), [view({ state: 'available' })], [], siteCell('lake'));
     expect(info?.canAct).toBe(false);
     expect(info?.history).toMatch(/walk to the statue/i);
   });
@@ -92,7 +92,23 @@ describe('atSite — GPS tolerance', () => {
 
 describe('a finished tale (BRDC-QUEST-008)', () => {
   it('the statue still opens it, to read how it ended', () => {
-    const info = questCellInfo(siteCell('statue'), { id: 'fuming-lake', title: 'The Fuming Lake', state: 'done' }, [], null);
+    const info = questCellInfo(siteCell('statue'), [{ id: 'fuming-lake', title: 'The Fuming Lake', state: 'done' }], [], null);
     expect(info).toMatchObject({ label: 'How the tale ended', canAct: true });
+  });
+});
+
+describe('the sequel (BRDC-AERODROME-001)', () => {
+  const done = view({ state: 'done' });
+  const sky = (over: Partial<AdventureView>): AdventureView => ({ id: 'skyward-runway', title: 'The Skyward Runway', state: 'active', ...over });
+
+  it('its stops are nothing while it is not on the shelf', () => {
+    expect(questCellInfo(siteCell('hangar'), [done], [], siteCell('hangar'))).toBeNull();
+  });
+  it('begins at the hangar once open, and steps along its own path', () => {
+    expect(questCellInfo(siteCell('hangar'), [done, sky({ state: 'available' })], [], siteCell('hangar'))).toMatchObject({ canAct: true, label: 'Begin — The Skyward Runway' });
+    expect(questCellInfo(siteCell('tower'), [done, sky({ stageId: 'tower' })], [], siteCell('tower'))).toMatchObject({ canAct: true, label: 'Climb the control tower' });
+    expect(questCellInfo(siteCell('hangar'), [done, sky({ stageId: 'tower' })], [])?.history).toBe('Behind you now.');
+    // The Fuming Lake's stops still read as its own.
+    expect(questCellInfo(siteCell('statue'), [done, sky({ stageId: 'tower' })], [], null)).toMatchObject({ label: 'How the tale ended' });
   });
 });

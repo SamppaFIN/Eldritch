@@ -13,6 +13,7 @@ import type { TradeRouteApi } from '../data/tradeRouteStore.js';
 import type { SuzerainApi } from '../data/suzerainStore.js';
 import type { PageApi } from '../data/pageStore.js';
 import type { MaskApi } from '../data/maskStore.js';
+import type { PropellerApi } from '../data/propellerStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -37,4 +38,6 @@ export interface SeasonThreeApis {
   readonly pages: PageApi;
   /** The stranger in many masks: met in rumours, named in the Keep (BRDC-MASKS-001). */
   readonly masks: MaskApi;
+  /** The Skyward Runway's propeller: gates to seal from afar (BRDC-AERODROME-001). */
+  readonly propeller: PropellerApi;
 }

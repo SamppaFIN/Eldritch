@@ -23,6 +23,7 @@ import { tradeRouteApi, type TradeRouteApi } from './tradeRouteStore.js';
 import { suzerainApi, type SuzerainApi } from './suzerainStore.js';
 import { pageApi, type PageApi } from './pageStore.js';
 import { maskApi, type MaskApi } from './maskStore.js';
+import { propellerApi, type PropellerApi } from './propellerStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -59,6 +60,7 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly suzerain: SuzerainApi = suzerainApi(() => this.store);
   readonly pages: PageApi = pageApi(() => this.store);
   readonly masks: MaskApi = maskApi(() => this.store);
+  readonly propeller: PropellerApi = propellerApi(() => this.store, () => this.gates);
   readonly great: GreatApi = greatApi(() => this.store, (t) => this.getOwnedCells(t), () => this.gates);
   readonly week: WeekApi = weekApi(() => this.store, (t) => this.getOwnedCells(t), (t) => this.legacy.tally(t));
 }
