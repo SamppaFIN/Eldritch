@@ -92,6 +92,8 @@ export const K = {
   mythos: 'mythos',
   /** The season's ambition, `{ id, at }` — chosen once, locked (BRDC-AMBITION-001). Resets with the season. */
   ambition: 'ambition',
+  /** The realm's character at each Age entered, `EraId[]` in Age order from II (BRDC-ERA-001). Resets with the season. */
+  eras: 'eras',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

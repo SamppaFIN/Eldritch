@@ -14,3 +14,5 @@ export { CONDITIONS, DEBT_GOLD, PACT_SANITY, activeConditions, conditionDice, co
 export type { ConditionDef, ConditionId, HeldCondition } from './condition.js';
 export { AMBITIONS, AMBITION_IDS, AMBITION_MULT, ambitionMet, ambitionProgress, templesHeld } from './ambition.js';
 export type { Ambition, AmbitionId, AmbitionState } from './ambition.js';
+export { ERAS, ERA_IDS, eraBonus, eraChain, pendingEra } from './era.js';
+export type { EraDef, EraId } from './era.js';

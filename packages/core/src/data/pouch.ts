@@ -23,6 +23,7 @@ import type { ActiveSpell } from '../rules/spell.js';
 import { darkTimeAt } from '../rules/darkTime.js';
 import type { Investigator } from '../rules/investigator.js';
 import { mythosFor } from '../rules/doom.js';
+import type { EraId } from '../rules/era.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -53,8 +54,8 @@ export async function yieldContext(
   owned: readonly Cell[],
   now: number,
 ): Promise<{ ctx: YieldContext; works: WorksContext }> {
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos,
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras,
   ]);
   const home = (homeS as H3Index | undefined) ?? null;
   const dwell = (dwellS as DwellMap | undefined) ?? {};
@@ -73,6 +74,7 @@ export async function yieldContext(
     factor: darkTimeAt(now).factor,
     archetype: (invS as Investigator | undefined)?.archetype,
     mythos: mythosS ? mythosFor(mythosS as { seed: string; opensAt: number }, now) : null,
+    eras: erasS as EraId[] | undefined,
   };
   return { ctx, works };
 }

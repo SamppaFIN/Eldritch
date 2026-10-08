@@ -13,6 +13,7 @@ import { Modal, RitualButton } from '@es3/ui';
 import type { GameRepository, LoreRow, LoreView, ResourcePool } from '@es3/core';
 import { ResearchPanel } from './ResearchPanel.js';
 import { LorePanel } from '../research/LorePanel.js';
+import { AgeCharacter } from '../research/AgeCharacter.js';
 import type { ResearchBinding } from './useSelection.js';
 
 export interface ResearchDialogProps {
@@ -56,7 +57,10 @@ export function ResearchDialog({ open, research, pool, wisdomPerHour, onClose, r
       footer={<RitualButton onClick={onClose}>Done</RitualButton>}
     >
       {lore ? (
-        <LorePanel view={lore} onStudy={study} />
+        <>
+          {repository ? <AgeCharacter repository={repository} read={lore} /> : null}
+          <LorePanel view={lore} onStudy={study} />
+        </>
       ) : (
         <ResearchPanel research={research} pool={pool} wisdomPerHour={wisdomPerHour} />
       )}

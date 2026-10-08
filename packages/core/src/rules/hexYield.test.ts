@@ -140,3 +140,17 @@ describe('the Mythos on the hex card (BRDC-MYTHOS-001)', () => {
     expect((realmBonus(ctx).mana ?? 0) - (realmBonus(base).mana ?? 0)).toBe(-1);
   });
 });
+
+describe('the Age characters on the card (BRDC-ERA-001)', () => {
+  it('each chosen character is its own realm line, and the settle pays the same', async () => {
+    const cells = realm();
+    const s = await store(cells, false);
+    await s.set(K.eras, ['merchants', 'seers']);
+    const ctx = (await yieldContext(s, cells, NOW)).ctx;
+    expect(realmOnlyYield(ctx)).toContainEqual({ resource: 'gold', amount: 2, source: 'other', label: 'Age: Merchants', sourceId: 'merchants' });
+    const base = { ...ctx, eras: [] };
+    expect((realmBonus(ctx).gold ?? 0) - (realmBonus(base).gold ?? 0)).toBe(2);
+    const sum = summed(cells.map((c) => computeHexYield(c, ctx)), realmOnlyYield(ctx));
+    for (const k of RESOURCE_KINDS) expect(sum[k] ?? 0).toBeCloseTo(realmBonus(ctx)[k] ?? 0, 9);
+  });
+});

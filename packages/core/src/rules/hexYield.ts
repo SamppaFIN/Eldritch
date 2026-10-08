@@ -37,6 +37,8 @@ import type { KeepState } from './citizens.js';
 import { worksBonus, worksBonusByCell } from './works/bonus.js';
 import type { KindAt, WorksTrees } from './works/bonus.js';
 import { BUILDING_NAMES_PLAIN } from '../data/counselNames.js';
+import { ERAS, eraBonus } from './era.js';
+import type { EraId } from './era.js';
 
 export type YieldSource = 'terrain' | 'building' | 'citizen' | 'tech' | 'temple' | 'anomaly' | 'adjacency' | 'other';
 
@@ -71,6 +73,8 @@ export interface YieldContext {
   archetype?: ArchetypeId | undefined;
   /** Today's Mythos card, when a season is known (BRDC-MYTHOS-001). */
   mythos?: MythosCard | null | undefined;
+  /** The realm's character at each Age entered (BRDC-ERA-001). */
+  eras?: readonly EraId[] | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -134,6 +138,7 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   for (const c of owned) addInto(merged, mythosOnCell(c, ctx));
   const realm = ctx.mythos?.effect;
   if (realm?.kind === 'realm') merged[realm.resource] = (merged[realm.resource] ?? 0) + realm.perHour;
+  addInto(merged, eraBonus(ctx.eras ?? []));
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   return merged;
@@ -156,6 +161,9 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   }
   const e = ctx.mythos?.effect;
   if (ctx.mythos && e?.kind === 'realm') out.push({ resource: e.resource, amount: e.perHour, source: 'other', label: `Mythos: ${ctx.mythos.headline}` });
+  for (const id of ctx.eras ?? []) {
+    for (const [k, v] of Object.entries(ERAS[id].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Age: ${ERAS[id].name}`, sourceId: id });
+  }
   return [...out, ...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0))];
 }
 
