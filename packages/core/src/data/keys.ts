@@ -96,6 +96,8 @@ export const K = {
   eras: 'eras',
   /** This week's golden or dark age, its boon and the Legacy marks it was judged on (BRDC-AGE-001). Resets with the season. */
   week: 'week',
+  /** Last night's dream: the day, the card and, once faced, how it ended (BRDC-DREAM-001). Resets with the season. */
+  dream: 'dream',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

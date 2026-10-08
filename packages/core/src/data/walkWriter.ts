@@ -12,6 +12,8 @@
 import { K } from './keys.js';
 import { planWalk, walkNeighbourhood } from './walking.js';
 import { recordPaths } from './pathStore.js';
+import { noteWaking } from './dreamStore.js';
+import { cellAt } from '../geo/cells.js';
 import { XP_PER_CELL_CLAIMED } from '../rules/constants.js';
 import type { DwellMap, DwellReading } from '../rules/dwell.js';
 import type { KeyValueStore } from './kv.js';
@@ -76,11 +78,12 @@ export async function recordWalk(
     if (cell) known.set(h3, cell);
   });
 
+  const previous = (await store.get<DwellReading | null>(K.lastReading)) ?? null;
   const plan = planWalk(accepted, {
     attacker: { id: walker.id, level: walker.level, ...(walker.takesOutright ? { takesOutright: true } : {}) },
     known,
     dwell: (await store.get<DwellMap>(K.dwell)) ?? {},
-    previous: (await store.get<DwellReading | null>(K.lastReading)) ?? null,
+    previous,
     hasTerritory: walker.hasTerritory,
   });
 
@@ -117,6 +120,9 @@ export async function recordWalk(
   // The reading is on its effective cell — jitter held to the anchor (BRDC-DWELL-002) —
   // so a reload measures its first gap against where the player really was.
   if (plan.lastReading) {
+    // The night is the gap at this seam: a long still one, ended in the morning, is a dream.
+    const first = accepted[0] as TrailPoint;
+    await noteWaking(store, previous, { h3: cellAt(first), t: first.t });
     await store.set<DwellReading>(K.lastReading, plan.lastReading);
   }
 

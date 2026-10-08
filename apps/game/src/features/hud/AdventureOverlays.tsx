@@ -9,6 +9,7 @@
 import type { Cell, GameRepository, H3Index } from '@es3/core';
 import { EurekaMoment } from '../research/EurekaMoment.js';
 import { MythosHeadline } from '../keep/MythosHeadline.js';
+import { DreamCard } from '../keep/DreamCard.js';
 import { DiscoveryModal } from '../territory/DiscoveryModal.js';
 import type { DiscoveryState } from '../territory/useDiscovery.js';
 import { QuestReveal } from '../quest/QuestReveal.js';
@@ -63,6 +64,7 @@ export function AdventureOverlays({
       <EncounterDialog encounter={discovery.encounter} standingOn={standingOn} onChoose={discovery.onEncounterChoice} />
       <EurekaMoment repository={repository} owned={owned} />
       <MythosHeadline repository={repository} />
+      <DreamCard repository={repository} owned={owned} />
       {discovery.wonderFound ? <WonderMoment id={discovery.wonderFound} onClose={discovery.clearWonder} /> : null}
     </>
   );

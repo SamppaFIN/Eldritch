@@ -45,7 +45,12 @@
   font-size: var(--text-sm);
 }
 
-/* Two at once (a eureka and the day's headline): the second sits below the first. */
+/* Two at once (a eureka and the day's headline): the second sits below the first,
+   and a third — last night's dream (BRDC-DREAM-001) — below that. */
 .edge-card ~ .edge-card {
   inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top)) + 6rem);
+}
+
+.edge-card ~ .edge-card ~ .edge-card {
+  inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top)) + 12rem);
 }
