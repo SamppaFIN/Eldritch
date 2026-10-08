@@ -41,10 +41,14 @@ export interface Investigator {
   allyOffer?: AllyId;
   /** Lasting consequences, each on its own clock (BRDC-CONDITION-001). */
   conditions?: HeldCondition[];
+  /** Pages of the Book read (BRDC-PAGES-001): each takes a point of sanity for good. */
+  pagesRead?: number;
 }
 
 export const STAMINA_MAX = 7;
 export const SANITY_MAX = 6;
+/** The most sanity this investigator can hold: each page read takes one, never below 1. */
+export const sanityCap = (inv: Pick<Investigator, 'pagesRead'>): number => Math.max(1, SANITY_MAX - (inv.pagesRead ?? 0));
 export const HOME_MS = 12 * 3_600_000;
 /** Rest gives back a point of stamina and of sanity every two hours (the ticket's default). */
 export const REST_MS = 2 * 3_600_000;
@@ -96,14 +100,14 @@ export function recover(inv: Investigator, now: number): Investigator {
   if (inv.homeAt !== undefined) {
     if (now - inv.homeAt < HOME_MS) return inv;
     const { homeAt: _home, ...rest } = inv;
-    return { ...rest, stamina: STAMINA_MAX, sanity: SANITY_MAX, restedAt: now };
+    return { ...rest, stamina: STAMINA_MAX, sanity: sanityCap(inv), restedAt: now };
   }
   const steps = Math.floor((now - inv.restedAt) / REST_MS);
   if (steps <= 0) return inv;
   return {
     ...inv,
     stamina: Math.min(STAMINA_MAX, inv.stamina + steps),
-    sanity: Math.min(SANITY_MAX, inv.sanity + steps),
+    sanity: Math.min(sanityCap(inv), inv.sanity + steps),
     restedAt: inv.restedAt + steps * REST_MS,
   };
 }

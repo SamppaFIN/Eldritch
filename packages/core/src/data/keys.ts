@@ -108,6 +108,8 @@ export const K = {
   tradeRoutes: 'trade-routes',
   /** The villages this realm is suzerain of, `CityStateId[]` (BRDC-SUZERAIN-001). Resets with the season. */
   suzerain: 'suzerain',
+  /** The Book's pages: found, and read (BRDC-PAGES-001). Resets with the season. */
+  pages: 'pages',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

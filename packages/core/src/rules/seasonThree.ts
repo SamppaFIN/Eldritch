@@ -31,3 +31,5 @@ export type { GreatDeed, GreatKind } from './greatPeople.js';
 export { ROUTE_GAP_MS, ROUTE_MAX_M, advanceJourney, routeActive, routeGold, routeId, routesGold } from './tradeRoute.js';
 export type { Journey, RouteEnd, TradeRoute } from './tradeRoute.js';
 export { SUZERAIN_BONUS, SUZERAIN_MIN, VILLAGE_TASKS, envoysFrom, suzerainOf } from './suzerain.js';
+export { PAGES, PAGE_FIND_SHARE, afterReading, canReadPage, pageFoundAt, readPageInto } from './pages.js';
+export type { Page } from './pages.js';

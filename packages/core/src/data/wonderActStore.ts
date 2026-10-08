@@ -12,7 +12,7 @@ import type { WonderId } from '../rules/wonder.js';
 import { growBox } from '../rules/balance.js';
 import { ageOf, loreCost } from '../rules/lore.js';
 import { riteDamage } from '../rules/reckoning.js';
-import { FIRST_INVESTIGATOR, SANITY_MAX, STAMINA_MAX, addClues, recover } from '../rules/investigator.js';
+import { FIRST_INVESTIGATOR, STAMINA_MAX, addClues, recover, sanityCap } from '../rules/investigator.js';
 import type { Investigator } from '../rules/investigator.js';
 import { readLore } from './loreStore.js';
 import { sightRings } from './revealStore.js';
@@ -117,7 +117,7 @@ export function wonderActApi(
         }
         case 'restore': {
           const { homeAt: _home, ...i } = await inv(now);
-          await store().set(K.investigator, { ...i, stamina: STAMINA_MAX, sanity: SANITY_MAX, restedAt: now });
+          await store().set(K.investigator, { ...i, stamina: STAMINA_MAX, sanity: sanityCap(i), restedAt: now });
           break;
         }
         case 'freeRite': {

@@ -11,6 +11,7 @@ import type { ChimneyApi } from '../data/chimneyStore.js';
 import type { GreatApi } from '../data/greatStore.js';
 import type { TradeRouteApi } from '../data/tradeRouteStore.js';
 import type { SuzerainApi } from '../data/suzerainStore.js';
+import type { PageApi } from '../data/pageStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -31,4 +32,6 @@ export interface SeasonThreeApis {
   readonly routes: TradeRouteApi;
   /** Envoys to the villages, and which this realm leads (BRDC-SUZERAIN-001). */
   readonly suzerain: SuzerainApi;
+  /** The Book That Came Back: pages found on the ground, read at a price (BRDC-PAGES-001). */
+  readonly pages: PageApi;
 }

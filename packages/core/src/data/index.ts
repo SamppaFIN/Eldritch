@@ -41,6 +41,7 @@ export type { ChimneyApi, ChimneyView } from './chimneyStore.js';
 export type { GreatApi, GreatOutcome, GreatPerson, GreatView } from './greatStore.js';
 export type { RouteRow, TradeRouteApi } from './tradeRouteStore.js';
 export type { EnvoyRow, SuzerainApi, VillageStanding } from './suzerainStore.js';
+export type { PageApi, PageOutcome, PageView } from './pageStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';

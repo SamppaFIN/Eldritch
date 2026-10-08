@@ -340,6 +340,7 @@ export {
   HOME_MS,
   REST_MS,
   SANITY_MAX,
+  sanityCap,
   STAMINA_MAX,
   addClues,
   afterTest,

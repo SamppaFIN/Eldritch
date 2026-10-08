@@ -6,6 +6,7 @@
  * ask the rule, write and log on success. XP deltas are returned for the repository to
  * apply — the seam does not reach the profile.
  */
+import { findPage } from './pageStore.js';
 import {
   anomalyAt,
   anomalySignOf,
@@ -151,6 +152,7 @@ export async function resolveAt(
   await writePouch(store, pool, now);
   await store.set(K.cell(h3), { ...cell, anomaly: { startedAt: cell.anomaly.startedAt, done: true } });
   await writeLogEntry(store, { at: now, kind: 'anomaly', ref: 'resolve' });
+  await findPage(store, h3, now); // a finished anomaly may turn up a page of the Book (BRDC-PAGES-001)
   return { ok: true, reward, chainOpened: false, xp: reward.xp };
 }
 
@@ -178,6 +180,7 @@ export async function chooseAt(
       : { startedAt: cell.anomaly!.startedAt, stage: result.next };
   await store.set(K.cell(h3), { ...cell, anomaly });
   await writeLogEntry(store, { at: now, kind: 'anomaly', ref: 'choice' });
+  if (result.next === 'end') await findPage(store, h3, now);
   // What the choice put in the pouch, so the panel can say it (costs are not listed).
   const gained: Partial<ResourcePool> = {};
   for (const [k, v] of Object.entries(result.pool) as [ResourceKind, number][]) {
