@@ -40,6 +40,8 @@ import { BUILDING_NAMES_PLAIN } from '../data/counselNames.js';
 import { ERAS, eraBonus } from './era.js';
 import { BOONS, boonBonus } from './age.js';
 import { FULL_MOON_MANA, HARVEST_MOON_FOOD, isFullMoon } from './moon.js';
+import { routeActive, routeGold, routesGold } from './tradeRoute.js';
+import type { TradeRoute } from './tradeRoute.js';
 import type { BoonId, WeekKind } from './age.js';
 import type { EraId } from './era.js';
 
@@ -80,6 +82,8 @@ export interface YieldContext {
   eras?: readonly EraId[] | undefined;
   /** This week's golden or dark age (BRDC-AGE-001): its factor on everything made, and a golden week's boon. */
   week?: { factor: number; kind: WeekKind; boon?: BoonId } | undefined;
+  /** Trade routes walked (BRDC-TRADEROUTE-001): gold an hour while their ends hold. */
+  routes?: readonly TradeRoute[] | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -145,6 +149,8 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   if (realm?.kind === 'realm') merged[realm.resource] = (merged[realm.resource] ?? 0) + realm.perHour;
   addInto(merged, eraBonus(ctx.eras ?? []));
   addInto(merged, boonBonus(ctx.week?.boon));
+  const routeGoldNow = routesGold(ctx.routes ?? [], owned);
+  if (routeGoldNow > 0) merged.gold = (merged.gold ?? 0) + routeGoldNow;
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   // The full moon (BRDC-MOON-001). The Harvest Moon is the hex card's own line, read back.
@@ -192,6 +198,10 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   if (ctx.mythos && e?.kind === 'realm') out.push({ resource: e.resource, amount: e.perHour, source: 'other', label: `Mythos: ${ctx.mythos.headline}` });
   for (const id of ctx.eras ?? []) {
     for (const [k, v] of Object.entries(ERAS[id].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Age: ${ERAS[id].name}`, sourceId: id });
+  }
+  const held = new Map(ctx.owned.map((c) => [c.h3, c] as const));
+  for (const r of ctx.routes ?? []) {
+    if (routeActive(r, held)) out.push({ resource: 'gold', amount: routeGold(r.lengthM), source: 'other', label: `Trade route: ${(r.lengthM / 1000).toFixed(1)} km`, sourceId: r.id });
   }
   const boon = ctx.week?.boon;
   if (boon) for (const [k, v] of Object.entries(BOONS[boon].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Golden week: ${BOONS[boon].name}`, sourceId: boon });

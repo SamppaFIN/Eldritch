@@ -28,3 +28,5 @@ export { CHIMNEYS, CHIMNEY_SIGHT_RINGS, chimneyAt, chimneysLit } from './chimney
 export type { Chimney, ChimneyId } from './chimney.js';
 export { GREAT, GREAT_FIRST, GREAT_KINDS, greatCost, greatName, greatRate } from './greatPeople.js';
 export type { GreatDeed, GreatKind } from './greatPeople.js';
+export { ROUTE_GAP_MS, ROUTE_MAX_M, advanceJourney, routeActive, routeGold, routeId, routesGold } from './tradeRoute.js';
+export type { Journey, RouteEnd, TradeRoute } from './tradeRoute.js';

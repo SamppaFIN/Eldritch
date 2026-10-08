@@ -13,6 +13,7 @@ import { K } from './keys.js';
 import { planWalk, walkNeighbourhood } from './walking.js';
 import { recordPaths } from './pathStore.js';
 import { noteWaking } from './dreamStore.js';
+import { noteJourney } from './tradeRouteStore.js';
 import { cellAt } from '../geo/cells.js';
 import { XP_PER_CELL_CLAIMED } from '../rules/constants.js';
 import type { DwellMap, DwellReading } from '../rules/dwell.js';
@@ -108,6 +109,8 @@ export async function recordWalk(
   const finalCells = new Map<H3Index, Cell>();
   for (const step of steps) if (step.cell) finalCells.set(step.cell.h3, step.cell);
   await Promise.all([...finalCells].map(([h3, cell]) => store.set(K.cell(h3), cell)));
+  // A walk from a Market to a Market or a village's door is a trade route (BRDC-TRADEROUTE-001).
+  await noteJourney(store, accepted, (h3) => finalCells.get(h3) ?? known.get(h3), walker.id);
   await store.set(K.dwell, plan.dwell);
 
   // The same batch wears the walked-path layer: every res-12 segment this trace crossed

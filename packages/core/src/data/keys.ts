@@ -102,6 +102,10 @@ export const K = {
   chimneys: 'chimneys',
   /** Great people: points gathering, who was born, whose deed is done (BRDC-GREAT-001). Resets with the season. */
   great: 'great',
+  /** The walk since the last Market, carried between batches (BRDC-TRADEROUTE-001). */
+  tradeJourney: 'trade-journey',
+  /** Trade routes walked this season, `TradeRoute[]` (BRDC-TRADEROUTE-001). Resets with the season. */
+  tradeRoutes: 'trade-routes',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

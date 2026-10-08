@@ -20,6 +20,7 @@ import { HexesTab } from './HexesTab.js';
 import { WorksTab } from './WorksTab.js';
 import { TemplesTab } from './TemplesTab.js';
 import { AnomaliesTab } from './AnomaliesTab.js';
+import { RoutesTab } from './RoutesTab.js';
 import './lands-panel.css';
 
 export interface LandsPanelProps {
@@ -43,6 +44,7 @@ const TABS = [
   { id: 'works', label: 'Works' },
   { id: 'temples', label: 'Temples' },
   { id: 'anomalies', label: 'Anomalies' },
+  { id: 'routes', label: 'Routes' },
 ] as const;
 type Tab = (typeof TABS)[number]['id'];
 
@@ -102,6 +104,7 @@ export function LandsPanel({ open, repository, now, onShowCell, onGain, onClose,
       {tab === 'works' ? <WorksTab repository={repository} open={open} now={now} onShowCell={onShowCell} onChanged={onChanged} /> : null}
       {tab === 'temples' ? <TemplesTab repository={repository} open={open} now={now} onShowCell={onShowCell} onTour={onTour} /> : null}
       {tab === 'anomalies' ? <AnomaliesTab repository={repository} open={open} now={now} onShowCell={onShowCell} /> : null}
+      {tab === 'routes' ? <RoutesTab repository={repository} open={open} now={now} onShowCell={onShowCell} /> : null}
 
       {/* A ledger reveal reaches any hex you hold, so a wonder can be found from here.
           The moment is the same one the map shows — finding one in silence because it was

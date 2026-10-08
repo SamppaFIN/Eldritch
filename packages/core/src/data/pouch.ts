@@ -26,6 +26,7 @@ import { mythosFor } from '../rules/doom.js';
 import type { EraId } from '../rules/era.js';
 import { weekEffect } from '../rules/age.js';
 import type { WeekState } from '../rules/age.js';
+import type { TradeRoute } from '../rules/tradeRoute.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -56,8 +57,8 @@ export async function yieldContext(
   owned: readonly Cell[],
   now: number,
 ): Promise<{ ctx: YieldContext; works: WorksContext }> {
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS, weekS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras, K.week,
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS, weekS, routesS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras, K.week, K.tradeRoutes,
   ]);
   const home = (homeS as H3Index | undefined) ?? null;
   const dwell = (dwellS as DwellMap | undefined) ?? {};
@@ -78,6 +79,7 @@ export async function yieldContext(
     mythos: mythosS ? mythosFor(mythosS as { seed: string; opensAt: number }, now) : null,
     eras: erasS as EraId[] | undefined,
     week: weekEffect(weekS as WeekState | undefined, now),
+    routes: routesS as TradeRoute[] | undefined,
   };
   return { ctx, works };
 }

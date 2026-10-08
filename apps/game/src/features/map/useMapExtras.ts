@@ -1,6 +1,6 @@
 /**
  * The map's layers that read the repository rather than the territory prop: open gates
- * and found wonders (2026-09-30), each hex's yield (BRDC-MAP-008) and the citizens at
+ * and found wonders (2026-09-30), trade routes (BRDC-TRADEROUTE-001), each hex's yield (BRDC-MAP-008) and the citizens at
  * work (BRDC-MAP-009). Lifted out of
  * `MapCanvas.tsx` at its line ceiling — one hook, one job: keep these sources fed.
  */
@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { Cell, GameRepository, H3Index, HexYield } from '@es3/core';
 import { setSeasonMarkData, useSeasonMarks } from '../season/SeasonMarkers.js';
+import { setRouteData, useTradeRoutes } from '../territory/routeLayer.js';
 import { setYieldData } from '../territory/yieldLayer.js';
 import { animateCitizens, setCitizenData } from '../territory/citizenLayer.js';
 import { setStandardData } from '../territory/standardLayer.js';
@@ -29,6 +30,10 @@ export function useMapExtras(
   useEffect(() => {
     if (map && ready) setSeasonMarkData(map, seasonMarks);
   }, [map, ready, seasonMarks]);
+  const routes = useTradeRoutes(repository, now, cells);
+  useEffect(() => {
+    if (map && ready) setRouteData(map, routes);
+  }, [map, ready, routes]);
 
   const [yields, setYields] = useState<Readonly<Record<H3Index, HexYield>>>({});
   useEffect(() => {

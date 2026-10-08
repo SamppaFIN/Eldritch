@@ -17,6 +17,7 @@ import { ensurePathLayers, removePathLayers } from '../trail/PathLayer.js';
 import { ensurePlaceLayers, removePlaceLayers } from '../territory/PlaceMarkers.js';
 import { ensureQuestLayers, removeQuestLayers } from '../territory/QuestMarkers.js';
 import { ensureSeasonMarkLayers, removeSeasonMarkLayers } from '../season/SeasonMarkers.js';
+import { ensureRouteLayer, removeRouteLayer } from '../territory/routeLayer.js';
 import { ensureYieldLayers, removeYieldLayers } from '../territory/yieldLayer.js';
 import { ensureCitizenLayer, removeCitizenLayer } from '../territory/citizenLayer.js';
 import { ensureStandardLayers, removeStandardLayers } from '../territory/standardLayer.js';
@@ -36,6 +37,7 @@ export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
     ensureTrailLayers(map);
     ensurePlaceLayers(map);
     ensureSeasonMarkLayers(map);
+    ensureRouteLayer(map);
     ensureYieldLayers(map);
     ensureCitizenLayer(map);
     ensureStandardLayers(map);
@@ -53,6 +55,7 @@ export function useMapLayers(map: MapLibreMap | null, ready: boolean): void {
         removeAfarAnomalyLayer(map);
         removeCitizenLayer(map);
         removeYieldLayers(map);
+        removeRouteLayer(map);
         removeSeasonMarkLayers(map);
         removePlaceLayers(map);
         removeTrailLayers(map);
