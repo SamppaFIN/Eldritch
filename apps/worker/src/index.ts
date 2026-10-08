@@ -40,6 +40,7 @@ import { CLAN, type ClanRecord, clanCodexOf, handleClanRoute } from './clan.js';
 import { listSnapshotWeeks, maybeSnapshot, readSnapshot } from './history.js';
 import { ROUTE_CODEX, splitByMode } from './routeCodex.js';
 import { listLegacy, publishLegacy } from './legacy.js';
+import { listEnvoys, publishEnvoys } from './envoys.js';
 import {
   listSeasonDays,
   listSeasonJoins,
@@ -311,6 +312,12 @@ export default {
     if (request.method === 'GET' && url.pathname === '/legacy') {
       const entries = await listLegacy(env.WORLD);
       return entries.length === 0 ? bare(204) : send({ v: 1, generatedAt: Date.now(), entries });
+    }
+
+    // Envoys to the villages (BRDC-SUZERAIN-001): each realm posts its own, everyone reads all.
+    if (url.pathname === '/envoys') {
+      if (request.method === 'POST') return (await publishEnvoys(env.WORLD, await request.json().catch(() => null), Date.now())) ? send({ ok: true }) : send({ fault: 'invalid' }, 400);
+      if (request.method === 'GET') return send({ v: 1, rows: await listEnvoys(env.WORLD) });
     }
 
     // GET /season, POST /season/open|phase — the shared season (BRDC-SEASON-002).

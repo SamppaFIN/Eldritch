@@ -280,7 +280,7 @@ export function CellPanel({
         <SpellPanel spell={spell} cellH3={cell.h3} mine={mine} mana={resources?.mana ?? 0} now={now} />
       ) : null}
       {open === 'city' && city?.city ? (
-        <TradePost city={city.city} resources={resources} refusal={city.refusal} onTrade={city.onTrade} />
+        <TradePost city={city.city} resources={resources} refusal={city.refusal} onTrade={city.onTrade} repository={repository} />
       ) : null}
       {open === 'anomaly' && anomaly?.current ? <AnomalyPanel anomaly={anomaly} resources={resources} /> : null}
       {anomaly?.found && anomaly.found.h3 === cell.h3 ? <AnomalyFound found={anomaly.found} /> : null}

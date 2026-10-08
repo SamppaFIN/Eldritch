@@ -11,9 +11,10 @@
  */
 import { useState } from 'react';
 import { RESOURCE_KINDS, TRADE_LOSS, TRADE_PARCEL, tradeReturn } from '@es3/core';
-import type { CityState, ResourceKind, ResourcePool, TradeRefusal } from '@es3/core';
+import type { CityState, GameRepository, ResourceKind, ResourcePool, TradeRefusal } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
+import { VillageFavour } from './VillageFavour.js';
 
 const REFUSAL: Readonly<Record<TradeRefusal, string>> = {
   'same-resource': 'They will not swap a thing for itself.',
@@ -41,9 +42,11 @@ export interface TradePostProps {
   resources: ResourcePool | null;
   refusal: TradeRefusal | null;
   onTrade: (give: ResourceKind, want: ResourceKind) => void;
+  /** Their tasks and who leads them (BRDC-SUZERAIN-001); absent in tests of the trade alone. */
+  repository?: GameRepository | null;
 }
 
-export function TradePost({ city, resources, refusal, onTrade }: TradePostProps) {
+export function TradePost({ city, resources, refusal, onTrade, repository = null }: TradePostProps) {
   const [give, setGive] = useState<ResourceKind | null>(null);
   const [want, setWant] = useState<ResourceKind | null>(null);
 
@@ -101,6 +104,7 @@ export function TradePost({ city, resources, refusal, onTrade }: TradePostProps)
           {REFUSAL[refusal]}
         </p>
       ) : null}
+      {repository ? <VillageFavour repository={repository} city={city} /> : null}
     </div>
   );
 }

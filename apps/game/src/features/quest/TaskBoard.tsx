@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RitualButton } from '@es3/ui';
 import { SKILL_NAME } from '@es3/core';
-import type { GameRepository, TaskView } from '@es3/core';
+import type { CityStateId, GameRepository, TaskView } from '@es3/core';
 import { rewardLine } from './AdventureDialog.js';
 import './task-board.css';
 
@@ -26,10 +26,22 @@ function action(v: TaskView): string | null {
   return null;
 }
 
-export function TaskBoard({ repository, which = 'board' }: { repository: GameRepository; /** The Tavern's, or the investigator's own tale (BRDC-INVEST-002). */ which?: 'board' | 'personal' }) {
+export interface TaskBoardProps {
+  repository: GameRepository;
+  /** The Tavern's, the investigator's own tale (BRDC-INVEST-002), or a village's (BRDC-SUZERAIN-001). */
+  which?: 'board' | 'personal' | 'village';
+  village?: CityStateId;
+  /** A task was taken or finished — the village's standing re-reads. */
+  onChanged?: () => void;
+}
+
+export function TaskBoard({ repository, which = 'board', village, onChanged }: TaskBoardProps) {
   const [views, setViews] = useState<TaskView[]>([]);
   const [said, setSaid] = useState<string | null>(null);
-  const load = useCallback(async () => setViews(await (which === 'personal' ? repository.tasks.personal(Date.now()) : repository.tasks.board(Date.now()))), [repository, which]);
+  const load = useCallback(async () => {
+    const now = Date.now();
+    setViews(await (which === 'personal' ? repository.tasks.personal(now) : which === 'village' && village ? repository.tasks.village(village, now) : repository.tasks.board(now)));
+  }, [repository, which, village]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -39,11 +51,12 @@ export function TaskBoard({ repository, which = 'board' }: { repository: GameRep
     void run.then(async (r) => {
       setSaid(r.ok ? null : (REFUSED[r.refused] ?? 'That did not work.'));
       await load();
+      onChanged?.();
     });
   };
 
   return (
-    <ul className="task-board" aria-label={which === 'personal' ? 'Your tale' : 'Tasks'}>
+    <ul className="task-board" aria-label={which === 'personal' ? 'Your tale' : which === 'village' ? 'Village tasks' : 'Tasks'}>
       {views.map((v) => {
         const closed = v.state === 'completed' || v.state === 'failed';
         const label = action(v);

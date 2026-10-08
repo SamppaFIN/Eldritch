@@ -11,6 +11,8 @@
  */
 import { TALE_SKILL_MAX, archetypeOf, resolveCheck } from '../rules/archetype.js';
 import { PERSONAL_TASKS } from '../rules/personalTasks.js';
+import { VILLAGE_TASKS } from '../rules/suzerain.js';
+import type { CityStateId } from '../rules/cityState.js';
 import { ALLIES } from '../rules/ally.js';
 import { gainCondition } from '../rules/condition.js';
 import { FIRST_INVESTIGATOR, afterTest, isHome, recover } from '../rules/investigator.js';
@@ -49,6 +51,8 @@ export interface TaskApi {
   board(now: number): Promise<TaskView[]>;
   /** The investigator's own tale, steps open so far (BRDC-INVEST-002). Empty without one. */
   personal(now: number): Promise<TaskView[]>;
+  /** A village's own tasks, done at its quay (BRDC-SUZERAIN-001). Tests need an investigator. */
+  village(id: CityStateId, now: number): Promise<TaskView[]>;
   take(id: string, now: number): Promise<TaskOutcome>;
   /** Claim a finished objective, or face a skill test. */
   finish(id: string, now: number, rng?: () => number): Promise<TaskOutcome>;
@@ -154,6 +158,12 @@ export function taskApi(
       const b = await sync(now);
       const { archetype } = await investigator(now);
       return viewAll(PERSONAL_TASKS.filter((t) => opens(t, b, archetype)), b, now);
+    },
+
+    async village(id, now) {
+      const b = await sync(now);
+      const keep = await hasKeep();
+      return viewAll(VILLAGE_TASKS.filter((t) => t.village === id && (keep || t.objective.kind !== 'check')), b, now);
     },
 
     async take(id, now) {

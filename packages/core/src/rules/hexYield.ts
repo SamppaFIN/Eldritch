@@ -42,6 +42,9 @@ import { BOONS, boonBonus } from './age.js';
 import { FULL_MOON_MANA, HARVEST_MOON_FOOD, isFullMoon } from './moon.js';
 import { routeActive, routeGold, routesGold } from './tradeRoute.js';
 import type { TradeRoute } from './tradeRoute.js';
+import { SUZERAIN_BONUS } from './suzerain.js';
+import { cityStateById } from './cityState.js';
+import type { CityStateId } from './cityState.js';
 import type { BoonId, WeekKind } from './age.js';
 import type { EraId } from './era.js';
 
@@ -84,6 +87,8 @@ export interface YieldContext {
   week?: { factor: number; kind: WeekKind; boon?: BoonId } | undefined;
   /** Trade routes walked (BRDC-TRADEROUTE-001): gold an hour while their ends hold. */
   routes?: readonly TradeRoute[] | undefined;
+  /** Villages this realm is suzerain of (BRDC-SUZERAIN-001): each pays its speciality. */
+  suzerain?: readonly CityStateId[] | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -151,6 +156,7 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   addInto(merged, boonBonus(ctx.week?.boon));
   const routeGoldNow = routesGold(ctx.routes ?? [], owned);
   if (routeGoldNow > 0) merged.gold = (merged.gold ?? 0) + routeGoldNow;
+  for (const id of ctx.suzerain ?? []) addInto(merged, SUZERAIN_BONUS[id] ?? {});
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   // The full moon (BRDC-MOON-001). The Harvest Moon is the hex card's own line, read back.
@@ -202,6 +208,9 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   const held = new Map(ctx.owned.map((c) => [c.h3, c] as const));
   for (const r of ctx.routes ?? []) {
     if (routeActive(r, held)) out.push({ resource: 'gold', amount: routeGold(r.lengthM), source: 'other', label: `Trade route: ${(r.lengthM / 1000).toFixed(1)} km`, sourceId: r.id });
+  }
+  for (const id of ctx.suzerain ?? []) {
+    for (const [k, v] of Object.entries(SUZERAIN_BONUS[id] ?? {}) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Suzerain: ${cityStateById(id)?.name ?? id}`, sourceId: id });
   }
   const boon = ctx.week?.boon;
   if (boon) for (const [k, v] of Object.entries(BOONS[boon].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Golden week: ${BOONS[boon].name}`, sourceId: boon });

@@ -15,6 +15,7 @@ import type { Skill } from './investigator.js';
 import type { AllyId } from './ally.js';
 import type { ConditionId } from './condition.js';
 import type { ArchetypeId } from './archetype.js';
+import type { CityStateId } from './cityState.js';
 import type { ResourcePool } from './terrain.js';
 import type { Cell, H3Index } from '../types/domain.js';
 
@@ -43,6 +44,9 @@ export interface Task {
   personal?: ArchetypeId;
   after?: string;
   finale?: true;
+  /** A village's own task (BRDC-SUZERAIN-001): whose, and the envoys it sends there (default 1). */
+  village?: CityStateId;
+  envoys?: number;
 }
 
 export interface TaskState {

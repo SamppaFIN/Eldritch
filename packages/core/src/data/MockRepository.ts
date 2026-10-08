@@ -20,6 +20,7 @@ import { dreamApi, type DreamApi } from './dreamStore.js';
 import { chimneyApi, type ChimneyApi } from './chimneyStore.js';
 import { greatApi, type GreatApi } from './greatStore.js';
 import { tradeRouteApi, type TradeRouteApi } from './tradeRouteStore.js';
+import { suzerainApi, type SuzerainApi } from './suzerainStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -53,6 +54,7 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly dreams: DreamApi = dreamApi(() => this.store);
   readonly chimneys: ChimneyApi = chimneyApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly routes: TradeRouteApi = tradeRouteApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly suzerain: SuzerainApi = suzerainApi(() => this.store);
   readonly great: GreatApi = greatApi(() => this.store, (t) => this.getOwnedCells(t), () => this.gates);
   readonly week: WeekApi = weekApi(() => this.store, (t) => this.getOwnedCells(t), (t) => this.legacy.tally(t));
 }
