@@ -110,6 +110,8 @@ export const K = {
   suzerain: 'suzerain',
   /** The Book's pages: found, and read (BRDC-PAGES-001). Resets with the season. */
   pages: 'pages',
+  /** The stranger's masks met, the naming and the choice (BRDC-MASKS-001). Resets with the season. */
+  masks: 'masks',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

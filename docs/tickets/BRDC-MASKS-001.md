@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | DOOM-003, QUEST-009 |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus C4; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` (2026-10-08, haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Korteilla ei ole yhteyttä toisiinsa. Nyarlathotepin naamiot — sama olento mon
 
 ## 🟢 GREEN
 
-- [ ] Muukalainen esiintyy 6 kortissa eri hahmoina (kalastaja, saarnaaja, lentäjä…) yhteisellä tuntomerkillä tekstissä
-- [ ] Kun pelaaja on kohdannut 3, Keep tarjoaa "Nimeä muukalainen" — oikea vastaus antaa palkinnon ja valinnan
-- [ ] Kohdatut naamiot tallennetaan (uusi avain)
-- [ ] Testit: tunnistus, väärä arvaus maksaa sanityä
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Muukalainen esiintyy 6 kortissa eri hahmoina (kalastaja, saarnaaja, lentäjä…) yhteisellä tuntomerkillä tekstissä — `rules/masks.ts`: puunhakkaaja, kalastaja, saarnaaja, lentäjä, maanmittari, uimari; tuntomerkki "shadow leans toward the lake" (testi vaatii sen jokaisesta). Jaetaan noin joka viidenteen huhuun omalla hashillaan, muut huhut pysyvät paikoillaan
+- [x] Kun pelaaja on kohdannut 3, Keep tarjoaa "Nimeä muukalainen" — oikea vastaus antaa palkinnon ja valinnan — kolme nimeä, oikea "Nyarlathotep, the Crawling Chaos"; valinta: Bargain (+3 clues ja Dark Pact) tai Banish (+100 mana, sanity täyteen), kerran
+- [x] Kohdatut naamiot tallennetaan (uusi avain) — `K.masks`; kohdattu = huhu kohdattu, läpäisty tai ei
+- [x] Testit: tunnistus, väärä arvaus maksaa sanityä — `masks.repo.test.ts` (väärä nimi −2 sanity)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — 2124/2124, e2e `masks.spec.ts` 360 px 4/4
 
 ## Todennus
 

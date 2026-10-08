@@ -13,6 +13,7 @@ import type { ResourcePool, TerrainKind } from './terrain.js';
 import type { Skill } from './investigator.js';
 import type { ConditionId } from './condition.js';
 import type { H3Index } from '../types/domain.js';
+import { MASK_CARDS } from './masks.js';
 
 export type Deck = 'forest' | 'lake' | 'settlement' | 'hill';
 
@@ -26,6 +27,8 @@ export interface DeckCard {
   pass: { text: string; clues?: number; gain?: Partial<ResourcePool>; skillUp?: Skill; condition?: ConditionId };
   /** A failure may leave a lasting condition (BRDC-CONDITION-001). */
   fail: { text: string; stamina?: number; sanity?: number; condition?: ConditionId };
+  /** One of the stranger's masks, and which (BRDC-MASKS-001). */
+  mask?: string;
 }
 
 const card = (deck: Deck, id: string, title: string, text: string, skill: Skill, need: number, pass: DeckCard['pass'], fail: DeckCard['fail']): DeckCard =>
@@ -118,6 +121,8 @@ export function deckFor(kind: TerrainKind): Deck | null {
 
 /** One hex in eight holds a rumour. */
 export const RUMOUR_SHARE = 0.125;
+/** About one rumour in five is the stranger in a mask (BRDC-MASKS-001). */
+export const MASK_SHARE = 0.2;
 
 function hash(s: string): number {
   let h = 2166136261;
@@ -132,8 +137,11 @@ function hash(s: string): number {
 export function rumourAt(seed: string, h3: H3Index, kind: TerrainKind): DeckCard | null {
   const deck = deckFor(kind);
   if (!deck || hash(`${seed}:rumour:${h3}`) >= RUMOUR_SHARE) return null;
+  // Hashed apart from the deal below, so every other rumour stays where it was.
+  const masks = MASK_CARDS.filter((c) => c.deck === deck);
+  if (masks.length > 0 && hash(`${seed}:mask:${h3}`) < MASK_SHARE) return masks[Math.floor(hash(`${seed}:maskcard:${h3}`) * masks.length)] ?? null;
   const cards = DECKS.filter((c) => c.deck === deck);
   return cards[Math.floor(hash(`${seed}:card:${h3}`) * cards.length)] ?? null;
 }
 
-export const cardById = (id: string): DeckCard | null => DECKS.find((c) => c.id === id) ?? null;
+export const cardById = (id: string): DeckCard | null => DECKS.find((c) => c.id === id) ?? MASK_CARDS.find((c) => c.id === id) ?? null;

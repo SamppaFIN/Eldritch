@@ -42,6 +42,7 @@ export type { GreatApi, GreatOutcome, GreatPerson, GreatView } from './greatStor
 export type { RouteRow, TradeRouteApi } from './tradeRouteStore.js';
 export type { EnvoyRow, SuzerainApi, VillageStanding } from './suzerainStore.js';
 export type { PageApi, PageOutcome, PageView } from './pageStore.js';
+export type { MaskApi, MaskOutcome, MaskView } from './maskStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';

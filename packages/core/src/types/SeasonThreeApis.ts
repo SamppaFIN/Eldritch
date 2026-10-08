@@ -12,6 +12,7 @@ import type { GreatApi } from '../data/greatStore.js';
 import type { TradeRouteApi } from '../data/tradeRouteStore.js';
 import type { SuzerainApi } from '../data/suzerainStore.js';
 import type { PageApi } from '../data/pageStore.js';
+import type { MaskApi } from '../data/maskStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -34,4 +35,6 @@ export interface SeasonThreeApis {
   readonly suzerain: SuzerainApi;
   /** The Book That Came Back: pages found on the ground, read at a price (BRDC-PAGES-001). */
   readonly pages: PageApi;
+  /** The stranger in many masks: met in rumours, named in the Keep (BRDC-MASKS-001). */
+  readonly masks: MaskApi;
 }

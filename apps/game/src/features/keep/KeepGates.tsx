@@ -10,6 +10,7 @@ import type { GameRepository, GateView } from '@es3/core';
 import { fetchSeason, postDoom } from '../../data/season.js';
 import { InvestigatorPanel } from './InvestigatorPanel.js';
 import { KeepBook } from './KeepBook.js';
+import { KeepStranger } from './KeepStranger.js';
 import './keep.css';
 
 export interface KeepGatesProps {
@@ -43,6 +44,7 @@ export function KeepGates({ repository, now }: KeepGatesProps) {
     <>
       <InvestigatorPanel repository={repository} now={now} />
       <KeepBook repository={repository} now={now} />
+      <KeepStranger repository={repository} now={now} />
       <h3 className="hearth-panel__section">Open gates</h3>
       <section className="keep-citizens" aria-label="Open gates">
         <p className="hearth-panel__line es-numeric">

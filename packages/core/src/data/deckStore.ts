@@ -19,6 +19,7 @@ import { K } from './keys.js';
 import { gainCondition, hasCondition } from '../rules/condition.js';
 import { mythosToday } from './mythosStore.js';
 import { findPage } from './pageStore.js';
+import { noteMask } from './maskStore.js';
 import { mythosDice } from '../rules/doom.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell, H3Index } from '../types/domain.js';
@@ -122,6 +123,7 @@ export function rumourApi(store: () => KeyValueStore, owned: (now: number) => Pr
       await store().set(K.investigator, inv);
       await store().set(K.rumours, { done: [...b.done, h3] });
       await writeLogEntry(store(), { at: now, kind: 'anomaly', ref: roll.pass ? 'rumour-pass' : 'rumour-fail' });
+      await noteMask(store(), cardId); // met, whichever way it went (BRDC-MASKS-001)
       // A rumour passed may turn up a page of the Book (BRDC-PAGES-001).
       const page = roll.pass ? await findPage(store(), h3, now) : null;
       return { ok: true, roll, said: roll.pass ? card.pass.text + (page ? ` A page of the Book turns up: “${page.title}”.` : '') : card.fail.text };

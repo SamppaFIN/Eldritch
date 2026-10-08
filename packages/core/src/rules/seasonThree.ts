@@ -33,3 +33,5 @@ export type { Journey, RouteEnd, TradeRoute } from './tradeRoute.js';
 export { SUZERAIN_BONUS, SUZERAIN_MIN, VILLAGE_TASKS, envoysFrom, suzerainOf } from './suzerain.js';
 export { PAGES, PAGE_FIND_SHARE, afterReading, canReadPage, pageFoundAt, readPageInto } from './pages.js';
 export type { Page } from './pages.js';
+export { MASKS_TO_NAME, MASK_CARDS, MASK_TELL, STRANGER_CHOICES, STRANGER_NAMES, TRUE_NAME, isMask } from './masks.js';
+export type { StrangerChoice, StrangerName } from './masks.js';
