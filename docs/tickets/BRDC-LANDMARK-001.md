@@ -63,6 +63,10 @@ Kartan maamerkki tarvitsee jommankumman:
   linna/paikka/questi jo käyttää sitä samalla heksalla (harvinainen, patsaan heksalla
   todennäköinen questin kanssa)
 
+**Päätetty 2026-10-08 (Infinite, BRDC-CHIMNEY-001): jaettu slotti** — nimi pohjoiseen
+tekstipaikkaan, väistyy törmäyksessä. Piiput käyttävät sitä jo; Worldseedin omat maamerkit
+eivät vielä, joten tämän tiketin kartan merkki on edelleen auki.
+
 ## Ei tässä
 
 - *The Boy Who Waits* -ihme — `BRDC-WONDER-002`

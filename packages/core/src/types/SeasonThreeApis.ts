@@ -7,6 +7,7 @@ import type { AmbitionApi } from '../data/ambitionStore.js';
 import type { EraApi } from '../data/eraStore.js';
 import type { WeekApi } from '../data/ageStore.js';
 import type { DreamApi } from '../data/dreamStore.js';
+import type { ChimneyApi } from '../data/chimneyStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -19,4 +20,6 @@ export interface SeasonThreeApis {
   readonly week: WeekApi;
   /** Last night's dream, drawn on a morning's waking where you slept (BRDC-DREAM-001). */
   readonly dreams: DreamApi;
+  /** The three chimneys: landmarks, and beacons once all three are held (BRDC-CHIMNEY-001). */
+  readonly chimneys: ChimneyApi;
 }

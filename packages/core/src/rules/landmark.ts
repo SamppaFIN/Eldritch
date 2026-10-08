@@ -8,6 +8,7 @@
  */
 import { DECAY_GRACE_HOURS } from './constants.js';
 import { hexSeedOf } from '../data/hexSeedStore.js';
+import { chimneyLandmark } from './chimney.js';
 import type { HexSeedLandmark } from '../types/hexSeed.js';
 import type { ResourcePool } from './terrain.js';
 import type { Cell, H3Index } from '../types/domain.js';
@@ -17,9 +18,10 @@ export const LANDMARK_CULTURE_PER_HOUR = 2;
 
 const DORMANT_AFTER_MS = DECAY_GRACE_HOURS * 3_600_000;
 
-/** The real-world place on this hex, or `null` — seeded data only, never guessed. */
+/** The real-world place on this hex, or `null` — seeded data, or one of the three
+ *  chimneys (BRDC-CHIMNEY-001); never guessed. */
 export function landmarkOn(h3: H3Index): HexSeedLandmark | null {
-  return hexSeedOf(h3)?.landmark ?? null;
+  return hexSeedOf(h3)?.landmark ?? chimneyLandmark(h3);
 }
 
 /**

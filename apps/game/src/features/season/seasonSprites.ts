@@ -1,7 +1,7 @@
 /**
- * An open gate and a found wonder, as structures on their hex (field report 2026-09-30:
- * *"Sain viestin että Gate on auennut.. haluan että siinä on näkyvissä grafiikkana
- * portaali"*, and a found Arkham nowhere on the map).
+ * An open gate, a found wonder and the three chimneys (BRDC-CHIMNEY-001), as structures
+ * on their hex (field report 2026-09-30: *"Sain viestin että Gate on auennut.. haluan että
+ * siinä on näkyvissä grafiikkana portaali"*, and a found Arkham nowhere on the map).
  *
  * Same construction as `placeSprites.ts`: procedural SVG on the 64-unit iso plinth,
  * rasterised once into the map's atlas. Hex literals, not tokens: the SVG is decoded by an
@@ -9,8 +9,8 @@
  */
 import { rasteriseSvgs } from '../territory/spriteRaster.js';
 
-export type SeasonMarkKind = 'gate' | 'wonder';
-export const SEASON_MARK_KINDS: readonly SeasonMarkKind[] = ['gate', 'wonder'];
+export type SeasonMarkKind = 'gate' | 'wonder' | 'chimney';
+export const SEASON_MARK_KINDS: readonly SeasonMarkKind[] = ['gate', 'wonder', 'chimney'];
 export const SEASON_SPRITE_PX = 192;
 export const seasonSpriteId = (kind: SeasonMarkKind): string => `season-${kind}`;
 
@@ -37,7 +37,17 @@ const WONDER =
   `<path d="M29 26 L29 42 M35 24 L35 40" stroke="#ffd700" stroke-width="1.2" opacity="0.7"/>` +
   `<circle cx="32" cy="10" r="6" fill="#ffd700" opacity="0.3"/><circle cx="32" cy="10" r="3.2" fill="#ffd700"/>`;
 
-const BODY: Readonly<Record<SeasonMarkKind, string>> = { gate: GATE, wonder: WONDER };
+/** A tall brick factory chimney with an ember at its lip (BRDC-CHIMNEY-001). */
+const CHIMNEY =
+  plinth('#3a2420', '#21140f') +
+  `<polygon points="27,50 32,53 37,50 32,47" fill="#4a2c22"/>` +
+  `<polygon points="28,49 29,14 32,12 32,52" fill="#9a5a40"/>` +
+  `<polygon points="32,52 32,12 35,14 36,49" fill="#6a3a2a"/>` +
+  `<path d="M28.7 24 H35.3 M28.5 34 H35.5 M28.3 43 H35.7" stroke="#3a1f16" stroke-width="1"/>` +
+  `<ellipse cx="32" cy="12" rx="3.4" ry="1.4" fill="#ff8a3d"/>` +
+  `<circle cx="32" cy="9" r="3.4" fill="#ffd700" opacity="0.35"/>`;
+
+const BODY: Readonly<Record<SeasonMarkKind, string>> = { gate: GATE, wonder: WONDER, chimney: CHIMNEY };
 
 export function seasonSvg(kind: SeasonMarkKind): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 2 64 64" width="${SEASON_SPRITE_PX}" height="${SEASON_SPRITE_PX}">${BODY[kind]}</svg>`;

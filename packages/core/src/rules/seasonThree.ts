@@ -24,3 +24,5 @@ export { FULL_MOON_DOOM, FULL_MOON_MANA, HARVEST_MOON_FOOD, isFullMoon, isNewMoo
 export type { MoonDay } from './moon.js';
 export { STORM_ACCURACY, WEATHER_LINE, WEATHER_NAME, sightRings, skyLine, weatherAt } from './weather.js';
 export type { Weather } from './weather.js';
+export { CHIMNEYS, CHIMNEY_SIGHT_RINGS, chimneyAt, chimneysLit } from './chimney.js';
+export type { Chimney, ChimneyId } from './chimney.js';

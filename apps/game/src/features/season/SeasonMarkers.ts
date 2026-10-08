@@ -22,7 +22,7 @@ export interface SeasonMark {
 const SOURCE = 'season-marks';
 const SPRITE_LAYER = 'season-marks-sprite';
 const LABEL_LAYER = 'season-marks-label';
-const COLOUR: Readonly<Record<SeasonMarkKind, string>> = { gate: '#00d4ff', wonder: '#ffd700' };
+const COLOUR: Readonly<Record<SeasonMarkKind, string>> = { gate: '#00d4ff', wonder: '#ffd700', chimney: '#ff8a3d' };
 
 function toGeoJson(marks: readonly SeasonMark[]): FeatureCollection<Point> {
   return {
@@ -97,7 +97,7 @@ export function removeSeasonMarkLayers(map: MapLibreMap): void {
   if (map.getSource(SOURCE)) map.removeSource(SOURCE);
 }
 
-/** Open gates and found wonders, re-read each game minute. Empty on a Season 1 save. */
+/** Open gates, found wonders and the chimneys, re-read each game minute. */
 export function useSeasonMarks(repository: GameRepository | null, now: number): SeasonMark[] {
   const [marks, setMarks] = useState<SeasonMark[]>([]);
   useEffect(() => {
@@ -106,10 +106,13 @@ export function useSeasonMarks(repository: GameRepository | null, now: number): 
     void (async () => {
       const gates = (await repository.gates.view(now))?.gates ?? [];
       const wonders = await repository.wonderActs.finds();
+      // Reading them also lights them, the first time all three are yours.
+      const chimneys = await repository.chimneys.view(now);
       if (!live) return;
       setMarks([
         ...gates.map((g) => ({ h3: g.h3, kind: 'gate' as const, label: 'Open gate' })),
         ...wonders.map((w) => ({ h3: w.h3, kind: 'wonder' as const, label: w.name })),
+        ...chimneys.sites.map((c) => ({ h3: c.h3, kind: 'chimney' as const, label: chimneys.litAt ? `${c.name} · lit` : c.name })),
       ]);
     })();
     return () => {

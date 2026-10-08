@@ -37,6 +37,7 @@ export type { AmbitionApi, AmbitionOutcome, AmbitionView } from './ambitionStore
 export type { EraApi, EraOutcome, EraView } from './eraStore.js';
 export type { WeekApi, WeekOutcome, WeekView } from './ageStore.js';
 export type { DreamApi, DreamOutcome, DreamView } from './dreamStore.js';
+export type { ChimneyApi, ChimneyView } from './chimneyStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';

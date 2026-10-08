@@ -17,6 +17,7 @@ import { ambitionApi, type AmbitionApi } from './ambitionStore.js';
 import { eraApi, type EraApi } from './eraStore.js';
 import { weekApi, type WeekApi } from './ageStore.js';
 import { dreamApi, type DreamApi } from './dreamStore.js';
+import { chimneyApi, type ChimneyApi } from './chimneyStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -48,5 +49,6 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly ambition: AmbitionApi = ambitionApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces());
   readonly eras: EraApi = eraApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly dreams: DreamApi = dreamApi(() => this.store);
+  readonly chimneys: ChimneyApi = chimneyApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly week: WeekApi = weekApi(() => this.store, (t) => this.getOwnedCells(t), (t) => this.legacy.tally(t));
 }
