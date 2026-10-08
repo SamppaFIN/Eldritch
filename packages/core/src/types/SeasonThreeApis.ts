@@ -5,6 +5,7 @@
 import type { MythosApi } from '../data/mythosStore.js';
 import type { AmbitionApi } from '../data/ambitionStore.js';
 import type { EraApi } from '../data/eraStore.js';
+import type { WeekApi } from '../data/ageStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -13,4 +14,6 @@ export interface SeasonThreeApis {
   readonly ambition: AmbitionApi;
   /** The realm's character at each Age entered, chosen once each (BRDC-ERA-001). */
   readonly eras: EraApi;
+  /** This week's golden or dark age, judged on the Legacy's pace (BRDC-AGE-001). */
+  readonly week: WeekApi;
 }

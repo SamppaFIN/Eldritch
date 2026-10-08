@@ -9,6 +9,7 @@ import type { VigilProps } from './Vigil.js';
 import type { StandardBinding } from '../territory/useStandard.js';
 import { upNextText } from '@es3/core';
 import type { UpNextRow } from './useUpNext.js';
+import './week.css';
 
 export interface SheetLinks {
   onOpenLands?: (() => void) | undefined;
@@ -17,9 +18,11 @@ export interface SheetLinks {
   standard?: StandardBinding | undefined;
   /** What finishes next, three at most (BRDC-NEXT-001). */
   upNext?: readonly UpNextRow[] | undefined;
+  /** A golden or dark week, named first on the strip (BRDC-AGE-001); a tap goes to the Keep. */
+  week?: { name: string; kind: 'golden' | 'dark' | 'plain'; open?: (() => void) | undefined } | undefined;
 }
 
-export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, upNext }: VigilProps & SheetLinks) {
+export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, upNext, week }: VigilProps & SheetLinks) {
   return (
     <>
       {standard ? (
@@ -46,9 +49,14 @@ export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, 
         </RitualButton>
       ) : null}
       <Vigil keepAlive={keepAlive} />
-      {upNext && upNext.length > 0 ? (
+      {(upNext && upNext.length > 0) || week ? (
         <p className="hud__upnext es-numeric" aria-label="Up next">
-          {upNext.map(({ item, open }) =>
+          {week ? (
+            <button type="button" className={`hud__upnext-item hud__week hud__week--${week.kind}`} onClick={week.open}>
+              {week.name}
+            </button>
+          ) : null}
+          {(upNext ?? []).map(({ item, open }) =>
             open ? (
               <button key={item.id} type="button" className="hud__upnext-item" onClick={open}>
                 {upNextText(item)}

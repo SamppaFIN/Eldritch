@@ -16,3 +16,5 @@ export { AMBITIONS, AMBITION_IDS, AMBITION_MULT, ambitionMet, ambitionProgress, 
 export type { Ambition, AmbitionId, AmbitionState } from './ambition.js';
 export { ERAS, ERA_IDS, eraBonus, eraChain, pendingEra } from './era.js';
 export type { EraDef, EraId } from './era.js';
+export { BOONS, BOON_IDS, WEEK_FACTOR, WEEK_NAME, ageFor, rollWeek, weekEffect, weekKey } from './age.js';
+export type { BoonId, WeekKind, WeekState } from './age.js';

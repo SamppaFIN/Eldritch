@@ -94,6 +94,8 @@ export const K = {
   ambition: 'ambition',
   /** The realm's character at each Age entered, `EraId[]` in Age order from II (BRDC-ERA-001). Resets with the season. */
   eras: 'eras',
+  /** This week's golden or dark age, its boon and the Legacy marks it was judged on (BRDC-AGE-001). Resets with the season. */
+  week: 'week',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

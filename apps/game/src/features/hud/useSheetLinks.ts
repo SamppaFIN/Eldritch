@@ -1,11 +1,13 @@
 /**
  * Everything the walking sheet's own row links to (`SheetActions`): Your lands, the
- * Counsel, your standard (BRDC-STANDARD-001) and what finishes next (BRDC-NEXT-001) —
- * gathered here so the map view passes one object, and stays under its line ceiling.
+ * Counsel, your standard (BRDC-STANDARD-001), what finishes next (BRDC-NEXT-001) and a
+ * golden or dark week (BRDC-AGE-001) — gathered here so the map view passes one object,
+ * and stays under its line ceiling.
  */
 import type { Cell, GameRepository, H3Index } from '@es3/core';
 import { useStandard } from '../territory/useStandard.js';
 import { useUpNext } from './useUpNext.js';
+import { useWeek } from './useWeek.js';
 import type { UpNextTargets } from './useUpNext.js';
 import type { SheetLinks } from './SheetActions.js';
 
@@ -24,5 +26,7 @@ export interface SheetLinkInputs {
 export function useSheetLinks(i: SheetLinkInputs): SheetLinks {
   const standard = useStandard(i.repository, i.standingOn, i.owned, i.now, i.onPlanted);
   const upNext = useUpNext(i.repository, i.now, i.owned, i.to);
-  return { onOpenLands: i.onOpenLands, onOpenCounsel: i.onOpenCounsel, standard, upNext };
+  const w = useWeek(i.repository, i.now, i.owned);
+  const week = w && w.kind !== 'plain' ? { name: w.name, kind: w.kind, open: i.to.keep } : undefined;
+  return { onOpenLands: i.onOpenLands, onOpenCounsel: i.onOpenCounsel, standard, upNext, week };
 }

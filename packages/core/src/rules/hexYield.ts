@@ -38,6 +38,8 @@ import { worksBonus, worksBonusByCell } from './works/bonus.js';
 import type { KindAt, WorksTrees } from './works/bonus.js';
 import { BUILDING_NAMES_PLAIN } from '../data/counselNames.js';
 import { ERAS, eraBonus } from './era.js';
+import { BOONS, boonBonus } from './age.js';
+import type { BoonId, WeekKind } from './age.js';
 import type { EraId } from './era.js';
 
 export type YieldSource = 'terrain' | 'building' | 'citizen' | 'tech' | 'temple' | 'anomaly' | 'adjacency' | 'other';
@@ -75,6 +77,8 @@ export interface YieldContext {
   mythos?: MythosCard | null | undefined;
   /** The realm's character at each Age entered (BRDC-ERA-001). */
   eras?: readonly EraId[] | undefined;
+  /** This week's golden or dark age (BRDC-AGE-001): its factor on everything made, and a golden week's boon. */
+  week?: { factor: number; kind: WeekKind; boon?: BoonId } | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -139,6 +143,7 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   const realm = ctx.mythos?.effect;
   if (realm?.kind === 'realm') merged[realm.resource] = (merged[realm.resource] ?? 0) + realm.perHour;
   addInto(merged, eraBonus(ctx.eras ?? []));
+  addInto(merged, boonBonus(ctx.week?.boon));
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   return merged;
@@ -164,6 +169,8 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   for (const id of ctx.eras ?? []) {
     for (const [k, v] of Object.entries(ERAS[id].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Age: ${ERAS[id].name}`, sourceId: id });
   }
+  const boon = ctx.week?.boon;
+  if (boon) for (const [k, v] of Object.entries(BOONS[boon].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Golden week: ${BOONS[boon].name}`, sourceId: boon });
   return [...out, ...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0))];
 }
 
@@ -257,11 +264,15 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   if (ctx.mythos) push(mythosOnCell(cell, ctx), 'other', `Mythos: ${ctx.mythos.headline}`);
   out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
 
-  if (ctx.factor !== 1) {
+  const week = ctx.week?.factor ?? 1;
+  if (ctx.factor !== 1 || week !== 1) {
     const sum: Partial<ResourcePool> = {};
     for (const c of out) sum[c.resource] = (sum[c.resource] ?? 0) + c.amount;
     for (const [k, v] of Object.entries(sum) as [ResourceKind, number][]) {
-      if (v > 0) out.push({ resource: k, amount: v * (ctx.factor - 1), source: 'other', label: 'Dark time' });
+      if (v <= 0) continue;
+      if (ctx.factor !== 1) out.push({ resource: k, amount: v * (ctx.factor - 1), source: 'other', label: 'Dark time' });
+      // The settle multiplies the two, so the week's line is taken after the dark time's.
+      if (week !== 1) out.push({ resource: k, amount: v * ctx.factor * (week - 1), source: 'other', label: ctx.week?.kind === 'golden' ? 'Golden week' : 'Dark week' });
     }
   }
 

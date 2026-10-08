@@ -15,6 +15,7 @@ import { taskApi, type TaskApi } from './taskStore.js';
 import { mythosApi, type MythosApi } from './mythosStore.js';
 import { ambitionApi, type AmbitionApi } from './ambitionStore.js';
 import { eraApi, type EraApi } from './eraStore.js';
+import { weekApi, type WeekApi } from './ageStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -45,4 +46,5 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly mythos: MythosApi = mythosApi(() => this.store);
   readonly ambition: AmbitionApi = ambitionApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces());
   readonly eras: EraApi = eraApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly week: WeekApi = weekApi(() => this.store, (t) => this.getOwnedCells(t), (t) => this.legacy.tally(t));
 }

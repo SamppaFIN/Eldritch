@@ -24,6 +24,8 @@ import { darkTimeAt } from '../rules/darkTime.js';
 import type { Investigator } from '../rules/investigator.js';
 import { mythosFor } from '../rules/doom.js';
 import type { EraId } from '../rules/era.js';
+import { weekEffect } from '../rules/age.js';
+import type { WeekState } from '../rules/age.js';
 import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
@@ -54,8 +56,8 @@ export async function yieldContext(
   owned: readonly Cell[],
   now: number,
 ): Promise<{ ctx: YieldContext; works: WorksContext }> {
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras,
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS, weekS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras, K.week,
   ]);
   const home = (homeS as H3Index | undefined) ?? null;
   const dwell = (dwellS as DwellMap | undefined) ?? {};
@@ -75,6 +77,7 @@ export async function yieldContext(
     archetype: (invS as Investigator | undefined)?.archetype,
     mythos: mythosS ? mythosFor(mythosS as { seed: string; opensAt: number }, now) : null,
     eras: erasS as EraId[] | undefined,
+    week: weekEffect(weekS as WeekState | undefined, now),
   };
   return { ctx, works };
 }
@@ -85,9 +88,10 @@ async function perHourBonus(
   store: KeyValueStore,
   owned: readonly Cell[],
   now: number,
-): Promise<{ bonus: Partial<ResourcePool>; works: WorksContext }> {
+): Promise<{ bonus: Partial<ResourcePool>; works: WorksContext; factor: number }> {
   const { ctx, works } = await yieldContext(store, owned, now);
-  return { bonus: realmBonus(ctx), works };
+  // The dark time and the week's age both scale what is made (BRDC-AGE-001).
+  return { bonus: realmBonus(ctx), works, factor: ctx.factor * (ctx.week?.factor ?? 1) };
 }
 
 /**
@@ -166,10 +170,9 @@ export async function settlePouch(
   // the ceiling, and building production plus temple mana add a per-hour bonus, each
   // dormancy-filtered (BRDC-BUILD-001, BRDC-MANA-001). Computed before the write lock —
   // it reads other store keys and does not touch the pouch.
-  const { bonus: bph, works } = await perHourBonus(store, owned, now);
+  const { bonus: bph, works, factor } = await perHourBonus(store, owned, now);
   const cap = capFor(owned, works);
   const bpd = buildingDayBonus(owned, now);
-  const factor = darkTimeAt(now).factor;
   // Settle against the *fresh* pool: a spend that landed since is kept, not clobbered
   // (BRDC-ECON-006). `settleResources` returns its argument unchanged for a no-op, which
   // `commit` then does not write.
@@ -202,10 +205,9 @@ export async function forecastRates(
   owned: readonly Cell[],
   now: number,
 ): Promise<Forecast> {
-  const { bonus: bph, works } = await perHourBonus(store, owned, now);
+  const { bonus: bph, works, factor } = await perHourBonus(store, owned, now);
   const cap = capFor(owned, works);
   const bpd = buildingDayBonus(owned, now);
-  const factor = darkTimeAt(now).factor;
 
   const base = settleResources(await read(store, now), owned, now, cap, bph, bpd, factor);
   const hour = settleResources(base, owned, base.since + 3_600_000, cap, bph, bpd, factor);

@@ -35,6 +35,7 @@ export type { TaskApi, TaskOutcome, TaskView } from './taskStore.js';
 export type { MythosApi, MythosToday } from './mythosStore.js';
 export type { AmbitionApi, AmbitionOutcome, AmbitionView } from './ambitionStore.js';
 export type { EraApi, EraOutcome, EraView } from './eraStore.js';
+export type { WeekApi, WeekOutcome, WeekView } from './ageStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';

@@ -1,0 +1,8 @@
+/* A golden or dark week (BRDC-AGE-001): named by its word, tinted to match. */
+button.hud__upnext-item.hud__week--golden {
+  color: var(--sacred-gold);
+}
+
+button.hud__upnext-item.hud__week--dark {
+  color: var(--text-dim);
+}

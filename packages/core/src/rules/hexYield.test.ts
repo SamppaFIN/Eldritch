@@ -154,3 +154,16 @@ describe('the Age characters on the card (BRDC-ERA-001)', () => {
     for (const k of RESOURCE_KINDS) expect(sum[k] ?? 0).toBeCloseTo(realmBonus(ctx)[k] ?? 0, 9);
   });
 });
+
+describe('the week on the card (BRDC-AGE-001)', () => {
+  it('a golden week shows its boon as a realm line and its tenth as a line of its own', async () => {
+    const cells = realm();
+    const base = (await yieldContext(await store(cells, false), cells, NOW)).ctx;
+    const ctx = { ...base, week: { factor: 1.1, kind: 'golden' as const, boon: 'harvest' as const } };
+    expect(realmOnlyYield(ctx)).toContainEqual({ resource: 'food', amount: 3, source: 'other', label: 'Golden week: Long Harvest', sourceId: 'harvest' });
+    expect((realmBonus(ctx).food ?? 0) - (realmBonus(base).food ?? 0)).toBe(3);
+    const lines = cells.flatMap((c) => computeHexYield(c, ctx).contributions).filter((c) => c.label === 'Golden week');
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.every((l) => l.amount > 0)).toBe(true);
+  });
+});
