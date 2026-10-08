@@ -1,9 +1,10 @@
 /**
  * Everything the walking sheet's own row links to (`SheetActions`): Your lands, the
- * Counsel, your standard (BRDC-STANDARD-001), what finishes next (BRDC-NEXT-001) and a
- * golden or dark week (BRDC-AGE-001) — gathered here so the map view passes one object,
- * and stays under its line ceiling.
+ * Counsel, your standard (BRDC-STANDARD-001), what finishes next (BRDC-NEXT-001), a
+ * golden or dark week (BRDC-AGE-001) and the day's sky (BRDC-MOON-001) — gathered here
+ * so the map view passes one object, and stays under its line ceiling.
  */
+import { moonDay, skyLine, weatherAt } from '@es3/core';
 import type { Cell, GameRepository, H3Index } from '@es3/core';
 import { useStandard } from '../territory/useStandard.js';
 import { useUpNext } from './useUpNext.js';
@@ -28,5 +29,7 @@ export function useSheetLinks(i: SheetLinkInputs): SheetLinks {
   const upNext = useUpNext(i.repository, i.now, i.owned, i.to);
   const w = useWeek(i.repository, i.now, i.owned);
   const week = w && w.kind !== 'plain' ? { name: w.name, kind: w.kind, open: i.to.keep } : undefined;
-  return { onOpenLands: i.onOpenLands, onOpenCounsel: i.onOpenCounsel, standard, upNext, week };
+  const t = i.now();
+  const sky = skyLine(weatherAt(t), moonDay(t)) || undefined;
+  return { onOpenLands: i.onOpenLands, onOpenCounsel: i.onOpenCounsel, standard, upNext, week, sky };
 }

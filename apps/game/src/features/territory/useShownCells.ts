@@ -15,9 +15,9 @@
  * question, and both halves of the answer belong to it.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { levelState, scriedCells } from '@es3/core';
+import { levelState, scriedCells, sightRings, weatherAt } from '@es3/core';
 import type { ActiveSpell, Cell, GameRepository } from '@es3/core';
-import { withFogOfWar } from './territoryFeatures.js';
+import { withFogOfWar } from './fogOfWar.js';
 
 export interface UseShownCellsOptions {
   /** Everything the store knows about in the viewport. */
@@ -50,7 +50,7 @@ export function useShownCells({ cells, owned, active, xp, now, repository = null
   // full rebuild, and only the level changes what a Scrying sees (BRDC-PERF-002).
   const level = levelState(xp).level;
   return useMemo(
-    () => withFogOfWar(cells, owned, scriedCells(active, level, now()), seen),
+    () => withFogOfWar(cells, owned, scriedCells(active, level, now()), seen, sightRings(weatherAt(now()))),
     // `now` is a function identity, stable for the session; the real triggers are above it.
     [cells, owned, active, level, now, seen],
   );

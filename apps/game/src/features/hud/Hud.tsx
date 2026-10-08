@@ -379,7 +379,7 @@ export function Hud({
 
           {/* Vigil stays with the readout; Lands and Counsel sit beside it (2026-09-30). */}
           <div className="hud__actions">
-            <SheetActions keepAlive={keepAlive} {...nav} />
+            <SheetActions keepAlive={keepAlive} {...nav} onHelp={onHelp} />
           </div>
         </div>
         </>

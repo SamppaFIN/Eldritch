@@ -39,6 +39,7 @@ import type { KindAt, WorksTrees } from './works/bonus.js';
 import { BUILDING_NAMES_PLAIN } from '../data/counselNames.js';
 import { ERAS, eraBonus } from './era.js';
 import { BOONS, boonBonus } from './age.js';
+import { FULL_MOON_MANA, HARVEST_MOON_FOOD, isFullMoon } from './moon.js';
 import type { BoonId, WeekKind } from './age.js';
 import type { EraId } from './era.js';
 
@@ -146,7 +147,30 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   addInto(merged, boonBonus(ctx.week?.boon));
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
+  // The full moon (BRDC-MOON-001). The Harvest Moon is the hex card's own line, read back.
+  if (isFullMoon(now)) {
+    for (const c of owned.filter((x) => harvestMoonOn(x, ctx))) {
+      for (const l of computeHexYield(c, ctx).contributions) if (l.label === 'Harvest Moon') merged.food = (merged.food ?? 0) + l.amount;
+    }
+    if (merged.mana) merged.mana *= FULL_MOON_MANA;
+  }
   return merged;
+}
+
+/** A Farm that learned the Harvest Moon (WORKS-002's `periodic`), on ground still walked. */
+const harvestMoonOn = (cell: Cell, ctx: YieldContext): boolean =>
+  ctx.now - cell.lastVisitedAt <= DORMANT_AFTER_MS && worksOn(cell).some((w) => w.id === 'farm') && (ctx.trees[cell.h3] ?? []).includes('farm.harvest-moon');
+
+/** The full moon's lines on what has been made so far: a Farm's Harvest Moon, then mana half again. */
+function moonLines(out: readonly YieldContribution[], ctx: YieldContext, cell?: Cell): YieldContribution[] {
+  if (!isFullMoon(ctx.now)) return [];
+  const sum = (k: ResourceKind) => out.reduce((s, c) => (c.resource === k ? s + c.amount : s), 0);
+  const lines: YieldContribution[] = [];
+  const food = sum('food');
+  if (cell && food > 0 && harvestMoonOn(cell, ctx)) lines.push({ resource: 'food', amount: food * (HARVEST_MOON_FOOD - 1), source: 'building', label: 'Harvest Moon', sourceId: 'farm.harvest-moon' });
+  const mana = sum('mana');
+  if (mana !== 0) lines.push({ resource: 'mana', amount: mana * (FULL_MOON_MANA - 1), source: 'other', label: 'Full moon' });
+  return lines;
 }
 
 /** The Librarian's share of some wisdom, as a line of its own; nothing for anyone else. */
@@ -171,7 +195,8 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   }
   const boon = ctx.week?.boon;
   if (boon) for (const [k, v] of Object.entries(BOONS[boon].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Golden week: ${BOONS[boon].name}`, sourceId: boon });
-  return [...out, ...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0))];
+  const all = [...out, ...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0))];
+  return [...all, ...moonLines(all, ctx)];
 }
 
 /** What every hex of a realm reads, worked out once per context — without it `all` is
@@ -263,6 +288,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   for (const l of adjacencyMap(ctx).get(cell.h3) ?? []) push({ [l.resource]: l.amount }, 'adjacency', `${workName(l.work)} ${l.why}`, l.work);
   if (ctx.mythos) push(mythosOnCell(cell, ctx), 'other', `Mythos: ${ctx.mythos.headline}`);
   out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
+  out.push(...moonLines(out, ctx, cell));
 
   const week = ctx.week?.factor ?? 1;
   if (ctx.factor !== 1 || week !== 1) {

@@ -15,6 +15,7 @@ import { DOOM_MAX } from './season.js';
 import type { Season } from './season.js';
 import type { Skill } from './investigator.js';
 import type { ResourceKind } from './terrain.js';
+import { FULL_MOON_DOOM, isFullMoon } from './moon.js';
 
 const DAY_MS = 86_400_000;
 /** Dawn is 06:00 in Finland — 03:00 UTC in summer time, close enough all year. */
@@ -29,7 +30,9 @@ export function dawnsSince(opensAt: number, now: number): number {
 /** The Doom on the clock: every n-th dawn, plus what gates have added or taken away. */
 export function doomAt(season: Season, now: number): number {
   const clock = season.doomEveryNDawns ? Math.floor(dawnsSince(season.opensAt, now) / season.doomEveryNDawns) : 0;
-  return Math.max(0, Math.min(DOOM_MAX, clock + (season.doomShift ?? 0)));
+  // The full moon raises it one for the day (BRDC-MOON-001); it falls back the next.
+  const moon = isFullMoon(now) ? FULL_MOON_DOOM : 0;
+  return Math.max(0, Math.min(DOOM_MAX, clock + (season.doomShift ?? 0) + moon));
 }
 
 /** From Doom 9 the home screen warns (S1). */

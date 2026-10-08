@@ -10,6 +10,7 @@ import type { StandardBinding } from '../territory/useStandard.js';
 import { upNextText } from '@es3/core';
 import type { UpNextRow } from './useUpNext.js';
 import './week.css';
+import type { HelpTopic } from '../help/help.js';
 
 export interface SheetLinks {
   onOpenLands?: (() => void) | undefined;
@@ -20,9 +21,11 @@ export interface SheetLinks {
   upNext?: readonly UpNextRow[] | undefined;
   /** A golden or dark week, named first on the strip (BRDC-AGE-001); a tap goes to the Keep. */
   week?: { name: string; kind: 'golden' | 'dark' | 'plain'; open?: (() => void) | undefined } | undefined;
+  /** The day's moon and weather, "Full moon · Fog" (BRDC-MOON-001); absent on a calm, ordinary day. */
+  sky?: string | undefined;
 }
 
-export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, upNext, week }: VigilProps & SheetLinks) {
+export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, upNext, week, sky, onHelp }: VigilProps & SheetLinks & { onHelp?: ((t: HelpTopic) => void) | undefined }) {
   return (
     <>
       {standard ? (
@@ -49,8 +52,13 @@ export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, 
         </RitualButton>
       ) : null}
       <Vigil keepAlive={keepAlive} />
-      {(upNext && upNext.length > 0) || week ? (
+      {(upNext && upNext.length > 0) || week || sky ? (
         <p className="hud__upnext es-numeric" aria-label="Up next">
+          {sky ? (
+            <button type="button" className="hud__upnext-item hud__sky" onClick={() => onHelp?.('sky')}>
+              {sky}
+            </button>
+          ) : null}
           {week ? (
             <button type="button" className={`hud__upnext-item hud__week hud__week--${week.kind}`} onClick={week.open}>
               {week.name}

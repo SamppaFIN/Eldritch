@@ -28,7 +28,8 @@ export type HelpTopic =
   | 'adventures'
   | 'cthulhu-awakening'
   | 'the-wager'
-  | 'hearth';
+  | 'hearth'
+  | 'sky';
 
 export interface HelpEntry {
   title: string;
@@ -184,6 +185,15 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     ],
     see: ['vigil', 'decay', 'vocabulary'],
   },
+  sky: {
+    title: 'Moon and Weather',
+    body: [
+      'The sky is the real moon and a weather read from the calendar, the same on every phone. Nothing is fetched.',
+      'Full moon: mana comes half again, the Doom stands one higher for the day, and a Farm that learned the Harvest Moon makes triple food. New moon: anomalies show on the ground bordering yours, not only on your own.',
+      'Fog: the map shows only your own ground. Clear skies: two rings past it. Storm: a fix with half again the usual GPS error still counts — but walking speed is checked as always.',
+    ],
+    see: ['mana', 'anomaly', 'cthulhu-awakening'],
+  },
 };
 
 /**
@@ -197,7 +207,7 @@ export const GROUPS: readonly { heading: string; topics: readonly HelpTopic[] }[
     topics: ['awakening', 'corruption', 'reinforcement', 'decay', 'warding'],
   },
   { heading: 'Building and rites', topics: ['work', 'rite', 'mana'] },
-  { heading: 'The world', topics: ['anomaly', 'adventures', 'cthulhu-awakening'] },
+  { heading: 'The world', topics: ['anomaly', 'adventures', 'cthulhu-awakening', 'sky'] },
   { heading: 'Playing others', topics: ['the-wager'] },
   { heading: 'Your sanctuary', topics: ['hearth', 'vigil'] },
 ];

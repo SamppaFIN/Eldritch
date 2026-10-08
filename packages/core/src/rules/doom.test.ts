@@ -18,6 +18,12 @@ describe('the Doom track (BRDC-DOOM-001)', () => {
     expect(doomAt({ ...s, doomEveryNDawns: 3 }, T0 + 9 * DAY)).toBe(3);
   });
 
+  it('rises one on a full-moon day and falls back the next (BRDC-MOON-001)', () => {
+    const s = openSeason(2, 'x', 'seed', T0);
+    expect(doomAt(s, Date.parse('2026-10-26T12:00:00Z'))).toBe(1);
+    expect(doomAt(s, Date.parse('2026-10-27T12:00:00Z'))).toBe(0);
+  });
+
   it('gates shift it, and it stays within 0 … 13', () => {
     const s = { ...openSeason(2, 'x', 'seed', T0), doomEveryNDawns: 3 };
     expect(doomAt({ ...s, doomShift: 2 }, T0 + 3 * DAY)).toBe(3);

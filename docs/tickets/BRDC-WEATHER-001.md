@@ -5,8 +5,8 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S (deterministinen funktio + muutama kytkentä) |
 | **Riippuvuudet** | BRDC-EVENT-001 (`darkTime` on malli) |
-| **Status** | `todo` |
-| **Valmius** | 0 % |
+| **Status** | `done` (2026-10-08, haara `season-3`, MOON-001:n mukana) |
+| **Valmius** | 100 % |
 | **Lähde** | Aavistuksen ehdotus 2026-09-02 — `darkTime`n laajennus |
 
 ## 🔴 RED
@@ -17,18 +17,23 @@ sanotaan ennen kuin puree. Sää voisi olla sama idea — halpa, deterministinen
 
 ## 🟢 GREEN
 
-- [ ] **`weatherAt(now): 'clear' | 'fog' | 'storm' | 'calm'`** (`rules/weather.ts`, puhdas,
+- [x] **`weatherAt(now): 'clear' | 'fog' | 'storm' | 'calm'`** (`rules/weather.ts`, puhdas,
       deterministinen päivämäärästä FNV-hashilla — sama sää joka puhelimessa samana päivänä).
       `calm` = normaali, yleisin. Muut harvempia.
-- [ ] **Sumu** → fog-of-war-säde kutistuu (owned + 0-ring sen sijaan että 1-ring)
+- [x] **Sumu** → fog-of-war-säde kutistuu (owned + 0-ring sen sijaan että 1-ring)
       `territoryFeatures.ts` `withFogOfWar`.
-- [ ] **Kirkas** → reveal-säde +1 (owned + 2-ring). "Näet kauas tänään."
-- [ ] **Myrsky** → GPS-tarkkuustoleranssi löysempi (`MAX_ACCURACY_M` × 1.5 sen päivän)
+- [x] **Kirkas** → reveal-säde +1 (owned + 2-ring). "Näet kauas tänään."
+- [x] **Myrsky** → GPS-tarkkuustoleranssi löysempi (`MAX_ACCURACY_M` × 1.5 sen päivän)
       niin että huono taivas silti kelpaa — mutta anti-cheat-nopeusraja EI löysty (§15).
-- [ ] **HUD-rivi** kun sää ei ole `calm`: "Sumu · näet vähemmän" tms. Codex-linkki
+- [x] **HUD-rivi** kun sää ei ole `calm`: "Sumu · näet vähemmän" tms. Codex-linkki
       (`weather`-topic `help.ts`:ään).
-- [ ] `weather.test.ts`: determinismi (sama now → sama sää), jakauma järkevä sadan päivän
+- [x] `weather.test.ts`: determinismi (sama now → sama sää), jakauma järkevä sadan päivän
       yli, jokainen arvo esiintyy.
+
+**Toteutus:** `rules/weather.ts` (FNV + sekoitus UTC-päivästä; 55 % calm). Sumu/kirkas →
+`sightRings` → `fogOfWar.ts` (siirretty `territoryFeatures.ts`:stä rivikaton takia). Myrsky →
+`geo/filter.ts` `acceptPoint`, nopeusraja ennallaan. HUD: up-next-nauhan ensimmäinen kohta
+("Full moon · Fog"), napautus → Codex `sky`. e2e `sky.spec.ts` (kello 2027-04-20).
 
 ## Ei tässä
 

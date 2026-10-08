@@ -17,6 +17,7 @@ import {
 } from '../rules/constants.js';
 import type { RejectReason, TrailPoint, TrailResult } from '../types/domain.js';
 import { haversine } from './haversine.js';
+import { STORM_ACCURACY, weatherAt } from '../rules/weather.js';
 
 export type Accept = { ok: true } | { ok: false; reason: RejectReason };
 
@@ -33,7 +34,8 @@ export function acceptPoint(prev: TrailPoint | null, next: TrailPoint): Accept {
   if (!Number.isFinite(next.lat) || !Number.isFinite(next.lng)) {
     return { ok: false, reason: 'accuracy' };
   }
-  if (next.accuracy > MAX_ACCURACY_M) return { ok: false, reason: 'accuracy' };
+  // A storm forgives a worse fix (BRDC-WEATHER-001); the speed limit below never loosens.
+  if (next.accuracy > MAX_ACCURACY_M * (weatherAt(next.t) === 'storm' ? STORM_ACCURACY : 1)) return { ok: false, reason: 'accuracy' };
 
   // The first fix of a run has nothing to compare against.
   if (prev === null) return OK;

@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { cellAt, emptyCell, neighboursOf } from '@es3/core';
 import type { Cell } from '@es3/core';
-import { withFogOfWar } from './territoryFeatures.js';
+import { withFogOfWar } from './fogOfWar.js';
 
 const ME = 'me';
 const RIVAL = 'the-pale-warden';
@@ -31,6 +31,12 @@ describe('withFogOfWar', () => {
     expect(shownH3.has(H3)).toBe(true);
     for (const n of ring) expect(shownH3.has(n)).toBe(true);
     expect(shownH3.has(far)).toBe(false);
+  });
+
+  it('fog shows my ground only; a clear day two rings past it (BRDC-WEATHER-001)', () => {
+    const owned = [cell(ME, 200, H3)];
+    expect(withFogOfWar(owned, owned, [], new Set(), 0).map((c) => c.h3)).toEqual([H3]);
+    expect(withFogOfWar(owned, owned, [], new Set(), 2)).toHaveLength(19);
   });
 
   /*

@@ -20,3 +20,7 @@ export { BOONS, BOON_IDS, WEEK_FACTOR, WEEK_NAME, ageFor, rollWeek, weekEffect, 
 export type { BoonId, WeekKind, WeekState } from './age.js';
 export { DREAMS, dreamFor, dreamt } from './dream.js';
 export type { DreamCard } from './dream.js';
+export { FULL_MOON_DOOM, FULL_MOON_MANA, HARVEST_MOON_FOOD, isFullMoon, isNewMoon, moonDay } from './moon.js';
+export type { MoonDay } from './moon.js';
+export { STORM_ACCURACY, WEATHER_LINE, WEATHER_NAME, sightRings, skyLine, weatherAt } from './weather.js';
+export type { Weather } from './weather.js';

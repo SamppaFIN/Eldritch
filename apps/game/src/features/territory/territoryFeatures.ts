@@ -11,9 +11,8 @@ import {
   blightLevel,
   bountyOn,
   bountyYield,
-  emptyCell,
   isCityState,
-  neighboursOf,
+  isNewMoon,
   terrainForCell,
   TERRAIN_TABLE,
 } from '@es3/core';
@@ -245,45 +244,6 @@ export function bountyInk(pick: BountyPick | null): string {
 }
 
 /**
- * Fog of war: the only cells the map draws are the ones you hold, the ring of cells
- * around them, and what you have seen — revealed, or sighted from afar. A rival's ground
- * from the shared world is drawn only there (2026-09-30; until then every imported cell
- * showed, BRDC-WAGER-JSON-006). A clanmate's ground always shows. Everything else is
- * left as bare basemap.
- *
- * A neighbour with no stored cell of its own still appears — as `emptyCell(h3)` — so it
- * can carry the pale reveal tint and its terrain glyph. The full set stays available to
- * the rest of the game (selection, the rival compass); only what reaches the map is
- * narrowed here.
- */
-export function withFogOfWar(
-  all: readonly Cell[],
-  owned: readonly Cell[],
-  /** A running Scrying lifts the fog where it looks, and only while it runs. */
-  scried: readonly Cell[] = [],
-  /** Hexes seen for good — sighted from afar (a Watchtower, Dream-Sight) or revealed. */
-  seen: ReadonlySet<string> = new Set(),
-): Cell[] {
-  // Owned first, so a held cell outside the viewport read never draws as bare ground and
-  // then flicks purple when the next refresh lands (BRDC-PERF-002).
-  const byH3 = new Map([...owned, ...all].map((c) => [c.h3, c]));
-  const visible = new Set<string>();
-  for (const cell of owned) {
-    visible.add(cell.h3);
-    for (const n of neighboursOf(cell.h3)) visible.add(n);
-  }
-  // Seen ground stays lifted, and a rival's shows only there (field report 2026-09-30:
-  // *"näen jo punaisella yhden alueen"*). A clanmate's ground is shared sight.
-  for (const h3 of seen) visible.add(h3);
-  for (const cell of all) if (cell.imported && cell.ally) visible.add(cell.h3);
-  // Added here rather than merged into `all`, because this is exactly what the Rite does:
-  // it lifts the fog, it does not create ground. Nothing about it is written anywhere, so
-  // when the spell stops running these simply stop arriving (BRDC-SPELL-002).
-  for (const cell of scried) visible.add(cell.h3);
-  return [...visible].map((h3) => byH3.get(h3) ?? emptyCell(h3));
-}
-
-/**
  * The anomaly mark for one of your cells (BRDC-EVENT-001). Different glyphs, not just a
  * tint — the state has to read without colour. `''` for ground with nothing on it, and
  * for a finished anomaly.
@@ -377,7 +337,8 @@ export function cellProperties(
     // The isometric tile's name, which is simply the terrain (Sigil §03). Kept beside the
     // glyph rather than replacing it: no canvas, no tiles, and the glyph layer stands in.
     ground: terrainForCell(cell).kind,
-    anomaly: mine ? anomalyGlyphFor(cell) : '',
+    // A new moon shows them a ring further: on the bordering ground too (BRDC-MOON-001).
+    anomaly: mine || isNewMoon(now) ? anomalyGlyphFor(cell) : '',
     // A landmark is drawn by its own layer instead, so it is never drawn twice.
     building: isLandmark ? '' : (bg?.char ?? ''),
     buildingColor: bg?.color ?? '',

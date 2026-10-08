@@ -9,6 +9,7 @@ import type { TrailPoint } from '../types/domain.js';
 import { acceptPoint, filterTrail } from './filter.js';
 import { EARTH_RADIUS_M, haversine, pathLength } from './haversine.js';
 import { msToKmh, speedMs } from './speed.js';
+import { weatherAt } from '../rules/weather.js';
 
 const TAMPERE = { lat: 61.4978, lng: 23.761 };
 const HELSINKI = { lat: 60.1699, lng: 24.9384 };
@@ -194,5 +195,17 @@ describe('filterTrail', () => {
     const { accepted, result } = filterTrail(null, []);
     expect(accepted).toEqual([]);
     expect(result).toEqual({ accepted: 0, rejected: [], distanceM: 0, grown: [], revealed: [], unobservedMs: 0, outOfReach: 0 });
+  });
+});
+
+describe('a storm forgives a worse fix (BRDC-WEATHER-001)', () => {
+  const days = Array.from({ length: 60 }, (_, i) => Date.parse('2026-10-01T12:00:00Z') + i * 86_400_000);
+  const storm = days.find((t) => weatherAt(t) === 'storm') as number;
+  const calm = days.find((t) => weatherAt(t) === 'calm') as number;
+  const fix = (t: number) => ({ lat: 61.4729, lng: 23.7258, t, accuracy: 60 });
+  it('takes a 60 m fix in a storm, not on a calm day', () => {
+    expect(acceptPoint(null, fix(storm))).toEqual({ ok: true });
+    expect(acceptPoint(null, fix(calm))).toEqual({ ok: false, reason: 'accuracy' });
+    expect(acceptPoint(null, { ...fix(storm), accuracy: 80 })).toEqual({ ok: false, reason: 'accuracy' });
   });
 });

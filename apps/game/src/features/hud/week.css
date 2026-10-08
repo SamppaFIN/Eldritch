@@ -6,3 +6,8 @@ button.hud__upnext-item.hud__week--golden {
 button.hud__upnext-item.hud__week--dark {
   color: var(--text-dim);
 }
+
+/* The day's sky (BRDC-MOON-001): a tap opens its Codex page. */
+button.hud__upnext-item.hud__sky {
+  color: var(--text-muted);
+}

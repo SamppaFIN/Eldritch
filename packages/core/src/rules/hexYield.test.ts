@@ -167,3 +167,22 @@ describe('the week on the card (BRDC-AGE-001)', () => {
     expect(lines.every((l) => l.amount > 0)).toBe(true);
   });
 });
+
+describe('the full moon on the card (BRDC-MOON-001)', () => {
+  it('a Harvest Moon Farm makes triple food, mana comes half again, card and settle agreeing', async () => {
+    const FULL = Date.parse('2026-10-26T12:00:00Z');
+    const cells = realm().map((c) => ({ ...c, lastVisitedAt: FULL - H }));
+    const s = await store(cells, false);
+    await s.set(K.worksTree, { [cells[1]?.h3 as string]: ['farm.tilled-rows', 'farm.harvest-moon'] });
+    const ctx = (await yieldContext(s, cells, FULL)).ctx;
+    const farm = computeHexYield(cells[1] as Cell, ctx).contributions;
+    const harvest = farm.find((c) => c.label === 'Harvest Moon');
+    const before = farm.filter((c) => c.resource === 'food' && c.label !== 'Harvest Moon').reduce((n, c) => n + c.amount, 0);
+    expect(harvest?.amount).toBeCloseTo(before * 2, 9);
+    const sum = summed(cells.map((c) => computeHexYield(c, ctx)), realmOnlyYield(ctx));
+    const paid = realmBonus(ctx);
+    for (const k of RESOURCE_KINDS) expect(sum[k] ?? 0).toBeCloseTo(paid[k] ?? 0, 9);
+    const dayAfter = { ...ctx, now: FULL + 2 * 86_400_000 };
+    expect(computeHexYield(cells[1] as Cell, dayAfter).contributions.some((c) => c.label === 'Harvest Moon')).toBe(false);
+  });
+});
