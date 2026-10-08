@@ -63,6 +63,7 @@ import type { AdventureChoiceOutcome, AdventureView, StartOutcome } from './adve
 import { abandonAdventureFor, chooseInAdventureFor, chooseInChainFor, getAdventuresFor, getAnomaliesFor, getQuestFindsFor, investigateAnomalyFor, recordQuestFindFor, resolveAnomalyFor, startAdventureFor, type SecretSiteId } from './storyRepo.js';
 import { cipherView, recordShard, type CipherView } from './cipherStore.js';
 import { activeRunOf, beginRun, closeRun, trailPointsOf } from './runStore.js';
+import { ambitionSaid } from './ambitionStore.js';
 import { readHallOfFame, retireKingdom, setKingdomShared, setKingdomStory, type HallOfFameEntry } from './hallOfFameStore.js';
 
 export interface MockRepositoryOptions {
@@ -349,8 +350,11 @@ export class MockRepositoryBase {
   /* --- Maintenance ------------------------------------------------------ */
 
   resetAll = async (): Promise<void> => void (await this.store.clear());
-  retireKingdom = async (now: number, era?: string): Promise<HallOfFameEntry> =>
-    retireKingdom(this.store, await this.getProfile(), await this.getOwnedCells(now), now, this.newId, era);
+  retireKingdom = async (now: number, era?: string): Promise<HallOfFameEntry> => {
+    const owned = await this.getOwnedCells(now);
+    const ambition = await ambitionSaid(this.store, owned, await this.getPlaces());
+    return retireKingdom(this.store, await this.getProfile(), owned, now, this.newId, era, ambition);
+  };
   getHallOfFame = (): Promise<HallOfFameEntry[]> => readHallOfFame(this.store);
   setKingdomStory = (id: string, story: string): Promise<void> => setKingdomStory(this.store, id, story);
   setKingdomShared = (id: string, at: number): Promise<void> => setKingdomShared(this.store, id, at);

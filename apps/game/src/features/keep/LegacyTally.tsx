@@ -27,6 +27,13 @@ export function LegacyTable({ legacy, outcome }: { legacy: Legacy; outcome?: Sea
           <td />
           <td>{legacy.subtotal}</td>
         </tr>
+        {legacy.ambition ? (
+          <tr>
+            <th scope="row">Ambition · {legacy.ambition.title}</th>
+            <td>{legacy.ambition.met ? '× 1.15' : 'not met'}</td>
+            <td />
+          </tr>
+        ) : null}
         {outcome ? (
           <tr>
             <th scope="row">{outcome === 'quiet' ? 'The Lake Is Quiet' : 'The Ancient One Risen'}</th>

@@ -12,3 +12,5 @@ export { ALLIES, allyDice, allyDiscount, allyOf } from './ally.js';
 export type { Ally, AllyId } from './ally.js';
 export { CONDITIONS, DEBT_GOLD, PACT_SANITY, activeConditions, conditionDice, conditionLuck, gainCondition, hasCondition } from './condition.js';
 export type { ConditionDef, ConditionId, HeldCondition } from './condition.js';
+export { AMBITIONS, AMBITION_IDS, AMBITION_MULT, ambitionMet, ambitionProgress, templesHeld } from './ambition.js';
+export type { Ambition, AmbitionId, AmbitionState } from './ambition.js';

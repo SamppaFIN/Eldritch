@@ -16,10 +16,11 @@ import type { Gate } from '../rules/gate.js';
 import type { RiteBook } from '../rules/rites.js';
 import { hexDistance } from '../geo/cells.js';
 import { readLore } from './loreStore.js';
+import { readAmbition } from './ambitionStore.js';
 import { settlePouch } from './pouch.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
-import type { Cell, H3Index } from '../types/domain.js';
+import type { Cell, H3Index, RevealedPlace } from '../types/domain.js';
 
 export interface LegacyApi {
   /** What the realm would leave if the season closed now, under `outcome`. */
@@ -31,7 +32,12 @@ export interface LegacyApi {
   award(titles: readonly string[]): Promise<void>;
 }
 
-export function legacyApi(store: () => KeyValueStore, owned: (now: number) => Promise<readonly Cell[]>): LegacyApi {
+export function legacyApi(
+  store: () => KeyValueStore,
+  owned: (now: number) => Promise<readonly Cell[]>,
+  /** For the ambition's temples (BRDC-AMBITION-001); a realm with none revealed scores without. */
+  places: () => Promise<readonly RevealedPlace[]> = async () => [],
+): LegacyApi {
   return {
     titles: async () => (await store().get<string[]>(K.titles)) ?? [],
     award: async (titles) => {
@@ -60,6 +66,7 @@ export function legacyApi(store: () => KeyValueStore, owned: (now: number) => Pr
       const standing = (id: (typeof MASTERWORK_IDS)[number]) => cells.some((c) => worksOn(c).some((w) => w.id === MASTERWORKS[id].becomes));
       const raised = MASTERWORK_IDS.filter(standing);
       // Under a Risen lake, a Keep within two rings of an open gate has fallen.
+      const ambition = await readAmbition(store(), cells, await places());
       const fallen = outcome === 'risen' && !!homeS && gates.some((g) => isOpen(g) && hexDistance(g.h3, homeS) <= 2);
 
       return legacyOf(
@@ -81,6 +88,7 @@ export function legacyApi(store: () => KeyValueStore, owned: (now: number) => Pr
           keepStanding: !!keep && !fallen,
         },
         outcome,
+        ambition ? { title: ambition.ambition.title, met: ambition.progress.have >= ambition.progress.need } : undefined,
       );
     },
   };

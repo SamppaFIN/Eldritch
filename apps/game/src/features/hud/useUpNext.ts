@@ -1,7 +1,7 @@
 /**
  * The walking sheet's "up next" strip (BRDC-NEXT-001): reads the views that already exist —
- * the Lore and the wisdom rate, the Keep's granary, the Tavern's tasks — and lets
- * `rankUpNext` pick the three that finish first. No state of its own.
+ * the Lore and the wisdom rate, the Keep's granary, the Tavern's tasks, the season's
+ * ambition — and lets `rankUpNext` pick the three that finish first. No state of its own.
  */
 import { useEffect, useState } from 'react';
 import { hoursToAfford, rankUpNext } from '@es3/core';
@@ -32,11 +32,12 @@ export function useUpNext(
     let live = true;
     void (async () => {
       const t = now();
-      const [lore, forecast, keep, tasks] = await Promise.all([
+      const [lore, forecast, keep, tasks, ambition] = await Promise.all([
         repository.lore.view(t),
         repository.getForecast(t),
         repository.keep.view(t),
         repository.tasks.board(t),
+        repository.ambition.view(t),
       ]);
       const items: UpNextItem[] = [];
       const target: Record<string, keyof UpNextTargets> = {};
@@ -57,6 +58,10 @@ export function useUpNext(
       for (const v of tasks) {
         if (v.state === 'ready') items.push({ id: `task:${v.task.id}`, label: `Claim ${v.task.title}`, hours: 0 });
         else if (v.state === 'taken' && v.task.objective.kind !== 'check') items.push({ id: `task:${v.task.id}`, label: v.task.title, have: v.progress.have, need: v.progress.need });
+      }
+      if (ambition.chosen && ambition.progress && !ambition.met) {
+        items.push({ id: 'ambition', label: ambition.chosen.title, have: ambition.progress.have, need: ambition.progress.need });
+        target.ambition = 'keep';
       }
       if (live) setRows(rankUpNext(items).map((item) => ({ item, to: target[item.id] })));
     })();

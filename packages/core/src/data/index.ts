@@ -33,6 +33,7 @@ export type { ChronicleImageApi } from './chronicleImageStore.js';
 export type { ChooseOutcome, InvestigatorApi, InvestigatorView } from './investigatorStore.js';
 export type { TaskApi, TaskOutcome, TaskView } from './taskStore.js';
 export type { MythosApi, MythosToday } from './mythosStore.js';
+export type { AmbitionApi, AmbitionOutcome, AmbitionView } from './ambitionStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';

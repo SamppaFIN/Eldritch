@@ -47,6 +47,8 @@ export interface HallOfFameEntry {
   image?: true;
   /** The investigator's own tale, when it was finished (BRDC-INVEST-002): "The Librarian · Where Books Go to Rest". */
   tale?: string;
+  /** The season's ambition and whether it was met (BRDC-AMBITION-001): "Keeper of Temples · met". */
+  ambition?: string;
 }
 
 export async function readHallOfFame(store: KeyValueStore): Promise<HallOfFameEntry[]> {
@@ -99,6 +101,8 @@ export async function retireKingdom(
   newId: () => string,
   /** A free label for when this kingdom stood, e.g. "Stone Age" (BRDC-HALL-003). */
   era?: string,
+  /** The season's ambition as `ambitionSaid` says it (BRDC-AMBITION-001). */
+  ambition?: string | null,
 ): Promise<HallOfFameEntry> {
   const buildings = buildingsOf(owned).length;
   const [achievements, secretSites, wonders, cipherShards, tale] = await Promise.all([
@@ -125,6 +129,7 @@ export async function retireKingdom(
     cipherShards,
     ...(era?.trim() ? { era: era.trim().slice(0, 60) } : {}),
     ...(tale ? { tale } : {}),
+    ...(ambition ? { ambition } : {}),
   };
 
   await store.set(K.hallOfFame, [...(await readHallOfFame(store)), entry]);

@@ -13,6 +13,7 @@ import { chronicleImageApi, type ChronicleImageApi } from './chronicleImageStore
 import { investigatorApi, type InvestigatorApi } from './investigatorStore.js';
 import { taskApi, type TaskApi } from './taskStore.js';
 import { mythosApi, type MythosApi } from './mythosStore.js';
+import { ambitionApi, type AmbitionApi } from './ambitionStore.js';
 
 export { toOwnershipCell } from './MockRepositoryBase.js';
 export type { MockRepositoryOptions } from './MockRepositoryBase.js';
@@ -27,7 +28,7 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly gates: S2.GateApi = S2.gateApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly rumours: S2.RumourApi = S2.rumourApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly reckoning: S2.ReckoningApi = S2.reckoningApi(() => this.store, (t) => this.getOwnedCells(t));
-  readonly legacy: S2.LegacyApi = S2.legacyApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly legacy: S2.LegacyApi = S2.legacyApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces());
   readonly heirloom: S2.HeirloomApi = S2.heirloomApi(() => this.store);
   readonly ruins: S2.RuinApi = S2.ruinApi(() => this.store, () => this.newId());
   readonly wonderActs: S2.WonderActApi = S2.wonderActApi(() => this.store, (t) => this.getOwnedCells(t), () => this.gates, () => this.reckoning);
@@ -41,4 +42,5 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
 
   /* --- Season 3 (branch `season-3`) ------------------------------------------ */
   readonly mythos: MythosApi = mythosApi(() => this.store);
+  readonly ambition: AmbitionApi = ambitionApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces());
 }

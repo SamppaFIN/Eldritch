@@ -5,11 +5,13 @@
  * What a realm built becomes points, line by line, then the season's outcome multiplies
  * the lot: a Quiet lake ×1.2, a Risen one ×1. A Keep standing at the end adds 1 % of the
  * subtotal per Keep level; under a Risen lake a Keep within two rings of an open gate is
- * scored as fallen. A Season 1 realm scores what it has — cells, wonders, quests — and
+ * scored as fallen. A season's ambition met multiplies again, ×1.15 (BRDC-AMBITION-001).
+ * A Season 1 realm scores what it has — cells, wonders, quests — and
  * zero for what its season never had.
  */
 import { legacyMultiplier } from './season.js';
 import type { SeasonOutcome } from './season.js';
+import { AMBITION_MULT } from './ambition.js';
 
 export interface LegacyCounts {
   cells: number;
@@ -43,6 +45,8 @@ export interface Legacy {
   lines: LegacyLine[];
   subtotal: number;
   mult: number;
+  /** The season's ambition, and whether it was met — met, it is part of `mult`. */
+  ambition?: { title: string; met: boolean };
   total: number;
 }
 
@@ -51,7 +55,7 @@ export const EMPTY_COUNTS: LegacyCounts = {
   gatesSealed: 0, quests: 0, wonders: 0, damage: 0, sane: false, sanity: 0, keepLevel: 0, keepStanding: false,
 };
 
-export function legacyOf(c: LegacyCounts, outcome: SeasonOutcome | undefined): Legacy {
+export function legacyOf(c: LegacyCounts, outcome: SeasonOutcome | undefined, ambition?: { title: string; met: boolean }): Legacy {
   const per = (label: string, count: number, each: number): LegacyLine => ({ label, count, rule: `× ${each}`, points: count * each });
   const lines: LegacyLine[] = [
     per('Cells held', c.cells, 2),
@@ -71,6 +75,6 @@ export function legacyOf(c: LegacyCounts, outcome: SeasonOutcome | undefined): L
     lines.push({ label: 'Keep still standing', count: c.keepLevel, rule: `+ ${c.keepLevel} %`, points: Math.round((base * c.keepLevel) / 100) });
   }
   const subtotal = lines.reduce((s, l) => s + l.points, 0);
-  const mult = legacyMultiplier(outcome);
-  return { counts: c, lines, subtotal, mult, total: Math.round(subtotal * mult) };
+  const mult = Math.round(legacyMultiplier(outcome) * (ambition?.met ? AMBITION_MULT : 1) * 100) / 100;
+  return { counts: c, lines, subtotal, mult, ...(ambition ? { ambition } : {}), total: Math.round(subtotal * mult) };
 }

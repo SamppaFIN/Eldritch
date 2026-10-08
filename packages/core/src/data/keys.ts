@@ -90,6 +90,8 @@ export const K = {
   eurekaSeen: 'eureka-seen',
   /** The season's clock for the Mythos card, and the last headline day shown (BRDC-MYTHOS-001). */
   mythos: 'mythos',
+  /** The season's ambition, `{ id, at }` — chosen once, locked (BRDC-AMBITION-001). Resets with the season. */
+  ambition: 'ambition',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */
