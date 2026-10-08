@@ -12,6 +12,7 @@
 import { TALE_SKILL_MAX, archetypeOf, resolveCheck } from '../rules/archetype.js';
 import { PERSONAL_TASKS } from '../rules/personalTasks.js';
 import { VILLAGE_TASKS } from '../rules/suzerain.js';
+import { CHOIR_TASKS } from '../rules/choir.js';
 import type { CityStateId } from '../rules/cityState.js';
 import { ALLIES } from '../rules/ally.js';
 import { gainCondition } from '../rules/condition.js';
@@ -150,7 +151,9 @@ export function taskApi(
     async board(now) {
       const b = await sync(now);
       const keep = await hasKeep();
-      return viewAll(TASKS.filter((t) => keep || t.objective.kind !== 'check'), b, now);
+      // The Drowned Choir's tale hangs here too, a step at a time (BRDC-CHOIR-001).
+      const choir = CHOIR_TASKS.filter((t) => !t.after || b.outcomes[t.after]?.status === 'completed');
+      return viewAll([...TASKS.filter((t) => keep || t.objective.kind !== 'check'), ...choir], b, now);
     },
 
     async personal(now) {

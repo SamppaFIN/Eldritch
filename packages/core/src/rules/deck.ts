@@ -14,6 +14,7 @@ import type { Skill } from './investigator.js';
 import type { ConditionId } from './condition.js';
 import type { H3Index } from '../types/domain.js';
 import { MASK_CARDS } from './masks.js';
+import { CHOIR_CARDS, CHOIR_SHARE } from './choir.js';
 
 export type Deck = 'forest' | 'lake' | 'settlement' | 'hill';
 
@@ -140,8 +141,10 @@ export function rumourAt(seed: string, h3: H3Index, kind: TerrainKind): DeckCard
   // Hashed apart from the deal below, so every other rumour stays where it was.
   const masks = MASK_CARDS.filter((c) => c.deck === deck);
   if (masks.length > 0 && hash(`${seed}:mask:${h3}`) < MASK_SHARE) return masks[Math.floor(hash(`${seed}:maskcard:${h3}`) * masks.length)] ?? null;
+  // The lake's own: the Drowned Choir (BRDC-CHOIR-001).
+  if (deck === 'lake' && hash(`${seed}:choir:${h3}`) < CHOIR_SHARE) return CHOIR_CARDS[Math.floor(hash(`${seed}:choircard:${h3}`) * CHOIR_CARDS.length)] ?? null;
   const cards = DECKS.filter((c) => c.deck === deck);
   return cards[Math.floor(hash(`${seed}:card:${h3}`) * cards.length)] ?? null;
 }
 
-export const cardById = (id: string): DeckCard | null => DECKS.find((c) => c.id === id) ?? MASK_CARDS.find((c) => c.id === id) ?? null;
+export const cardById = (id: string): DeckCard | null => DECKS.find((c) => c.id === id) ?? MASK_CARDS.find((c) => c.id === id) ?? CHOIR_CARDS.find((c) => c.id === id) ?? null;

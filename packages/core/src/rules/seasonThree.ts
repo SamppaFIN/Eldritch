@@ -35,3 +35,4 @@ export { PAGES, PAGE_FIND_SHARE, afterReading, canReadPage, pageFoundAt, readPag
 export type { Page } from './pages.js';
 export { MASKS_TO_NAME, MASK_CARDS, MASK_TELL, STRANGER_CHOICES, STRANGER_NAMES, TRUE_NAME, isMask } from './masks.js';
 export type { StrangerChoice, StrangerName } from './masks.js';
+export { CHOIR_CARDS, CHOIR_FINALE, CHOIR_TASKS, FLOOD_FACTOR, floodsAt, isFlooded } from './choir.js';

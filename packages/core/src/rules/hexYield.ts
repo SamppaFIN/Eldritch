@@ -44,6 +44,7 @@ import { routeActive, routeGold, routesGold } from './tradeRoute.js';
 import type { TradeRoute } from './tradeRoute.js';
 import { SUZERAIN_BONUS } from './suzerain.js';
 import { cityStateById } from './cityState.js';
+import { FLOOD_FACTOR, floodsAt } from './choir.js';
 import type { CityStateId } from './cityState.js';
 import type { BoonId, WeekKind } from './age.js';
 import type { EraId } from './era.js';
@@ -89,6 +90,8 @@ export interface YieldContext {
   routes?: readonly TradeRoute[] | undefined;
   /** Villages this realm is suzerain of (BRDC-SUZERAIN-001): each pays its speciality. */
   suzerain?: readonly CityStateId[] | undefined;
+  /** The Reckoning's flood (BRDC-CHOIR-001): lake and coast hexes make half until the Choir is silenced. */
+  flooded?: boolean | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -166,7 +169,23 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
     }
     if (merged.mana) merged.mana *= FULL_MOON_MANA;
   }
+  // The flood is the hex card's own line, read back, after everything it halves.
+  if (ctx.flooded) {
+    for (const c of owned.filter((x) => floodsAt(terrainForCell(x).kind))) {
+      for (const l of computeHexYield(c, ctx).contributions) if (l.label === 'Flooded') merged[l.resource] = (merged[l.resource] ?? 0) + l.amount;
+    }
+  }
   return merged;
+}
+
+/** Half of everything a lake or coast hex makes, taken back while the Choir sings. */
+function floodLines(out: readonly YieldContribution[], ctx: YieldContext, cell: Cell): YieldContribution[] {
+  if (!ctx.flooded || !floodsAt(terrainForCell(cell).kind)) return [];
+  const sum: Partial<ResourcePool> = {};
+  for (const c of out) sum[c.resource] = (sum[c.resource] ?? 0) + c.amount;
+  return (Object.entries(sum) as [ResourceKind, number][])
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => ({ resource: k, amount: -v * (1 - FLOOD_FACTOR), source: 'other' as const, label: 'Flooded' }));
 }
 
 /** A Farm that learned the Harvest Moon (WORKS-002's `periodic`), on ground still walked. */
@@ -180,7 +199,8 @@ function moonLines(out: readonly YieldContribution[], ctx: YieldContext, cell?: 
   const lines: YieldContribution[] = [];
   const food = sum('food');
   if (cell && food > 0 && harvestMoonOn(cell, ctx)) lines.push({ resource: 'food', amount: food * (HARVEST_MOON_FOOD - 1), source: 'building', label: 'Harvest Moon', sourceId: 'farm.harvest-moon' });
-  const mana = sum('mana');
+  // The realm's own mana, as the settle multiplies it — the ground's trickle is not in it.
+  const mana = out.reduce((s, c) => (c.resource === 'mana' && c.source !== 'terrain' ? s + c.amount : s), 0);
   if (mana !== 0) lines.push({ resource: 'mana', amount: mana * (FULL_MOON_MANA - 1), source: 'other', label: 'Full moon' });
   return lines;
 }
@@ -308,6 +328,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   if (ctx.mythos) push(mythosOnCell(cell, ctx), 'other', `Mythos: ${ctx.mythos.headline}`);
   out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
   out.push(...moonLines(out, ctx, cell));
+  out.push(...floodLines(out, ctx, cell));
 
   const week = ctx.week?.factor ?? 1;
   if (ctx.factor !== 1 || week !== 1) {

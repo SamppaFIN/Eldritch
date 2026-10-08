@@ -24,8 +24,9 @@ describe('the Tavern board', () => {
   it('a Season 1 save sees the objective tasks only', async () => {
     const s1 = await setup();
     const s2 = await setup({ keep: true });
-    expect((await s1.api.board(T0)).length).toBe(7);
-    expect((await s2.api.board(T0)).length).toBe(10);
+    // Each count holds the Drowned Choir's first step too (BRDC-CHOIR-001).
+    expect((await s1.api.board(T0)).length).toBe(8);
+    expect((await s2.api.board(T0)).length).toBe(11);
     expect(await s1.api.take('grug-riddle', T0)).toEqual({ ok: false, refused: 'no-keep' });
   });
 

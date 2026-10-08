@@ -7,6 +7,7 @@
 import type { Task } from './tasks.js';
 import { PERSONAL_TASKS } from './personalTasks.js';
 import { VILLAGE_TASKS } from './suzerain.js';
+import { CHOIR_TASKS } from './choir.js';
 
 export const TASKS: readonly Task[] = [
   {
@@ -79,4 +80,4 @@ export const TASKS: readonly Task[] = [
 
 /** Any task — the Tavern's, an investigator's own (BRDC-INVEST-002) or a village's (BRDC-SUZERAIN-001). */
 export const taskById = (id: string): Task | null =>
-  TASKS.find((t) => t.id === id) ?? PERSONAL_TASKS.find((t) => t.id === id) ?? VILLAGE_TASKS.find((t) => t.id === id) ?? null;
+  TASKS.find((t) => t.id === id) ?? PERSONAL_TASKS.find((t) => t.id === id) ?? VILLAGE_TASKS.find((t) => t.id === id) ?? CHOIR_TASKS.find((t) => t.id === id) ?? null;

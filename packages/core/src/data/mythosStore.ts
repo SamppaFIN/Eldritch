@@ -8,12 +8,15 @@
  */
 import { dawnsSince, mythosFor } from '../rules/doom.js';
 import type { MythosCard } from '../rules/doom.js';
+import type { SeasonPhase } from '../rules/season.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 
 interface MythosBook {
   seed: string;
   opensAt: number;
+  /** The season's phase as last read — the Choir's flood reads it (BRDC-CHOIR-001). */
+  phase?: SeasonPhase;
   /** The last day whose headline was shown. */
   seenDay?: number;
 }
@@ -28,7 +31,7 @@ export interface MythosToday {
 
 export interface MythosApi {
   /** Keep the season's clock (seed and opening), as the Worker last said it. */
-  remember(season: { seed: string; opensAt: number }): Promise<void>;
+  remember(season: { seed: string; opensAt: number; phase?: SeasonPhase }): Promise<void>;
   today(now: number): Promise<MythosToday | null>;
   /** Today's headline has been read. */
   markSeen(now: number): Promise<void>;
@@ -45,8 +48,9 @@ export function mythosApi(store: () => KeyValueStore): MythosApi {
   return {
     async remember(season) {
       const b = await book();
-      if (b && b.seed === season.seed && b.opensAt === season.opensAt) return;
-      await store().set(K.mythos, { seed: season.seed, opensAt: season.opensAt });
+      if (b && b.seed === season.seed && b.opensAt === season.opensAt && b.phase === season.phase) return;
+      const same = b && b.seed === season.seed && b.opensAt === season.opensAt;
+      await store().set(K.mythos, { ...(same ? b : {}), seed: season.seed, opensAt: season.opensAt, ...(season.phase ? { phase: season.phase } : {}) });
     },
     async today(now) {
       const b = await book();

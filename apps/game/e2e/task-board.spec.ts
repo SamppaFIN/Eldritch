@@ -56,8 +56,8 @@ test('the Tavern board offers tasks, keeps a taken one, and seals a finished one
 
   const tasks = await board(page);
   await expect(tasks).toContainText('Apologetic Signage', { timeout: 20_000 });
-  // A Season 1 save: the objective tasks only, no skill tests.
-  await expect(tasks.getByRole('listitem')).toHaveCount(7);
+  // A Season 1 save: the objective tasks only, no skill tests — and the Drowned Choir's first step (BRDC-CHOIR-001).
+  await expect(tasks.getByRole('listitem')).toHaveCount(8);
 
   const sealed = tasks.getByRole('listitem').filter({ hasText: 'Cornelius Needs Company' });
   await expect(sealed).toHaveClass(/task-board__task--closed/);
@@ -74,4 +74,22 @@ test('the Tavern board offers tasks, keeps a taken one, and seals a finished one
   const again = await board(page);
   await expect(again.getByRole('listitem').filter({ hasText: 'Apologetic Signage' })).toContainText('0 / 1', { timeout: 20_000 });
   await expect(again.getByRole('listitem').filter({ hasText: 'Cornelius Needs Company' })).toHaveClass(/task-board__task--closed/);
+});
+
+test('the Drowned Choir’s tale hangs on the board a step at a time (BRDC-CHOIR-001)', async ({ page }) => {
+  test.setTimeout(150_000);
+  await openMap(page, HERE);
+  const done = Date.now();
+  await seed(page, {
+    taken: { 'choir-1-listen': { at: done - 3_600_000 } },
+    outcomes: { 'choir-1-listen': { status: 'completed', rewards: { xp: 60, pool: { wisdom: 20 } }, text: 'Nowhere. You can hear them everywhere.', completedAt: done } },
+  });
+  await page.reload();
+
+  const tasks = await board(page);
+  await expect(tasks).toContainText('The Drowned Choir II · Study', { timeout: 20_000 });
+  await expect(tasks).toContainText('Something on your ground keeps time for them.');
+  await expect(tasks).not.toContainText('The Drowned Choir III');
+  await tasks.getByText('The Drowned Choir II · Study').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/choir.png' });
 });
