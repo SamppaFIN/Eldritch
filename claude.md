@@ -41,7 +41,6 @@ v2's most concrete failure was 112 markdown files with no source of truth.
 {
   "kutsumanimi": "Aavistus",
   "ikoni": "⚡",
-  "malli": "claude-opus-5",
   "alusta": "Claude Code (VS Code)",
   "projektin_omistaja": "Infinite",
   "kieli": ["suomi", "englanti"],
@@ -57,15 +56,14 @@ v2's most concrete failure was 112 markdown files with no source of truth.
 ```json
 {
   "projekti": "Eldritch Sanctuary v3",
-  "versio": "0.5.87",
-  "kuvaus": "Kävele suljettu lenkki oikeassa maailmassa ja omista sen sisään jäävä maa.",
+  "kuvaus": "Kävele oikeassa maailmassa: heksa, jolle astut, on sinun — ja sen voi viedä muilta.",
   "tila": "toteutus",
-  "vaihe": "2.8 — Ominaisuuskierros lokakuu 2026 → v0.9.0, kautta katkaisematta (docs/tickets/README.md)",
-  "edellinen_vaihe": "2.5 — Suunnanmuutos (valmis 2026-08-30)",
+  "vaihe": "3 — Season 3: 4X + Arkham, haara season-3 (docs/tickets/README.md)",
+  "edellinen_vaihe": "2.8 — Ominaisuuskierros lokakuu 2026 (v0.9.0, valmis 2026-10-06)",
   "juurihakemisto": "c:/Projects/Klitoritari-FinalFantasy",
   "kohdelaite": "Samsung S23 Ultra (mobile-first), desktop simulaatiotilassa",
-  "jakelu": "Vaiheet 0-2: standalone GitHub Pages. Vaihe 5: allekirjoitettu APK.",
-  "tallennus": "Vaiheet 0-2: localStorage + IndexedDB. Vaihe 3: Supabase.",
+  "jakelu": "Vaiheet 0–3: standalone GitHub Pages. Vaihe 4: allekirjoitettu APK.",
+  "tallennus": "Vaiheet 0–4: localStorage + IndexedDB. Vaihe 5: Supabase.",
   "kehitysportti": 5173
 }
 ```
@@ -188,7 +186,7 @@ Se on tämän säännön koko olemassaolon syy.
 | Sääntö | Raja | Miksi |
 |---|---|---|
 | Tiedoston pituus | **400 riviä** (`pnpm lint:lines`) | v2:n `MapSystem.js` = 4 081 |
-| CSS-tiedostoja | **1** (`tokens.css`, < 800 r) | v2:ssa 34 tiedostoa, 11 204 riviä |
+| Design-tokenit | **1 tiedosto** (`packages/ui/src/styles/tokens.css`, < 800 r); ominaisuuksien CSS komponentin vieressä, värit ja mitat tokeneista | v2:ssa 34 tiedostoa, 11 204 riviä |
 | Runtime-CDN | **0** | v2 latasi Leafletin, Socket.io:n ja GSI:n CDN:istä |
 | Status-.md juuressa | **0** | v2:ssa 112 |
 | Uusi riippuvuus | kysy ensin | — |
@@ -207,16 +205,11 @@ Se on tämän säännön koko olemassaolon syy.
    Every rule function needs a Vitest test. Untested does not merge.
 4. **Never edit an existing file in `supabase/migrations/`.** Add a new numbered migration.
 5. **Do not read the legacy repos.** Everything worth keeping is already extracted into
-   `packages/core/rules/constants.ts`, `supabase/seed/`, `docs/backlog/` and `ANALYSIS.md`.
+   `packages/core/src/rules/constants.ts`, `docs/backlog/` and `ANALYSIS.md`.
 6. **`docs/backlog/` supplies content to finished mechanics, never features of its own.**
-   Amended 2026-08-31: Infinite's plan brings quests, events and OSM terrain into Phase 3, so
-   the blanket park no longer holds — but the reason for it does. The order is the rule:
-   `BRDC-EVENT-001` builds the event engine, and only then does backlog material fill it.
-   Still parked with no mechanic to land in: TTS, health/sanity, themes.
-   Amended 2026-09-01 (BRDC-CLAIM-007): a claim now plays a short synthesised chime and
-   a buzz — procedural audio is unparked *for that one moment*, because the claim is the
-   mechanic it lands in. Not a soundtrack, not ambient audio; one two-note `AudioContext`
-   chime on a taken cell, switchable off. The rest of the audio backlog stays parked.
+   Build the mechanic first, then fill it (the event engine came before backlog events).
+   Parked, with no mechanic to land in: TTS, themes, and all audio except the claim's
+   two-note `AudioContext` chime and buzz on a taken cell, switchable off.
    v2's failure was shipping the content *as* the system. Do not do that.
 7. **Run `pnpm test && pnpm typecheck` before declaring any task done.** No exceptions.
 8. Ask before adding a dependency.
@@ -241,7 +234,7 @@ Se on tämän säännön koko olemassaolon syy.
 - MapLibre GL JS (NOT Leaflet — v2 used Leaflet and had to disable clustering because it broke;
   MapLibre clusters natively and renders tens of thousands of hexagons on the GPU)
 - h3-js on the client, `h3` + `h3_postgis` in Postgres
-- Zustand (client state) + TanStack Query (server state)
+- State: React state and hooks over `GameRepository`, the one data seam
 - Supabase: Postgres + PostGIS + Realtime + Auth + RPC. **No separate Node server.**
   **Not wired up until Phase 5** — see "Data layer" below.
 - Capacitor 6 for Android, same bundle as the web build
@@ -320,13 +313,10 @@ secular history (Toolmaking, Masonry, Astronomy), not ritual. "Rite" still means
 always did for a cast spell; "Research" is the tree, the tab, and the act of spending
 wisdom on it.
 
-Added 2026-08-31, **reversed 2026-09-01 (`BRDC-CASTLE-001`).** The Keep is no longer a
-decoy — it is the Hearth cell itself, published as-is. The original plan (Keep = a random
-point 300–900 m from the Hearth, so `world.json` never carried a home address) was tested
-in the browser and reversed: the game is played among friends, and a Keep the player
-cannot see, often off-screen, next to the ground they just claimed, is worse than
-publishing the cell. `assignCastle(store, home)` stores `cellAt(home)` — same cell,
-re-assigned whenever `setHome` is. `getHome()` and `getCastle()` return the same h3 today.
+**The Keep is the Hearth cell itself, published as-is** (`BRDC-CASTLE-001`): the game is
+played among friends, and a decoy Keep the player cannot see is worse than publishing the
+cell. `assignCastle(store, home)` stores `cellAt(home)`, re-assigned whenever `setHome` is;
+`getHome()` and `getCastle()` return the same h3.
 
 The reference frame for the shared world is **Civilization's two views**: the Atlas shows
 borders and cities across the country; a player's own cells are the city view, and a
@@ -337,7 +327,7 @@ Consciousness levels from v2: 1 Dormant · 5 Awakening · 10 Aware · 15 Enlight
 
 ---
 
-## 11. Constants (single source: `packages/core/rules/constants.ts`)
+## 11. Constants (single source: `packages/core/src/rules/constants.ts`)
 
 ```ts
 H3_RES_OWNERSHIP = 11        // ~2150 m² per cell
@@ -370,13 +360,11 @@ does nothing after the first. Consecutive days pay double. The game rewards rout
 the cell is released, not kept at a floor — "The Void reclaims". A maxed cell survives ~33 days
 untouched; a freshly claimed one ~12. This is what keeps the map alive with two players.
 
-**Last visitor owns it, for the step-claim path — reversed 2026-09-23 (`BRDC-CLAIM-017`).**
-The siege model below was this file's own rule until Infinite asked for exactly the
-"single comparison" it had told earlier assistants not to build: whoever steps onto a
-hex last owns it, immediately, full strength, no multi-day wear-down. This is what
-`resolveInstantCapture` (`packages/core/rules/capture.ts`) does for Adventure mode's
-step-claim (`stepStore.ts`'s `claimStepAt`) — Route mode is untouched and still refuses
-outright to take anyone else's cell (`BRDC-MODE-002`'s own promise, never reopened).
+**Last visitor owns it, for the step-claim path (`BRDC-CLAIM-017`, Infinite's call).**
+Whoever steps onto a hex last owns it, immediately, at full strength — no multi-day
+wear-down. `resolveInstantCapture` (`packages/core/src/rules/capture.ts`) does this for
+Adventure mode's step-claim (`stepStore.ts`'s `claimStepAt`); Route mode still refuses
+outright to take anyone else's cell (`BRDC-MODE-002`).
 
 Two things the instant rule does **not** touch, both pre-existing, narrower promises:
 the Hearth and a standing Fortress still fall only to the old wear-down fight below
@@ -388,7 +376,7 @@ BRDC-CLAIM-017 scoped itself to the step-claim path, the one actually played by 
 
 **The Wager is parked, not deleted, for the same reason** — a siege duel has nothing
 left to settle once a step already decides ownership. Its code
-(`packages/core/rules/wagerBattle.ts`, `apps/game/src/features/wager/`) is untouched;
+(`packages/core/src/rules/wagerBattle.ts`, `apps/game/src/features/wager/`) is untouched;
 every door to it (title screen, the Keep) is simply never wired. `wager.spec.ts` is
 skipped whole, not removed.
 
@@ -562,8 +550,7 @@ Test the way the course says: **close your eyes and navigate with the keyboard o
 ### Component architecture (ch. 6)
 
 **Composition over configuration.** A component with 12 props is two components.
-Server state → TanStack Query. Client state → Zustand. URL state → the router.
-Do not put server data in Zustand.
+Data comes through `GameRepository` and the hooks over it; URL state → the router.
 
 ---
 
@@ -580,11 +567,11 @@ Do not put server data in Zustand.
 
 ## 16. Data layer — mock first
 
-Everything reads and writes through one interface, `GameRepository` (`packages/core/types`).
+Everything reads and writes through one interface, `GameRepository` (`packages/core/src/types`).
 Two implementations:
 
 - **`MockRepository`** — IndexedDB + seeded fake neighbours, running directly on the pure
-  rule functions in `packages/core/rules`. Used in Phases 0–4, in every test, and as the
+  rule functions in `packages/core/src/rules`. Used in Phases 0–4, in every test, and as the
   offline fallback.
 - **`SupabaseRepository`** — calls RPC. Introduced in Phase 5.
 
@@ -592,7 +579,7 @@ No component, hook, or store may import the Supabase client directly. If you fin
 wanting to, the interface is missing a method — add it there.
 
 **The divergence risk is real and must be tested.** The same rules exist twice: TypeScript in
-`packages/core/rules`, SQL in the RPCs. Phase 5 adds *golden fixture* tests: the same recorded
+`packages/core/src/rules`, SQL in the RPCs. Phase 5 adds *golden fixture* tests: the same recorded
 routes run against both repositories and the resulting cell state must match exactly. When they
 disagree, **SQL wins** and the TypeScript is corrected. These run in CI on every commit.
 
@@ -619,10 +606,10 @@ Test: initialize 100 times in a row, assert no missing entities.
 
 ## 19. Testing
 
-- Every function in `packages/core/rules` and `packages/core/geo` needs a unit test.
-- Loop-detection tests use recorded traces in `packages/core/sim/fixtures/`
+- Every function in `packages/core/src/rules` and `packages/core/src/geo` needs a unit test.
+- Loop-detection tests use recorded traces in `packages/core/src/sim/fixtures/`
   (square, figure-eight, open line, back-and-forth, GPS-noise trace).
-- Use `packages/core/sim` for anything requiring movement.
+- Use `packages/core/src/sim` for anything requiring movement.
 - Playwright overrides geolocation via CDP.
 - **Run the 360px mobile viewport first, not last.** v2's mobile layout was a P0 bug in a
   mobile-only game.
@@ -658,7 +645,7 @@ looks fine until the page 404s.
 
 ```
 Node 22 · pnpm 11 · TypeScript 5.9 (strict) · Vite 6
-React 19 · Zustand · TanStack Query
+React 19
 MapLibre GL JS 6 · h3-js            — Phase 1-2
 Vitest 3 · Playwright 1.5x
 @fontsource: cinzel · orbitron · inter   — self-hosted, no CDN
