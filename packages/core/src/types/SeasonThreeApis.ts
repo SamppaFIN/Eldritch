@@ -14,6 +14,7 @@ import type { SuzerainApi } from '../data/suzerainStore.js';
 import type { PageApi } from '../data/pageStore.js';
 import type { MaskApi } from '../data/maskStore.js';
 import type { PropellerApi } from '../data/propellerStore.js';
+import type { OtherWorldApi } from '../data/otherWorldStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -40,4 +41,6 @@ export interface SeasonThreeApis {
   readonly masks: MaskApi;
   /** The Skyward Runway's propeller: gates to seal from afar (BRDC-AERODROME-001). */
   readonly propeller: PropellerApi;
+  /** Journeys through open gates into the Other World (BRDC-OTHERWORLD-001). */
+  readonly otherWorld: OtherWorldApi;
 }

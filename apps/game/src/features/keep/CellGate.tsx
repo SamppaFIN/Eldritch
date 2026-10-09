@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import type { GameRepository, GateView, H3Index, Roll } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { DiceRow } from './DiceRow.js';
+import { OtherWorldJourney } from './OtherWorldJourney.js';
 import './keep.css';
 
 export interface CellGateProps {
@@ -94,6 +95,7 @@ export function CellGate({ repository, h3, here, now }: CellGateProps) {
           {!here ? <p className="hearth-panel__line">Walk onto the gate to face it.</p> : null}
         </div>
       )}
+      {!pending ? <OtherWorldJourney repository={repository} gateId={gate.id} h3={h3} here={here} now={now} onEnded={() => void load()} /> : null}
       {said ? (
         <p className="hearth-panel__line" role="status">
           {said}

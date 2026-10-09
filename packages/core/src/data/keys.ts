@@ -114,6 +114,8 @@ export const K = {
   masks: 'masks',
   /** Gate seals the Skyward Runway left in hand, `{ charges }` (BRDC-AERODROME-001). Resets with the season. */
   propeller: 'propeller',
+  /** A journey through a gate under way, `{ gateId, stage }` (BRDC-OTHERWORLD-001). Resets with the season. */
+  otherWorld: 'other-world',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */
