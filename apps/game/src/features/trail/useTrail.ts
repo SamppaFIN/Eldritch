@@ -50,6 +50,12 @@ export interface UseTrailOptions {
   point: TrailPoint | null;
   /** Set false to stop collecting without ending the run. */
   collecting: boolean;
+  /** A change ends the run and starts a fresh one — a route played back begins and ends
+   *  one, so its jump from where the phone is reads as no teleport (BRDC-SIM-002). */
+  session?: number;
+  /** How often the buffer is written. A route played back at ×60 flushes every second, so
+   *  the line and the claims are watched growing rather than jumping (BRDC-SIM-002). */
+  batchMs?: number | undefined;
 }
 
 /**
@@ -72,7 +78,7 @@ function actionableRejection(
   return null;
 }
 
-export function useTrail({ repository, point, collecting }: UseTrailOptions): TrailState {
+export function useTrail({ repository, point, collecting, session = 0, batchMs = TRAIL_BATCH_MS }: UseTrailOptions): TrailState {
   const [state, setState] = useState<TrailState>({
     runId: null,
     points: [],
@@ -156,12 +162,32 @@ export function useTrail({ repository, point, collecting }: UseTrailOptions): Tr
     }));
   }, [repository]);
 
+  /* A new session: what is buffered goes to the old run, then a fresh one opens. */
+  const sessionSeen = useRef(session);
+  useEffect(() => {
+    if (!repository || session === sessionSeen.current) return;
+    sessionSeen.current = session;
+    void (async () => {
+      const old = runIdRef.current;
+      // `flush` takes the buffer before its first await, so only what came before the
+      // switch goes to the old run; with no run id, the timer holds the rest until the
+      // new one opens.
+      const flushed = flush();
+      runIdRef.current = null;
+      await flushed;
+      if (old) await repository.endRun(old);
+      const runId = await repository.startRun(Date.now());
+      runIdRef.current = runId;
+      setState((s) => ({ ...s, runId, points: [], distanceM: 0, lastRejection: null, revealed: [] }));
+    })();
+  }, [repository, session, flush]);
+
   /* Flush on a timer. */
   useEffect(() => {
     if (!state.ready || !collecting) return;
-    const timer = setInterval(() => void flush(), TRAIL_BATCH_MS);
+    const timer = setInterval(() => void flush(), batchMs);
     return () => clearInterval(timer);
-  }, [state.ready, collecting, flush]);
+  }, [state.ready, collecting, flush, batchMs]);
 
   /*
    * Flush when the page goes away.

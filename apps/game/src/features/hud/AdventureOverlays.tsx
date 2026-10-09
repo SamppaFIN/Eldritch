@@ -33,6 +33,8 @@ export interface AdventureOverlaysProps {
   standingOn: H3Index | null;
   /** For the moments that read the store themselves (BRDC-EUREKA-001). */
   repository: GameRepository | null;
+  /** A route is playing back: finds wait behind a button (BRDC-SIM-002). */
+  quiet?: boolean;
 }
 
 export function AdventureOverlays({
@@ -45,6 +47,7 @@ export function AdventureOverlays({
   settings,
   standingOn,
   repository,
+  quiet = false,
 }: AdventureOverlaysProps) {
   if (isRoute) return null;
 
@@ -56,6 +59,7 @@ export function AdventureOverlays({
         revealed={discovery.revealed}
         onOpenCell={onOpenCell}
         onReveal={discovery.onReveal}
+        quiet={quiet}
       />
       <QuestReveal found={quest.justFound} onDismiss={quest.dismissFound} settings={settings} />
       <CipherReveal found={cipher.justFound} view={cipher.view} settings={settings} onDismiss={cipher.dismiss} />

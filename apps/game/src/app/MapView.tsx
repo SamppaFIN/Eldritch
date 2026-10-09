@@ -10,10 +10,10 @@ import { levelState, load, speedMs, type BBox, type Collected, type RevealedPlac
 import { GlassPanel } from '@es3/ui';
 import { MapCanvas, type MapHandle } from '../features/map/MapCanvas.js';
 import { useInitialPosition } from '../features/map/useInitialPosition.js';
-import { usePositionSource } from '../features/trail/usePositionSource.js';
+import { useWalkSource } from '../features/trail/useWalkSource.js';
 import { useTrail } from '../features/trail/useTrail.js';
 import { useKeepAlive } from '../features/trail/useKeepAlive.js';
-import { useSimulateKey } from '../features/trail/useSimulateKey.js';
+import { PlaybackDev } from '../features/playback/PlaybackDev.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { MomentFx, useMomentTriggers, useMoments } from '../features/fx/index.js';
@@ -75,22 +75,18 @@ export function MapView({ onLeave }: MapViewProps) {
   const clock = useGameClock();
   const minuteNow = useMinuteNow(clock.now);
 
-  // Only the opening camera position; live permission state is usePositionSource's job.
+  // Only the opening camera position; live permission state is useWalkSource's job.
   const { centre, settled, permission } = useInitialPosition();
 
   const { repository, alerts, profile, setProfile, castle } = useBoot(clock.now, clock);
   // Chosen once per save (BRDC-MODE-001); gates every screen beyond walking-and-claiming.
   const isRoute = profile?.mode === 'route';
 
-  const simulate = useSimulateKey();
   // Dev only, and compiled out of a player's build (BRDC-MAP-EDIT-001).
   const editor = useEditor();
 
-  const { point, status, source } = usePositionSource({
-    enabled: settled,
-    origin: centre,
-    simulate,
-  });
+  // The phone, the dev keyboard walk, or a route played back (BRDC-SIM-002).
+  const { point, status, source, playback } = useWalkSource(settled, centre);
 
   // The world exists as soon as the game knows where you are, not once trail is written.
   useEffect(() => {
@@ -98,7 +94,7 @@ export function MapView({ onLeave }: MapViewProps) {
     void repository.seedAround(point, clock.now());
   }, [repository, point, clock.now]);
 
-  const trail = useTrail({ repository, point, collecting: true });
+  const trail = useTrail({ repository, point, collecting: true, session: playback.session, batchMs: source === 'playback' ? 1_000 : undefined });
 
   // Places re-read on a reveal, and once at start so a returning player's Anchor is there.
   useEffect(() => {
@@ -255,7 +251,7 @@ export function MapView({ onLeave }: MapViewProps) {
         quest={quest}
         cipher={cipher}
         settings={settings}
-        standingOn={standingOn} repository={repository}
+        standingOn={standingOn} repository={repository} quiet={playback.playing}
       />
       <PlaceReveal revealed={trail.revealed} />
 
@@ -364,6 +360,8 @@ export function MapView({ onLeave }: MapViewProps) {
 
       {aside.node}
       {EDITOR_AVAILABLE ? <EditorPanel editor={editor} /> : null}
+      {/* Spelled out, not imported: only a literal lets the build drop the panel (BRDC-SIM-002). */}
+      {import.meta.env.DEV || import.meta.env.MODE === 'e2e' ? <PlaybackDev playback={playback} walked={trail.points} /> : null}
       <PouchGain collected={latestGain(latestGain(collected, discovery.revealGain), aside.landsGain)} settings={settings} />
 
       <SettingsMenu

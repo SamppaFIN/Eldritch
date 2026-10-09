@@ -332,8 +332,8 @@ export function Hud({
           </p>
         ) : null}
 
-        {source === 'simulated' ? (
-          <p className="hud__note hud__note--dev">Simulated walk · WASD</p>
+        {source !== 'device' ? (
+          <p className="hud__note hud__note--dev">{source === 'playback' ? 'Route playback' : 'Simulated walk · WASD'}</p>
         ) : null}
 
         {/* Signal and Withdraw share a row. The HUD has to leave the map most of the

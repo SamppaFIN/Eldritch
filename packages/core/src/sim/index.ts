@@ -4,3 +4,5 @@ export { walksToTake } from './siege.js';
 export type { SiegeSetup, SiegeResult } from './siege.js';
 export { FIXTURES, FIXTURE_NAMES, fixture } from './fixtures/index.js';
 export type { Fixture, FixtureName } from './fixtures/index.js';
+export { parseRoute, playbackGap, retime, routeDuration, routeJson, startAt } from './playback.js';
+export type { Route, RouteFault, RouteParse } from './playback.js';

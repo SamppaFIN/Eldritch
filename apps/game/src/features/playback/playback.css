@@ -1,0 +1,60 @@
+/* Route playback, the dev panel (BRDC-SIM-002). Dev and e2e builds only. */
+.playback {
+  position: fixed;
+  inset-block-start: max(var(--space-3), env(safe-area-inset-top));
+  inset-inline: var(--space-3);
+  z-index: var(--z-modal);
+  margin-inline: auto;
+  max-inline-size: 26rem;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  color: var(--text);
+}
+
+.playback__head,
+.playback__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.playback__head {
+  justify-content: space-between;
+}
+
+.playback__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  color: var(--sacred-gold);
+}
+
+.playback__field {
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.playback__field select,
+.playback__field input {
+  min-block-size: var(--touch-min);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+
+.playback__route,
+.playback__said {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.playback__bar {
+  inline-size: 100%;
+  accent-color: var(--mystic-cyan);
+}

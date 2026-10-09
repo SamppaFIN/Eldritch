@@ -6,7 +6,7 @@
  * its detail card. It auto-dismisses in a few seconds — a step-claim lands about every
  * twenty-five metres and this must never be in the way of the next one.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal, Rarity, RitualButton, HexMandala } from '@es3/ui';
 import { GroundArt } from '../hud/CardArt.js';
 import { revealOf, terrainForCell } from '@es3/core';
@@ -37,6 +37,9 @@ export interface DiscoveryModalProps {
   revealed: Readonly<Record<H3Index, number>>;
   onOpenCell: (h3: H3Index) => void;
   onReveal: (h3: H3Index) => void;
+  /** A route is playing back: finds pile behind "N finds waiting" so the map stays in
+   *  view while it is watched (BRDC-SIM-002). They wait, as every card does. */
+  quiet?: boolean;
 }
 
 export function DiscoveryModal({
@@ -45,8 +48,10 @@ export function DiscoveryModal({
   revealed,
   onOpenCell,
   onReveal,
+  quiet = false,
 }: DiscoveryModalProps) {
   const stack = useCardStack<Discovery>();
+  const [peek, setPeek] = useState(false);
   const shown = stack.top;
   const seen = useRef(0);
 
@@ -65,9 +70,9 @@ export function DiscoveryModal({
   }, [discovered, stack.push]);
 
   // Set aside by "Open its card": the pile waits behind one small button (2026-09-30).
-  if (shown && stack.aside) {
+  if (shown && (stack.aside || (quiet && !peek))) {
     return (
-      <button type="button" className="discovery__waiting" onClick={() => stack.setAside(false)}>
+      <button type="button" className="discovery__waiting" onClick={() => { stack.setAside(false); setPeek(true); }}>
         {stack.count} {stack.count === 1 ? 'find' : 'finds'} waiting
       </button>
     );

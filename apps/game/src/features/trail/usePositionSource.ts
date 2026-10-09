@@ -10,7 +10,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { destination } from '@es3/core';
 import type { LatLng, TrailPoint } from '@es3/core';
 
-export type PositionSource = 'device' | 'simulated';
+/** `playback` is a walked route played back (BRDC-SIM-002, `useWalkSource`). */
+export type PositionSource = 'device' | 'simulated' | 'playback';
 
 export type GeoStatus =
   | 'idle'
