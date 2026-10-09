@@ -381,18 +381,10 @@ button.hud__upnext-item:focus-visible {
   gap: var(--space-1) var(--space-2);
 }
 
-
-
-/* A sheet is covering the map, so the HUD drops to the walking bar (BRDC-HUD-005).
-   Hidden in CSS rather than unmounted: the panel keeps its identity, the measured
-   `--hud-height` keeps updating, and nothing re-mounts when a sheet closes. */
-.hud[data-compact] .hud__stats,
-.hud[data-compact] .hud__signal,
-.hud[data-compact] .hud__note,
-.hud[data-compact] .hud__claim {
-  display: none;
-}
-
+/* A sheet covers the map, so the walking sheet steps aside and the panel gets the height;
+   the nav stays (BRDC-HUD-005, UX-001 — the old selectors named classes since renamed, and
+   the sheet kept its full height under every panel; the Keep carries its own Collect).
+   Hidden, not unmounted: `--hud-height` keeps updating, nothing re-mounts. */
 .hud[data-compact] .hud__panel {
-  padding-block: var(--space-2);
+  display: none;
 }

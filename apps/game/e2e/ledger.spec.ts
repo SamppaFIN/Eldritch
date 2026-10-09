@@ -108,7 +108,8 @@ test('the Ledger lists hexes, Works, temples and anomalies, and a row opens its 
 
   await page.getByRole('button', { name: 'Lands', exact: true }).click();
   const lands = page.getByRole('region', { name: 'Your lands' });
-  await expect(lands.getByRole('tab')).toHaveText(['Hexes', 'Works', 'Temples', 'Anomalies']);
+  // Routes since BRDC-TRADEROUTE-001.
+  await expect(lands.getByRole('tab')).toHaveText(['Hexes', 'Works', 'Temples', 'Anomalies', 'Routes']);
 
   // Hexes: a filter chip shows its count, and the list follows it.
   const chip = lands.getByRole('button', { name: /^Unrevealed · \d+$/ });

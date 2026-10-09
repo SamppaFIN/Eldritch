@@ -25,6 +25,14 @@ async function goldenWeek(page: Page) {
 test('a golden week is named on the sheet, and its boon is taken once', async ({ page }) => {
   test.setTimeout(150_000);
   await openMap(page, HERE);
+  // Reload only once the Keep is saved, or the reloaded sheet has no Keep to go to.
+  await expect.poll(() => page.evaluate(() => new Promise<boolean>((resolve) => {
+    const open = indexedDB.open('es3');
+    open.onsuccess = () => {
+      const get = open.result.transaction('kv', 'readonly').objectStore('kv').get('castle');
+      get.onsuccess = () => { open.result.close(); resolve(get.result !== undefined); };
+    };
+  })), { timeout: 20_000 }).toBe(true);
   await goldenWeek(page);
   await page.reload();
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
