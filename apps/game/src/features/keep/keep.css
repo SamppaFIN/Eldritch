@@ -317,3 +317,55 @@
 .investigator__cure {
   color: var(--text-dim);
 }
+
+/* One tap for the detail a glance does not need (BRDC-UX-004): masterwork needs, a tale,
+   a page's text, the Legacy's lines. A native disclosure — keyboard and reader for free. */
+.keep-more > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--touch-min);
+  color: var(--mystic-cyan);
+  cursor: pointer;
+}
+
+.keep-more > summary:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
+/* One of a few, chosen for good (BRDC-UX-007): a row per choice, then one button. */
+.choice-list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.choice-list__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-block-size: var(--touch-min);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.choice-list__row:has(input:checked) {
+  border-color: var(--sacred-gold);
+}
+
+.choice-list__row input {
+  accent-color: var(--sacred-gold);
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+  flex: 0 0 auto;
+}
+
+.choice-list__detail {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

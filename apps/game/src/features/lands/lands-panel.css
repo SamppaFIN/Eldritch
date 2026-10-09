@@ -25,10 +25,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
-  /* The heading stays put while three hundred rows go past under it. */
+  /* The heading stays put while three hundred rows go past under it — on a solid ground,
+     or they show through the glass it inherited (BRDC-UX-003). */
   position: sticky;
   inset-block-start: 0;
-  background: inherit;
+  z-index: 1;
+  background: var(--surface);
 }
 
 .lands__title {
@@ -66,7 +68,8 @@
    Reveal buttons without the rows moving — the list does not re-sort on a reveal. */
 .lands__row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  /* minmax: a long name wraps rather than pushing Reveal off the edge (BRDC-UX-003). */
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-2);
   border-block-end: 1px solid var(--glass-border);
@@ -110,6 +113,7 @@
 
 .lands__ground {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-2);
   color: var(--text);
@@ -188,6 +192,13 @@
   gap: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+/* Tabs wrap to a second row rather than hiding off the edge: five in the Ledger, four in
+   the Keep, and at 360 px a swiped-away tab is a tab nobody finds (BRDC-UX-003). */
+.ledger__tabs {
+  flex-wrap: wrap;
+  overflow-x: visible;
 }
 
 .ledger__tab,

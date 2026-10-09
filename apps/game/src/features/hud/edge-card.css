@@ -45,17 +45,18 @@
   font-size: var(--text-sm);
 }
 
-/* Two at once (a eureka and the day's headline): the second sits below the first,
-   and a third — last night's dream (BRDC-DREAM-001) — below that. */
+/* One card at a time (BRDC-UX-002): a eureka, the day's headline, last night's dream and a
+   great person born could all arrive together and stacked down the screen over the panels.
+   Now the first waits alone, says more are behind it, and the next shows when it is read. */
 .edge-card ~ .edge-card {
-  inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top)) + 6rem);
+  display: none;
 }
 
-.edge-card ~ .edge-card ~ .edge-card {
-  inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top)) + 12rem);
+.edge-card:has(~ .edge-card) .edge-card__hint::after {
+  content: ' · more waiting';
 }
 
-/* A fourth: a great person born the same morning (BRDC-GREAT-001). */
-.edge-card ~ .edge-card ~ .edge-card ~ .edge-card {
-  inset-block-start: calc(max(var(--space-3), env(safe-area-inset-top)) + 18rem);
+/* A panel is open: the cards wait — they never time out — and come back when it closes. */
+html:has(.hud[data-compact]) .edge-card {
+  display: none;
 }

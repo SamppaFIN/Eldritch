@@ -14,10 +14,12 @@ async function openKeep(page: import('@playwright/test').Page) {
   await expect(page.getByLabel('Your sanctuary')).toBeVisible({ timeout: 10_000 });
 }
 
-test('off by default: no publish button, and no world traffic', async ({ page }) => {
-  const worldRequests: string[] = [];
+test('off by default: no publish button, and nothing sent', async ({ page }) => {
+  // Reading the shards is always on (Infinite 2026-09-30, `useSharedWorld.ts`); off means
+  // your own ground never leaves the device.
+  const sent: string[] = [];
   page.on('request', (r) => {
-    if (r.url().includes('/world/') || r.url().endsWith('/submit')) worldRequests.push(r.url());
+    if (r.url().endsWith('/submit')) sent.push(r.url());
   });
 
   await openMap(page, HERE);
@@ -25,7 +27,7 @@ test('off by default: no publish button, and no world traffic', async ({ page })
 
   await expect(page.getByRole('button', { name: 'Raise your banner' })).toHaveCount(0);
   await page.waitForTimeout(2_000);
-  expect(worldRequests).toEqual([]);
+  expect(sent).toEqual([]);
 });
 
 test('on: "Raise your banner" POSTs a sealed submission and reports it sent', async ({ page }) => {

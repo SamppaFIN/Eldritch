@@ -78,3 +78,25 @@
 .lore__eureka--met {
   color: var(--sacred-gold);
 }
+
+/* A learned piece, one line; a sealed Age, one line until opened (BRDC-UX-006). */
+.lore__tech--short {
+  padding-block: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.lore__sealed > summary,
+.lore__more > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--touch-min);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.lore__sealed > summary:focus-visible,
+.lore__more > summary:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

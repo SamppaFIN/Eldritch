@@ -19,11 +19,12 @@ test('choose an ambition once; it stays locked and shows its progress', async ({
   };
   await notNow();
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Season' }).click(); // the Keep's tabs (BRDC-UX-004)
   const section = page.getByLabel('Your sanctuary').getByRole('region', { name: 'The season’s ambition' });
-  await section.getByRole('button', { name: 'Choose Lord of the Ground' }).click();
-  // Choosing asks twice: the first tap only arms it.
-  await expect(section.getByRole('button', { name: 'Choose Keeper of Temples' })).toBeVisible();
-  await section.getByRole('button', { name: 'Lock it in for the season' }).click();
+  await section.getByRole('radio', { name: /^Lord of the Ground/ }).check();
+  // Choosing asks twice: picking only arms it (BRDC-UX-007).
+  await expect(section.getByRole('radio', { name: /^Keeper of Temples/ })).toBeVisible();
+  await section.getByRole('button', { name: 'Lock in Lord of the Ground for the season' }).click();
   await expect(section).toContainText(/Lord of the Ground\..*\d+ \/ 200/, { timeout: 10_000 });
   await expect(section.getByRole('button')).toHaveCount(0);
   await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/ambition.png' });
@@ -33,6 +34,7 @@ test('choose an ambition once; it stays locked and shows its progress', async ({
   await notNow();
   await expect(page.getByLabel('Up next')).toContainText(/Lord of the Ground \d+\/200/, { timeout: 20_000 });
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Season' }).click(); // the Keep's tabs (BRDC-UX-004)
   const again = page.getByLabel('Your sanctuary').getByRole('region', { name: 'The season’s ambition' });
   await expect(again).toContainText('Lord of the Ground.');
   await expect(again.getByRole('button')).toHaveCount(0);

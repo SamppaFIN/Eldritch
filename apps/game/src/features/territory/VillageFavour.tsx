@@ -43,7 +43,11 @@ export function VillageFavour({ repository, city }: { repository: GameRepository
           Your envoys: <span className="es-numeric">{standing.mine}</span>.
         </p>
       ) : null}
-      <TaskBoard repository={repository} which="village" village={city.id} onChanged={() => setTick((t) => t + 1)} />
+      {/* The village's tasks, one tap away: trade and envoys first on the quay (BRDC-UX-008). */}
+      <details className="task-board__fold">
+        <summary>Village tasks</summary>
+        <TaskBoard repository={repository} which="village" village={city.id} onChanged={() => setTick((t) => t + 1)} />
+      </details>
     </section>
   );
 }

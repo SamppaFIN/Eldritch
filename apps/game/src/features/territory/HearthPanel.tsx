@@ -9,7 +9,7 @@
  * from the title screen, which meant ending a walk to reach it (BRDC-WAGER-JSON-001,
  * known limitation). Standing on your own Hearth is a better place to be asked.
  */
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
@@ -40,6 +40,17 @@ import type { PublishResult } from '../../data/worldSource.js';
 import { useKeepEconomy } from './useKeepEconomy.js';
 import type { AdventureBinding } from '../quest/useAdventure.js';
 import './hearth-panel.css';
+// The Keep's tabs wear the Ledger's (BRDC-UX-004): same act, same look.
+import '../lands/lands-panel.css';
+
+/** The Keep's four parts (BRDC-UX-004), in the order a player asks: what now, what I have, who I am, the season. */
+const KEEP_TABS = [
+  { id: 'today', label: 'Today' },
+  { id: 'realm', label: 'Realm' },
+  { id: 'investigator', label: 'Investigator' },
+  { id: 'season', label: 'Season' },
+] as const;
+type KeepTab = (typeof KEEP_TABS)[number]['id'];
 
 export interface HearthPanelProps {
   /** Every cell the player holds, already projected to `now`. */
@@ -88,6 +99,7 @@ export function HearthPanel({
   onClose,
 }: HearthPanelProps) {
   useEscape(true, onClose);
+  const [tab, setTab] = useState<KeepTab>('today');
   const afterKeepSpend = useCallback(() => {
     void repository?.getResources(now).then(onPouch);
   }, [repository, now, onPouch]);
@@ -114,10 +126,10 @@ export function HearthPanel({
   const full = resources ? RESOURCE_KINDS.some((k) => d.perHour[k] > 0 && resources[k] >= BASE_STORAGE_CAP) : false;
 
   /*
-   * One column, four headed parts, in the order a player asks (Infinite 2026-09-29: the
-   * screen was "sekava"). What the realm is; what it holds; the Hearth and its growth;
-   * mana and temples; then what is at risk. The Buildings tab went: it was a read-only
-   * catalogue the Guide and each building's own page already carry.
+   * Four tabs, in the order a player asks (BRDC-UX-004; Infinite 2026-09-29 already called
+   * the one long column "sekava", and Season 3 made it eleven screens): Today — what comes
+   * in and what is at risk; Realm — what you have built; Investigator — who walks for you;
+   * Season — what the whole town faces.
    */
   return (
     <GlassPanel as="section" className="hearth-panel" aria-label="Your sanctuary">
@@ -139,81 +151,100 @@ export function HearthPanel({
         </RitualButton>
       </div>
 
-      <h3 className="hearth-panel__section">Your realm</h3>
-      <NationIdentity owned={owned} />
-      <dl className="hearth-panel__stats">
-        <div>
-          <dt>Warded</dt>
-          <dd className="es-numeric">{d.cells}</dd>
-        </div>
-        <div>
-          <dt>Land</dt>
-          <dd className="es-numeric">{formatArea(d.areaM2)}</dd>
-        </div>
-        <div>
-          <dt>Strongest</dt>
-          <dd className="es-numeric">{Math.round(d.strongest)}</dd>
-        </div>
-        <div>
-          <dt>Temples</dt>
-          <dd className="es-numeric">{places.filter((p) => p.kind === 'temple').length}</dd>
-        </div>
-      </dl>
+      <div className="ledger__tabs" role="tablist" aria-label="The Keep">
+        {KEEP_TABS.map((t) => (
+          <button key={t.id} type="button" role="tab" className="ledger__tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <KeepDoom now={now} />
-      <KeepMysteries repository={repository} now={now} />
-      <KeepWeek repository={repository} now={now} />
-      <KeepAmbition repository={repository} now={now} />
-      <KeepGreat repository={repository} now={now} />
-      <KeepReckoning repository={repository} now={now} />
-      <KeepGates repository={repository} now={now} />
-      <KeepCitizens repository={repository} now={now} onPouch={onPouch} onGrown={onGrown ?? (() => {})} />
+      {/* Every tab stays mounted — the gates' daily sync and the Doom's outbox run when the
+          Keep opens, as they always did; only what is shown changes (BRDC-UX-004). */}
+      <div hidden={tab !== 'today'}>
+        <KeepWeek repository={repository} now={now} />
+        <KeepCitizens repository={repository} now={now} onPouch={onPouch} onGrown={onGrown ?? (() => {})} />
 
-      <h3 className="hearth-panel__section">The pouch</h3>
-      <KeepResources
-        resources={resources}
-        perHour={perHour}
-        producing={producingCount}
-        rate={rate}
-        resting={d.resting}
-        full={full}
-        repository={repository}
-        now={now}
-        onPouch={onPouch}
-      />
+        <h3 className="hearth-panel__section">The pouch</h3>
+        <KeepResources
+          resources={resources}
+          perHour={perHour}
+          producing={producingCount}
+          rate={rate}
+          resting={d.resting}
+          full={full}
+          repository={repository}
+          now={now}
+          onPouch={onPouch}
+        />
 
-      <h3 className="hearth-panel__section">The Hearth</h3>
-      <HearthGrowth
-        repository={repository}
-        resources={resources}
-        now={now}
-        onPouch={onPouch}
-        onGrown={onGrown ?? (() => {})}
-      />
+        <h3 className="hearth-panel__section">What is at risk</h3>
+        <KeepRealm
+          weakestH3={d.weakest?.h3 ?? null}
+          atRisk={d.atRisk}
+          firstLossInHours={d.firstLossInHours}
+          fading={d.fading}
+          dark={dark}
+          onWager={onWager}
+          onPublish={onPublish}
+          onWeakest={onWeakest}
+        />
+      </div>
 
-      <RiteSchools repository={repository} now={now} />
-      <KeepMasterworks repository={repository} now={now} onPouch={onPouch} onRaised={onGrown ?? (() => {})} />
+      <div hidden={tab !== 'realm'}>
+        <h3 className="hearth-panel__section">Your realm</h3>
+        <NationIdentity owned={owned} />
+        <dl className="hearth-panel__stats">
+          <div>
+            <dt>Warded</dt>
+            <dd className="es-numeric">{d.cells}</dd>
+          </div>
+          <div>
+            <dt>Land</dt>
+            <dd className="es-numeric">{formatArea(d.areaM2)}</dd>
+          </div>
+          <div>
+            <dt>Strongest</dt>
+            <dd className="es-numeric">{Math.round(d.strongest)}</dd>
+          </div>
+          <div>
+            <dt>Temples</dt>
+            <dd className="es-numeric">{places.filter((p) => p.kind === 'temple').length}</dd>
+          </div>
+        </dl>
 
-      <h3 className="hearth-panel__section">Mana and temples</h3>
-      <ManaPanel keep={keep} pool={resources} />
-      <KeepTemples places={places} pool={resources} repository={repository} now={now} onPouch={onPouch} />
+        <h3 className="hearth-panel__section">The Hearth</h3>
+        <HearthGrowth
+          repository={repository}
+          resources={resources}
+          now={now}
+          onPouch={onPouch}
+          onGrown={onGrown ?? (() => {})}
+        />
 
-      {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
+        <RiteSchools repository={repository} now={now} />
+        <KeepMasterworks repository={repository} now={now} onPouch={onPouch} onRaised={onGrown ?? (() => {})} />
 
-      <KeepLegacy repository={repository} now={now} />
-      <SeasonBoards repository={repository} now={now} />
+        <h3 className="hearth-panel__section">Mana and temples</h3>
+        <ManaPanel keep={keep} pool={resources} />
+        <KeepTemples places={places} pool={resources} repository={repository} now={now} onPouch={onPouch} />
 
-      <h3 className="hearth-panel__section">What is at risk</h3>
-      <KeepRealm
-        weakestH3={d.weakest?.h3 ?? null}
-        atRisk={d.atRisk}
-        firstLossInHours={d.firstLossInHours}
-        fading={d.fading}
-        dark={dark}
-        onWager={onWager}
-        onPublish={onPublish}
-        onWeakest={onWeakest}
-      />
+        <KeepLegacy repository={repository} now={now} />
+      </div>
+
+      <div hidden={tab !== 'investigator'}>
+        <KeepGates repository={repository} now={now} />
+        {questLine ? <p className="hearth-panel__line es-numeric">{questLine}</p> : null}
+      </div>
+
+      <div hidden={tab !== 'season'}>
+        <KeepDoom now={now} />
+        <KeepMysteries repository={repository} now={now} />
+        <KeepAmbition repository={repository} now={now} />
+        <KeepGreat repository={repository} now={now} />
+        <KeepReckoning repository={repository} now={now} />
+        <SeasonBoards repository={repository} now={now} />
+      </div>
     </GlassPanel>
   );
 }

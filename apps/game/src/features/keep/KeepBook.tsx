@@ -46,9 +46,14 @@ export function KeepBook({ repository, now }: { repository: GameRepository | nul
         </p>
         {view.pages.map((p) => (
           <div key={p.id} className="keep-citizens">
-            <p className="hearth-panel__line">
-              <strong>{p.title}.</strong> <em>{p.text}</em> — {RITES[p.rite].name}
-            </p>
+            <details className="keep-more">
+              <summary>
+                {p.title} · {RITES[p.rite].name}
+              </summary>
+              <p className="hearth-panel__line">
+                <em>{p.text}</em>
+              </p>
+            </details>
             {p.read ? (
               <p className="hearth-panel__line">✦ Read.</p>
             ) : view.canRead ? (

@@ -11,3 +11,12 @@ button.hud__upnext-item.hud__week--dark {
 button.hud__upnext-item.hud__sky {
   color: var(--text-muted);
 }
+
+/* A slot on the up-next strip; past the second it waits behind "+N" (BRDC-UX-008). */
+.hud__upnext-slot {
+  display: contents;
+}
+
+.hud__upnext-slot[hidden] {
+  display: none;
+}

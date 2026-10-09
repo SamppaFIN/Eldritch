@@ -57,9 +57,11 @@ test('the Tavern board offers tasks, keeps a taken one, and seals a finished one
   const tasks = await board(page);
   await expect(tasks).toContainText('Apologetic Signage', { timeout: 20_000 });
   // A Season 1 save: the objective tasks only, no skill tests — and the Drowned Choir's first step (BRDC-CHOIR-001).
+  // Seven open, and the one finished folded under "Done (1)" (BRDC-UX-008).
   await expect(tasks.getByRole('listitem')).toHaveCount(8);
+  await tasks.getByText('Done (1)').click();
 
-  const sealed = tasks.getByRole('listitem').filter({ hasText: 'Cornelius Needs Company' });
+  const sealed = tasks.locator('.task-board__task').filter({ hasText: 'Cornelius Needs Company' });
   await expect(sealed).toHaveClass(/task-board__task--closed/);
   await expect(sealed).toContainText('The rocks are thrilled.');
   await expect(sealed).toContainText('+60 XP');
@@ -73,7 +75,8 @@ test('the Tavern board offers tasks, keeps a taken one, and seals a finished one
   await page.reload();
   const again = await board(page);
   await expect(again.getByRole('listitem').filter({ hasText: 'Apologetic Signage' })).toContainText('0 / 1', { timeout: 20_000 });
-  await expect(again.getByRole('listitem').filter({ hasText: 'Cornelius Needs Company' })).toHaveClass(/task-board__task--closed/);
+  await again.getByText('Done (1)').click();
+  await expect(again.locator('.task-board__task').filter({ hasText: 'Cornelius Needs Company' })).toHaveClass(/task-board__task--closed/);
 });
 
 test('the Drowned Choir’s tale hangs on the board a step at a time (BRDC-CHOIR-001)', async ({ page }) => {

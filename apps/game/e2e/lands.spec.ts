@@ -35,7 +35,7 @@ test('lists every hex held, with what it is and what it wants', async ({ page })
   // Each row carries the ground, the yield, the strength, the days walked and the clock.
   const first = lands.locator('.lands__row').first();
   await expect(first).toContainText(/Plain|Forest|Hill|Mountain|Lake|Coast|Market/);
-  await expect(first).toContainText(/d walked/);
+  await expect(first).toContainText(/walked \d+ days?/);
 });
 
 test('puts unrevealed ground first, and never counts the Hearth as fading', async ({ page }) => {
@@ -50,7 +50,7 @@ test('puts unrevealed ground first, and never counts the Hearth as fading', asyn
 
   // The Hearth cannot be lost, so it carries no countdown (BRDC-HEARTH-002).
   const hearth = lands.locator('.lands__row', { has: page.locator('.lands__tag--home') });
-  await expect(hearth).toContainText('safe');
+  await expect(hearth).toContainText('never fades');
 });
 
 test('a row takes you to that hex, and ESC closes the ledger', async ({ page }) => {

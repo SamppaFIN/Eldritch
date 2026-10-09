@@ -48,6 +48,9 @@ test('the sheet names what finishes next, and a tap goes there', async ({ page }
   await expect(strip).toBeVisible({ timeout: 20_000 });
   await expect(strip).toContainText(/\d+ (min|h|d)|now/);
   // A tap goes there: the next citizen is the Keep's business.
+  // Two in view, the rest behind "+N" (BRDC-UX-008).
+  const rest = strip.getByRole('button', { name: /^\+\d+$/ });
+  if (await rest.isVisible().catch(() => false)) await rest.click();
   const citizen = strip.getByRole('button', { name: /^Next citizen/ });
   await expect(citizen).toBeVisible();
   await citizen.click();

@@ -180,6 +180,32 @@
   flex: 1 1 auto;
 }
 
+/* A press and, under it, why it is grey or did not go through (BRDC-UX-005). */
+.cell-actions__item {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cell-actions__item:has(.cell-panel__why) {
+  flex-basis: 100%;
+}
+
+/* "Why this much?" — the per-source working and the ground's numbers (BRDC-UX-005). */
+.cell-panel__more > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--touch-min);
+  color: var(--mystic-cyan);
+  cursor: pointer;
+}
+
+.cell-panel__more > summary:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}
+
 .cell-panel__note,
 .cell-panel__refusal {
   color: var(--text-dim);

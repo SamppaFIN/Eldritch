@@ -16,6 +16,9 @@ test('the Hearth card puts its actions in one row at the top', async ({ page }) 
   await expect(card).toBeVisible({ timeout: 10_000 });
 
   const row = card.getByRole('group', { name: 'Actions on this hex' });
+  // Three up front, the rest behind More; a grey Ward waits there (BRDC-UX-005).
+  const more = row.getByRole('button', { name: /^More · / });
+  if (await more.isVisible().catch(() => false)) await more.click();
   await expect(row.getByRole('button', { name: /^Ward/ })).toBeVisible();
   await expect(row.getByRole('button', { name: 'Works', exact: true })).toBeVisible();
 

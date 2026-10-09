@@ -42,40 +42,46 @@ export interface CellWorthProps {
   fortified: boolean;
 }
 
-export function CellWorth({ cell, now, showDetail, fortified }: CellWorthProps) {
+/** The ground's own numbers — area, what it gives, neighbours, days walked. Behind the
+ *  card's "Why this much?" (BRDC-UX-005): the working, not the answer. */
+export function CellGround({ cell }: { cell: Cell }) {
   const resource = resourceForCell(cell);
   return (
-    <>
-      <dl className="cell-panel__worth">
-        <div>
-          <dt>Ground</dt>
-          <dd className="es-numeric">{Math.round(cellAreaM2(cell.h3))} m²</dd>
-        </div>
-        <div>
-          <dt>Ground gives</dt>
-          {/* Same colour law as the resource banner above this panel and the map's own
-              glyph — a resource number is never left grey (Sigil §01, BRDC-DETAIL-001). */}
-          <dd className="es-numeric" style={resource ? { color: RESOURCE_COLOUR[resource] } : undefined}>
-            {/* What the ground itself gives a holder; the card's own yield, every source, is
-                `CellYield` below (BRDC-CARD-006 — the claim payout this showed went in 2026-09). */}
-            {resource ? `${TRICKLE_PER_HOUR} ${RESOURCE_WORD[resource]}/h` : 'nothing'}
-          </dd>
-        </div>
-        <div>
-          <dt>Neighbours</dt>
-          <dd className="es-numeric">+{NEIGHBOUR_BONUS} each</dd>
-        </div>
-        {/* Separate days walked, not visits (PIVOT-2026-09-09 §5). It is the basis of the
-            share on a contested hex, so it belongs with the basics rather than tacked onto
-            the end of the history sentence, which is where it used to live. */}
-        <div>
-          <dt>Walked</dt>
-          <dd className="es-numeric">
-            {cell.ownedDays ? `${cell.ownedDays} ${cell.ownedDays === 1 ? 'day' : 'days'}` : '—'}
-          </dd>
-        </div>
-      </dl>
+    <dl className="cell-panel__worth">
+      <div>
+        <dt>Ground</dt>
+        <dd className="es-numeric">{Math.round(cellAreaM2(cell.h3))} m²</dd>
+      </div>
+      <div>
+        <dt>Ground gives</dt>
+        {/* Same colour law as the resource banner above this panel and the map's own
+            glyph — a resource number is never left grey (Sigil §01, BRDC-DETAIL-001). */}
+        <dd className="es-numeric" style={resource ? { color: RESOURCE_COLOUR[resource] } : undefined}>
+          {/* What the ground itself gives a holder; the card's own yield, every source, is
+              `CellYield` below (BRDC-CARD-006 — the claim payout this showed went in 2026-09). */}
+          {resource ? `${TRICKLE_PER_HOUR} ${RESOURCE_WORD[resource]}/h` : 'nothing'}
+        </dd>
+      </div>
+      <div>
+        <dt>Neighbours</dt>
+        <dd className="es-numeric">+{NEIGHBOUR_BONUS} each</dd>
+      </div>
+      {/* Separate days walked, not visits (PIVOT-2026-09-09 §5). It is the basis of the
+          share on a contested hex, so it belongs with the basics rather than tacked onto
+          the end of the history sentence, which is where it used to live. */}
+      <div>
+        <dt>Walked</dt>
+        <dd className="es-numeric">
+          {cell.ownedDays ? `${cell.ownedDays} ${cell.ownedDays === 1 ? 'day' : 'days'}` : '—'}
+        </dd>
+      </div>
+    </dl>
+  );
+}
 
+export function CellWorth({ cell, now, showDetail, fortified }: CellWorthProps) {
+  return (
+    <>
       {cell.ownerId !== null && showDetail ? (
         <>
           {/* The bar is decoration; the number is the information — colour never carries this alone. */}

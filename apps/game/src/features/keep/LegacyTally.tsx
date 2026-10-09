@@ -62,8 +62,12 @@ export function KeepLegacy({ repository, now }: { repository: GameRepository | n
     <>
       <h3 className="hearth-panel__section">What you would leave behind</h3>
       <section className="keep-citizens" aria-label="Legacy">
-        <p className="hearth-panel__line">If the season closed now, before the lake decides.</p>
-        <LegacyTable legacy={legacy} />
+        <details className="keep-more">
+          <summary>
+            Legacy&nbsp;<span className="es-numeric">{legacy.total}</span>&nbsp;if the season closed now
+          </summary>
+          <LegacyTable legacy={legacy} />
+        </details>
       </section>
     </>
   );

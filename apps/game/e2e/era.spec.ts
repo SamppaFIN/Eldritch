@@ -63,7 +63,7 @@ test('a new Age asks who the realm became, twice, and then only says it', async 
   await page.getByRole('button', { name: 'Research', exact: true }).click();
   const ages = page.getByRole('dialog', { name: 'The Lore' }).getByRole('region', { name: 'Who the realm became' });
   await expect(ages).toContainText('A new Age.', { timeout: 10_000 });
-  await ages.getByRole('button', { name: 'Merchants · +2 gold/h' }).click();
+  await ages.getByRole('radio', { name: 'Merchants · +2 gold/h' }).check(); // a pick, then the button (BRDC-UX-007)
   await ages.getByRole('button', { name: 'Become Merchants — for good' }).click();
   await expect(ages).toContainText('Ages · Merchants');
   await expect(ages.getByRole('button')).toHaveCount(0);

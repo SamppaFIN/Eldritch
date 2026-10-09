@@ -31,6 +31,7 @@ test('a solved mystery is read in the Keep, and the next one shows its roads', a
     return keep.isEnabled();
   }, { timeout: 30_000 }).toBe(true);
   await keep.click();
+  await page.getByRole('tab', { name: 'Season' }).click(); // the Keep's tabs (BRDC-UX-004)
 
   const mysteries = page.getByLabel('Your sanctuary').getByRole('region', { name: 'The town’s mysteries' });
   await expect(mysteries).toContainText('✦ The Ferryman’s Ledger.', { timeout: 20_000 });

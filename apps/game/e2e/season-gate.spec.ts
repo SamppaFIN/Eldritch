@@ -68,6 +68,7 @@ test('the Keep shows the season board and the Hall of Records (BRDC-SEASON-005)'
   );
   await openMap(page, HERE);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Season' }).click(); // the Keep's tabs (BRDC-UX-004)
   const boards = page.getByLabel('Your sanctuary').getByLabel('Season boards');
   await expect(boards).toContainText('1 · Kaarnakuningas');
   await expect(boards).toContainText('Warden of Doors — Most gates sealed: Kaarnakuningas · 9');

@@ -15,6 +15,7 @@ test('your own hex shows its yield per hour, source by source', async ({ page })
   await page.getByRole('button', { name: 'Here', exact: true }).click();
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 15_000 });
+  await card.getByText('Why this much?').click(); // the working, behind its toggle (BRDC-UX-005)
   const perHour = card.getByRole('region', { name: 'Yield per hour' });
   await expect(perHour).toBeVisible({ timeout: 10_000 });
   await expect(perHour).toContainText(/→|Nothing yet/);

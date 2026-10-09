@@ -31,7 +31,7 @@ import { useAdjacencyHint } from './useAdjacencyHint.js';
 import { CellHeader } from './CellHeader.js';
 import { CellIncome } from './CellIncome.js';
 import { CellOn } from './CellOn.js';
-import { CellWorth } from './CellWorth.js';
+import { CellGround, CellWorth } from './CellWorth.js';
 import { CellYield } from './CellYield.js';
 import { CellActions } from './CellActions.js';
 import { cellActions } from './hexActions.js';
@@ -204,9 +204,11 @@ export function CellPanel({
       city: Boolean(city?.city),
     anomaly: Boolean(anomaly?.current) && (mine || anomaly?.current?.afar === true),
   });
-  const status = [refusal ? REFUSAL[refusal] : null, place.refusal ? EXPAND_REFUSAL[place.refusal] : null].filter(
-    (x): x is string => x !== null,
-  );
+  // Each refusal beside the press that drew it (BRDC-UX-005).
+  const status: Partial<Record<ActionId, string>> = {
+    ...(refusal ? { ward: REFUSAL[refusal] } : {}),
+    ...(place.refusal ? { expand: EXPAND_REFUSAL[place.refusal] } : {}),
+  };
   const press = (id: ActionId) => {
     if (id === 'quest') onQuestOpen?.();
     else if (id === 'reveal') onReveal?.(cell.h3);
@@ -293,14 +295,6 @@ export function CellPanel({
           player standing on the hex actually asks in (BRDC-DETAIL-002). */}
       <CellOn cell={cell} revealed={isRevealed} place={{ kind: place.kind, rank: place.rank }} />
 
-      {mine ? (
-        <CellIncome
-          cell={cell}
-          revealed={revealed ?? {}}
-          researched={build?.researched ?? []}
-          now={now}
-        />
-      ) : null}
 
       {cell.importedFrom && showDetail ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
       {isSharedGround(cell) ? <OwnershipNote cell={cell} me={me} /> : null}
@@ -308,7 +302,13 @@ export function CellPanel({
       {history ? <p className="cell-panel__history">{history}</p> : null}
 
       <CellWorth cell={cell} now={now} showDetail={showDetail} fortified={build?.fortified ?? false} />
-      {mine ? <CellYield repository={repository} h3={cell.h3} now={now} /> : null}
+      {/* The working, one tap away: what it pays per source and the ground's own numbers (BRDC-UX-005). */}
+      <details className="cell-panel__more">
+        <summary>Why this much?</summary>
+        {mine ? <CellIncome cell={cell} revealed={revealed ?? {}} researched={build?.researched ?? []} now={now} /> : null}
+        {mine ? <CellYield repository={repository} h3={cell.h3} now={now} /> : null}
+        <CellGround cell={cell} />
+      </details>
       {mine ? (
         <p className="cell-panel__note">
           A ward adds strength. It does not reset the clock — only your feet do that.

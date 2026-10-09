@@ -336,3 +336,17 @@
   color: var(--text-dim);
   font-size: var(--text-sm);
 }
+
+/* The level's meaning and the achievements still to earn, one tap away (BRDC-UX-008). */
+.character__more > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--touch-min);
+  color: var(--mystic-cyan);
+  cursor: pointer;
+}
+
+.character__more > summary:focus-visible {
+  outline: 2px solid var(--mystic-cyan);
+  outline-offset: 2px;
+}

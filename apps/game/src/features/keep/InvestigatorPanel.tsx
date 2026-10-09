@@ -51,7 +51,10 @@ export function InvestigatorPanel({ repository, now }: { repository: GameReposit
               </div>
             </div>
             {/* Their own tale, a step at a time (BRDC-INVEST-002). */}
-            <TaskBoard repository={repository} which="personal" />
+            <details className="keep-more">
+              <summary>Their own tale</summary>
+              <TaskBoard repository={repository} which="personal" />
+            </details>
           </>
         ) : (
           <>

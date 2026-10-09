@@ -51,6 +51,8 @@ test('the Medium’s tale opens with its first step, taken from the Keep', async
     if (await n.isVisible().catch(() => false)) await n.click();
   }
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
+  await page.getByLabel('Your sanctuary').getByText('Their own tale').click();
   const tale = page.getByLabel('Your sanctuary').getByRole('list', { name: 'Your tale' });
   await expect(tale.getByRole('listitem')).toHaveCount(1, { timeout: 20_000 });
   await expect(tale).toContainText('A Quiet Room');

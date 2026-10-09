@@ -235,3 +235,9 @@
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
+
+/* A panel is open: the menu steps aside, as the walking sheet does — it drew over every
+   panel's heading (BRDC-UX-003). Closing the panel brings it back. */
+html:has(.hud[data-compact]) .settings-menu {
+  display: none;
+}

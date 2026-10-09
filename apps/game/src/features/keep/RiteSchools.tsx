@@ -11,6 +11,7 @@ import { castsOnHex } from '@es3/core';
 import type { GameRepository, RiteRow, RiteView, School } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { riteRefusal } from './riteCopy.js';
+import { ChoiceList } from './ChoiceList.js';
 import './keep.css';
 
 const SCHOOLS: readonly { id: School; name: string; blurb: string }[] = [
@@ -81,18 +82,15 @@ export function RiteSchools({ repository, now }: RiteSchoolsProps) {
           {Math.floor(view.mana)} mana · rank cap {ROMAN[view.rankCap - 1]}
         </p>
         {view.slots === 0 ? <p className="hearth-panel__line">Study Kindling in the Lore to dedicate a temple.</p> : null}
-        {free > 0
-          ? SCHOOLS.filter((s) => !view.schools.includes(s.id)).map((s) => (
-              <div key={s.id} className="cell-staff__row">
-                <p className="hearth-panel__line">
-                  <strong>{s.name}</strong> — {s.blurb}
-                </p>
-                <RitualButton variant="ghost" disabled={busy} onClick={() => act(() => repository.rites.dedicate(s.id, now))}>
-                  {`Dedicate to ${s.name}`}
-                </RitualButton>
-              </div>
-            ))
-          : null}
+        {free > 0 ? (
+          <ChoiceList
+            legend="A temple waits for its school — dedicated for good."
+            choices={SCHOOLS.filter((s) => !view.schools.includes(s.id)).map((s) => ({ id: s.id, name: s.name, detail: s.blurb }))}
+            confirm={(s) => `Dedicate to ${s.name}`}
+            onConfirm={(id) => act(() => repository.rites.dedicate(id, now))}
+            busy={busy}
+          />
+        ) : null}
         {view.rites.map((row) => (
           <div key={row.id} className="cell-staff__row">
             <p className="hearth-panel__line">

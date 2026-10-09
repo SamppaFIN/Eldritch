@@ -46,6 +46,7 @@ test('a banner picked in the Keep reaches the map flag layer', async ({ page }) 
     });
 
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Realm' }).click(); // the Keep's tabs (BRDC-UX-004)
   const before = await flagBanner();
 
   // The flag button opens the picker; Triquetra is never the default (Vesica). Its own
@@ -80,6 +81,7 @@ test('a generated realm mark reaches the map flag layer too', async ({ page }) =
     });
 
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Realm' }).click(); // the Keep's tabs (BRDC-UX-004)
   await page.getByRole('button', { name: /^Banner:/ }).click();
 
   const picker = page.getByRole('group', { name: 'Choose a banner' });

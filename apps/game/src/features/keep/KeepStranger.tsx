@@ -4,14 +4,13 @@
  * The true name opens a choice, made once. Nothing shows until the first mask is met.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { RitualButton } from '@es3/ui';
+import { ChoiceList } from './ChoiceList.js';
 import { MASKS_TO_NAME } from '@es3/core';
 import type { GameRepository, MaskView } from '@es3/core';
 import './keep.css';
 
 export function KeepStranger({ repository, now }: { repository: GameRepository | null; now: number }) {
   const [view, setView] = useState<MaskView | null>(null);
-  const [armed, setArmed] = useState<string | null>(null);
   const [said, setSaid] = useState<string | null>(null);
   const load = useCallback(async () => {
     if (repository) setView(await repository.masks.view(now));
@@ -21,10 +20,8 @@ export function KeepStranger({ repository, now }: { repository: GameRepository |
   }, [load]);
 
   if (!repository || !view || view.met.length === 0) return null;
-  const twice = (key: string, run: () => Promise<{ ok: boolean; said?: string }>) => {
-    if (armed !== key) return setArmed(key);
-    setArmed(null);
-    void run().then(async (r) => {
+  const run = (act: () => Promise<{ ok: boolean; said?: string }>) => {
+    void act().then(async (r) => {
       setSaid(r.said ?? 'Nothing answers.');
       await load();
     });
@@ -38,20 +35,22 @@ export function KeepStranger({ repository, now }: { repository: GameRepository |
           Masks met: {view.met.join(', ')}.{' '}
           {view.met.length < MASKS_TO_NAME && !view.named ? `Meet ${MASKS_TO_NAME - view.met.length} more and you may name him.` : ''}
         </p>
-        {view.names.length > 0 ? <p className="hearth-panel__line">Every one of them cast a shadow toward the lake. Who is he?</p> : null}
-        {view.names.map((n) => (
-          <RitualButton key={n.id} variant={armed === n.id ? 'primary' : 'ghost'} onClick={() => twice(n.id, () => repository.masks.name(n.id, now))}>
-            {armed === n.id ? `Say it: ${n.name}` : n.name}
-          </RitualButton>
-        ))}
-        {view.choices.map((c) => (
-          <div key={c.id} className="keep-citizens">
-            <p className="hearth-panel__line">{c.text}</p>
-            <RitualButton variant={armed === c.id ? 'primary' : 'ghost'} onClick={() => twice(c.id, () => repository.masks.choose(c.id, now))}>
-              {armed === c.id ? `${c.name} — for good` : c.name}
-            </RitualButton>
-          </div>
-        ))}
+        {view.names.length > 0 ? (
+          <ChoiceList
+            legend="Every one of them cast a shadow toward the lake. Who is he?"
+            choices={view.names.map((n) => ({ id: n.id, name: n.name }))}
+            confirm={(n) => `Say it: ${n.name}`}
+            onConfirm={(id) => run(() => repository.masks.name(id, now))}
+          />
+        ) : null}
+        {view.choices.length > 0 ? (
+          <ChoiceList
+            legend="Named, he waits for what you will do."
+            choices={view.choices.map((c) => ({ id: c.id, name: c.name, detail: c.text }))}
+            confirm={(c) => `${c.name} — for good`}
+            onConfirm={(id) => run(() => repository.masks.choose(id, now))}
+          />
+        ) : null}
         {view.chosen ? <p className="hearth-panel__line">✦ Named, and {view.chosen === 'bargain' ? 'bargained with' : 'banished'}.</p> : null}
         {said ? (
           <p className="hearth-panel__line" role="status">

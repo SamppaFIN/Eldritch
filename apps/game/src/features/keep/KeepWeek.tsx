@@ -3,7 +3,7 @@
  * week's boon — chosen once, so choosing asks twice. An ordinary week says nothing.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { RitualButton } from '@es3/ui';
+import { ChoiceList } from './ChoiceList.js';
 import type { BoonId, GameRepository, WeekView } from '@es3/core';
 import './keep.css';
 
@@ -14,7 +14,6 @@ const said = (p: Partial<Record<string, number>>) =>
 
 export function KeepWeek({ repository, now }: { repository: GameRepository | null; now: number }) {
   const [week, setWeek] = useState<WeekView | null>(null);
-  const [armed, setArmed] = useState<BoonId | null>(null);
   const load = useCallback(async () => {
     if (repository) setWeek(await repository.week.view(now));
   }, [repository, now]);
@@ -23,11 +22,7 @@ export function KeepWeek({ repository, now }: { repository: GameRepository | nul
   }, [load]);
 
   if (!repository || !week || week.kind === 'plain') return null;
-  const choose = (id: BoonId) => {
-    if (armed !== id) return setArmed(id);
-    setArmed(null);
-    void repository.week.chooseBoon(id, now).then(load);
-  };
+  const choose = (id: BoonId) => void repository.week.chooseBoon(id, now).then(load);
 
   return (
     <>
@@ -39,11 +34,14 @@ export function KeepWeek({ repository, now }: { repository: GameRepository | nul
           <p className="hearth-panel__line">Last week fell far behind. Everything comes a tenth slower until Monday — but the next golden week needs only to match the last.</p>
         )}
         {week.boon ? <p className="hearth-panel__line">The week’s boon · {week.boon.name}</p> : null}
-        {week.choices.map((b) => (
-          <RitualButton key={b.id} variant={armed === b.id ? 'primary' : 'ghost'} onClick={() => choose(b.id)}>
-            {armed === b.id ? `Take ${b.name} for the week` : `${b.name} · ${said(b.perHour)}/h`}
-          </RitualButton>
-        ))}
+        {week.choices.length > 0 ? (
+          <ChoiceList
+            legend="The week’s boon — one, until Monday"
+            choices={week.choices.map((b) => ({ id: b.id, name: b.name, detail: `${said(b.perHour)}/h` }))}
+            confirm={(b) => `Take ${b.name} for the week`}
+            onConfirm={choose}
+          />
+        ) : null}
       </section>
     </>
   );

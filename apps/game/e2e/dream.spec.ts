@@ -56,6 +56,10 @@ test('a dream is faced once, read, and put away for good', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
+  // One card at a time (BRDC-UX-002): a fresh Keep's eurekas come first, read them away.
+  const eureka = page.getByRole('button', { name: /^Eureka · .* — dismiss$/ });
+  await page.waitForTimeout(2_000);
+  while (await eureka.first().isVisible().catch(() => false)) await eureka.first().click();
   const face = page.getByRole('button', { name: 'Dream · The Propeller Boy — face it' });
   await expect(face).toBeVisible({ timeout: 20_000 });
   await expect(face).toContainText('Tap to face it · Will test');

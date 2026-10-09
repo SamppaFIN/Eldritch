@@ -57,6 +57,7 @@ test('the Keep lists conditions with their way out, and a debt cannot be paid wi
     if (await n.isVisible().catch(() => false)) await n.click();
   }
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
   const list = page.getByLabel('Your sanctuary').getByRole('list', { name: 'Conditions' });
   await expect(list).toContainText('Debt · You owe 50 gold.', { timeout: 20_000 });
   await expect(list).toContainText('Paranoia · Wit tests roll one die fewer. Walk your Hearth hex.');

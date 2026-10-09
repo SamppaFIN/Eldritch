@@ -5,7 +5,8 @@
   position: fixed;
   z-index: var(--z-hud);
   top: max(var(--space-3), env(safe-area-inset-top));
-  left: min(var(--space-3), 3vw);
+  /* Clear of the menu button in the corner, which drew over the lesson's heading (BRDC-UX-003). */
+  left: calc(min(var(--space-3), 3vw) + var(--touch-min) + var(--space-2));
   right: min(var(--space-3), 3vw);
   display: flex;
   flex-direction: column;

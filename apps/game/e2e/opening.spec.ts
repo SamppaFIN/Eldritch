@@ -49,6 +49,8 @@ test('and it can be spent on the building it is sized for', async ({ page }) => 
   // The build menu judges affordability from the same pouch copy the HUD shows, so while
   // that copy was empty every building read "Cannot afford" and the section said nothing
   // could be built here at all.
+  const more = card.getByRole('group', { name: 'Actions on this hex' }).first().getByRole('button', { name: /^More · / });
+  if (await more.isVisible().catch(() => false)) await more.click(); // three up front, the rest behind More (BRDC-UX-005)
   await card.getByRole('button', { name: 'Works', exact: true }).click();
   await expect(card).toContainText('Monument');
   const build = card.getByRole('button', { name: 'Build', exact: true }).first();
@@ -79,6 +81,8 @@ test('a greyed action says what it is waiting for (BRDC-UI-002)', async ({ page 
 
   // The Hearth is the Anchor Stone, so it offers no Consecrate (it used to, while the
   // Anchor was missing — BRDC-MAP-007). Ward is the greyed action here: no timber yet.
+  const more = card.getByRole('group', { name: 'Actions on this hex' }).first().getByRole('button', { name: /^More · / }); // a grey press waits behind More (BRDC-UX-005)
+  if (await more.isVisible().catch(() => false)) await more.click();
   const ward = card.getByRole('button', { name: /^Ward/ });
   await expect(ward).toBeDisabled();
   // It names the shortfall in the game's own words.
@@ -133,6 +137,8 @@ test('Ward explains itself on ground that is already as safe as it gets', async 
   await page.getByRole('button', { name: 'Here', exact: true }).click();
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 15_000 });
+  const more = card.getByRole('group', { name: 'Actions on this hex' }).first().getByRole('button', { name: /^More · / }); // a grey press waits behind More (BRDC-UX-005)
+  if (await more.isVisible().catch(() => false)) await more.click();
   await expect(card).toContainText(/Already at full strength/, { timeout: 15_000 });
 });
 
@@ -189,6 +195,8 @@ test('ground says what it is for, even when you cannot build it yet', async ({ p
   await page.getByRole('button', { name: 'Here', exact: true }).click();
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 15_000 });
+  const more = card.getByRole('group', { name: 'Actions on this hex' }).first().getByRole('button', { name: /^More · / });
+  if (await more.isVisible().catch(() => false)) await more.click(); // three up front, the rest behind More (BRDC-UX-005)
   await card.getByRole('button', { name: 'Works', exact: true }).click();
 
   // What belongs on this hex but is out of reach is named, with the reason.

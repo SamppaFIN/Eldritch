@@ -12,6 +12,7 @@ test.use({ permissions: ['geolocation'], geolocation: HERE });
 test('the Keep shows the Hearth’s reach and the food a hex costs', async ({ page }) => {
   await openMap(page, HERE);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Realm' }).click(); // the Keep's tabs (BRDC-UX-004)
 
   const keep = page.getByLabel('Your sanctuary');
   await expect(keep).toBeVisible();

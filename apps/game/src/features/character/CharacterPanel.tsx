@@ -120,6 +120,8 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
 
   const state = levelState(profile?.xp ?? 0);
   const milestone = milestoneForLevel(state.level);
+  const earned = achievements.filter((a) => a.unlockedAt !== null);
+  const ahead = achievements.filter((a) => a.unlockedAt === null);
   const ladder = visibleMilestones(state.level);
   const titles =
     profile && codex.status === 'ready' ? titlesHeld(codex.table.metrics, profile.id) : [];
@@ -206,20 +208,24 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
       <div className="character__xp" aria-hidden>
         <div className="character__xp-fill" style={{ inlineSize: `${state.progress * 100}%` }} />
       </div>
-      <p className="character__lore">{milestone.long}</p>
-      <ul className="character__ladder">
-        {ladder.reached.map((m) => (
-          <li key={m.level} className={m.name === milestone.name ? 'character__rung--here' : undefined}>
-            <span className="es-numeric">{m.level}</span> {m.name} — {m.blurb}
-          </li>
-        ))}
-        {ladder.next ? (
-          <li className="character__rung--locked">
-            <span className="es-numeric">{ladder.next.level}</span> {ladder.next.name} — reach it
-            to learn what it means.
-          </li>
-        ) : null}
-      </ul>
+      {/* What the level means, and the ladder — read once, then one tap away (BRDC-UX-008). */}
+      <details className="character__more">
+        <summary>What it means</summary>
+        <p className="character__lore">{milestone.long}</p>
+        <ul className="character__ladder">
+          {ladder.reached.map((m) => (
+            <li key={m.level} className={m.name === milestone.name ? 'character__rung--here' : undefined}>
+              <span className="es-numeric">{m.level}</span> {m.name} — {m.blurb}
+            </li>
+          ))}
+          {ladder.next ? (
+            <li className="character__rung--locked">
+              <span className="es-numeric">{ladder.next.level}</span> {ladder.next.name} — reach it
+              to learn what it means.
+            </li>
+          ) : null}
+        </ul>
+      </details>
 
       <h3 className="character__section">Found ({finds.length}/{SECRET_SITES.length})</h3>
       <Found finds={finds} onTopic={onTopic} />
@@ -251,8 +257,17 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
         </>
       ) : null}
 
-      <h3 className="character__section">Achievements</h3>
-      <Achievements list={achievements} now={now()} />
+      <h3 className="character__section">
+        Achievements ({earned.length}/{achievements.length})
+      </h3>
+      {/* Earned and the next one; the rest folded (BRDC-UX-008). */}
+      <Achievements list={[...earned, ...ahead.slice(0, 1)]} now={now()} />
+      {ahead.length > 1 ? (
+        <details className="character__more">
+          <summary>{ahead.length - 1} more to earn</summary>
+          <Achievements list={ahead.slice(1)} now={now()} />
+        </details>
+      ) : null}
     </GlassPanel>
   );
 }

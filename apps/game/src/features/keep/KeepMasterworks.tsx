@@ -72,17 +72,23 @@ export function KeepMasterworks({ repository, now, onPouch, onRaised }: KeepMast
               <strong>{NAME[row.id]}</strong>
               {row.standing ? (row.dormant ? ' · Dormant — rebuild its works to wake it' : ' · Standing') : ` · ${row.met} of ${row.needs.length} met`}
             </p>
-            {row.standing ? null : (
-              <ul className="keep-masterwork__needs">
-                {row.needs.map((n) => (
-                  <li key={n.text}>
-                    {n.met ? '✓ ' : '○ '}
-                    {n.text.replace(/\b(watchtower|farm|forge|quarry|market|temple-grove)\b/g, (k) => BUILDING_NAME[k as keyof typeof BUILDING_NAME] ?? k)}
-                  </li>
-                ))}
-              </ul>
+            {row.standing ? (
+              <p className="hearth-panel__line">{row.gives}</p>
+            ) : (
+              // What it needs and gives, one tap away: "x of y met" says enough at a glance (BRDC-UX-004).
+              <details className="keep-more">
+                <summary>What it needs</summary>
+                <ul className="keep-masterwork__needs">
+                  {row.needs.map((n) => (
+                    <li key={n.text}>
+                      {n.met ? '✓ ' : '○ '}
+                      {n.text.replace(/\b(watchtower|farm|forge|quarry|market|temple-grove)\b/g, (k) => BUILDING_NAME[k as keyof typeof BUILDING_NAME] ?? k)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="hearth-panel__line">{row.gives}</p>
+              </details>
             )}
-            <p className="hearth-panel__line">{row.gives}</p>
             {row.ready ? (
               <RitualButton variant="ghost" disabled={busy} onClick={() => raise(row)}>
                 {`Raise · ${price(row.cost)}`}

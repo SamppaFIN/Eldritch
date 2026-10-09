@@ -52,6 +52,7 @@ test('the Keep shows who walks with you, and a new ally is taken on request', as
   await foundKeep(page);
   await seedAllies(page);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
   const panel = page.getByLabel('Your sanctuary').getByRole('region', { name: 'Your investigator' });
   await expect(panel).toContainText('Walks with you: Cornelius, the hermit · +1 die on Lore tests', { timeout: 20_000 });
   await expect(panel).toContainText('Grug, of the bridge offers to walk with you instead');

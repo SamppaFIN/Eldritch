@@ -7,7 +7,7 @@
 | **Effort** | S–M |
 | **Riippuvuudet** | — |
 | **Lähde** | Käytettävyyskatselmus 2026-10-09 (27 ruutukaappausta 360 px, rikas valtakunta); Infinite: *"joo, tee tiketti ja jatka"* |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-09 |
 
 ## 🔴 RED
 
@@ -15,13 +15,13 @@ Up next -nauha leikkautuu ("Store…") eikä kerro pyyhkäisystä. Ledgerin väl
 
 ## 🟢 GREEN
 
-- [ ] Nauha: kaksi kohdetta + "+N" tai reunan häivytys
-- [ ] Ledgerin välilehdet mahtuvat tai näyttävät vieritettävyyden
-- [ ] Rivien aika selkokielellä ("walked 1 d ago · fades in 12 d")
-- [ ] You: tasoproosa ja saavutukset togglen taakse (ansaitut + seuraava)
-- [ ] Taverna: valmiit "Done (n)" -togglen taakse
-- [ ] Kylän tehtävät togglen taakse
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build; e2e 360 px kuvakaappaus ennen/jälkeen
+- [x] Nauha: kaksi kohdetta + "+N" tai reunan häivytys
+- [x] Ledgerin välilehdet mahtuvat (rivittyvät, UX-003) tai näyttävät vieritettävyyden
+- [x] Rivien aika selkokielellä ("walked 3 days · fades in 12 d" — `days` on käveltyjen päivien määrä, ei "ago") ("walked 1 d ago · fades in 12 d")
+- [x] You: tasoproosa ja saavutukset togglen taakse (ansaitut + seuraava)
+- [x] Taverna: valmiit "Done (n)" -togglen taakse
+- [x] Kylän tehtävät togglen taakse
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build; e2e 360 px kuvakaappaus ennen/jälkeen — `pnpm test` 2154 ✓, `typecheck` ✓, `lint:lines` ✓, build ✓; e2e 360 px: muutoksen speksit vihreinä (dream, masks, week, up-next, task-board, era, ambition, cell-actions, yield-card, opening 41/90/187, lands, nation 35/69, share); punaiset (dialogs, gpx, diplomacy, keep-citizens, season-gate 77/101, nation 107, guide 41, opening 66, claim 67/222) punaisia myös HEADissa d493c4b, rinnakkaisella worktree-ajolla
 
 ## Ei tässä
 

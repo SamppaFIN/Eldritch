@@ -68,6 +68,7 @@ async function writeKeep(page: Page): Promise<void> {
 test('a Season 1 save shows no Citizens section', async ({ page }) => {
   await openMap(page, HERE);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Realm' }).click(); // the Keep's tabs (BRDC-UX-004)
   const keep = page.getByLabel('Your sanctuary');
   await expect(keep.getByLabel('Grow the Hearth')).toBeVisible();
   await expect(keep.getByLabel('Citizens')).toHaveCount(0);
@@ -88,6 +89,7 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   await expect(citizens).toContainText('Stores fill for 12 more h.');
   await expect(citizens.getByRole('button', { name: /Raise the Keep · 100 food · 50 stone/ })).toBeVisible();
   // BRDC-PROG-006: the masterwork ladder, nothing met yet.
+  await page.getByRole('tab', { name: 'Realm' }).click();
   const masterworks = page.getByLabel('Your sanctuary').getByLabel('Masterworks');
   await expect(masterworks).toContainText('The Fortress · 0 of 3 met');
   await expect(masterworks).toContainText('○ Lore · signal-fires');
@@ -196,13 +198,16 @@ test('Kindling lets a Season 2 realm dedicate a temple school (BRDC-PROG-007)', 
   await openMap(page, HERE);
   await foundKeep(page);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Realm' }).click();
   const schools = page.getByLabel('Your sanctuary').getByLabel('Temple schools');
   await expect(schools).toContainText('Study Kindling in the Lore to dedicate a temple.');
 
   await seedKey(page, 'lore', ['kindling']);
   await page.reload();
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Realm' }).click();
   const after = page.getByLabel('Your sanctuary').getByLabel('Temple schools');
+  await after.getByRole('radio', { name: /^The Tide/ }).check(); // a pick, then the button (BRDC-UX-007)
   await after.getByRole('button', { name: 'Dedicate to The Tide' }).click();
   await expect(after).toContainText('I · Call the Shoal');
   await expect(after.getByRole('button', { name: /Learn · 40 mana/ }).first()).toBeVisible();
@@ -220,6 +225,7 @@ test('an open season shows the shared Doom track and the Mythos card (BRDC-DOOM-
   );
   await openMap(page, HERE);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Season' }).click();
   const doom = page.getByLabel('Your sanctuary').getByLabel('The Doom track');
   await expect(doom).toContainText('The Low Water · Doom 10 / 13 — 3 steps from waking. Seal the gates.');
   await expect(doom).toContainText('Mythos ·');
@@ -237,6 +243,7 @@ test('a Season 2 realm sees its open gates and its investigator (BRDC-DOOM-002)'
   await openMap(page, HERE);
   await foundKeep(page);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Investigator' }).click();
   const gates = page.getByLabel('Your sanctuary').getByLabel('Open gates');
   // The gates draw only after the Doom is posted, and the e2e build's Worker is dead on purpose.
   await expect(gates).toContainText('Health 7 · Sanity 6 · Clues 0 / 8', { timeout: 20_000 });
@@ -252,6 +259,7 @@ test('during the Reckoning the Keep strikes the Ancient One (BRDC-DOOM-004)', as
   await openMap(page, HERE);
   await foundKeep(page);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Season' }).click();
   const fight = page.getByLabel('Your sanctuary').getByLabel('The Reckoning');
   await expect(fight).toContainText('Its strength · 5200 / 5400');
   await fight.getByRole('button', { name: 'Strike · Fight test' }).click();

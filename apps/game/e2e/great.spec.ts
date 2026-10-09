@@ -54,6 +54,7 @@ test('a great person is announced once, and their deed is done once', async ({ p
     return keep.isEnabled();
   }, { timeout: 30_000 }).toBe(true);
   await keep.click();
+  await page.getByRole('tab', { name: 'Season' }).click(); // the Keep's tabs (BRDC-UX-004)
   const great = page.getByLabel('Your sanctuary').getByRole('region', { name: 'Great people' });
   await great.getByRole('button', { name: 'Chart the Unknown' }).click();
   await great.getByRole('button', { name: 'Chart the Unknown — now' }).click();

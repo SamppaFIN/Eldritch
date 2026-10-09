@@ -61,6 +61,7 @@ test('a page of the Book is read once, and sanity holds one less', async ({ page
     return keep.isEnabled();
   }, { timeout: 30_000 }).toBe(true);
   await keep.click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
 
   const book = page.getByLabel('Your sanctuary').getByRole('region', { name: 'The Book' });
   await expect(book).toContainText('1 of 10 pages found · sanity holds at most 6', { timeout: 15_000 });

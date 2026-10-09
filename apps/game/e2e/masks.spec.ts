@@ -62,15 +62,16 @@ test('the stranger is named after three masks, and dealt with once', async ({ pa
     return keep.isEnabled();
   }, { timeout: 30_000 }).toBe(true);
   await keep.click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
 
   const stranger = page.getByLabel('Your sanctuary').getByRole('region', { name: 'The stranger' });
   await expect(stranger).toContainText('Masks met: the woodcutter, the fisherman, the pilot.', { timeout: 15_000 });
-  await stranger.getByRole('button', { name: 'The Ferryman of the Fuming Lake' }).click();
+  await stranger.getByRole('radio', { name: 'The Ferryman of the Fuming Lake' }).check(); // a pick, then the button (BRDC-UX-007)
   await stranger.getByRole('button', { name: 'Say it: The Ferryman of the Fuming Lake' }).click();
   await expect(stranger.getByRole('status')).toContainText('That is not his name.');
-  await stranger.getByRole('button', { name: 'Nyarlathotep, the Crawling Chaos' }).click();
+  await stranger.getByRole('radio', { name: 'Nyarlathotep, the Crawling Chaos' }).check();
   await stranger.getByRole('button', { name: 'Say it: Nyarlathotep, the Crawling Chaos' }).click();
-  await stranger.getByRole('button', { name: 'Banish him' }).click();
+  await stranger.getByRole('radio', { name: /^Banish him/ }).check();
   await stranger.getByRole('button', { name: 'Banish him — for good' }).click();
   await expect(stranger).toContainText('✦ Named, and banished.');
   await expect(stranger.getByRole('button')).toHaveCount(0);

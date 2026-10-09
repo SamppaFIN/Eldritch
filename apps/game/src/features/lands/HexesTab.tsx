@@ -27,9 +27,10 @@ function foundLine(r: Revealed): string {
 }
 
 /** "3 h" · "5 d" · "safe" for ground that cannot be lost. */
+/** Said in words, not "12 d" beside "1 d walked" (BRDC-UX-008). */
 function untilLost(hours: number | null): string {
-  if (hours === null) return 'safe';
-  return hours < 48 ? `${hours} h` : `${Math.round(hours / 24)} d`;
+  if (hours === null) return 'never fades';
+  return hours < 48 ? `fades in ${hours} h` : `fades in ${Math.round(hours / 24)} d`;
 }
 
 /** `terrainGlyph` hands back a char and a colour; the list wants both. */
@@ -84,7 +85,9 @@ export function HexesTab({ list, summary, found, reveal, revealAll, onShowCell }
           <span>
             {h.strength}/{MAX_STRENGTH}
           </span>
-          <span>{h.days} d walked</span>
+          <span>
+            walked {h.days} {h.days === 1 ? 'day' : 'days'}
+          </span>
           <span className={h.hoursLeft !== null && h.hoursLeft <= 24 ? 'lands__fading' : undefined}>
             {untilLost(h.hoursLeft)}
           </span>

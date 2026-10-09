@@ -45,7 +45,7 @@ test('a golden week is named on the sheet, and its boon is taken once', async ({
   await expect(named).toBeVisible({ timeout: 20_000 });
   await named.click();
   const week = page.getByLabel('Your sanctuary').getByRole('region', { name: 'This week' });
-  await week.getByRole('button', { name: 'Long Harvest · +3 food/h' }).click();
+  await week.getByRole('radio', { name: 'Long Harvest · +3 food/h' }).check(); // a pick, then the button (BRDC-UX-007)
   await week.getByRole('button', { name: 'Take Long Harvest for the week' }).click();
   await expect(week).toContainText('The week’s boon · Long Harvest');
   await expect(week.getByRole('button')).toHaveCount(0);

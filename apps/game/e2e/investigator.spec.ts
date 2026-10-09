@@ -40,6 +40,7 @@ test('the investigator is chosen once, in the Keep, and kept', async ({ page }) 
   await openMap(page, HERE);
   await foundKeep(page);
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
   const panel = page.getByLabel('Your sanctuary').getByRole('region', { name: 'Your investigator' });
   await expect(panel).toContainText('Will 2 · Lore 3 · Vigor 2 · Wit 2', { timeout: 20_000 });
 
@@ -54,6 +55,7 @@ test('the investigator is chosen once, in the Keep, and kept', async ({ page }) 
 
   await page.reload();
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await page.getByRole('tab', { name: 'Investigator' }).click(); // the Keep's tabs (BRDC-UX-004)
   await expect(page.getByLabel('Your sanctuary').getByRole('region', { name: 'Your investigator' })).toContainText('Mara Quill · The Dockworker', { timeout: 20_000 });
   await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/investigator-chosen.png' });
 });
