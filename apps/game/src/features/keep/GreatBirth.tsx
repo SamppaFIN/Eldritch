@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { GREAT } from '@es3/core';
 import type { Cell, GameRepository, GreatPerson } from '@es3/core';
+import { GreatEmblem } from '../hud/CardArt.js';
 import '../hud/edge-card.css';
 
 export function GreatBirth({ repository, owned }: { repository: GameRepository | null; owned: readonly Cell[] }) {
@@ -26,6 +27,9 @@ export function GreatBirth({ repository, owned }: { repository: GameRepository |
   };
   return (
     <button type="button" className="edge-card es-glass" onClick={read} aria-label={`Born · ${born.name} — dismiss`}>
+      <span className="edge-card__sigil" aria-hidden>
+        <GreatEmblem />
+      </span>
       <span className="edge-card__text">
         <span className="edge-card__name">Born · {born.name}</span>
         <span className="edge-card__line">

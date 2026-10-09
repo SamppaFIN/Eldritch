@@ -1,0 +1,34 @@
+/* The pictures on the cards (BRDC-ART-008). */
+
+/* The ground a find stands on: the map's texture cut to a hex, its tile on top, its rim
+   drawing round it. Pointy-top, radius 48 of 100 — the rim's own outer line. */
+.ground-art {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.ground-art__ground {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 2%, 91.57% 26%, 91.57% 74%, 50% 98%, 8.43% 74%, 8.43% 26%);
+  animation: es-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.ground-art__tile {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  filter: drop-shadow(0 4px 6px oklch(0 0 0 / 0.5));
+}
+
+.ground-art__frame {
+  position: absolute;
+  inset: 0;
+  color: var(--sacred-gold);
+}
+
+/* An edge card's emblem takes the card's gold, like the Eureka's Flower of Life. */
+.card-emblem {
+  color: var(--sacred-gold);
+}

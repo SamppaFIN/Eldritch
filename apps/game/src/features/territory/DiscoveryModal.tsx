@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { Modal, Rarity, RitualButton, HexMandala } from '@es3/ui';
+import { GroundArt } from '../hud/CardArt.js';
 import { revealOf, terrainForCell } from '@es3/core';
 import type { Cell, H3Index } from '@es3/core';
 import type { Discovery } from './useDiscovery.js';
@@ -91,8 +92,9 @@ export function DiscoveryModal({
         </>
       }
     >
+      {/* The ground itself, in the map's own art (BRDC-ART-008). */}
       <span className="discovery__sigil" aria-hidden>
-        <HexMandala size={110} animate={1400} />
+        {cell ? <GroundArt kind={terrainForCell(cell).kind} size={120} /> : <HexMandala size={110} animate={1400} />}
       </span>
 
       <p className="discovery__ground">{cell ? GROUND_NAME[terrainForCell(cell).kind] : 'New ground'}</p>

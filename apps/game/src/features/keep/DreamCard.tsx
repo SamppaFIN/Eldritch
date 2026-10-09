@@ -7,6 +7,7 @@
  */
 import { useEffect, useState } from 'react';
 import type { Cell, DreamView, GameRepository } from '@es3/core';
+import { DreamEmblem } from '../hud/CardArt.js';
 import '../hud/edge-card.css';
 
 export function DreamCard({ repository, owned }: { repository: GameRepository | null; owned: readonly Cell[] }) {
@@ -14,13 +15,15 @@ export function DreamCard({ repository, owned }: { repository: GameRepository | 
   const [ended, setEnded] = useState<{ pass: boolean; text: string } | null>(null);
   const [put, setPut] = useState(false);
   useEffect(() => {
-    if (!repository || put) return;
+    // Faced: the ending stays until it is read — a refresh of your ground would otherwise
+    // re-read the dream, find it settled, and take the card away mid-sentence.
+    if (!repository || put || ended) return;
     let live = true;
     void repository.dreams.waiting(Date.now()).then((d) => live && setDream(d && !d.outcome ? d : null));
     return () => {
       live = false;
     };
-  }, [repository, owned, put]);
+  }, [repository, owned, put, ended]);
 
   if (!repository || put || !dream) return null;
   const tap = () => {
@@ -34,6 +37,9 @@ export function DreamCard({ repository, owned }: { repository: GameRepository | 
       onClick={tap}
       aria-label={ended ? `Dream · ${dream.card.title} — dismiss` : `Dream · ${dream.card.title} — face it`}
     >
+      <span className="edge-card__sigil" aria-hidden>
+        <DreamEmblem />
+      </span>
       <span className="edge-card__text">
         <span className="edge-card__name">Dream · {dream.card.title}</span>
         <span className="edge-card__line" role={ended ? 'status' : undefined}>

@@ -97,6 +97,10 @@ test('walking past the Hearth ring raises "New ground", and it waits to be read'
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('button', { name: 'Reveal what it holds' })).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Open its card' })).toBeVisible();
+  // The ground itself on the card, in the map's own art (BRDC-ART-008).
+  await expect(dialog.locator('.ground-art')).toBeVisible();
+  await page.waitForTimeout(1_500);
+  await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/newground.png' });
 
   // Well past the old 4.5 s: still up.
   await page.waitForTimeout(8_000);

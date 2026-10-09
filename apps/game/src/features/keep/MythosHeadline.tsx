@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import type { GameRepository, MythosToday } from '@es3/core';
 import { seasonOnce } from '../../data/season.js';
+import { MythosEmblem } from '../hud/CardArt.js';
 import '../hud/edge-card.css';
 
 export function MythosHeadline({ repository }: { repository: GameRepository | null }) {
@@ -29,6 +30,9 @@ export function MythosHeadline({ repository }: { repository: GameRepository | nu
   };
   return (
     <button type="button" className="edge-card es-glass" onClick={read} aria-label={`Mythos · ${today.card.headline} — dismiss`}>
+      <span className="edge-card__sigil" aria-hidden>
+        <MythosEmblem />
+      </span>
       <span className="edge-card__text">
         <span className="edge-card__name">Mythos · {today.card.headline}</span>
         <span className="edge-card__line">{today.card.rule}</span>

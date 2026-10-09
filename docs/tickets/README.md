@@ -647,7 +647,7 @@ Infinite: *"joo, tee tiketti ja jatka.. sitten sen jälkeen tehdään graafinen 
 Järjestys: **1** UX-001, UX-004, UX-002, UX-003 → **2** UX-005, UX-006, UX-007 → **3** UX-008.
 UX-001…003 koskevat myös nykyistä peliä; ne voi poimia `main`iin hotfixinä Infiniten luvalla.
 
-**Tila 2026-10-09: kaikki kahdeksan `done`.** Seuraava: [BRDC-ART-008](BRDC-ART-008.md) — grafiikkaa korteille.
+**Tila 2026-10-09: kaikki kahdeksan `done`.** [BRDC-ART-008](BRDC-ART-008.md) — grafiikkaa korteille — `done`.
 
 | Tiketti | Mitä | Effort |
 |---|---|---|
