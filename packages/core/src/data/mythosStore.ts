@@ -17,6 +17,8 @@ interface MythosBook {
   opensAt: number;
   /** The season's phase as last read — the Choir's flood reads it (BRDC-CHOIR-001). */
   phase?: SeasonPhase;
+  /** The town's terror as last read (BRDC-TERROR-001). */
+  terror?: number;
   /** The last day whose headline was shown. */
   seenDay?: number;
 }
@@ -31,7 +33,7 @@ export interface MythosToday {
 
 export interface MythosApi {
   /** Keep the season's clock (seed and opening), as the Worker last said it. */
-  remember(season: { seed: string; opensAt: number; phase?: SeasonPhase }): Promise<void>;
+  remember(season: { seed: string; opensAt: number; phase?: SeasonPhase; terror?: number }): Promise<void>;
   today(now: number): Promise<MythosToday | null>;
   /** Today's headline has been read. */
   markSeen(now: number): Promise<void>;
@@ -48,9 +50,12 @@ export function mythosApi(store: () => KeyValueStore): MythosApi {
   return {
     async remember(season) {
       const b = await book();
-      if (b && b.seed === season.seed && b.opensAt === season.opensAt && b.phase === season.phase) return;
+      if (b && b.seed === season.seed && b.opensAt === season.opensAt && b.phase === season.phase && b.terror === season.terror) return;
       const same = b && b.seed === season.seed && b.opensAt === season.opensAt;
-      await store().set(K.mythos, { ...(same ? b : {}), seed: season.seed, opensAt: season.opensAt, ...(season.phase ? { phase: season.phase } : {}) });
+      await store().set(K.mythos, {
+        ...(same ? b : {}), seed: season.seed, opensAt: season.opensAt,
+        ...(season.phase ? { phase: season.phase } : {}), ...(season.terror !== undefined ? { terror: season.terror } : {}),
+      });
     },
     async today(now) {
       const b = await book();

@@ -9,6 +9,7 @@ import type { Cell, GameRepository, H3Index } from '@es3/core';
 import { useStandard } from '../territory/useStandard.js';
 import { useUpNext } from './useUpNext.js';
 import { useWeek } from './useWeek.js';
+import { useTerror } from './useTerror.js';
 import type { UpNextTargets } from './useUpNext.js';
 import type { SheetLinks } from './SheetActions.js';
 
@@ -30,6 +31,8 @@ export function useSheetLinks(i: SheetLinkInputs): SheetLinks {
   const w = useWeek(i.repository, i.now, i.owned);
   const week = w && w.kind !== 'plain' ? { name: w.name, kind: w.kind, open: i.to.keep } : undefined;
   const t = i.now();
-  const sky = skyLine(weatherAt(t), moonDay(t)) || undefined;
+  // The town's terror rides the same line as the sky (BRDC-TERROR-001).
+  const terror = useTerror();
+  const sky = [skyLine(weatherAt(t), moonDay(t)), terror > 0 ? `Terror ${terror}/10` : ''].filter(Boolean).join(' · ') || undefined;
   return { onOpenLands: i.onOpenLands, onOpenCounsel: i.onOpenCounsel, standard, upNext, week, sky };
 }

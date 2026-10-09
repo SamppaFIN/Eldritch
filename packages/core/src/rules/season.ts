@@ -41,6 +41,8 @@ export interface Season {
   bossHp: number;
   bossMaxHp: number;
   outcome?: SeasonOutcome;
+  /** The town's terror, 0–10, moved by the same gate moves as the Doom (BRDC-TERROR-001). */
+  terror?: number;
 }
 
 export const DOOM_MAX = 13;

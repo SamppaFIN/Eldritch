@@ -38,3 +38,5 @@ export type { StrangerChoice, StrangerName } from './masks.js';
 export { CHOIR_CARDS, CHOIR_FINALE, CHOIR_TASKS, FLOOD_FACTOR, floodsAt, isFlooded } from './choir.js';
 export { JOURNEY_STAGES, WORLDS, WORLD_IDS, journeyCards, worldOf } from './otherWorld.js';
 export type { World, WorldCard, WorldId } from './otherWorld.js';
+export { TERROR_MARKET_AT, TERROR_MAX, TERROR_TRADE_AT, nextTerror, terrorEffects } from './terror.js';
+export type { TerrorEffects } from './terror.js';

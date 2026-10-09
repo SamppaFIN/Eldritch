@@ -17,7 +17,7 @@
  * set they are simply off. The key never reaches the game client — Infinite uses curl.
  * Separate from `season.ts`, which is SEASON-001's daily tournament trail.
  */
-import { MAX_DAMAGE_PER_CALL, STRIKE_COOLDOWN_MS, advanceSeason, damageBoss, forcePhase, openSeason } from '@es3/core/rules';
+import { MAX_DAMAGE_PER_CALL, STRIKE_COOLDOWN_MS, advanceSeason, damageBoss, forcePhase, nextTerror, openSeason } from '@es3/core/rules';
 import type { Season, SeasonPhase } from '@es3/core/rules';
 import type { WorldSource } from '@es3/core/data';
 import type { KV } from './index.js';
@@ -71,7 +71,8 @@ export async function handleSeasonState(
     const once = `doomgate:${gateId}:${delta}`;
     if (!(await kv.get(once))) {
       await kv.put(once, '1', { expirationTtl: 60 * 86_400 });
-      const next = advanceSeason({ ...season, doomShift: (season.doomShift ?? 0) + delta }, now, await realms());
+      // The town's terror moves with it (BRDC-TERROR-001): a gate left open raises it, a seal lowers it.
+      const next = advanceSeason({ ...season, doomShift: (season.doomShift ?? 0) + delta, terror: nextTerror(season.terror ?? 0, delta) }, now, await realms());
       await kv.put(STATE, JSON.stringify(next));
     }
     return send({ ok: true });

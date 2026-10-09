@@ -85,6 +85,7 @@ export async function yieldContext(
     routes: routesS as TradeRoute[] | undefined,
     suzerain: suzS as CityStateId[] | undefined,
     flooded: isFlooded((mythosS as { phase?: SeasonPhase } | undefined)?.phase, (tasksS as { outcomes?: Record<string, { status: string }> } | undefined)?.outcomes?.[CHOIR_FINALE]?.status === 'completed'),
+    terror: (mythosS as { terror?: number } | undefined)?.terror,
   };
   return { ctx, works };
 }

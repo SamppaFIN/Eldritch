@@ -45,6 +45,7 @@ import type { TradeRoute } from './tradeRoute.js';
 import { SUZERAIN_BONUS } from './suzerain.js';
 import { cityStateById } from './cityState.js';
 import { FLOOD_FACTOR, floodsAt } from './choir.js';
+import { terrorEffects } from './terror.js';
 import type { CityStateId } from './cityState.js';
 import type { BoonId, WeekKind } from './age.js';
 import type { EraId } from './era.js';
@@ -92,6 +93,8 @@ export interface YieldContext {
   suzerain?: readonly CityStateId[] | undefined;
   /** The Reckoning's flood (BRDC-CHOIR-001): lake and coast hexes make half until the Choir is silenced. */
   flooded?: boolean | undefined;
+  /** The town's terror (BRDC-TERROR-001): at 8, every Market makes a quarter less. */
+  terror?: number | undefined;
 }
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
@@ -169,6 +172,12 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
     }
     if (merged.mana) merged.mana *= FULL_MOON_MANA;
   }
+  // The terror's line, read back from the card the same way (BRDC-TERROR-001).
+  if (terrorEffects(ctx.terror ?? 0).marketFactor < 1) {
+    for (const c of owned.filter((x) => worksOn(x).some((w) => w.id === 'market'))) {
+      for (const l of computeHexYield(c, ctx).contributions) if (l.label === 'Terror') merged[l.resource] = (merged[l.resource] ?? 0) + l.amount;
+    }
+  }
   // The flood is the hex card's own line, read back, after everything it halves.
   if (ctx.flooded) {
     for (const c of owned.filter((x) => floodsAt(terrainForCell(x).kind))) {
@@ -176,6 +185,14 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
     }
   }
   return merged;
+}
+
+/** A Market's gold, a quarter of it gone while the town is terrified — the realm's own gold, as the settle pays it. */
+function terrorLines(out: readonly YieldContribution[], ctx: YieldContext, cell: Cell): YieldContribution[] {
+  const factor = terrorEffects(ctx.terror ?? 0).marketFactor;
+  if (factor >= 1 || !worksOn(cell).some((w) => w.id === 'market')) return [];
+  const gold = out.reduce((s, c) => (c.resource === 'gold' && c.source !== 'terrain' ? s + c.amount : s), 0);
+  return gold > 0 ? [{ resource: 'gold', amount: -gold * (1 - factor), source: 'other', label: 'Terror' }] : [];
 }
 
 /** Half of everything a lake or coast hex makes, taken back while the Choir sings. */
@@ -328,6 +345,7 @@ export function computeHexYield(cell: Cell, ctx: YieldContext): HexYield {
   if (ctx.mythos) push(mythosOnCell(cell, ctx), 'other', `Mythos: ${ctx.mythos.headline}`);
   out.push(...librarianLine(ctx, out.reduce((s, c) => (c.resource === 'wisdom' ? s + c.amount : s), 0)));
   out.push(...moonLines(out, ctx, cell));
+  out.push(...terrorLines(out, ctx, cell));
   out.push(...floodLines(out, ctx, cell));
 
   const week = ctx.week?.factor ?? 1;

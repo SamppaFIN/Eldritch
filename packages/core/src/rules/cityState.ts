@@ -131,8 +131,8 @@ export const TRADE_LOSS = 0.25;
 export const TRADE_PARCEL = 20;
 
 /** What `give` of one resource returns in another. */
-export function tradeReturn(give: number): number {
-  return Math.floor(give * (1 - TRADE_LOSS));
+export function tradeReturn(give: number, loss: number = TRADE_LOSS): number {
+  return Math.floor(give * (1 - loss));
 }
 
 export type TradeRefusal = 'same-resource' | 'cannot-afford' | 'nothing-to-give';
@@ -152,12 +152,14 @@ export function trade(
   give: ResourceKind,
   want: ResourceKind,
   parcel: number = TRADE_PARCEL,
+  /** What the village keeps — more when the town is afraid (BRDC-TERROR-001). */
+  loss: number = TRADE_LOSS,
 ): TradeResult {
   if (give === want) return { ok: false, refused: 'same-resource' };
   if (parcel <= 0) return { ok: false, refused: 'nothing-to-give' };
   if ((pool[give] ?? 0) < parcel) return { ok: false, refused: 'cannot-afford' };
 
-  const got = tradeReturn(parcel);
+  const got = tradeReturn(parcel, loss);
   const next = { ...pool };
   next[give] -= parcel;
   next[want] += got;

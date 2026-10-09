@@ -10,11 +10,12 @@
  * affordability check — a row you can see is a row you can press.
  */
 import { useState } from 'react';
-import { RESOURCE_KINDS, TRADE_LOSS, TRADE_PARCEL, tradeReturn } from '@es3/core';
+import { RESOURCE_KINDS, TRADE_PARCEL, terrorEffects, tradeReturn } from '@es3/core';
 import type { CityState, GameRepository, ResourceKind, ResourcePool, TradeRefusal } from '@es3/core';
 import { RitualButton } from '@es3/ui';
 import { RESOURCE_COLOUR, RESOURCE_WORD } from './territoryFeatures.js';
 import { VillageFavour } from './VillageFavour.js';
+import { useTerror } from '../hud/useTerror.js';
 
 const REFUSAL: Readonly<Record<TradeRefusal, string>> = {
   'same-resource': 'They will not swap a thing for itself.',
@@ -48,6 +49,8 @@ export interface TradePostProps {
 
 export function TradePost({ city, resources, refusal, onTrade, repository = null }: TradePostProps) {
   const [give, setGive] = useState<ResourceKind | null>(null);
+  // A frightened town bargains harder (BRDC-TERROR-001).
+  const loss = terrorEffects(useTerror()).tradeLoss;
   const [want, setWant] = useState<ResourceKind | null>(null);
 
   const canPart = RESOURCE_KINDS.filter((k) => (resources?.[k] ?? 0) >= TRADE_PARCEL);
@@ -71,8 +74,8 @@ export function TradePost({ city, resources, refusal, onTrade, repository = null
         {city.kind}. {city.blurb}
       </p>
       <p className="cell-panel__note">
-        They swap a parcel for a parcel, and keep {Math.round(TRADE_LOSS * 100)}% for the
-        trouble: {TRADE_PARCEL} in, {tradeReturn(TRADE_PARCEL)} out.
+        They swap a parcel for a parcel, and keep {Math.round(loss * 100)}% for the
+        trouble: {TRADE_PARCEL} in, {tradeReturn(TRADE_PARCEL, loss)} out.
       </p>
 
       <p className="trade__label">Give</p>
@@ -95,7 +98,7 @@ export function TradePost({ city, resources, refusal, onTrade, repository = null
         onClick={() => give && want && onTrade(give, want)}
       >
         {give && want && give !== want
-          ? `Trade ${TRADE_PARCEL} ${RESOURCE_WORD[give]} → ${tradeReturn(TRADE_PARCEL)} ${RESOURCE_WORD[want]}`
+          ? `Trade ${TRADE_PARCEL} ${RESOURCE_WORD[give]} → ${tradeReturn(TRADE_PARCEL, loss)} ${RESOURCE_WORD[want]}`
           : 'Choose what to give and what to take'}
       </RitualButton>
 

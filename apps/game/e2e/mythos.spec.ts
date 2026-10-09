@@ -29,6 +29,14 @@ test('the day’s headline is read once', async ({ page }) => {
   await expect(card).toBeVisible({ timeout: 20_000 });
   await card.click();
   await expect(card).toHaveCount(0);
+  // The card hides at once and the store hears of it a moment later: reload only once it has.
+  await expect.poll(() => page.evaluate(() => new Promise<number | undefined>((res) => {
+    const o = indexedDB.open('es3');
+    o.onsuccess = () => {
+      const g = o.result.transaction('kv', 'readonly').objectStore('kv').get('mythos');
+      g.onsuccess = () => { o.result.close(); res((g.result as { seenDay?: number } | undefined)?.seenDay); };
+    };
+  })), { timeout: 10_000 }).not.toBeUndefined();
 
   await page.reload();
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });

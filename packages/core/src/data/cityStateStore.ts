@@ -9,6 +9,7 @@
  * same stance `mergeWorld` takes for `world.json`. A city state is a neighbour, not a
  * land grab.
  */
+import { terrorEffects } from '../rules/terror.js';
 import { anchorCityStates, cityStateOf, cityStates, trade } from '../rules/cityState.js';
 import type { CityState, TradeResult } from '../rules/cityState.js';
 import type { ResourceKind } from '../rules/terrain.js';
@@ -98,7 +99,8 @@ export async function tradeAt(
   if (!city) return { ok: false, refused: 'nothing-to-give' };
 
   const state = await settlePouch(store, owned, now);
-  const result = trade(state.pool, give, want, parcel);
+  const terror = (await store.get<{ terror?: number }>(K.mythos))?.terror ?? 0;
+  const result = trade(state.pool, give, want, parcel, terrorEffects(terror).tradeLoss);
   if (!result.ok) return result;
 
   await writePouch(store, result.pool, now);
