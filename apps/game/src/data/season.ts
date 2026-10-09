@@ -81,6 +81,20 @@ export interface Boards {
   records: Title[];
 }
 
+/** This realm's clues gathered this season, for the town's mysteries (BRDC-MYSTERY-001). */
+export async function postClues(realm: string, gathered: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${WORLD_API}/season/clues`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ realm, gathered }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Publish this realm's Legacy (BRDC-SEASON-005); the Worker takes one an hour. */
 export async function postLegacy(row: BoardRow): Promise<boolean> {
   try {

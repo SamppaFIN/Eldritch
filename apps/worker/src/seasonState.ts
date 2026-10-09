@@ -25,6 +25,8 @@ import { RUINS, archiveSeason, forgetArchived } from './archive.js';
 import { handleBoards } from './boards.js';
 
 const STATE = 'season:state';
+/** No realm can claim more clues than this in a season — one liar cannot solve the town's mysteries alone. */
+const MAX_CLUES_PER_REALM = 60;
 const DAMAGE = 'season:reckoning:damage';
 const PHASES: readonly SeasonPhase[] = ['open', 'reckoning', 'sealed', 'interregnum', 'next'];
 
@@ -72,8 +74,30 @@ export async function handleSeasonState(
     if (!(await kv.get(once))) {
       await kv.put(once, '1', { expirationTtl: 60 * 86_400 });
       // The town's terror moves with it (BRDC-TERROR-001): a gate left open raises it, a seal lowers it.
-      const next = advanceSeason({ ...season, doomShift: (season.doomShift ?? 0) + delta, terror: nextTerror(season.terror ?? 0, delta) }, now, await realms());
+      // A seal is also a step down one of the mysteries' roads (BRDC-MYSTERY-001).
+      const sealed = delta === -1 ? { sealedGates: (season.sealedGates ?? 0) + 1 } : {};
+      const next = advanceSeason({ ...season, doomShift: (season.doomShift ?? 0) + delta, terror: nextTerror(season.terror ?? 0, delta), ...sealed }, now, await realms());
       await kv.put(STATE, JSON.stringify(next));
+    }
+    return send({ ok: true });
+  }
+
+  // POST /season/clues {realm, gathered}: a realm's clues gathered this season (BRDC-MYSTERY-001).
+  if (request.method === 'POST' && url.pathname === '/season/clues') {
+    const body = (await request.json().catch(() => null)) as { realm?: unknown; gathered?: unknown } | null;
+    const realm = typeof body?.realm === 'string' ? body.realm.slice(0, 120) : null;
+    const gathered = typeof body?.gathered === 'number' && Number.isFinite(body.gathered) ? Math.max(0, Math.min(MAX_CLUES_PER_REALM, Math.floor(body.gathered))) : null;
+    if (!realm || gathered === null) return send({ fault: 'invalid' }, 400);
+    const season = await readSeason(kv);
+    if (!season || season.phase !== 'open') return send({ fault: 'no-open-season' }, 409);
+    const key = `clues:${season.n}:${realm}`;
+    // Only ever up: a realm's gathered count never shrinks within a season.
+    if (gathered > Number((await kv.get(key)) ?? 0)) {
+      await kv.put(key, String(gathered), { expirationTtl: 120 * 86_400 });
+      const { keys } = await kv.list({ prefix: `clues:${season.n}:` });
+      let total = 0;
+      for (const k of keys) total += Number((await kv.get(k.name)) ?? 0);
+      await kv.put(STATE, JSON.stringify({ ...season, cluesGathered: total }));
     }
     return send({ ok: true });
   }

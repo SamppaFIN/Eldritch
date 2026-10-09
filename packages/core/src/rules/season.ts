@@ -11,6 +11,7 @@
  */
 
 import { doomAt } from './doom.js';
+import { mysteriesSolved, mysteryHp } from './mystery.js';
 
 export type SeasonPhase =
   | 'open' //          day 1 → Doom 13 (or the deadline day, if one is set)
@@ -43,6 +44,9 @@ export interface Season {
   outcome?: SeasonOutcome;
   /** The town's terror, 0–10, moved by the same gate moves as the Doom (BRDC-TERROR-001). */
   terror?: number;
+  /** Every realm's clues gathered this season, and the gates sealed — the mysteries' roads (BRDC-MYSTERY-001). */
+  cluesGathered?: number;
+  sealedGates?: number;
 }
 
 export const DOOM_MAX = 13;
@@ -80,7 +84,8 @@ export function openSeason(n: number, name: string, seed: string, opensAt: numbe
 }
 
 function toReckoning(season: Season, now: number, activeRealms: number): Season {
-  const hp = bossMaxHp(activeRealms);
+  // Every mystery the town solved weakens the Ancient One before it wakes (BRDC-MYSTERY-001).
+  const hp = mysteryHp(bossMaxHp(activeRealms), mysteriesSolved(season.cluesGathered ?? 0, season.sealedGates ?? 0));
   return { ...season, phase: 'reckoning', reckoningAt: now, bossHp: hp, bossMaxHp: hp };
 }
 

@@ -40,3 +40,5 @@ export { JOURNEY_STAGES, WORLDS, WORLD_IDS, journeyCards, worldOf } from './othe
 export type { World, WorldCard, WorldId } from './otherWorld.js';
 export { TERROR_MARKET_AT, TERROR_MAX, TERROR_TRADE_AT, nextTerror, terrorEffects } from './terror.js';
 export type { TerrorEffects } from './terror.js';
+export { MYSTERIES, MYSTERY_CLUES, MYSTERY_HP_CUT, MYSTERY_SEALS, mysteriesSolved, mysteryHp, mysteryProgress } from './mystery.js';
+export type { Mystery } from './mystery.js';

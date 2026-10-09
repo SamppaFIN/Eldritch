@@ -33,6 +33,8 @@ export interface InvestigatorView {
   allyOffer: Ally | null;
   /** Lasting conditions, with how each ends (BRDC-CONDITION-001). */
   conditions: ConditionView[];
+  /** Every clue gathered this season, spent or not — the town's mysteries count it (BRDC-MYSTERY-001). */
+  cluesGathered: number;
 }
 
 export type ChooseOutcome =
@@ -61,6 +63,7 @@ const viewOf = (inv: Investigator, now: number): InvestigatorView => ({
   ally: allyOf(inv.ally),
   allyOffer: allyOf(inv.allyOffer),
   conditions: conditionViews(inv, now),
+  cluesGathered: inv.cluesGathered ?? 0,
 });
 
 export function investigatorApi(

@@ -43,6 +43,8 @@ export interface Investigator {
   conditions?: HeldCondition[];
   /** Pages of the Book read (BRDC-PAGES-001): each takes a point of sanity for good. */
   pagesRead?: number;
+  /** Every clue ever gathered this season, spent or not — the town's mysteries count it (BRDC-MYSTERY-001). */
+  cluesGathered?: number;
 }
 
 export const STAMINA_MAX = 7;
@@ -125,4 +127,5 @@ export function afterTest(inv: Investigator, stamina: number, sanity: number, no
 export const addClues = (inv: Investigator, n: number): Investigator => ({
   ...inv,
   clues: Math.max(0, Math.min(BALANCE.clueCap, inv.clues + n)),
+  ...(n > 0 ? { cluesGathered: (inv.cluesGathered ?? 0) + n } : {}),
 });

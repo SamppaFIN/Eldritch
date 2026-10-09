@@ -30,6 +30,7 @@ import { KeepReckoning } from '../keep/KeepReckoning.js';
 import { KeepAmbition } from '../keep/KeepAmbition.js';
 import { KeepWeek } from '../keep/KeepWeek.js';
 import { KeepGreat } from '../keep/KeepGreat.js';
+import { KeepMysteries } from '../keep/KeepMysteries.js';
 import { KeepLegacy } from '../keep/LegacyTally.js';
 import { SeasonBoards } from '../season/SeasonBoards.js';
 import { KeepGates } from '../keep/KeepGates.js';
@@ -160,6 +161,7 @@ export function HearthPanel({
       </dl>
 
       <KeepDoom now={now} />
+      <KeepMysteries repository={repository} now={now} />
       <KeepWeek repository={repository} now={now} />
       <KeepAmbition repository={repository} now={now} />
       <KeepGreat repository={repository} now={now} />
