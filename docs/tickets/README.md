@@ -640,3 +640,20 @@ ruudulla). Workerin `wrangler deploy` tarvitaan kauden 3 avautuessa: `/envoys`, 
 | [BRDC-AERODROME-001](BRDC-AERODROME-001.md) | Härmälän lentokenttä: Ulkoilman kiitorata | M | QUEST-008, DOOM-002 |
 | [BRDC-CHIMNEY-001](BRDC-CHIMNEY-001.md) | Finlaysonin piiput merkkitulina | S–M | LANDMARK-001, BUILD-013 |
 | [BRDC-PAGES-001](BRDC-PAGES-001.md) | Kirjan sivut | M | PROG-007, DOOM-003 |
+
+## Käytettävyys (katselmus 2026-10-09) → haara `season-3`
+
+Infinite: *"joo, tee tiketti ja jatka.. sitten sen jälkeen tehdään graafinen päivitys"*.
+Järjestys: **1** UX-001, UX-004, UX-002, UX-003 → **2** UX-005, UX-006, UX-007 → **3** UX-008.
+UX-001…003 koskevat myös nykyistä peliä; ne voi poimia `main`iin hotfixinä Infiniten luvalla.
+
+| Tiketti | Mitä | Effort |
+|---|---|---|
+| [BRDC-UX-001](BRDC-UX-001.md) | Avoin paneeli saa ruudun — kävelyarkki kutistuu | S–M |
+| [BRDC-UX-002](BRDC-UX-002.md) | Reunakorttien jono — yksi kerrallaan | S–M |
+| [BRDC-UX-003](BRDC-UX-003.md) | Päällekkäisyysbugit: menu-nappi, Ledgerin otsikko, leikkautuvat napit | S |
+| [BRDC-UX-004](BRDC-UX-004.md) | Keep välilehdille, ja lisätiedot togglen taakse | M |
+| [BRDC-UX-005](BRDC-UX-005.md) | Hex-kortti: tärkeimmät toiminnot ensin, loput "More" | M |
+| [BRDC-UX-006](BRDC-UX-006.md) | Lore tiiviimmäksi | S |
+| [BRDC-UX-007](BRDC-UX-007.md) | Valinnat tiiviiksi listaksi | S–M |
+| [BRDC-UX-008](BRDC-UX-008.md) | Pienet: nauha, You, Tavernan valmiit, kylän laituri, Ledgerin välilehdet | S–M |
