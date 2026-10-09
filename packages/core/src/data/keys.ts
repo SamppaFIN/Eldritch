@@ -116,6 +116,8 @@ export const K = {
   propeller: 'propeller',
   /** A journey through a gate under way, `{ gateId, stage }` (BRDC-OTHERWORLD-001). Resets with the season. */
   otherWorld: 'other-world',
+  /** Creatures stopped, and which of your hexes each has bitten (BRDC-MONSTER-001). Resets with the season. */
+  monsters: 'monsters',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

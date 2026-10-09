@@ -22,7 +22,7 @@ export interface SeasonMark {
 const SOURCE = 'season-marks';
 const SPRITE_LAYER = 'season-marks-sprite';
 const LABEL_LAYER = 'season-marks-label';
-const COLOUR: Readonly<Record<SeasonMarkKind, string>> = { gate: '#00d4ff', wonder: '#ffd700', chimney: '#ff8a3d' };
+const COLOUR: Readonly<Record<SeasonMarkKind, string>> = { gate: '#00d4ff', wonder: '#ffd700', chimney: '#ff8a3d', monster: '#b04cff' };
 
 function toGeoJson(marks: readonly SeasonMark[]): FeatureCollection<Point> {
   return {
@@ -108,11 +108,14 @@ export function useSeasonMarks(repository: GameRepository | null, now: number): 
       const wonders = await repository.wonderActs.finds();
       // Reading them also lights them, the first time all three are yours.
       const chimneys = await repository.chimneys.view(now);
+      // A creature shows only where you can see it (BRDC-MONSTER-001); reading moves it on.
+      const creatures = (await repository.monsters.view(now)).filter((c) => c.visible);
       if (!live) return;
       setMarks([
         ...gates.map((g) => ({ h3: g.h3, kind: 'gate' as const, label: 'Open gate' })),
         ...wonders.map((w) => ({ h3: w.h3, kind: 'wonder' as const, label: w.name })),
         ...chimneys.sites.map((c) => ({ h3: c.h3, kind: 'chimney' as const, label: chimneys.litAt ? `${c.name} · lit` : c.name })),
+        ...creatures.map((c) => ({ h3: c.h3, kind: 'monster' as const, label: c.name })),
       ]);
     })();
     return () => {

@@ -6,6 +6,7 @@
 import { CellStaff } from '../keep/CellStaff.js';
 import { CellRites } from '../keep/CellRites.js';
 import { CellGate } from '../keep/CellGate.js';
+import { CellCreature } from '../keep/CellCreature.js';
 import { CellRumour } from '../keep/CellRumour.js';
 import { CellRuin } from '../season/CellRuin.js';
 import { CellWonder } from '../season/CellWonder.js';
@@ -232,6 +233,7 @@ export function CellPanel({
       {mine ? <CellStaff repository={repository} h3={cell.h3} now={now} onChanged={build?.refresh} /> : null}
       {mine ? <CellRites repository={repository} h3={cell.h3} now={now} /> : null}
       <CellGate repository={repository} h3={cell.h3} here={here} now={now} />
+      <CellCreature repository={repository} h3={cell.h3} here={here} now={now} />
       <CellRumour repository={repository} h3={cell.h3} here={here} now={now} />
       <CellRuin repository={repository} h3={cell.h3} here={here} now={now} />
       <CellWonder repository={repository} h3={cell.h3} mine={mine} now={now} />

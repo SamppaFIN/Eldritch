@@ -42,3 +42,5 @@ export { TERROR_MARKET_AT, TERROR_MAX, TERROR_TRADE_AT, nextTerror, terrorEffect
 export type { TerrorEffects } from './terror.js';
 export { MYSTERIES, MYSTERY_CLUES, MYSTERY_HP_CUT, MYSTERY_SEALS, mysteriesSolved, mysteryHp, mysteryProgress } from './mystery.js';
 export type { Mystery } from './mystery.js';
+export { MONSTER_BITE, MONSTER_LIFE_DAYS, MONSTER_NEED, creatureAt, releases } from './monster.js';
+export type { Creature } from './monster.js';

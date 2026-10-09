@@ -7,7 +7,7 @@
 | **Effort** | L |
 | **Riippuvuudet** | DOOM-002, ALLY-001 |
 | **Lähde** | Ideointi 2026-10-06 (4X- ja Arkham Horror -tutkimus), ehdotus B8; Infinite hyväksyi kaikki |
-| **Status** | `todo` |
+| **Status** | `done` (2026-10-09, haara `season-3`) |
 
 ## 🔴 RED
 
@@ -15,11 +15,11 @@ Uhka on staattinen: portti on paikallaan. Arkham Horrorin liikkuvat hirviöt tek
 
 ## 🟢 GREEN
 
-- [ ] Portti voi päästää olennon, joka liikkuu yhden renkaan päivässä kohti Keepiä (deterministinen polku)
-- [ ] Jos se saavuttaa oman heksan, heksan voima laskee (oletus −50); astu sen heksalle → Vigor-koe pysäyttää sen
-- [ ] Olento näkyy kartalla omana spritenä ja on sumun alla kunnes nähty
-- [ ] Puhtaat säännöt (liike, kohtaaminen) + testit
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines` + build
+- [x] Portti voi päästää olennon, joka liikkuu yhden renkaan päivässä kohti Keepiä (deterministinen polku) — `rules/monster.ts`: noin joka toinen portti (hash), lyhin heksapolku (`hexPath`) Hearthiin, sijainti lasketaan portista ja kellosta; vaeltaa pois viikossa
+- [x] Jos se saavuttaa oman heksan, heksan voima laskee (oletus −50); astu sen heksalle → Vigor-koe pysäyttää sen — purema kerran per heksa (`K.monsters.bitten`), koe heksakortilla (`CellCreature`), läpäisy pysäyttää + 1 vihje, epäonnistuminen −1 sanity; kumpikin maksaa 1 healthin
+- [x] Olento näkyy kartalla omana spritenä ja on sumun alla kunnes nähty — oma sprite season-merkkien lähteessä, vain kun heksa on oma, rajanaapuri tai nähty/paljastettu
+- [x] Puhtaat säännöt (liike, kohtaaminen) + testit — `monster.repo.test.ts`
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` + build — e2e `monster.spec.ts` 360 px 4/4 (kohtaaminen todennetaan storesta: korttirivi voi kadota uudelleenrenderöinnissä)
 
 ## Todennus
 

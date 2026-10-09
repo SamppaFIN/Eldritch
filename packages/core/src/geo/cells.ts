@@ -13,6 +13,7 @@ import {
   getResolution,
   gridDisk,
   gridDistance,
+  gridPathCells,
   isValidCell,
   latLngToCell,
   polygonToCells,
@@ -148,6 +149,15 @@ export function cellsWithin(centre: H3Index, radius: number): H3Index[] {
 /** Grid steps between two cells — how a Trade Route measures its span (BRDC-BUILD-004). */
 export function hexDistance(a: H3Index, b: H3Index): number {
   return gridDistance(a, b);
+}
+
+/** The hexes from `a` to `b`, both included — a creature's road (BRDC-MONSTER-001). Just `[a]` where h3 cannot draw one. */
+export function hexPath(a: H3Index, b: H3Index): H3Index[] {
+  try {
+    return gridPathCells(a, b);
+  } catch {
+    return [a];
+  }
 }
 
 /**

@@ -45,6 +45,7 @@ export type { PageApi, PageOutcome, PageView } from './pageStore.js';
 export type { MaskApi, MaskOutcome, MaskView } from './maskStore.js';
 export type { PropellerApi, PropellerOutcome } from './propellerStore.js';
 export type { JourneyOutcome, JourneyView, OtherWorldApi } from './otherWorldStore.js';
+export type { CreatureOutcome, CreatureView, MonsterApi } from './monsterStore.js';
 export type { ConditionView, PayOutcome } from './conditionStore.js';
 export { ironAdjacentTo, templeAdjacentTo } from './buildStore.js';
 export type { Collected, Forecast } from './pouch.js';
