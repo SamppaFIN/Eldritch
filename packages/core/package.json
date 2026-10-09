@@ -13,7 +13,8 @@
     "./persist": "./src/persist/index.ts",
     "./sim": "./src/sim/index.ts",
     "./data": "./src/data/index.ts",
-    "./sim/fixtures/*": "./src/sim/fixtures/*"
+    "./sim/fixtures/*": "./src/sim/fixtures/*",
+    "./sim/routes/*": "./src/sim/routes/*"
   },
   "dependencies": {
     "h3-js": "^4.5.0"

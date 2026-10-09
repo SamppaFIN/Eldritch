@@ -7,6 +7,7 @@
  * in Phase 3.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
 import { TRAIL_BATCH_MS } from '@es3/core';
 import type {
   GameRepository,
@@ -50,12 +51,19 @@ export interface UseTrailOptions {
   point: TrailPoint | null;
   /** Set false to stop collecting without ending the run. */
   collecting: boolean;
-  /** A change ends the run and starts a fresh one — a route played back begins and ends
-   *  one, so its jump from where the phone is reads as no teleport (BRDC-SIM-002). */
-  session?: number;
   /** How often the buffer is written. A route played back at ×60 flushes every second, so
    *  the line and the claims are watched growing rather than jumping (BRDC-SIM-002). */
   batchMs?: number | undefined;
+  /** A played-back route's way in (BRDC-SIM-003): `feed` hands points straight to the
+   *  buffer, without a render each; `settle` writes what is buffered and waits for it, so
+   *  an action runs on ground already claimed. */
+  link?: MutableRefObject<TrailLink | null> | undefined;
+}
+
+export interface TrailLink {
+  feed: (p: TrailPoint) => void;
+  settle: () => Promise<void>;
+  newRun: () => Promise<void>;
 }
 
 /**
@@ -78,7 +86,7 @@ function actionableRejection(
   return null;
 }
 
-export function useTrail({ repository, point, collecting, session = 0, batchMs = TRAIL_BATCH_MS }: UseTrailOptions): TrailState {
+export function useTrail({ repository, point, collecting, batchMs = TRAIL_BATCH_MS, link }: UseTrailOptions): TrailState {
   const [state, setState] = useState<TrailState>({
     runId: null,
     points: [],
@@ -128,59 +136,91 @@ export function useTrail({ repository, point, collecting, session = 0, batchMs =
     };
   }, [repository]);
 
-  /* Buffer incoming fixes. */
+  /*
+   * Buffer incoming fixes, each once and in order. Guards against React re-delivering the
+   * same fix on re-render, and against a played-back point arriving twice — fed directly
+   * and then shown as the position.
+   */
+  const lastT = useRef<number | null>(null);
+  const take = useCallback((p: TrailPoint) => {
+    if (lastT.current !== null && p.t <= lastT.current) return;
+    buffer.current.push(p);
+    lastT.current = p.t;
+  }, []);
   useEffect(() => {
-    if (!point || !collecting) return;
-    const last = buffer.current[buffer.current.length - 1];
-    // Guard against React re-delivering the same fix object on re-render.
-    if (last && last.t === point.t) return;
-    buffer.current.push(point);
-  }, [point, collecting]);
+    if (point && collecting) take(point);
+  }, [point, collecting, take]);
 
-  const flush = useCallback(async () => {
+  /*
+   * One write at a time (found by BRDC-SIM-003's playback). `submitTrail` reads the run's
+   * trail and writes it back with the batch, and a claim needs the ground before it to be
+   * written — so two flushes in flight lost points (the last write won) and broke the run
+   * of claims (the second batch's first hex did not yet border the first's). A slow write
+   * on a big save could do it at the ten-second pace too. The buffer is still taken at
+   * once; only the writing waits its turn.
+   */
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const flush = useCallback((): Promise<void> => {
     const runId = runIdRef.current;
-    if (!repository || !runId || buffer.current.length === 0) return;
+    if (!repository || !runId || buffer.current.length === 0) return queue.current;
 
     const batch = buffer.current;
     buffer.current = [];
 
-    const result = await repository.submitTrail(runId, batch);
-    const points = await repository.getTrailPoints(runId);
-    // The batch just wore the walked-path store; re-read so the layer thickens live.
-    const walkedPaths = await repository.getWalkedPaths();
+    queue.current = queue.current.then(async () => {
+      const result = await repository.submitTrail(runId, batch);
+      const points = await repository.getTrailPoints(runId);
+      // The batch just wore the walked-path store; re-read so the layer thickens live.
+      const walkedPaths = await repository.getWalkedPaths();
 
-    setState((s) => ({
-      ...s,
-      points,
-      walkedPaths,
-      distanceM: s.distanceM + result.distanceM,
-      lastRejection: actionableRejection(result.rejected),
-      unobservedMs: s.unobservedMs + result.unobservedMs,
-      // Replaced, not appended: this is "what is news right now", and an empty batch
-      // clearing it is what lets the reveal fire again for the next place.
-      revealed: keepIfSame(s.revealed, result.revealed),
-    }));
+      setState((s) => ({
+        ...s,
+        points,
+        walkedPaths,
+        distanceM: s.distanceM + result.distanceM,
+        lastRejection: actionableRejection(result.rejected),
+        unobservedMs: s.unobservedMs + result.unobservedMs,
+        // Replaced, not appended: this is "what is news right now", and an empty batch
+        // clearing it is what lets the reveal fire again for the next place.
+        revealed: keepIfSame(s.revealed, result.revealed),
+      }));
+    }).catch((e: unknown) => {
+      // That batch is lost, as it was before the queue; the writes after it must not be.
+      console.error('trail write failed', e);
+    });
+    return queue.current;
   }, [repository]);
 
-  /* A new session: what is buffered goes to the old run, then a fresh one opens. */
-  const sessionSeen = useRef(session);
+
+  /*
+   * End this run and open a fresh one — a route played back begins one and its end begins
+   * another, so neither jump (to the route's start, back to where the phone is) reads as a
+   * teleport (BRDC-SIM-002). Awaited by the caller: a point fed before the new run is open
+   * would go to the old one, behind its last fix, and be thrown away.
+   */
+  const newRun = useCallback(async () => {
+    if (!repository) return;
+    const old = runIdRef.current;
+    // `flush` takes the buffer before its first await, so only what came before the
+    // switch goes to the old run; with no run id, the timer holds the rest until the new
+    // one opens. A new run is a new clock: a route lies in the past of the last live fix.
+    const flushed = flush();
+    runIdRef.current = null;
+    lastT.current = null;
+    await flushed;
+    if (old) await repository.endRun(old);
+    const runId = await repository.startRun(Date.now());
+    runIdRef.current = runId;
+    setState((s) => ({ ...s, runId, points: [], distanceM: 0, lastRejection: null, revealed: [] }));
+  }, [repository, flush]);
+
   useEffect(() => {
-    if (!repository || session === sessionSeen.current) return;
-    sessionSeen.current = session;
-    void (async () => {
-      const old = runIdRef.current;
-      // `flush` takes the buffer before its first await, so only what came before the
-      // switch goes to the old run; with no run id, the timer holds the rest until the
-      // new one opens.
-      const flushed = flush();
-      runIdRef.current = null;
-      await flushed;
-      if (old) await repository.endRun(old);
-      const runId = await repository.startRun(Date.now());
-      runIdRef.current = runId;
-      setState((s) => ({ ...s, runId, points: [], distanceM: 0, lastRejection: null, revealed: [] }));
-    })();
-  }, [repository, session, flush]);
+    if (!link) return;
+    link.current = { feed: take, settle: flush, newRun };
+    return () => {
+      link.current = null;
+    };
+  }, [link, take, flush, newRun]);
 
   /* Flush on a timer. */
   useEffect(() => {

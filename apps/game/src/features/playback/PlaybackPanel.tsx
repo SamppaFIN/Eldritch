@@ -1,12 +1,13 @@
 /**
  * Route playback, the dev panel (BRDC-SIM-002): pick a route — a built-in one, a GPX or
  * JSON file, or the walk in progress saved as a file — then play it through the game at
- * ×1 to ×60 and watch it claim. Stop hands the position back to the phone.
+ * ×1 to ×60 and watch it claim, and whatever the route does on the way (BRDC-SIM-003).
+ * Stop hands the position back to the phone.
  */
 import { useState } from 'react';
 import { RitualButton } from '@es3/ui';
 import { routeDuration, routeJson } from '@es3/core/sim';
-import type { FixtureName, RouteFault } from '@es3/core/sim';
+import type { RouteFault } from '@es3/core/sim';
 import type { TrailPoint } from '@es3/core';
 import { ROUTE_NAMES, SPEEDS } from './usePlayback.js';
 import type { Playback } from './usePlayback.js';
@@ -70,7 +71,7 @@ export default function PlaybackPanel({ playback: pb, walked, onClose }: Playbac
       <div className="playback__row">
         <label className="playback__field">
           <span>Built-in</span>
-          <select value="" onChange={(e) => e.target.value && void pb.loadFixture(e.target.value as FixtureName)}>
+          <select value="" onChange={(e) => e.target.value && void pb.loadFixture(e.target.value)}>
             <option value="">Choose…</option>
             {ROUTE_NAMES.map((n) => (
               <option key={n} value={n}>
@@ -116,10 +117,20 @@ export default function PlaybackPanel({ playback: pb, walked, onClose }: Playbac
               Stop · back to GPS
             </RitualButton>
           </div>
-          <progress className="playback__bar" max={route.points.length} value={pb.played} aria-label="Played" />
+          <progress className="playback__bar" max={pb.total || route.points.length} value={pb.played} aria-label="Played" />
           <p className="playback__route es-numeric" role="status">
-            {pb.done ? `Done · ${pb.played} of ${route.points.length}` : `${pb.played} of ${route.points.length}`}
+            {pb.done ? `Done · ${pb.played} of ${pb.total}` : `${pb.played} of ${pb.total || route.points.length}`}
           </p>
+          {/* What the route's actions did, refusals included (BRDC-SIM-003). */}
+          {pb.log.length > 0 ? (
+            <ol className="playback__log" aria-label="What the route did">
+              {pb.log.slice(-8).map((line, i) => (
+                <li key={`${pb.log.length}-${i}`} data-ok={line.startsWith('✓')}>
+                  {line}
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </>
       ) : null}
     </section>

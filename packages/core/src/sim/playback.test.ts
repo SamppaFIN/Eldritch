@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { filterTrail, haversine } from '../geo/index.js';
 import { fixture } from './fixtures/index.js';
-import { parseRoute, playbackGap, retime, routeDuration, routeJson, startAt } from './playback.js';
+import { detour, parseRoute, retime, routeDuration, routeJson, startAt } from './playback.js';
 
 const square = fixture('square');
 
@@ -69,11 +69,21 @@ describe('startAt', () => {
   });
 });
 
-describe('playbackGap', () => {
-  it('divides the real gap by the speed, and ends at the last point', () => {
-    const gap = square.points[1]!.t - square.points[0]!.t;
-    expect(playbackGap(square.points, 0, 1)).toBe(gap);
-    expect(playbackGap(square.points, 0, 20)).toBe(gap / 20);
-    expect(playbackGap(square.points, square.points.length - 1, 20)).toBe(0);
+describe('detour', () => {
+  const from = { lat: 61.4729, lng: 23.7258, t: 1_000_000, accuracy: 8 };
+  const to = { lat: 61.4747, lng: 23.7258 }; // ~200 m north
+
+  it('walks there and back at a pace the filter takes', () => {
+    const d = detour(from, to);
+    const out = filterTrail(from, d);
+    expect(out.result.rejected.filter((r) => r.reason === 'speed' || r.reason === 'interval')).toEqual([]);
+    expect(haversine(d.at(-1)!, from)).toBeLessThan(1);
+    expect(d.some((p) => haversine(p, to) < 1)).toBe(true);
+  });
+
+  it('carries on the clock from where it set out, five seconds a fix', () => {
+    const d = detour(from, to);
+    expect(d[0]!.t).toBe(from.t + 5_000);
+    expect(d[1]!.t - d[0]!.t).toBe(5_000);
   });
 });

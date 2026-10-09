@@ -26,9 +26,18 @@ test('the day’s headline is read once', async ({ page }) => {
   await expect(intro).toBeVisible({ timeout: 20_000 });
   await intro.getByRole('button', { name: 'Begin' }).click();
   const card = page.getByRole('button', { name: /^Mythos · .* — dismiss$/ });
-  await expect(card).toBeVisible({ timeout: 20_000 });
-  await card.click();
-  await expect(card).toHaveCount(0);
+  // One card at a time (BRDC-UX-002): a fresh realm's eurekas can arrive ahead of the
+  // headline in the queue and hide it — read them away until it is the one showing.
+  const eureka = page.getByRole('button', { name: /^Eureka · .* — dismiss$/ });
+  let read = false;
+  await expect
+    .poll(async () => {
+      if (await eureka.first().isVisible().catch(() => false)) await eureka.first().click({ timeout: 2_000 }).catch(() => undefined);
+      // Read it the moment it shows — a later eureka can slip in ahead of it again.
+      if (await card.isVisible().catch(() => false)) read = await card.click({ timeout: 2_000 }).then(() => true, () => read);
+      return read && (await card.count()) === 0;
+    }, { timeout: 40_000 })
+    .toBe(true);
   // The card hides at once and the store hears of it a moment later: reload only once it has.
   await expect.poll(() => page.evaluate(() => new Promise<number | undefined>((res) => {
     const o = indexedDB.open('es3');

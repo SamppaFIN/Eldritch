@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { openMap } from './hearth.js';
-import { playRoute, stopPlayback } from './playback.js';
+import { playRoute, playbackLog, stopPlayback } from './playback.js';
 
 /**
  * BRDC-SIM-002 — a walked route played back through the live pipeline: the same filter,
@@ -103,4 +103,19 @@ test('the dev panel plays a route, and saves the walk that plays back again', as
   await panel.getByRole('button', { name: 'Stop · back to GPS' }).click();
   await playRoute(page, { text: JSON.stringify(saved) });
   await expect(panel).toContainText(saved.name);
+});
+
+test('the Fuming Lake route plays the tale to its end and builds on the way (BRDC-SIM-003)', async ({ page }) => {
+  test.setTimeout(400_000);
+  await openMap(page, HERE);
+  await expect.poll(() => warded(page), { timeout: 20_000 }).toBeGreaterThan(0);
+
+  await playRoute(page, { fixture: 'fuming-lake' });
+  const log = await playbackLog(page);
+  console.log(log.join(' | '));
+  // Every action went through; the one arrow is the detour to this week's wisdom stone.
+  expect(log.filter((l) => !l.startsWith('✓') && !l.startsWith('→')), 'every action went through').toEqual([]);
+  expect(log.some((l) => l.includes('The Fuming Lake ends'))).toBe(true);
+  expect(log.filter((l) => l.startsWith('✓ built'))).toHaveLength(3);
+  await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/fuming-route.png' });
 });

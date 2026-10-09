@@ -86,7 +86,7 @@ export function MapView({ onLeave }: MapViewProps) {
   const editor = useEditor();
 
   // The phone, the dev keyboard walk, or a route played back (BRDC-SIM-002).
-  const { point, status, source, playback } = useWalkSource(settled, centre);
+  const { point, status, source, playback } = useWalkSource(settled, centre, repository);
 
   // The world exists as soon as the game knows where you are, not once trail is written.
   useEffect(() => {
@@ -94,7 +94,7 @@ export function MapView({ onLeave }: MapViewProps) {
     void repository.seedAround(point, clock.now());
   }, [repository, point, clock.now]);
 
-  const trail = useTrail({ repository, point, collecting: true, session: playback.session, batchMs: source === 'playback' ? 1_000 : undefined });
+  const trail = useTrail({ repository, point, collecting: true, batchMs: source === 'playback' ? 1_000 : undefined, link: playback.link });
 
   // Places re-read on a reveal, and once at start so a returning player's Anchor is there.
   useEffect(() => {
@@ -113,6 +113,8 @@ export function MapView({ onLeave }: MapViewProps) {
     home: castle,
     loopClosure: settings.loopClosure,
   });
+  // A route played back is watched claiming: re-read the map as each batch lands (BRDC-SIM-003).
+  useEffect(() => { if (source === 'playback') void territory.refresh(); }, [source, trail.points.length, territory.refresh]);
 
   const world = useSharedWorld({
     repository,
