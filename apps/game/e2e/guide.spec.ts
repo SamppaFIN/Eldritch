@@ -27,9 +27,9 @@ test('the guide reaches a derived page and searches', async ({ page }) => {
   await expect(page.getByText(/\+5 timber \/ h/)).toBeVisible();
   await expect(page.getByText(/None built yet|Held on/)).toBeVisible();
 
-  // A cross-link goes on to the technology, and "‹ Guide" comes back.
-  await page.getByRole('button', { name: 'Forestry', exact: true }).click();
-  await expect(page.getByRole('region', { name: 'Forestry' })).toBeVisible();
+  // A cross-link goes on to the Lore that opens it, and "‹ Guide" comes back.
+  await page.getByRole('button', { name: 'Woodcraft', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Woodcraft' })).toBeVisible();
   await page.locator('.help-panel__back').click();
 
   await page.getByRole('searchbox', { name: 'Search the guide' }).fill('fortress');

@@ -8,11 +8,13 @@
  */
 import { load, saveNow } from '@es3/core';
 import type { HelpTopic } from './help.js';
+import { SEASON_THREE_TOPICS } from './helpSeasonThree.js';
 
 const KEY = 'seen-topics';
 
-/** Always in the Guide — how to play, the first walk, and what the words mean. */
-export const ALWAYS_SEEN: readonly HelpTopic[] = ['how-to-play', 'first-walk', 'vocabulary'];
+/** Always in the Guide — how to play, the first walk, what the words mean, and the season's
+ *  own pages: those are the instructions for the season, not a reward for meeting it. */
+export const ALWAYS_SEEN: readonly HelpTopic[] = ['how-to-play', 'first-walk', 'vocabulary', ...SEASON_THREE_TOPICS];
 
 export function readSeen(): Set<HelpTopic> {
   const stored = load<HelpTopic[] | null>(KEY, null);

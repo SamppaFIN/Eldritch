@@ -11,6 +11,9 @@
  * searches the lot; this is the hand-written core — the game's loop, its first walk, its
  * vocabulary, and one entry per concept the log links to.
  */
+import { SEASON_THREE_HELP, SEASON_THREE_TOPICS } from './helpSeasonThree.js';
+import type { SeasonThreeTopic } from './helpSeasonThree.js';
+
 export type HelpTopic =
   | 'how-to-play'
   | 'first-walk'
@@ -29,7 +32,8 @@ export type HelpTopic =
   | 'cthulhu-awakening'
   | 'the-wager'
   | 'hearth'
-  | 'sky';
+  | 'sky'
+  | SeasonThreeTopic;
 
 export interface HelpEntry {
   title: string;
@@ -40,23 +44,24 @@ export interface HelpEntry {
 }
 
 export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
+  ...SEASON_THREE_HELP,
   'how-to-play': {
     title: 'How to Play',
     body: [
-      'Walk a closed loop on foot — out from a point and back to it. The land inside the loop Awakens: it becomes your territory, cell by cell, and pays a one-off yield of whatever the ground holds.',
-      'Walk your ground again on later days to keep it. The first walk each calendar day strengthens a cell; a second day running pays double. Cells you never revisit rot — two days\' grace, then a slow bleed, then release. A dark stain creeps over neglected land, and one walk clears it.',
-      'To take a rival\'s cell, walk through it. One pass only wounds it; it changes hands when its strength reaches zero, which is two or three walks on separate days. Feet take ground — nothing else does.',
-      'Your first cell is the Hearth, claimed where you stood when you began. It never decays and cannot be taken. Turn the Vigil on before a walk so the Ley-line keeps recording with the phone in your pocket.',
+      'Walk. Step into an unclaimed hex beside your ground and it is yours on the spot. Every hex you hold gives what its ground is made of — timber, food, stone, gold — every hour you hold it.',
+      'Walk your ground again on later days to keep it. The first walk each calendar day strengthens a hex; a second day running pays double. Ground you never revisit fades — two days\' grace, then a slow bleed, then the Void takes it back.',
+      'Step onto a rival\'s hex and it is yours too. Only their Hearth and a standing Fortress hold out: those wear down over several walks instead. In Route mode nobody takes anybody\'s ground.',
+      'Your first hex is the Hearth, where you stood when you began; your Keep stands on it. Turn the Vigil on before a walk so the Ley-line keeps recording with the phone in your pocket.',
     ],
     see: ['first-walk', 'awakening', 'reinforcement', 'decay', 'corruption'],
   },
   'first-walk': {
     title: 'Your First Walk',
     body: [
-      '1. Accept the Hearth when the game offers it. That cell is yours for good.',
-      '2. Open the menu and turn the Vigil on. A pocketed phone stops feeding the game GPS without it, and the border comes out wrong.',
-      '3. Walk a small block — around the building, around the car park — and return to where you started. Keep it well under your Consciousness Level\'s size limit for a first try.',
-      '4. When the loop closes, the cells inside fill with your colour and the pouch gains the ground\'s yield. If nothing happens, read the signal line: a weak sky refuses a loop.',
+      '1. Accept the Hearth when the game offers it. That hex is yours for good, and your Keep stands on it.',
+      '2. Open the menu and turn the Vigil on. A pocketed phone stops feeding the game GPS without it, and your steps go missing.',
+      '3. Walk out from the Hearth in any direction. Each hex you step into beside your ground turns your colour as you enter it.',
+      '4. Tap Collect when the pouch has filled, and open the Keep to see what is coming in. If nothing happens as you walk, read the signal line: a weak sky is not counted.',
       '5. Open History from the menu to read back what each step did. Every line links here, to the page that explains it.',
     ],
     see: ['how-to-play', 'vigil', 'awakening', 'vocabulary'],
@@ -65,11 +70,11 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     title: 'What the Words Mean',
     body: [
       'The game speaks in its own tongue. The plain meaning of each term:',
-      'Ley-line — the trail you leave as you walk. Awakening the Ground — claiming the land inside a closed loop. Corruption — taking a cell from a rival. Warded Cell — one hexagon of territory. Reinforcement — strengthening ground by walking it again.',
-      'The Hearth — your first, unloseable cell. Anchor Stone — the mark at its centre; it feeds mana. The Keep — a decoy near the Hearth, and the only place other players ever see. The Wager — a challenge fought against a friend with no server. The Atlas — the whole-country view.',
-      'Consciousness Level — your level; it raises the size of loop you may claim. Work — a building on a cell. Rite — a researched technology. The Void — what reclaims ground nobody walks.',
+      'Ley-line — the trail you leave as you walk. Awakening the Ground — claiming a hex by stepping into it. Corruption — taking a hex from a rival. Warded Cell — one hexagon of territory. Reinforcement — strengthening ground by walking it again.',
+      'The Hearth — your first hex. The Keep — your home, standing on the Hearth; the one place of yours other players see. Anchor Stone — the mark at its centre; it feeds mana. The Atlas — the whole-country view.',
+      'Consciousness Level — your level. Work — a building on a hex. The Lore — what you research with wisdom. Rite — a temple\'s spell, cast with mana. The Void — what reclaims ground nobody walks.',
     ],
-    see: ['how-to-play', 'awakening', 'the-wager', 'hearth'],
+    see: ['how-to-play', 'awakening', 'hearth', 'rite'],
   },
   vigil: {
     title: 'The Vigil',
@@ -83,18 +88,18 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
   awakening: {
     title: 'Awakening the Ground',
     body: [
-      'Walk a closed loop and the land inside it becomes yours. Each new cell is claimed at base strength and pays a one-off yield of whatever its terrain gives — timber from woodland, food from water, gold from a row of shops.',
-      'A loop has to enclose real area and be walked, not drawn: a ring that crosses itself on a bad GPS sky is refused, and so is one that is too large for your Consciousness Level.',
+      'Step into an unclaimed hex that borders your ground and it is yours, at base strength. From then on it pays what its ground is made of, every hour — timber from woodland, food from water, gold from a row of shops.',
+      'An old way is still there for those who want it: turn on Claim by closing a loop in Settings, and a closed walk takes the land inside it too.',
     ],
     see: ['how-to-play', 'reinforcement', 'decay', 'corruption'],
   },
   corruption: {
     title: 'Corruption',
     body: [
-      'Walking through a rival\'s cell does not take it. It takes damage, and keeps its owner until its strength reaches zero — then it flips to you and resets to base strength.',
-      'A rival\'s established home block should cost two or three separate walks on separate days. That is deliberate: a single forged route achieves nothing, and the map does not collapse into one colour in an afternoon.',
+      'Step onto a rival\'s hex and it is yours, at full strength — the last walker owns it. Red ground falls to a walk just as unclaimed ground does.',
+      'Two places hold out: a rival\'s Hearth and a standing Fortress. A walk only wears those down; they change hands when their strength reaches zero, over several walks on separate days. In Route mode nobody takes anyone\'s ground at all.',
     ],
-    see: ['awakening', 'the-wager', 'reinforcement'],
+    see: ['awakening', 'reinforcement'],
   },
   reinforcement: {
     title: 'Reinforcement',
@@ -117,17 +122,17 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     title: 'Work',
     body: [
       'A building sits on one cell you hold and changes what it is worth. A sawmill pours out more timber, a market more gold, a fortress blunts an attacker\'s blow.',
-      'Each needs the right terrain and, further up, a technology researched first. Demolishing one hands back half its cost — a misplaced building is not permanent.',
+      'Each needs the right terrain and, further up, a piece of the Lore learned first. It makes its yield only with hands in it — citizens from the Keep — and where it stands matters: some Works pay more beside water, a temple or their own kind. Demolishing one hands back half its cost.',
     ],
-    see: ['rite', 'mana'],
+    see: ['rite', 'mana', 'neighbours'],
   },
   rite: {
-    title: 'Research',
+    title: 'Research and Rites',
     body: [
-      'Research is this game\'s technology tree, bought with wisdom, in the Keep. Each technology unlocks buildings, further technologies, or a new age; completing an age is a moment the game marks.',
-      'Some of what you learn can be cast as a Rite. The two home schools work on your own ground — Insight feeds wisdom to the whole domain, Bulwark holds a cell against the Void. The rest travel in a Wager.',
+      'Research is the Lore, bought with wisdom from the Research button. Learn three of an Age\'s four and you enter the next Age; what you learn opens Works, masterworks and rules. Every piece of the Lore has a eureka that halves its price.',
+      'Rites are the temples\' spells. Kindling lets you dedicate a temple to a school — the Ward, the Tide or the Whisper — where rites are learned and deepened, and cast with mana. The Reference lists every one.',
     ],
-    see: ['work', 'mana'],
+    see: ['work', 'mana', 'eureka', 'ages'],
   },
   warding: {
     title: 'Warding',
@@ -140,8 +145,8 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
   mana: {
     title: 'Mana',
     body: [
-      'Mana comes from the places the game has named — your Anchor Stone, and Temples revealed by dwelling long enough in one cell. It is the fuel spells will spend.',
-      'A Temple\'s output can be raised a step at a time with stone and gold. A place stops producing if the cell it sits in goes unvisited too long, the same clock as decay.',
+      'Mana comes from the places the game has named — your Anchor Stone, and Temples revealed by dwelling long enough in one hex. Rites spend it: to learn, to deepen, and every cast.',
+      'A Temple\'s output can be raised a step at a time with stone and gold. A place stops producing if the hex it sits in goes unvisited too long, the same clock as decay.',
     ],
     see: ['rite', 'work'],
   },
@@ -156,10 +161,10 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
   adventures: {
     title: 'Adventures',
     body: [
-      'An adventure is a story with choices, opened from the Hearth. It ties walking, ground and resources into one tale — a choice may be locked until you hold a certain kind of land, or a named place, or enough of a resource to spend.',
-      'It never blocks the game. Leave one half-finished and come back to it; a reset clears it. The first is The Fuming Lake.',
+      'An adventure is a story with choices, walked between real places. Each one begins at its first stop — the Statue of the Boy for the Fuming Lake — and each next page waits at the next place.',
+      'A choice may be locked until you hold a certain kind of land, a named place, or enough of a resource to spend. It never blocks the game: leave one half-finished and come back. Finish the Fuming Lake and its sequel, the Skyward Runway, opens.',
     ],
-    see: ['anomaly', 'cthulhu-awakening'],
+    see: ['anomaly', 'cthulhu-awakening', 'skyward-runway'],
   },
   'cthulhu-awakening': {
     title: 'The Deep',
@@ -172,16 +177,16 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
   'the-wager': {
     title: 'The Wager',
     body: [
-      'Multiplayer with no server: you seal your sanctuary as a block of text, send it to a friend, and their game reads it back as a rival holding real ground.',
-      'Accepting a challenge fights it — deterministically, so both phones compute the same result from the same message. A victory softens their border on your map; it never takes ground. Feet take ground.',
+      'The Wager was a duel sent between two phones as a block of text. It is resting: since a step decides who owns a hex, there is no siege left for it to settle.',
+      'Its code is kept, not thrown away. If it comes back, this page will say how it plays.',
     ],
-    see: ['corruption', 'rite'],
+    see: ['corruption'],
   },
   hearth: {
     title: 'The Hearth',
     body: [
-      'The Hearth is the cell you were standing in when you agreed to begin. It is claimed on the spot, it holds your Anchor Stone, and it cannot be lost — it never decays and never changes hands.',
-      'It never leaves your device. The Keep, drawn on the same spot, is the only location ever published for other players to see.',
+      'The Hearth is the hex you were standing in when you agreed to begin. It never decays, it holds your Anchor Stone, and your Keep stands on it.',
+      'A step cannot take it: a rival can only wear it down, over several walks. It is the one place of yours that friends see on the shared map — as your Keep.',
     ],
     see: ['vigil', 'decay', 'vocabulary'],
   },
@@ -202,6 +207,7 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
  */
 export const GROUPS: readonly { heading: string; topics: readonly HelpTopic[] }[] = [
   { heading: 'Getting started', topics: ['how-to-play', 'first-walk', 'vocabulary'] },
+  { heading: 'This season', topics: SEASON_THREE_TOPICS },
   {
     heading: 'The ground',
     topics: ['awakening', 'corruption', 'reinforcement', 'decay', 'warding'],

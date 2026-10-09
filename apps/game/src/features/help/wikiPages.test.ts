@@ -5,7 +5,7 @@
  * The acceptance test from BRDC-WIKI-001: a new building cannot ship without a page.
  */
 import { describe, expect, it } from 'vitest';
-import { BUILDINGS, SPELLS, TECHS } from '@es3/core';
+import { BUILDINGS, LORE_IDS, RITE_IDS as TEMPLE_RITE_IDS, SPELLS, TECHS } from '@es3/core';
 import type { BuildingId, Cell } from '@es3/core';
 import {
   BUILDING_IDS,
@@ -19,11 +19,18 @@ import {
 import type { WikiRef } from './wikiPages.js';
 
 const T0 = Date.parse('2026-09-06T12:00:00Z');
-const allRefs: WikiRef[] = [
-  ...BUILDING_IDS.map((id) => `work:${id}` as WikiRef),
+// The old tree and spells still have pages for the links that reach them; the Reference
+// lists what a season is played with now — Works, the Lore and the temple rites.
+const oldRefs: WikiRef[] = [
   ...TECH_IDS.map((id) => `tech:${id}` as WikiRef),
   ...RITE_IDS.map((id) => `rite:${id}` as WikiRef),
 ];
+const listedRefs: WikiRef[] = [
+  ...BUILDING_IDS.map((id) => `work:${id}` as WikiRef),
+  ...LORE_IDS.map((id) => `lore:${id}` as WikiRef),
+  ...TEMPLE_RITE_IDS.map((id) => `temple:${id}` as WikiRef),
+];
+const allRefs: WikiRef[] = [...listedRefs, ...oldRefs];
 
 describe('a derived page for everything in the tables', () => {
   it('resolves every Work, technology and Rite to a titled page with a body and a status', () => {
@@ -89,12 +96,12 @@ describe('the index Reference and search', () => {
   it('lists every ref exactly once across the three blocks', () => {
     const listed = REFERENCE.flatMap((g) => g.refs);
     expect(new Set(listed).size).toBe(listed.length);
-    expect([...listed].sort()).toEqual([...allRefs].sort());
+    expect([...listed].sort()).toEqual([...listedRefs].sort());
   });
 
   it('search rows carry a title for every hand topic and derived ref', () => {
     const rows = searchRows();
-    for (const ref of allRefs) {
+    for (const ref of listedRefs) {
       const row = rows.find((r) => r.ref === ref);
       expect(row?.title, ref).toBe(refTitle(ref));
     }

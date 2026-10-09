@@ -1,6 +1,10 @@
 /**
  * The guide's derived pages (BRDC-WIKI-003).
  *
+ * The Reference lists what a season is played with: every Work, the Lore and the temple
+ * rites (Season 2 on). The old technology tree and spells keep their pages for the links
+ * that still reach them, but are no longer listed.
+ *
  * `help.ts` is the hand-written core — the loop, the first walk, one page per concept the
  * log links to. This is the other half: a page for every Work, technology and Rite,
  * built from `BUILDINGS` / `TECHS` / `SPELLS` and the copy in `catalogue.tsx`, so nothing
@@ -10,7 +14,16 @@
  * Rite is yours yet — because a wiki that only repeats the rules is half a wiki.
  */
 import {
+  AGE_NAMES,
   BUILDINGS,
+  LORE,
+  LORE_IDS,
+  RITES,
+  RITE_IDS as TEMPLE_RITE_IDS,
+  RITE_MANA,
+  eurekaFor,
+  learnCost,
+  loreCost,
   SPELLS,
   TECHS,
   activeSpells,
@@ -19,7 +32,7 @@ import {
   spellRemaining,
   worksOn,
 } from '@es3/core';
-import type { ActiveSpell, BuildingId, Cell, SpellId, TechId } from '@es3/core';
+import type { ActiveSpell, BuildingId, Cell, LoreId, RiteId, SpellId, TechId } from '@es3/core';
 import { BUILDING_NAME, SPELL_NAME, titleCase } from '../territory/names.js';
 import { costLine } from '../territory/gateNote.js';
 import {
@@ -37,7 +50,9 @@ export type WikiRef =
   | HelpTopic
   | `work:${BuildingId}`
   | `tech:${TechId}`
-  | `rite:${SpellId}`;
+  | `rite:${SpellId}`
+  | `lore:${LoreId}`
+  | `temple:${RiteId}`;
 
 export interface WikiPage {
   title: string;
@@ -65,7 +80,9 @@ export const RITE_IDS = Object.keys(SPELLS) as SpellId[];
 const isWork = (r: WikiRef): r is `work:${BuildingId}` => r.startsWith('work:');
 const isTech = (r: WikiRef): r is `tech:${TechId}` => r.startsWith('tech:');
 const isRite = (r: WikiRef): r is `rite:${SpellId}` => r.startsWith('rite:');
-export const isDerived = (r: WikiRef): boolean => isWork(r) || isTech(r) || isRite(r);
+const isLore = (r: WikiRef): r is `lore:${LoreId}` => r.startsWith('lore:');
+const isTemple = (r: WikiRef): r is `temple:${RiteId}` => r.startsWith('temple:');
+export const isDerived = (r: WikiRef): boolean => isWork(r) || isTech(r) || isRite(r) || isLore(r) || isTemple(r);
 
 const workId = (r: WikiRef) => r.slice(5) as BuildingId;
 const techId = (r: WikiRef) => r.slice(5) as TechId;
@@ -76,12 +93,19 @@ export function refTitle(ref: WikiRef): string {
   if (isWork(ref)) return BUILDING_NAME[workId(ref)];
   if (isTech(ref)) return titleCase(techId(ref));
   if (isRite(ref)) return SPELL_NAME[riteId(ref)];
+  if (isLore(ref)) return LORE[ref.slice(5) as LoreId].name;
+  if (isTemple(ref)) return RITES[ref.slice(7) as RiteId].name;
   return HELP[ref]?.title ?? ref;
 }
 
 
+/** The piece of the Lore that opens a Work — what a season plays by, not the old tree. */
+const openerOf = (id: BuildingId): LoreId | undefined =>
+  LORE_IDS.find((l) => LORE[l].unlocks.some((u) => u.kind === 'building' && u.id === id));
+
 function workPage(id: BuildingId, ctx: WikiContext): WikiPage {
   const b = BUILDINGS[id];
+  const opener = openerOf(id);
   const sites = ctx.ownedCells
     .filter((c) => worksOn(c).some((w) => w.id === id))
     .map((c) => c.h3);
@@ -93,12 +117,12 @@ function workPage(id: BuildingId, ctx: WikiContext): WikiPage {
     `Costs ${costLine(b.cost)}. Stands on ${terrain}.`,
     b.requires.length > 0
       ? `Upgrades ${b.requires.map((r) => BUILDING_NAME[r]).join(', ')} in place.`
-      : b.tech
-        ? `Needs the ${titleCase(b.tech)} technology first.`
+      : opener
+        ? `Opened by ${LORE[opener].name}, in the Lore.`
         : 'Buildable from the start.',
   ];
   const see: WikiRef[] = ['work'];
-  if (b.tech) see.push(`tech:${b.tech}`);
+  if (opener) see.push(`lore:${opener}`);
   for (const r of b.requires) see.push(`work:${r}`);
   return {
     title: BUILDING_NAME[id],
@@ -148,19 +172,58 @@ function ritePage(id: SpellId, ctx: WikiContext): WikiPage {
   return { title: SPELL_NAME[id], body, see: [`tech:${s.tech}`, 'rite'], status };
 }
 
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+const NO_EUREKA = { owned: [], temples: 0, revealed: 0 };
+
+/** One piece of the Lore (BRDC-PROG-004): its Age, what it opens, and its eureka (BRDC-EUREKA-001). */
+function lorePage(id: LoreId): WikiPage {
+  const l = LORE[id];
+  const opens = l.unlocks.map((u) => (u.kind === 'building' ? BUILDING_NAME[u.id] : u.kind === 'masterwork' ? titleCase(u.id) : u.text)).join(' · ');
+  const see: WikiRef[] = ['rite', 'eureka', 'ages'];
+  for (const u of l.unlocks) if (u.kind === 'building') see.push(`work:${u.id}`);
+  return {
+    title: l.name,
+    body: [
+      l.lore,
+      `Age ${ROMAN[l.age]} · ${AGE_NAMES[l.age]}, on the ${l.path} path. Costs ${loreCost(l.age)} wisdom in the Lore.`,
+      `Opens: ${opens}.`,
+      `Eureka: ${eurekaFor(id, NO_EUREKA).text} — and it costs half.`,
+    ],
+    see,
+    status: `Age ${ROMAN[l.age]} · ${loreCost(l.age)} wisdom`,
+  };
+}
+
+/** One temple rite (BRDC-PROG-007): its school and tier, each rank's value, and the price. */
+function templePage(id: RiteId): WikiPage {
+  const r = RITES[id];
+  return {
+    title: r.name,
+    body: [
+      r.text.replace('{v}', r.values.join(' / ')),
+      `The ${r.school === 'ward' ? 'Ward' : r.school === 'tide' ? 'Tide' : 'Whisper'}, tier ${ROMAN[r.tier]}. Ranks I / II / III give the three numbers above.`,
+      `Learned at a dedicated temple for ${learnCost(id)} mana; every cast costs ${RITE_MANA[r.tier]} mana and rests a day. A page of the Book can teach it too.`,
+    ],
+    see: ['rite', 'mana', 'the-book'],
+    status: `Tier ${ROMAN[r.tier]} · ${RITE_MANA[r.tier]} mana a cast`,
+  };
+}
+
 /** The page for any derived ref, or `null` for a hand-written topic. */
 export function wikiEntry(ref: WikiRef, ctx: WikiContext = EMPTY_CTX): WikiPage | null {
   if (isWork(ref)) return workPage(workId(ref), ctx);
   if (isTech(ref)) return techPage(techId(ref), ctx);
   if (isRite(ref)) return ritePage(riteId(ref), ctx);
+  if (isLore(ref)) return lorePage(ref.slice(5) as LoreId);
+  if (isTemple(ref)) return templePage(ref.slice(7) as RiteId);
   return null;
 }
 
-/** The always-on Reference part of the index — one row per Work, technology and Rite. */
+/** The always-on Reference part of the index — one row per Work, piece of Lore and temple rite. */
 export const REFERENCE: readonly { heading: string; refs: readonly WikiRef[] }[] = [
   { heading: 'Works', refs: BUILDING_IDS.map((id) => `work:${id}` as WikiRef) },
-  { heading: 'Research', refs: TECH_IDS.map((id) => `tech:${id}` as WikiRef) },
-  { heading: 'Rites', refs: RITE_IDS.map((id) => `rite:${id}` as WikiRef) },
+  { heading: 'The Lore', refs: LORE_IDS.map((id) => `lore:${id}` as WikiRef) },
+  { heading: 'Temple rites', refs: TEMPLE_RITE_IDS.map((id) => `temple:${id}` as WikiRef) },
 ];
 
 /** Flat title + blurb list across hand and derived pages, for the index search. */
