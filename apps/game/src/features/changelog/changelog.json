@@ -1,5 +1,39 @@
 [
   {
+    "version": "0.10.0",
+    "date": "2026-10-09",
+    "notes": [
+      "Season 3. Every new thing has its own page in the Guide, under This season.",
+      "Choose the season's ambition in the Keep: hold three temples, seal ten gates or hold two hundred hexes. Met at the close, it multiplies your Legacy by 1.15.",
+      "Enter a new Age and the Lore asks who your realm has become: Merchants, Wardens or Seers. The choice is for good, and the Hall of Fame keeps the chain.",
+      "Eurekas: every Lore has something to do on foot. Do it and that Lore costs half its wisdom.",
+      "Where a Work stands matters: a Farm beside water, Works beside their own kind and a Library beside a temple all make more.",
+      "A week that outpaces the last is golden: everything comes a tenth faster and you choose a boon. A dark week is a tenth slower.",
+      "A Mythos card each day brings news from the lake; some change dice or what Farms and Markets make, and over three days they tell a story.",
+      "Sleep where you were last seen and a dream waits in the morning. Face it on Will.",
+      "The real moon and the day's weather. A full moon brings half again the mana and stands the Doom one higher. Fog shows only your own ground, clear skies two rings past it, and in a storm a weaker GPS fix still counts.",
+      "Three factory chimneys stand around Härmälä. Hold all three and they light as beacons and lift the fog around them.",
+      "Libraries, Markets and Temple Groves raise great people, each with one great deed used from the Keep.",
+      "Walk from one of your Markets to another, or to a village's quay, and the road becomes a trade route that pays gold.",
+      "Härmälänranta has tasks of its own. The realm that sends the most envoys becomes its suzerain and gets its catch.",
+      "Ten pages of the Book That Came Back lie out on the ground. Each read teaches a rite and costs sanity for good.",
+      "A stranger wears many masks in the rumours. Meet three, name him in the Keep, then bargain with him or banish him.",
+      "The Drowned Choir sings under Pyhäjärvi, and its tale hangs on the Tavern board.",
+      "Finish the Fuming Lake and the Skyward Runway opens at the old airfield. Its end leaves you a propeller that seals a gate from afar.",
+      "Step through an open gate into the Dreamlands, Far Pyhäjärvi or the Outer Air. Pass both encounters and the gate closes behind you.",
+      "The whole town shares one terror. Open gates raise it, sealed ones lower it, and at 5 and 8 the villages and Markets feel it.",
+      "Three mysteries are solved by everyone together, and each one solved weakens the Ancient One.",
+      "Creatures walk out of some gates toward your Hearth, wearing down the ground they cross. Stand on one and face it on Vigor.",
+      "Conditions: a failed test can leave Debt, Paranoia or a Curse, each with its own way out. Allies walk with you, and your investigator has a tale of their own.",
+      "The walking sheet names what finishes next, two at a time, with the rest behind +N.",
+      "The Keep has four tabs: Today, Realm, Investigator and Season. Details sit behind a tap.",
+      "A hex card shows three things you can do now and keeps the rest behind More. Why it pays what it pays is one tap away.",
+      "The Lore folds what you have learned and the Ages still sealed. Choices are a short list and one button.",
+      "Cards come one at a time and wait while a panel is open. A find shows its own ground, and dreams, the Mythos and great people each have an emblem.",
+      "A long walk no longer loses steps when the phone is slow to save."
+    ]
+  },
+  {
     "version": "0.9.0",
     "date": "2026-10-06",
     "notes": [
