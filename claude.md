@@ -58,7 +58,7 @@ v2's most concrete failure was 112 markdown files with no source of truth.
   "projekti": "Eldritch Sanctuary v3",
   "kuvaus": "Kävele oikeassa maailmassa: heksa, jolle astut, on sinun — ja sen voi viedä muilta.",
   "tila": "toteutus",
-  "vaihe": "3 — Season 3: 4X + Arkham, haara season-3 (docs/tickets/README.md)",
+  "vaihe": "3 — Season 3 The Long Tide, julkaistu v0.10.0 2026-10-11 (docs/tickets/README.md)",
   "edellinen_vaihe": "2.8 — Ominaisuuskierros lokakuu 2026 (v0.9.0, valmis 2026-10-06)",
   "juurihakemisto": "c:/Projects/Klitoritari-FinalFantasy",
   "kohdelaite": "Samsung S23 Ultra (mobile-first), desktop simulaatiotilassa",
