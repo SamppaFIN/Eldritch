@@ -609,10 +609,11 @@ Järjestys: **1** ADJ-001, NEXT-001, EUREKA-001, ALLY-001, MYTHOS-001 →
 **3** GREAT-001, TRADEROUTE-001, SUZERAIN-001, PAGES-001, MASKS-001, CHOIR-001, AERODROME-001 →
 **4** OTHERWORLD-001, TERROR-001, MYSTERY-001, MONSTER-001 (jaettu maailma / suurimmat).
 
-**Tila 2026-10-09:** kaikki 24 (+ WEATHER-001 MOON-001:n mukana) `done` haarassa `season-3`, ei pushattu.
-Avoimena: MYTHOS-001 yksi `[~]` (osa efekteistä odottaa), SUZERAIN-001:n kylän kortti `[~]` (ei nähty
-ruudulla). Workerin `wrangler deploy` tarvitaan kauden 3 avautuessa: `/envoys`, terror ja mysteerit
-`/season`issa, täysikuun Doom.
+**Julkaistu 2026-10-11 v0.10.0:na** — `season-3` yhdistetty `main`iin ja pushattu, Worker deployattu
+(`/envoys`, terror ja mysteerit `/season`issa), Season 2 arkistoitu Chronicleseihin (kartta pidetty) ja
+Season 3 *The Long Tide* avattu: Doom nousee joka aamunkoitto. Avoimena: MYTHOS-001 yksi `[~]` (osa
+efekteistä odottaa), SUZERAIN-001:n kylän kortti `[~]` (ei nähty ruudulla), lentokentän ja piippujen
+paikat tarkistettava paikan päällä.
 
 | Tiketti | Mitä | Effort | Riippuu |
 |---|---|---|---|
