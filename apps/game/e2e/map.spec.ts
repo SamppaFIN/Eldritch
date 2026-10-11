@@ -53,13 +53,24 @@ async function dismissUnlockCard(page: Page): Promise<void> {
 async function panByHand(page: Page) {
   const vs = page.viewportSize();
   const sx = (vs?.width ?? 360) - 20;
-  // A third of the way down, not half: the camera button sits on the right, a HUD's
-  // height up from the bottom, and once the pouch row shows it reaches mid-screen.
-  const sy = (vs?.height ?? 640) * 0.33;
-  const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
-
+  // Around a third of the way down, not half: the camera button sits on the right, a
+  // HUD's height up from the bottom, and once the pouch row shows it reaches mid-screen.
+  // The first point there that is bare map, found afresh each try: a notice in the top
+  // stack wraps taller since the stack starts right of the Menu button (BRDC-UX-003) and
+  // can arrive mid-test, and a drag that begins on it is a press, not a pan.
+  const bareMap = () =>
+    page.evaluate(
+      ([x, h]) => {
+        for (let y = Math.round(h * 0.3); y < h * 0.55; y += 8) {
+          if (document.elementFromPoint(x, y)?.classList.contains('maplibregl-canvas')) return y;
+        }
+        return Math.round(h * 0.33);
+      },
+      [sx, vs?.height ?? 640] as const,
+    );
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await dismissUnlockCard(page);
+    const sy = await bareMap();
     await page.mouse.move(sx, sy);
     await page.mouse.down();
     for (let i = 1; i <= 10; i += 1) {
