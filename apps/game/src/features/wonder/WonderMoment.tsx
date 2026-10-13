@@ -13,6 +13,7 @@
 import { WONDERS, WONDER_STARS } from '@es3/core';
 import type { WonderId } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
+import { RESOURCE_WORD } from '../territory/territoryFeatures.js';
 import './wonder-moment.css';
 
 /** Centre, an inner ring of six, an outer ring of six rotated by thirty degrees. */
@@ -96,9 +97,14 @@ export function WonderMoment({ id, onClose }: WonderMomentProps) {
           {WONDER_STARS[wonder.rarity]}
         </p>
         <p className="wonder__lore">{wonder.lore}</p>
+        {/* What it gives, and the rule it gives it by (BRDC-WONDER-003): the whole realm, while
+            the hex is held. The aura it once promised here has never been built — not said. */}
         <p className="wonder__effect">
-          Your name is on it. It pays this hex every hour, and lifts the ground {wonder.aura.radius}{' '}
-          rings around it.
+          Your name is on it. While you hold this hex, your realm gains{' '}
+          {Object.entries(wonder.bonus)
+            .map(([k, v]) => `+${v} ${RESOURCE_WORD[k as keyof typeof RESOURCE_WORD]}`)
+            .join(' · ')}{' '}
+          every hour.
         </p>
         <button type="button" className="wonder__close" onClick={onClose}>
           Stand a while

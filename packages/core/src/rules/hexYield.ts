@@ -41,6 +41,8 @@ import { ERAS, eraBonus } from './era.js';
 import { BOONS, boonBonus } from './age.js';
 import { FULL_MOON_MANA, HARVEST_MOON_FOOD, isFullMoon } from './moon.js';
 import { routeActive, routeGold, routesGold } from './tradeRoute.js';
+import { WONDERS } from './wonder.js';
+import type { WonderId } from './wonder.js';
 import type { TradeRoute } from './tradeRoute.js';
 import { SUZERAIN_BONUS } from './suzerain.js';
 import { cityStateById } from './cityState.js';
@@ -91,11 +93,20 @@ export interface YieldContext {
   routes?: readonly TradeRoute[] | undefined;
   /** Villages this realm is suzerain of (BRDC-SUZERAIN-001): each pays its speciality. */
   suzerain?: readonly CityStateId[] | undefined;
+  /** Wonders this realm found (BRDC-WONDER-003): each pays its bonus to the whole realm
+   *  while its hex is held — a passive bonus, not the hex's own yield (Infinite 2026-10-13). */
+  wonders?: readonly { id: WonderId; h3: H3Index }[] | undefined;
   /** The Reckoning's flood (BRDC-CHOIR-001): lake and coast hexes make half until the Choir is silenced. */
   flooded?: boolean | undefined;
   /** The town's terror (BRDC-TERROR-001): at 8, every Market makes a quarter less. */
   terror?: number | undefined;
 }
+
+/** The found wonders whose hex the realm still holds (BRDC-WONDER-003). */
+const heldWonders = (ctx: YieldContext) => {
+  const mine = new Set(ctx.owned.map((c) => c.h3));
+  return (ctx.wonders ?? []).filter((w) => mine.has(w.h3) && WONDERS[w.id]);
+};
 
 const title = (id: string): string => id.replace(/(^|-)(\w)/g, (_, dash: string, c: string) => (dash ? ' ' : '') + c.toUpperCase());
 const workName = (id: string): string => BUILDING_NAMES_PLAIN[id as keyof typeof BUILDING_NAMES_PLAIN] ?? title(id);
@@ -163,6 +174,7 @@ export function realmBonus(ctx: YieldContext): Partial<ResourcePool> {
   const routeGoldNow = routesGold(ctx.routes ?? [], owned);
   if (routeGoldNow > 0) merged.gold = (merged.gold ?? 0) + routeGoldNow;
   for (const id of ctx.suzerain ?? []) addInto(merged, SUZERAIN_BONUS[id] ?? {});
+  for (const w of heldWonders(ctx)) addInto(merged, WONDERS[w.id].bonus);
   // The Librarian (BRDC-INVEST-001). No ground trickles wisdom, so all of it is here.
   if (ctx.archetype === 'librarian' && (merged.wisdom ?? 0) > 0) merged.wisdom = (merged.wisdom as number) * (1 + LIBRARIAN_WISDOM);
   // The full moon (BRDC-MOON-001). The Harvest Moon is the hex card's own line, read back.
@@ -248,6 +260,9 @@ export function realmOnlyYield(ctx: YieldContext): YieldContribution[] {
   }
   for (const id of ctx.suzerain ?? []) {
     for (const [k, v] of Object.entries(SUZERAIN_BONUS[id] ?? {}) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Suzerain: ${cityStateById(id)?.name ?? id}`, sourceId: id });
+  }
+  for (const w of heldWonders(ctx)) {
+    for (const [k, v] of Object.entries(WONDERS[w.id].bonus) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Wonder: ${WONDERS[w.id].name}`, sourceId: w.id });
   }
   const boon = ctx.week?.boon;
   if (boon) for (const [k, v] of Object.entries(BOONS[boon].perHour) as [ResourceKind, number][]) out.push({ resource: k, amount: v, source: 'other', label: `Golden week: ${BOONS[boon].name}`, sourceId: boon });

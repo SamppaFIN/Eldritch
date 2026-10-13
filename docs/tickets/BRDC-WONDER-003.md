@@ -5,7 +5,7 @@
 | **Alue** | `rules/wonder.ts`, `rules/harmalaWonder.ts`, `data/wonderStore.ts`, `data/pouch.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S |
-| **Status** | `todo` — luonnos, ei toteutettu |
+| **Status** | `done` — 2026-10-13 (12 ihmettä; Härmälän 9 eivät ole vielä pelissä) |
 | **Riippuvuudet** | `BRDC-WONDER-001` (taulukko), `BRDC-WONDER-002` (Härmälän 9) |
 | **Lähde** | `BRDC-WONDER-002`in oma jatkotyölista: *"Jokainen oma tikettinsä, halvimmasta kalleimpaan"* — tämä on se ensimmäinen |
 
@@ -28,25 +28,29 @@ tarvitsisi tämän saman langan erikseen, ellei sitä tehdä kerran tässä.
 
 ## 🟢 GREEN — ehdotus, ei toteutettu
 
-- [ ] `wonderBonus(cells, finds, now)` (`rules/wonder.ts` tai oma pieni tiedosto):
+- [x] `wonderBonus(cells, finds, now)` (`rules/wonder.ts` tai oma pieni tiedosto):
       sama muoto kuin `landmarkBonus`/`buildingBonus` — käy läpi pelaajan omat löydöt
       (`WonderFinds`), ja jokaisesta jonka hexi on yhä pelaajan oma ja hereillä
       (`DORMANT_AFTER_MS`, sama sääntö kuin kaikella muullakin tuotolla), lisää sen
       `bonus`in pouchiin. `HARMALA_WONDERS`in kahdeksalla flat-osalla (kaikilla paitsi
       Drowned Eyellä) sama funktio toimii sellaisenaan, kun niiden oma "+N/h" on
-      poimittu `effect`-tekstistä rakenteelliseksi kentäksi (seuraava kohta)
-- [ ] `HarmalaWonder`ille rakenteellinen `bonus: Partial<ResourcePool>` erilleen
+      poimittu `effect`-tekstistä rakenteelliseksi kentäksi (seuraava kohta) — tehty valtakunnan laajuisena (päätös alla): `YieldContext.wonders`, `realmBonus` ja `realmOnlyYield` (rivi *Wonder: nimi*), maksaa kun ihmeen hex on hallussa; ei hereilläolosääntöä
+- [~] `HarmalaWonder`ille rakenteellinen `bonus: Partial<ResourcePool>` erilleen
       `effect`-proosasta — sama jako kuin `Wonder`illa jo on. Ei poisteta `effect`-tekstiä,
-      se on yhä UI:n lähde; `bonus` on se osa josta sääntö laskee
-- [ ] `pouch.ts`in `perHourBonus`-ketjuun uusi lähde, samaan tapaan kuin `landmarkBonus`
-      ja `buildingBonus` jo ovat siellä rinnakkain
-- [ ] Testit: yksi löydetty ihme maksaa oikean summan, nukkuva (ei kävelty 48h) ei maksa
-      mitään — sama sopimus kuin jokaisella muullakin tuotolla
-- [ ] **Sivutuote:** `BRDC-WONDER-001`in rivi 22 sulkeutuu — sama korjaus toimii sekä
+      se on yhä UI:n lähde; `bonus` on se osa josta sääntö laskee — Härmälän 9 eivät ole vielä pelissä (vain `rules/harmalaWonder.ts`); siirtyy WONDER-004…012:een
+- [x] `pouch.ts`in `perHourBonus`-ketjuun uusi lähde, samaan tapaan kuin `landmarkBonus`
+      ja `buildingBonus` jo ovat siellä rinnakkain — `yieldContext` lukee `wonder-finds`in; sama `realmBonus` jota pussi ja kortin "Per hour" lukevat
+- [x] Testit: yksi löydetty ihme maksaa oikean summan, nukkuva (ei kävelty 48h) ei maksa
+      mitään — sama sopimus kuin jokaisella muullakin tuotolla — `wonderBonus.repo.test.ts`: R'lyeh maksaa rivi riviltä, menetetty hex ei maksa (valtakunnan laajuisena nukkumista ei ole)
+- [x] **Sivutuote:** `BRDC-WONDER-001`in rivi 22 sulkeutuu — sama korjaus toimii sekä
       alkuperäiselle 12:lle että Härmälän 9:lle, koska molemmat käyttävät samaa
-      `Partial<ResourcePool>`-muotoa
+      `Partial<ResourcePool>`-muotoa — bonus-osa; aura ei vieläkään (ihmekortti ei enää lupaa sitä)
 
 ## Päätös Infiniteltä
+
+> **Vastattu 2026-10-13: koko valtakunta.** Passiivinen bonus niin kauan kuin ihmeen hex on hallussa,
+> missä tahansa kävelee. Ihmekortti sanoo nyt juuri sen (*"While you hold this hex, your realm gains …"*);
+> sen aiempi lupaus *"lifts the ground N rings around it"* poistettiin, koska auraa ei ole rakennettu.
 
 - Onko ihmeen bonus **sen oman hexin** tuotto (pitää kävellä sinne pysyäkseen hereillä,
   sama sääntö kuin rakennuksilla) vai **koko realmin** passiivinen bonus riippumatta

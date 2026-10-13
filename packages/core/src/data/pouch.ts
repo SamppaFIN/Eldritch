@@ -11,6 +11,7 @@ import type { ResourceKind, ResourcePool, ResourceState, StorageCap } from '../r
 import { worksCapBonus } from '../rules/works/bonus.js';
 import { realmBonus } from '../rules/hexYield.js';
 import type { YieldContext } from '../rules/hexYield.js';
+import type { WonderId } from '../rules/wonder.js';
 import { worksContext, worksContextFrom, type WorksContext } from './worksTrees.js';
 import { ward } from '../rules/ward.js';
 import type { WardResult } from '../rules/ward.js';
@@ -60,8 +61,8 @@ export async function yieldContext(
   owned: readonly Cell[],
   now: number,
 ): Promise<{ ctx: YieldContext; works: WorksContext }> {
-  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS, weekS, routesS, suzS, tasksS] = await store.getMany<unknown>([
-    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras, K.week, K.tradeRoutes, K.suzerain, K.tasks,
+  const [dwellS, homeS, expansionsS, spellsS, researchedS, revealedS, treesS, pouchS, invS, mythosS, erasS, weekS, routesS, suzS, tasksS, wondersS] = await store.getMany<unknown>([
+    K.dwell, K.home, K.expansions, K.spells, K.researched, K.revealed, K.worksTree, KEY, K.investigator, K.mythos, K.eras, K.week, K.tradeRoutes, K.suzerain, K.tasks, K.wonderFinds,
   ]);
   const home = (homeS as H3Index | undefined) ?? null;
   const dwell = (dwellS as DwellMap | undefined) ?? {};
@@ -84,6 +85,7 @@ export async function yieldContext(
     week: weekEffect(weekS as WeekState | undefined, now),
     routes: routesS as TradeRoute[] | undefined,
     suzerain: suzS as CityStateId[] | undefined,
+    wonders: Object.entries((wondersS as Record<WonderId, { h3: H3Index }> | undefined) ?? {}).map(([id, f]) => ({ id: id as WonderId, h3: f.h3 })),
     flooded: isFlooded((mythosS as { phase?: SeasonPhase } | undefined)?.phase, (tasksS as { outcomes?: Record<string, { status: string }> } | undefined)?.outcomes?.[CHOIR_FINALE]?.status === 'completed'),
     terror: (mythosS as { terror?: number } | undefined)?.terror,
   };
