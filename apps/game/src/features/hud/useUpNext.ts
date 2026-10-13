@@ -78,7 +78,7 @@ export function useUpNext(
       target.charter = 'keep';
       if (n < shown.current) return;
       shown.current = n;
-      setRows([...first, ...rankUpNext(items, 3 - first.length)].map((item) => ({ item, to: target[item.id] })));
+      setRows([...first, ...rankUpNext(items)].map((item) => ({ item, to: target[item.id] })));
     })();
   }, [repository, now, owned]);
   return rows.map((r) => ({ item: r.item, open: r.to ? to[r.to] : undefined }));

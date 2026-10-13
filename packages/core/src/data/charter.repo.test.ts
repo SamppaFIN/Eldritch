@@ -108,6 +108,14 @@ describe('the Charter in the store', () => {
     expect(await store.get(K.charter)).toEqual({ claimed: before });
   });
 
+  it('opens surfaces as the Charter reaches them, and a veteran sees what it uses (BRDC-ONBOARD-005)', async () => {
+    const store = await realm(ring);
+    const api = charterApi(() => store, async () => ring, async () => []);
+    expect(await api.surfaces(T0)).toEqual([]);
+    await store.set(K.investigator, { archetype: 'scholar' });
+    expect(await api.surfaces(T0)).toEqual(['investigator-tab']);
+  });
+
   it('outlives the season: the Charter is taught once per realm', async () => {
     const store = await realm(ring);
     await store.set(K.charter, { claimed: ['first-step'] });

@@ -83,6 +83,7 @@ const WALKING: [keyof Settings, string][] = [
   ['sound', 'Sound'],
   ['vibration', 'Vibration'],
   ['loopClosure', 'Claim by closing a loop'],
+  ['showEverything', 'Show everything'],
 ];
 
 const MAP: [keyof Settings, string][] = [

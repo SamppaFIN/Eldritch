@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.11.2",
+    "date": "2026-10-13",
+    "notes": [
+      "A new realm starts simpler. The Keep shows only Today at first; Realm, Investigator and Season open as the Keeper's Charter reaches them. Research, Your lands and your standard open the same way.",
+      "Anything you already use stays open, whatever the Charter says.",
+      "When something opens, a card at the top of the map says so. Tap it away.",
+      "Menu → Show everything opens every page at once.",
+      "The Up next strip keeps its three rows and puts the Charter's step in front of them."
+    ]
+  },
+  {
     "version": "0.11.1",
     "date": "2026-10-13",
     "notes": [

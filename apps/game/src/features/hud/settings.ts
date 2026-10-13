@@ -43,6 +43,11 @@ export interface Settings {
   shareWorld: boolean;
   /** What each hex of yours makes, drawn on it at street zoom (BRDC-MAP-008). On by default. */
   yieldOverlay: boolean;
+  /**
+   * Every page and button at once, instead of opening them as the Keeper's Charter reaches
+   * them (BRDC-ONBOARD-005). Off by default: the first days are simpler without.
+   */
+  showEverything: boolean;
 }
 
 const KEY = 'settings';
@@ -58,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   revealRivals: true,
   shareWorld: false,
   yieldOverlay: true,
+  showEverything: false,
 };
 
 export function loadSettings(): Settings {
@@ -71,6 +77,7 @@ export function loadSettings(): Settings {
     revealRivals: stored.revealRivals ?? DEFAULT_SETTINGS.revealRivals,
     shareWorld: stored.shareWorld ?? DEFAULT_SETTINGS.shareWorld,
     yieldOverlay: stored.yieldOverlay ?? DEFAULT_SETTINGS.yieldOverlay,
+    showEverything: stored.showEverything ?? DEFAULT_SETTINGS.showEverything,
   };
 }
 

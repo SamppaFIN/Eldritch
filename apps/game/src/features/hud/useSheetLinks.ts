@@ -5,7 +5,7 @@
  * so the map view passes one object, and stays under its line ceiling.
  */
 import { moonDay, skyLine, weatherAt } from '@es3/core';
-import type { Cell, GameRepository, H3Index } from '@es3/core';
+import type { Cell, GameRepository, H3Index, Surface } from '@es3/core';
 import { useStandard } from '../territory/useStandard.js';
 import { useUpNext } from './useUpNext.js';
 import { useWeek } from './useWeek.js';
@@ -21,6 +21,8 @@ export interface SheetLinkInputs {
   /** The map re-reads after a plant, so the flag moves at once. */
   onPlanted: () => void;
   onOpenLands: () => void;
+  /** Lands and the standard wait for the Charter to reach them (BRDC-ONBOARD-005). */
+  shown: (s: Surface) => boolean;
   to: UpNextTargets;
 }
 
@@ -33,5 +35,5 @@ export function useSheetLinks(i: SheetLinkInputs): SheetLinks {
   // The town's terror rides the same line as the sky (BRDC-TERROR-001).
   const terror = useTerror();
   const sky = [skyLine(weatherAt(t), moonDay(t)), terror > 0 ? `Terror ${terror}/10` : ''].filter(Boolean).join(' · ') || undefined;
-  return { onOpenLands: i.onOpenLands, standard, upNext, week, sky };
+  return { onOpenLands: i.shown('lands') ? i.onOpenLands : undefined, standard: i.shown('standard') ? standard : undefined, upNext, week, sky };
 }

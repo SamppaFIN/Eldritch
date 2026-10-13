@@ -12,6 +12,8 @@
  */
 import { CHARTER_STEPS, SEASON_CHAPTER, alreadyDone, charterView, scarcest } from '../rules/charter.js';
 import type { CharterShow, CharterState, CharterView } from '../rules/charter.js';
+import { openSurfaces } from '../rules/surfaces.js';
+import type { Surface } from '../rules/surfaces.js';
 import { BUILDINGS, worksOn } from '../rules/build.js';
 import { TERRAIN_TABLE, terrainForCell } from '../rules/terrain.js';
 import type { ResourcePool, ResourceState } from '../rules/terrain.js';
@@ -38,6 +40,8 @@ export interface CharterApi {
   view(now: number): Promise<CharterPage | null>;
   /** Claim the current step's reward — once, and only when the realm says it is done. */
   claim(id: string, now: number): Promise<CharterOutcome>;
+  /** The screen's surfaces open now — reached by the Charter, or already in use (BRDC-ONBOARD-005). */
+  surfaces(now: number): Promise<Surface[]>;
 }
 
 /** Chapters III–V: what the realm has done, each read from the record its own store keeps. */
@@ -162,6 +166,11 @@ export function charterApi(
       const key = keyOf(id);
       await store().set<CharterRecord>(key, { claimed: [...((await store().get<CharterRecord>(key))?.claimed ?? []), id] });
       return { ok: true, reward: v.step.reward };
+    },
+
+    async surfaces(now) {
+      const { state, done } = await current(store(), await owned(now), await places(), now);
+      return openSurfaces(state, done);
     },
   };
 }

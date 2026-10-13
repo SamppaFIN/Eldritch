@@ -674,5 +674,5 @@ Counselin. Järjestys: 001 → 002 → 003 → 004 → 006 → 005.
 | [BRDC-ONBOARD-002](BRDC-ONBOARD-002.md) | Luvut I–II: maa ja Työt, *Show me* | S–M | `in-progress` |
 | [BRDC-ONBOARD-003](BRDC-ONBOARD-003.md) | Kasvata puuttuvan resurssin saantia | S | `done` |
 | [BRDC-ONBOARD-004](BRDC-ONBOARD-004.md) | Yksi ääni: opetuskortit, Counsel ja reunavihje pois | M | `done` |
-| [BRDC-ONBOARD-005](BRDC-ONBOARD-005.md) | Asteittain avautuva käyttöliittymä | M | `todo` |
+| [BRDC-ONBOARD-005](BRDC-ONBOARD-005.md) | Asteittain avautuva käyttöliittymä | M | `done` |
 | [BRDC-ONBOARD-006](BRDC-ONBOARD-006.md) | Luvut III–V: valtakunta, kaupunki, kausi | M | `done` |

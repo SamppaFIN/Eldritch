@@ -41,6 +41,8 @@ import { Hud } from '../features/hud/Hud.js';
 import { PouchGain, latestGain } from '../features/hud/PouchGain.js';
 import { SanctumDialogs } from '../features/hud/Sanctum.js';
 import { useShownCells } from '../features/territory/useShownCells.js';
+import { useSurfaces } from '../features/hud/useSurfaces.js';
+import { SurfaceNews } from '../features/hud/SurfaceNews.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { TopStack } from '../features/hud/TopStack.js';
 import { GuideNews } from '../features/help/GuideNews.js';
@@ -128,6 +130,7 @@ export function MapView({ onLeave }: MapViewProps) {
   // so re-ask then (ECON-008); `collected`: a collect shows at once (field report 2026-09-30).
   const pouchTriggers = [clock.offsetDays, territory.lastClaim?.at ?? 0, trail.points.length, castle, collected];
   const { resources, forecast, setResources } = usePouchPolling(repository, clock.now, pouchTriggers);
+  const surfaces = useSurfaces(repository, clock.now, territory.owned, resources, settings.showEverything); // BRDC-ONBOARD-005
 
   // Help, History and the Character screen — none about the cell underfoot (BRDC-CHAR-001).
   const laps = trail.points.length + (territory.lastClaim?.at ?? 0);
@@ -164,7 +167,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // The cell underfoot — held against GPS jitter while still (BRDC-DWELL-002).
   const standingOn = useStandingCell(point, pace);
-  const nav = useSheetLinks({ repository, standingOn, owned: territory.owned, now: clock.now, onPlanted: territory.refresh, onOpenLands: aside.openLands, to: { research: isRoute ? undefined : inspect.openResearch, keep: castle && !isRoute ? inspect.onCastleTap : undefined } });
+  const nav = useSheetLinks({ repository, standingOn, owned: territory.owned, now: clock.now, onPlanted: territory.refresh, onOpenLands: aside.openLands, shown: surfaces.shown, to: { research: isRoute ? undefined : inspect.openResearch, keep: castle && !isRoute ? inspect.onCastleTap : undefined } });
   const mapRef = useRef<MapHandle | null>(null);
 
   const moments = useMoments();
@@ -263,7 +266,7 @@ export function MapView({ onLeave }: MapViewProps) {
           now={clock.now()} adventures={quest.adventures} repository={repository}
           onPouch={setResources} forecast={forecast}
           onPublish={settings.shareWorld ? world.publish : undefined}
-          onWeakest={inspect.onCellTap} onResearch={isRoute ? undefined : inspect.openResearch} onGrown={() => void territory.refresh()} onClose={inspect.close}
+          onWeakest={inspect.onCellTap} shown={surfaces.shown} onResearch={isRoute ? undefined : inspect.openResearch} onGrown={() => void territory.refresh()} onClose={inspect.close}
         />
       ) : null}
 
@@ -307,6 +310,7 @@ export function MapView({ onLeave }: MapViewProps) {
           rivalCells={territory.cells.length} rivalBearing={territory.rivalBearing}
         />
         <GuideNews {...aside.guideNews} />
+        <SurfaceNews news={surfaces.news} onDismiss={surfaces.dismiss} />
         <MapNotices {...alerts} geo={geoTrouble(permission, status)} worldStirredMs={world.stirredMs} shifted={clock.shifted} offsetDays={clock.offsetDays} />
       </TopStack>
 
@@ -338,7 +342,7 @@ export function MapView({ onLeave }: MapViewProps) {
         waypoint={quest.waypoint}
         onWaypointSeen={quest.onWaypointSeen}
         onOpenCharacter={aside.openCharacter} onShowMap={aside.closeAll}
-        onOpenResearch={isRoute ? undefined : inspect.openResearch}
+        onOpenResearch={isRoute || !surfaces.shown('research') ? undefined : inspect.openResearch}
         onOpenKeep={castle && !isRoute ? inspect.onCastleTap : undefined}
         onHelp={aside.openHelp} nav={nav}
         onOpenLog={aside.openLog}

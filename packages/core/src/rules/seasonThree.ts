@@ -8,6 +8,8 @@ export { hoursToAfford, rankUpNext, upNextText, whenText } from './upNext.js';
 export type { UpNextItem } from './upNext.js';
 export { CHAPTER_NAMES, CHARTER_RATE, CHARTER_REALM, CHARTER_STEPS, SEASON_CHAPTER, alreadyDone, charterView, groundFor, scarcest, stepDone } from './charter.js';
 export type { CharterShow, CharterState, CharterStep, CharterView } from './charter.js';
+export { SURFACES, SURFACE_STEP, openSurfaces } from './surfaces.js';
+export type { Surface } from './surfaces.js';
 export { EUREKA_DISCOUNT, eurekaCost, eurekaFor } from './eureka.js';
 export type { Eureka, EurekaState } from './eureka.js';
 export { ALLIES, allyDice, allyDiscount, allyOf } from './ally.js';

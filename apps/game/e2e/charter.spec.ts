@@ -26,7 +26,7 @@ const charter = (page: Page) => page.getByLabel('Your sanctuary').getByRole('reg
 
 test('a new realm walks its first step, claims it, and the next one comes', async ({ page }) => {
   test.setTimeout(150_000);
-  await openMap(page, HERE);
+  await openMap(page, HERE, undefined, undefined, false);
   await clearCards(page);
 
   await page.getByRole('button', { name: 'Keep', exact: true }).click();
@@ -49,5 +49,31 @@ test('a new realm walks its first step, claims it, and the next one comes', asyn
   await charter(page).getByRole('button', { name: 'Claim +10 wisdom' }).click();
   await expect(charter(page)).toContainText('Hold 12 hexes.', { timeout: 10_000 });
   await expect(charter(page)).toContainText(/\d+ \/ 12/);
+  // Holding twelve is the step that teaches Lands, so Lands opens now — and says so once.
+  await page.keyboard.press('Escape');
+  const news = page.getByRole('button', { name: /Your lands is open/ });
+  await expect(news).toBeVisible({ timeout: 15_000 });
+  await news.click();
+  await expect(news).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Lands', exact: true })).toBeVisible();
   await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/charter.png' });
+});
+
+test('a new realm sees only what the Charter has reached; Show everything opens the rest (BRDC-ONBOARD-005)', async ({ page }) => {
+  test.setTimeout(120_000);
+  await openMap(page, HERE, undefined, undefined, false);
+  await clearCards(page);
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await expect(charter(page)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('tab')).toHaveText(['Today']);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('navigation', { name: 'Go to' }).getByRole('button', { name: 'Research' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Lands', exact: true })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('switch', { name: 'Show everything' }).click();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('navigation', { name: 'Go to' }).getByRole('button', { name: 'Research' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Keep', exact: true }).click();
+  await expect(page.getByRole('tab')).toHaveText(['Today', 'Realm', 'Investigator', 'Season']);
 });

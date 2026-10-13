@@ -13,7 +13,7 @@ import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
 import { useEscape } from '../hud/useEscape.js';
 import { BASE_STORAGE_CAP, RESOURCE_KINDS, darkTimeAt } from '@es3/core';
-import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace } from '@es3/core';
+import type { Cell, Forecast, GameRepository, ResourcePool, RevealedPlace, Surface } from '@es3/core';
 // The same law the HUD and the Codex read area from (BRDC-KEEP-008) — this used to keep
 // its own copy in hectares, while the HUD said the same land in kilometres.
 import { formatArea } from '../codex/figures.js';
@@ -46,11 +46,11 @@ import '../lands/lands-panel.css';
 
 /** The Keep's four parts (BRDC-UX-004), in the order a player asks: what now, what I have, who I am, the season. */
 const KEEP_TABS = [
-  { id: 'today', label: 'Today' },
-  { id: 'realm', label: 'Realm' },
-  { id: 'investigator', label: 'Investigator' },
-  { id: 'season', label: 'Season' },
-] as const;
+  { id: 'today', label: 'Today', opens: null },
+  { id: 'realm', label: 'Realm', opens: 'realm-tab' },
+  { id: 'investigator', label: 'Investigator', opens: 'investigator-tab' },
+  { id: 'season', label: 'Season', opens: 'season-tab' },
+] as const satisfies readonly { id: string; label: string; opens: Surface | null }[];
 type KeepTab = (typeof KEEP_TABS)[number]['id'];
 
 export interface HearthPanelProps {
@@ -77,6 +77,8 @@ export interface HearthPanelProps {
   onPublish?: (() => Promise<PublishResult>) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
+  /** Which tabs the Keeper's Charter has opened (BRDC-ONBOARD-005); all of them when absent. */
+  shown?: ((s: Surface) => boolean) | undefined;
   /** Opens Research, for the Charter's "Show me" on a Lore step (BRDC-ONBOARD-001). */
   onResearch?: (() => void) | undefined;
   /** New ground appeared without a step — Hearth growth (BRDC-HEARTH-003). Redraw the map. */
@@ -98,6 +100,7 @@ export function HearthPanel({
   onWager,
   onPublish,
   onWeakest,
+  shown,
   onResearch,
   onGrown,
   onClose,
@@ -156,7 +159,7 @@ export function HearthPanel({
       </div>
 
       <div className="ledger__tabs" role="tablist" aria-label="The Keep">
-        {KEEP_TABS.map((t) => (
+        {KEEP_TABS.filter((t) => !t.opens || !shown || shown(t.opens)).map((t) => (
           <button key={t.id} type="button" role="tab" className="ledger__tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
             {t.label}
           </button>

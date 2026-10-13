@@ -62,13 +62,19 @@ export async function acceptHearth(page: Page, at: Coords): Promise<void> {
  * Title screen, mode choice, Hearth, map — the whole opening, in the order a player
  * meets it. `mode` defaults to Adventure so every spec written before BRDC-MODE-001
  * keeps testing exactly what it always has; a route-mode spec passes `'route'`.
+ *
+ * `everything` switches on "Show everything" (BRDC-ONBOARD-005) the same way, so every
+ * spec written before the Charter opened pages one at a time still finds every tab; the
+ * Charter's own spec passes `false` to see what a new player sees.
  */
 export async function openMap(
   page: Page,
   at: Coords,
   ready = '.es-player__core',
   mode: 'adventure' | 'route' = 'adventure',
+  everything = true,
 ): Promise<void> {
+  if (everything) await showEverything(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Begin the Awakening' }).click();
   await page
@@ -76,6 +82,15 @@ export async function openMap(
     .click();
   await acceptHearth(page, at);
   await expect(page.locator(ready)).toBeVisible({ timeout: 20_000 });
+}
+
+/** Merged into whatever settings are there — `enableLoopClosure` writes its own first. */
+async function showEverything(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const raw = window.localStorage.getItem('es3:settings');
+    const env = raw ? (JSON.parse(raw) as { v: number; d: Record<string, unknown> }) : { v: 1, d: {} };
+    window.localStorage.setItem('es3:settings', JSON.stringify({ ...env, d: { ...env.d, showEverything: true } }));
+  });
 }
 
 /**
