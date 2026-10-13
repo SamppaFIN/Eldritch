@@ -5,7 +5,7 @@
 | **Alue** | `features/keep/` (`KeepRealm`, `KeepResources`, `KeepTemples`), `features/territory/HearthPanel.tsx`, `dominion.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `[~]` osittain valmis 2026-09-16 — aarrelista täydellinen, rappiolista lisätty; välilehtien uudelleenjärjestely auki |
+| **Status** | `done` — toiminnalliset kohdat 2026-09-16; ulkoasu siirtyi käytettävyyskierrokselle (UX-004…006) |
 | **Riippuvuudet** | — |
 | **Lähde** | `Eldritch-Sigil.html` §06 — 04 · KEEP · Infinite 2026-09-16 (ks. `BRDC-CARD-001`) |
 
@@ -80,3 +80,7 @@ se olisi askel taaksepäin todetusta.
 ## Ei tässä
 
 - Rakennusten iso-kuvat rivillä — oma tikettinsä jos `KeepBuildingsPanel` uudistetaan
+
+## Siivous 2026-10-13
+
+Jäljelle jääneet kohdat olivat visuaalisia uudelleenjärjestelyjä ja kuvakaappausvertailu vanhaan malliin. Ulkoasu on sittemmin tehty uudelleen käytettävyyskierroksella ([BRDC-UX-004](BRDC-UX-004.md) Keepin välilehdet, [BRDC-UX-005](BRDC-UX-005.md) heksakortti, [BRDC-UX-006](BRDC-UX-006.md) Lore) ja Sigil-designin mukaan, joten vertailu vanhaan malliin ei enää mittaa mitään.

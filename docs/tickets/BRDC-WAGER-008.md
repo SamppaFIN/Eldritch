@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `data/wager.ts`, `WAGER-JSON-*`:n tuonti/vienti, `SpoilsPanel`, Keepin Wager-välilehti |
 | **Vaihe** | 3 — Sivilisaatio |
-| **Status** | `todo` — Infiniten päätös kirjattu, ei suunniteltu |
+| **Status** | `todo` — päätetty: koodi poistetaan |
 | **Lähde** | Infinite 2026-09-15: *"poistetaan wager, koska data jaetaan clouflaren kautta nykyää"* |
 
 ## 🔴 RED
@@ -34,3 +34,7 @@ Kaksi totuutta samasta asiasta on tarkalleen se kuvio jonka v2 teki väärin.
 
 - Purku ennen kuin `world.json` kattaa sen mitä Wager kattoi. Ensin korvaaja toimii,
   sitten vanha lähtee — ei toisin päin
+
+## Päätös 2026-10-13 (kysely)
+
+Wagerin koodi poistetaan: `rules/wagerBattle.ts`, `features/wager/`, `wager.spec.ts` ja jaetun heksan tilat. BRDC-WAGER-JSON-003 suljetaan samalla.

@@ -5,7 +5,7 @@
 | **Alue** | `rules/harmalaWonder.ts`, `scripts/build-hexseed.mjs` (sijoitus), siemen (`HexSeed.structure`) |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L |
-| **Status** | `[~]` osittain valmis 2026-09-16 — perusta ja sijoitus tehty, yhdeksän vaikutusta auki |
+| **Status** | `[~]` osittain valmis 2026-09-16 — perusta ja sijoitus tehty, yhdeksän vaikutusta auki; käydään yksi kerrallaan (2026-10-13) |
 | **Riippuvuudet** | `BRDC-SEED-003`, `BRDC-TERRAIN-005`, `BRDC-LANDMARK-001` |
 | **Lähde** | `worldseed.ts` (`WONDERS`), `seed.harmala.json` (`wonders`), Worldseed §06 *The Nine Wonders* |
 
@@ -77,3 +77,7 @@ ei löytöä, ei vaikutusta, ei karttamerkkiä. Ei havaittavaa muutosta pelaajal
 
 - Ihmeiden kuvat — `BRDC-RES-002`
 - Mäkivyöhykkeiden koordinaatit — `BRDC-SEED-003`:n syöte
+
+## Päätös 2026-10-13 (kysely)
+
+Vaikutukset WONDER-004…012 käydään **yksi kerrallaan**: luonnos näytetään, Infinite hyväksyy tai muuttaa, sitten rakennetaan. Halvimmasta kalleimpaan, The Drowned Eye viimeisenä.

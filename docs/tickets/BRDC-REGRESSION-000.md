@@ -5,7 +5,7 @@
 | **Vaihe** | läpileikkaava |
 | **Effort** | M (päivä, jaettuna vaiheisiin) |
 | **Riippuvuudet** | BRDC-SETUP-001 |
-| **Status** | `in_progress` — 12/12 riviä ratkaistu 2026-10-13; kattavuusportti odottaa riippuvuuslupaa |
+| **Status** | `in_progress` — 12/12 riviä ratkaistu 2026-10-13; kattavuusportin riippuvuus hyväksytty |
 | **Valmius** | 85 % |
 
 ## 🔴 RED
@@ -121,3 +121,7 @@ MapLibren natiivi klusterointi kestää 5 000 objektia — pysyy totena**, koska
 kirjastonvalinta eikä tämän testin ansiota. Testin *kuvaus* tikettitekstissä on
 liian laaja siitä, mitä se mittaa. Korjattu `BRDC-SCALE-001`:ssä, joka myös mittaa
 oikean polun (`cellsToGeoJson` → `setData` → `idle`) ensimmäistä kertaa.
+
+## Päätös 2026-10-13 (kysely)
+
+`@vitest/coverage-v8` saa lisätä (dev-riippuvuus).

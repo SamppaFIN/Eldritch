@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S |
 | **Riippuvuudet** | BRDC-WAGER-JSON-001/002, BRDC-CLAIM-005 (decay) |
-| **Status** | `todo` |
+| **Status** | `superseded` — Wager puretaan (BRDC-WAGER-008) |
 | **Valmius** | 0 % |
 | **Lähde** | Aavistuksen ehdotus 2026-09-02: *"Wagerilla ei ole syytä"* |
 
@@ -37,3 +37,7 @@ konkreettisen mutta ei-liian-vahvan palkinnon.
 - Majakka joka ottaa maata — se rikkoisi "jalat ottavat" -periaatteen.
 - Hyökkäysmajakat omalle maalle (puolustusbonus) — eri idea, oma tikettinsä.
 - Majakan siirto / poisto käsin — vanhenee itsestään, se riittää.
+
+## Päätös 2026-10-13 (kysely)
+
+Suljettu: Wager poistetaan kokonaan.

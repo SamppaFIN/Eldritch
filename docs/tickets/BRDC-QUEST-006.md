@@ -5,7 +5,7 @@
 | **Alue** | `data/questSites.ts`, `features/map/useBoot.ts`, siemen (`HexSeed.quest`), `QuestMarkers.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `[~]` osittain valmis 2026-09-16 — pikakorjaus ajettu ja todennettu; `HexSeed.quest` ja *What Sleeps at the Shore* auki |
+| **Status** | `[~]` osittain valmis 2026-09-16 — pikakorjaus ajettu ja todennettu; *What Sleeps at the Shore* päätetty rakentaa toiseksi taruksi (2026-10-13) |
 | **Riippuvuudet** | `BRDC-SEED-004` (lopullinen muoto); pikakorjaus mahdollinen ilman |
 | **Lähde** | Infinite 2026-09-15: *"korjata nuo questit oikeille heksoille.. Nyt statue of boy on jostain syystä mun keepin paikalla, se alunperin oli tuolla harmatun täplän päällä.. Muuta seikkailut oikeille heksoille, siten että seikkailu on heksan parametri tms.. muut kaikki kohdat on täsmälleen saman verran vinossa alkuperäisestä paikasta"* · 2026-09-16: *"Seikkailun pisteet on hieman sinnepäin annettu, aiemmat lokaatio tiedot on oikein"* |
 
@@ -62,3 +62,7 @@ Uuden ketjun *"What Sleeps at the Shore"* koordinaatit ovat Infiniten mukaan suu
 ## Ei tässä
 
 - Tehtävien sisältö ja dialogit
+
+## Päätös 2026-10-13 (kysely)
+
+*What Sleeps at the Shore* rakennetaan **toiseksi taruksi**: kun Fuming Lake on päättynyt, seuraava alkaa. Elävät siis peräkkäin, eivät rinnakkain.

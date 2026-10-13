@@ -5,7 +5,7 @@
 | **Alue** | `features/codex/` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S–M |
-| **Status** | `[~]` osittain valmis 2026-09-16 — kaikki toiminnalliset kohdat tehty, kuvakaappaus auki |
+| **Status** | `done` — toiminnalliset kohdat 2026-09-16; ulkoasu siirtyi käytettävyyskierrokselle (UX-004…006) |
 | **Riippuvuudet** | — |
 | **Lähde** | `Eldritch-Sigil.html` §06 — 07 · CODEX OF DOMINION · Infinite 2026-09-16 (ks. `BRDC-CARD-001`) |
 
@@ -53,3 +53,7 @@ jo tehty ennen tätä kierrosta.
 
 - Ei mitään — tämä on sarjan ainoa CARD-tiketti jonka kaikki toiminnalliset GREEN-kohdat
   saatiin tehtyä
+
+## Siivous 2026-10-13
+
+Jäljelle jääneet kohdat olivat visuaalisia uudelleenjärjestelyjä ja kuvakaappausvertailu vanhaan malliin. Ulkoasu on sittemmin tehty uudelleen käytettävyyskierroksella ([BRDC-UX-004](BRDC-UX-004.md) Keepin välilehdet, [BRDC-UX-005](BRDC-UX-005.md) heksakortti, [BRDC-UX-006](BRDC-UX-006.md) Lore) ja Sigil-designin mukaan, joten vertailu vanhaan malliin ei enää mittaa mitään.

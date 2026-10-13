@@ -5,7 +5,7 @@
 | **Vaihe** | 2.6 — Mobiilikokemus (osa vastauksesta on Vaihe 4) |
 | **Effort** | M (mittaus) + L (jos vastaus on APK) |
 | **Riippuvuudet** | BRDC-VIGIL-001, BRDC-MOBILE-001 |
-| **Status** | `todo` |
+| **Status** | `todo` — kenttämittaus 2026-10-14; APK-polku BRDC-APK-001 |
 | **Valmius** | 0 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
@@ -55,3 +55,7 @@ Tätä ei ratkaista arvaamalla. Se mitataan.
   koko mallin (`claude.md` §15), ja §15 sanoo: älä heikennä ilman pyyntöä. Oma tikettinsä
   kun tämän mittaus on tehty ja tiedetään mitä ollaan korvaamassa.
 - Akun optimointi. Ensin tieto siitä toimiiko mikään.
+
+## Päätös 2026-10-13 (kysely)
+
+Infinite mittaa lukitun puhelimen kävelyn 2026-10-14, mutta muistaa jo, ettei ääni yksin pidä ruutua auki. Ratkaisu on erillinen APK (Infinite rakentaa toisella koneella), joka nauhoittaa GPX:n — pelin puoli on BRDC-APK-001: latauslinkki ja GPX:n toisto.

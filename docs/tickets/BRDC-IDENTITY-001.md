@@ -6,7 +6,7 @@
 | **Vaihe** | 3 — Sivilisaatio (multiplayer-sarja) |
 | **Effort** | S |
 | **Riippuvuudet** | ei mitään pakollista — voi rakentaa itsenäisesti `BRDC-CLAN-*`-sarjasta, hyötyy siitä kun klaanijäsenyys on olemassa palautettavaksi |
-| **Status** | luonnos — käydään läpi ennen toteutusta |
+| **Status** | `todo` — hyväksytty rakennettavaksi 2026-10-13 |
 
 ## 🔴 RED
 
@@ -67,3 +67,7 @@ yhteydessä — vain profiili- ja klaanikentät.
   kuin `player:<id>` on olemassa KV:ssä (sama 30 vrk TTL kuin muullakin dataa) —
   ei "unohdin koodini" -palautuspolkua, koska mitään toista todennuskeinoa ei ole
   jolla sen voisi korvata ilman oikeaa tiliä
+
+## Päätös 2026-10-13 (kysely)
+
+Rakennetaan sellaisenaan (S): palautuskoodi tuo julkisen nimen ja klaanin uudelle laitteelle. Valtakunta ei siirry (Vaihe 5).

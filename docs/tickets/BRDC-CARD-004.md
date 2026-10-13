@@ -5,7 +5,7 @@
 | **Alue** | `features/character/` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | S–M |
-| **Status** | `[~]` osittain valmis 2026-09-16 — tietoisuusrengas ja pikalukema tehty; elinikäiset luvut vaativat uutta pysyvää tilaa |
+| **Status** | `[~]` — tietoisuusrengas ja pikalukema tehty; jäljellä vain kuusi elinikäistä lukua |
 | **Riippuvuudet** | — |
 | **Lähde** | `Eldritch-Sigil.html` §06 — 06 · YOU · Infinite 2026-09-16 (ks. `BRDC-CARD-001`) |
 
@@ -64,3 +64,7 @@ puolenyön UTC:ssä vai paikallisessa ajassa) — ei tämän kierroksen sivutuot
 ## Ei tässä
 
 - Elinikäisten lukujen pysyvä tila — oma tikettinsä, jos Infinite haluaa sen eteenpäin
+
+## Siivous 2026-10-13
+
+Sigil-rivi ja kuvakaappausvertailu suljettu: You-näkymä on tehty uudelleen (UX-008, SIGIL-005). **Auki:** kuusi elinikäistä lukua, jotka vaativat uutta, kausien yli säilyvää tilaa (`FOREVER_KEYS`).

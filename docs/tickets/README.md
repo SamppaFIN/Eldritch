@@ -678,3 +678,21 @@ Counselin. Järjestys: 001 → 002 → 003 → 004 → 006 → 005.
 | [BRDC-ONBOARD-006](BRDC-ONBOARD-006.md) | Luvut III–V: valtakunta, kaupunki, kausi | M | `done` |
 
 Käytettävyys jatkuu: [BRDC-HUD-006](BRDC-HUD-006.md) — kapea ja leveä HUD — `done`. [BRDC-ECON-010](BRDC-ECON-010.md) — pussin kirjoitukset lukon sisällä — `done`.
+
+## Päätökset 2026-10-13 (kysely) — rakennusjono
+
+Infinite vastasi avoimiin kysymyksiin. Jono, pienimmästä isoimpaan:
+
+1. **Siivous:** [BRDC-WAGER-008](BRDC-WAGER-008.md) Wagerin koodi poistetaan ·
+   [BRDC-REGRESSION-000](BRDC-REGRESSION-000.md) kattavuusportti (`@vitest/coverage-v8` hyväksytty) ·
+   neljä *Seeker*-valtakuntaa Chroniclesissa ovat testijäänteitä → poistetaan Workerin KV:stä
+   (Infinite ajaa komennon, admin-avain pysyy hänellä)
+2. **Pienet:** [BRDC-TRADE-001](BRDC-TRADE-001.md) · [BRDC-IDENTITY-001](BRDC-IDENTITY-001.md) ·
+   [BRDC-APK-001](BRDC-APK-001.md) (odottaa latausosoitetta)
+3. **Mekaniikat:** [BRDC-TRAIL-004](BRDC-TRAIL-004.md) · [BRDC-CLAIM-010](BRDC-CLAIM-010.md) ·
+   [BRDC-RAID-001](BRDC-RAID-001.md) · [BRDC-QUEST-006](BRDC-QUEST-006.md) (*What Sleeps at the Shore* toiseksi taruksi)
+4. **Ihmeet** WONDER-004…012 yksi kerrallaan, luonnos ensin Infiniten hyväksyttäväksi
+5. [BRDC-WORLD-001](BRDC-WORLD-001.md) kun Härmälän kiinteä kartta-aineisto (Claude Design) on valmis
+
+Suljettu: CLAIM-015 (CLAIM-017 kattaa), CLAIM-016 (`ANCHOR_BONUS` pysyy 200), WAGER-JSON-003.
+VIGIL-002: kenttämittaus 2026-10-14; APK-polku on BRDC-APK-001.

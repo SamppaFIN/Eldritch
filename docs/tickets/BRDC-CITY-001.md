@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-TERRAIN-002, BRDC-ECON-001, BRDC-HEX-001 |
-| **Status** | `todo` |
+| **Status** | `[~]` — kauppa, valtaamattomuus ja suhde tehty muualla; useampi kylä luonteineen ja liittoutuma auki |
 | **Valmius** | 0 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (C1–C4), §3 |
 
@@ -53,3 +53,7 @@ korvaa sitä, ja siksi se ei ole neuvoteltavissa.
 - Kaupunkivaltioiden väliset suhteet keskenään. Simulaatio, jota kukaan ei näe
 - Valloitettavat kaupunkivaltiot sotilaallisena järjestelmänä
 - Toisten pelaajien liittoutumat → Supabase, myöhemmin
+
+## Siivous 2026-10-13
+
+Tehty muualla: deterministinen sijoitus, kauppa näkyvällä kurssilla ja valtaamattomuus ([BRDC-DIPLO-001](BRDC-DIPLO-001.md)); suhde ja johtajuuden etu ([BRDC-SUZERAIN-001](BRDC-SUZERAIN-001.md)). **Auki:** vain yksi kaupunkivaltio on olemassa (Härmälänranta) — useampi kylä omine erikoisuuksineen (kaivoskylä rautaa…), ja liittoutuma pysyvänä etuna. Kytkeytyy [BRDC-WORLD-001](BRDC-WORLD-001.md):een: kiinteä Härmälän kartta kertoo, missä kylät ovat.

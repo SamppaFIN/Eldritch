@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `data/seed`, `rules/terrain.ts`, `rules/cityState.ts`, `rules/wonder.ts`, editori |
 | **Effort** | L |
-| **Status** | `todo` — **suunniteltava ennen koodia** |
+| **Status** | `todo` — suunta päätetty 2026-10-13, odottaa Infiniten kartta-aineistoa |
 | **Lähde** | Infinite 2026-09-15: *"voisin myös antaa uuden kartan ja suunnitella maaston sen mukaan mitä siellä oikeasti on.. eli esigeneroidaan heksojen tiedot ja resurssit.. haluan myös että saan asetella maailman ihmeet ja resurssit ja kaupunkivaltion kartalle.. haluan, että voin antaa kaupunkivaltiolle myös rakennuksia esim temppelin ja fortifikaatioita."* |
 
 ## 🔴 RED
@@ -35,3 +35,11 @@ Mutta se tarkoittaa myös ettei kukaan **voi** kirjoittaa mitään.
 ## Ei tässä
 
 Koodia ennen kuin 1 ja 3 on vastattu. Ne ratkaisevat mitä rakennetaan.
+
+## Päätös 2026-10-13 (kysely)
+
+Infinite: *"Mä teen claude designilla tavan millä härmälän kartta tehdään fixed positioina.. jos lähtöpiste on yli 5 km lentäjäpatsaasta, arvotaan pelaajalle random maasto."*
+
+- Härmälä kirjoitetaan **kiinteinä paikkoina** Claude Designilla tehtynä aineistona — se voittaa kaiken muun ketjussa (`terrainOf`).
+- **Yli 5 km lentäjäpatsaasta** (Statue of the Boy) aloittava pelaaja saa arvotun maaston, kuten nyt.
+- Toteutus alkaa, kun aineisto ja sen muoto ovat olemassa.

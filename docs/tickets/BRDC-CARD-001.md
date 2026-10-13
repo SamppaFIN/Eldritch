@@ -5,7 +5,7 @@
 | **Alue** | `features/territory/CellPanel.tsx`, `CellHeader.tsx`, `CellOn.tsx`, `CellWorth.tsx`, `useSelection.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `[~]` osittain valmis 2026-09-16 — neljä konkreettista korjausta tehty; visuaalinen uudelleenjärjestely auki |
+| **Status** | `done` — toiminnalliset kohdat 2026-09-16; ulkoasu siirtyi käytettävyyskierrokselle (UX-004…006) |
 | **Riippuvuudet** | `BRDC-SEED-004` (tarina, maamerkki, luottamus) — rakenne voidaan tehdä ennen |
 | **Lähde** | `Eldritch-Sigil.html` §06 *Seven screens* — 03 · HERE · Infinite 2026-09-16: *"nuo kortit ovat toteutettu vain osiltaan.. Ei tarvitse noudattaa 100%, voit käyttää nykytoteutusta pohjana.. mutta rakennetaan kaikki ruudut mallien mukaiseksi"* |
 
@@ -81,3 +81,7 @@ malli vs. oikea kortti):**
 ## Ei tässä
 
 - Tarinan generointi — `BRDC-SEED-003`
+
+## Siivous 2026-10-13
+
+Jäljelle jääneet kohdat olivat visuaalisia uudelleenjärjestelyjä ja kuvakaappausvertailu vanhaan malliin. Ulkoasu on sittemmin tehty uudelleen käytettävyyskierroksella ([BRDC-UX-004](BRDC-UX-004.md) Keepin välilehdet, [BRDC-UX-005](BRDC-UX-005.md) heksakortti, [BRDC-UX-006](BRDC-UX-006.md) Lore) ja Sigil-designin mukaan, joten vertailu vanhaan malliin ei enää mittaa mitään. LORE · THIS CELL odottaa tarinageneraattoria (BRDC-SEED-004) — se on sen tiketin osa, ei tämän.

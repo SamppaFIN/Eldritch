@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CITY-001, BRDC-TERRAIN-003, BRDC-BUILD-005 |
-| **Status** | `todo` |
+| **Status** | `superseded` — BRDC-DIPLO-001 + BRDC-SUZERAIN-001 |
 | **Valmius** | 0 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
@@ -42,3 +42,7 @@ käydä kauppaa.**
 - Muut kaupunkivaltiot, koko Suomi, liittoutumat, sota (`BRDC-CITY-001`, `BRDC-ATLAS-001`).
 - Vartijat taistelevina yksikköinä. Ne ovat tässä kuvausta; joukot ovat `BRDC-RAID-001`.
 - Kylän vartiotornit pelaajan rakennuksina — `BRDC-BUILD-006`.
+
+## Siivous 2026-10-13
+
+Kaikki kohdat tehty muualla: kylä, laituri, kauppa ja valtaamattomuus [BRDC-DIPLO-001](BRDC-DIPLO-001.md):ssä (v0.5.67), suhde lähettiläinä [BRDC-SUZERAIN-001](BRDC-SUZERAIN-001.md):ssä (Season 3).

@@ -5,7 +5,7 @@
 | **Alue** | `rules/capture.ts`, `types/domain.ts` (`Cell`), `data/walkWriter.ts`, jaettujen solujen käsittely |
 | **Vaihe** | 3 → **todennäköisesti 5** (ks. "Miksi tämä ei ole pieni") |
 | **Effort** | L |
-| **Status** | `todo` — **suunnittelupäätös Infiniteltä tarvitaan ennen koodia** |
+| **Status** | `superseded` — BRDC-CLAIM-017 (2026-10-13) |
 | **Lähde** | Infinite 2026-09-15: *"haluan, että kerran päivässä jokainen maa ja niiden omistus lasketaan sen mukaan, kuka on käynyt siellä useiten. Nyt tuolla on paljon jaettuja heksoja."* |
 
 ## 🔴 RED — mikä ongelma tässä oikeasti on
@@ -97,3 +97,7 @@ käyntilaskuria ja arbitraatiota rakennetaan.
 
 - Mitään koodia ennen vastauksia. Tämä on sääntömuutos pelin ytimeen, ja §5:n työnkulku
   on tätä varten: tiketti ensin, päätös, sitten toteutus
+
+## Päätös 2026-10-13 (kysely)
+
+Suljettu: BRDC-CLAIM-017 antaa heksan sille, joka astuu siihen viimeksi — maa menee jo sille, joka siellä oikeasti käy. Jaetut heksat syntyivät Wagerista, joka puretaan (BRDC-WAGER-008).

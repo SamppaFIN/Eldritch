@@ -5,7 +5,7 @@
 | **Alue** | `features/territory/CellHeader.tsx`, `CellWorth.tsx`, `rules/pouch.ts` (lukija, ei muutosta) |
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M |
-| **Status** | `todo` — Infiniten pyyntö kirjattu, ei suunniteltu loppuun |
+| **Status** | `superseded` — BRDC-YIELD-001 |
 | **Riippuvuudet** | `BRDC-DETAIL-001` (joka rajasi tämän ulos: *"Uudet tiedot detail-ruutuihin. Jos jokin puuttuu, se on oma tikettinsä"*) |
 | **Lähde** | Infinite 2026-09-15: *"heksan details korttiin, jos maalla on bonusresursseja tai rakennuksia, niin ne esitellään kanssa headerissa.. esim shoreline (+2 food, fish +3 food) × fishing hut = tms.. mutta että laskenta näkyy selkeästi ja miksi."* |
 
@@ -63,3 +63,7 @@ Infiniten oma muotoilu on tavoite sellaisenaan:
 
 - Sääntömuutokset tuottoon. Tämä tiketti **näyttää** mitä `pouch.ts` jo laskee
 - Rakennussuositukset ("kannattaisi rakentaa Fishery") — eri asia, ja isompi
+
+## Siivous 2026-10-13
+
+Tehty [BRDC-YIELD-001](BRDC-YIELD-001.md):ssä (v0.9.0): `computeHexYield` erittelee tuoton lähteittäin, heksakortin *Why this much?* näyttää erittelyn, ja summa täsmää pussin kanssa (`yield.golden.test.ts`).

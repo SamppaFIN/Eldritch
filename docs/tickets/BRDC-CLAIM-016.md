@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `rules/capture.ts`, `rules/growth.ts`, `rules/constants.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
-| **Status** | `mitattu` (v0.6.19) — ajo tehty, säätöpäätös Infinitellä |
+| **Status** | `done` — mitattu v0.6.19, päätös 2026-10-13: luvut pysyvät |
 | **Lähde** | Infinite 2026-09-15: *"todo listalle myös pelin valloitusmekaniikkojen hienosäätäminen"* |
 
 ## 🔴 RED
@@ -74,3 +74,7 @@ heti kun joku koskee vakioon, ja kertoo mitä se liikutti.
 - Yksittäisten vakioiden muuttaminen ilman ajoa. Ne ovat tasapainossa keskenään:
   `NEIGHBOUR_BONUS`in nosto muuttaa myös puolustusta, koska sama luku on molemmilla
   puolilla
+
+## Päätös 2026-10-13 (kysely)
+
+`ANCHOR_BONUS` pysyy 200:ssa: Hearth ja ankkuri ovat tarkoituksella lähes murtumattomia. Muita lukuja ei säädetä.
