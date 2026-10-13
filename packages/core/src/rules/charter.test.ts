@@ -5,8 +5,12 @@ import { HEARTH_RING } from './constants.js';
 import { BUILDINGS } from './build.js';
 import { LORE, loreCost } from './lore.js';
 
-const fresh: CharterState = { owned: HEARTH_RING, revealed: 0, lore: [], works: {}, hands: 0, perHour: { food: 10 } };
-const veteran: CharterState = { owned: 40, revealed: 5, lore: ['lookouts'], works: { watchtower: 1 }, hands: 2, perHour: { food: 12, stone: 8 } };
+const nothing = { keepLevel: 1, standard: false, temples: 0, rites: false, investigator: false, tasks: 0, rumours: 0, gatesSealed: 0, ambition: false, adventure: false, routes: 0, clues: 0 };
+const fresh: CharterState = { owned: HEARTH_RING, revealed: 0, lore: [], works: {}, hands: 0, perHour: { food: 10 }, ...nothing };
+const veteran: CharterState = {
+  owned: 40, revealed: 5, lore: ['lookouts'], works: { watchtower: 1 }, hands: 2, perHour: { food: 12, stone: 8 },
+  keepLevel: 2, standard: true, temples: 1, rites: true, investigator: true, tasks: 1, rumours: 2, gatesSealed: 1, ambition: true, adventure: true, routes: 1, clues: 3,
+};
 
 describe('the Keeper\'s Charter (BRDC-ONBOARD-001/002)', () => {
   it('opens a fresh realm on its first step, not yet done', () => {
@@ -49,6 +53,21 @@ describe('the Keeper\'s Charter (BRDC-ONBOARD-001/002)', () => {
     expect(groundFor('food')).toBe('lake or coast or marsh');
     expect(charterView({ ...fresh, perHour: { food: 7, stone: 3.9 } }, before)).toMatchObject({ have: 3, ready: false });
     expect(charterView({ ...fresh, perHour: { food: 7, stone: 6 } }, before)?.ready).toBe(true);
+  });
+
+  it('chapters III–V are each done by the record the realm keeps (BRDC-ONBOARD-006)', () => {
+    const at = (id: string, s: CharterState) => charterView(s, CHARTER_STEPS.slice(0, CHARTER_STEPS.findIndex((x) => x.id === id)).map((x) => x.id));
+    const done: [string, Partial<CharterState>][] = [
+      ['keep-2', { keepLevel: 2 }], ['standard', { standard: true }], ['temple', { temples: 1 }], ['rite', { rites: true }],
+      ['investigator', { investigator: true }], ['task', { tasks: 1 }], ['rumour', { rumours: 1 }], ['gate', { gatesSealed: 1 }],
+      ['ambition', { ambition: true }], ['adventure', { adventure: true }], ['route', { routes: 1 }], ['mysteries', { clues: 1 }],
+    ];
+    for (const [id, patch] of done) {
+      expect(at(id, fresh), id).toMatchObject({ step: { id }, ready: false });
+      expect(at(id, { ...fresh, ...patch })?.ready, id).toBe(true);
+    }
+    expect(at('gate', fresh)?.chapterName).toBe('The Town');
+    expect(at('route', fresh)).toMatchObject({ chapterName: 'The Season', at: 3, of: 4 });
   });
 
   it('is finished once every step is claimed', () => {

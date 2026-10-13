@@ -30,6 +30,20 @@ export interface CharterState {
   hands: number;
   /** What the realm earns an hour, as the pouch will pay it (`forecastRates`). */
   perHour: Readonly<Partial<ResourcePool>>;
+  /** Chapters III–V (BRDC-ONBOARD-006): counts of what the realm has done, read from the store. */
+  keepLevel: number;
+  standard: boolean;
+  temples: number;
+  /** A temple school chosen, a Rite school dedicated, or a Rite learned. */
+  rites: boolean;
+  investigator: boolean;
+  tasks: number;
+  rumours: number;
+  gatesSealed: number;
+  ambition: boolean;
+  adventure: boolean;
+  routes: number;
+  clues: number;
 }
 
 /**
@@ -50,6 +64,8 @@ export interface CharterStep {
   show?: CharterShow;
   /** Words that depend on the realm — the missing-resource step names its resource. */
   say?(s: CharterState): Pick<CharterStep, 'title' | 'why' | 'short'>;
+  /** Reads `perHour` — the store works out the forecast only for such a step, it is dear. */
+  rates?: true;
   /** Paid once, when the step is claimed: what the next goal needs. */
   reward: Readonly<Partial<ResourcePool>>;
   progress(s: CharterState): { have: number; need: number };
@@ -58,7 +74,13 @@ export interface CharterStep {
 export const CHAPTER_NAMES: Readonly<Record<number, string>> = {
   1: 'The Ground',
   2: 'The Works',
+  3: 'The Realm',
+  4: 'The Town',
+  5: 'The Season',
 };
+
+/** The chapter that renews every season; the others are taught once per realm. */
+export const SEASON_CHAPTER = 5;
 
 /** Held hexes that make a realm worth building on — `steps.ts`'s goal, a little further. */
 export const CHARTER_REALM = 12;
@@ -154,8 +176,120 @@ export const CHARTER_STEPS: readonly CharterStep[] = [
       };
     },
     show: 'supply-site',
+    rates: true,
     reward: { food: 50, stone: 25 },
     progress: (s) => count(Math.floor(s.perHour[scarcest(s)] ?? 0), CHARTER_RATE),
+  },
+  // Chapter III — the realm (BRDC-ONBOARD-006). Rewards lead to the first Rite's mana.
+  {
+    id: 'keep-2',
+    chapter: 3,
+    title: 'Raise the Keep to level 2.',
+    why: 'A higher Keep houses more citizens and pushes your border out a ring.',
+    short: 'Raise the Keep',
+    reward: { mana: 20 },
+    progress: (s) => count(s.keepLevel >= 2 ? 1 : 0, 1),
+  },
+  {
+    id: 'standard',
+    chapter: 3,
+    title: 'Plant your standard on your own ground.',
+    why: 'Your banner marks the realm, and its hex holds stronger.',
+    short: 'Plant your standard',
+    reward: { mana: 20 },
+    progress: (s) => count(s.standard ? 1 : 0, 1),
+  },
+  {
+    id: 'temple',
+    chapter: 3,
+    title: 'Stand still on one hex until a Temple reveals itself.',
+    why: 'Temples make mana, and mana is what Rites are cast with.',
+    short: 'Find a Temple',
+    reward: { mana: 20 },
+    progress: (s) => count(s.temples, 1),
+  },
+  {
+    id: 'rite',
+    chapter: 3,
+    title: 'Choose a Temple school, or learn a Rite.',
+    why: 'A school decides which Rites your mana buys.',
+    short: 'Learn a Rite',
+    reward: { gold: 30 },
+    progress: (s) => count(s.rites ? 1 : 0, 1),
+  },
+  // Chapter IV — the town.
+  {
+    id: 'investigator',
+    chapter: 4,
+    title: 'Choose your investigator in the Keep.',
+    why: 'Your investigator walks rumours and gates for you, with their own skills.',
+    short: 'Choose an investigator',
+    reward: { gold: 30 },
+    progress: (s) => count(s.investigator ? 1 : 0, 1),
+  },
+  {
+    id: 'task',
+    chapter: 4,
+    title: 'Take a task from the Tavern board.',
+    why: 'Tasks pay well for walks you would take anyway.',
+    short: 'Take a Tavern task',
+    reward: { food: 30 },
+    progress: (s) => count(s.tasks, 1),
+  },
+  {
+    id: 'rumour',
+    chapter: 4,
+    title: 'Follow a rumour to its hex.',
+    why: 'Rumours test your investigator, and pay in clues.',
+    short: 'Follow a rumour',
+    reward: { wisdom: 30 },
+    progress: (s) => count(s.rumours, 1),
+  },
+  {
+    id: 'gate',
+    chapter: 4,
+    title: 'Seal an open gate.',
+    why: 'Every open gate raises the Doom. Sealing one is the only way down.',
+    short: 'Seal a gate',
+    reward: { culture: 20 },
+    progress: (s) => count(s.gatesSealed, 1),
+  },
+  // Chapter V — the season. Renews every season (`SEASON_CHAPTER`).
+  {
+    id: 'ambition',
+    chapter: 5,
+    title: "Choose the season's ambition in the Keep.",
+    why: 'Meeting it multiplies the Legacy you leave when the season ends.',
+    short: 'Choose an ambition',
+    reward: { wisdom: 30 },
+    progress: (s) => count(s.ambition ? 1 : 0, 1),
+  },
+  {
+    id: 'adventure',
+    chapter: 5,
+    title: 'Begin the Fuming Lake.',
+    why: "The town's own tale, walked one hex at a time.",
+    short: 'Begin the Fuming Lake',
+    reward: { gold: 40 },
+    progress: (s) => count(s.adventure ? 1 : 0, 1),
+  },
+  {
+    id: 'route',
+    chapter: 5,
+    title: 'Walk a trade route between two Markets, or to a village.',
+    why: 'A walked route pays gold for as long as you hold both ends.',
+    short: 'Walk a trade route',
+    reward: { culture: 30 },
+    progress: (s) => count(s.routes, 1),
+  },
+  {
+    id: 'mysteries',
+    chapter: 5,
+    title: "Gather a clue for the town's mysteries.",
+    why: 'Everyone solves them together, and each one weakens what wakes.',
+    short: 'Gather a clue',
+    reward: { mana: 30 },
+    progress: (s) => count(s.clues, 1),
   },
 ];
 

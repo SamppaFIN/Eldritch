@@ -6,11 +6,12 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
 import { charterApi } from './charterStore.js';
+import { CHARTER_STEPS, SEASON_CHAPTER } from '../rules/charter.js';
 import { resetForSeason } from './seasonReset.js';
 import { EMPTY_POOL, TERRAIN_TABLE, terrainForCell } from '../rules/terrain.js';
 import { HEARTH_RING } from '../rules/constants.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
-import type { Cell } from '../types/domain.js';
+import type { Cell, RevealedPlace } from '../types/domain.js';
 
 const T0 = Date.parse('2026-10-13T09:00:00Z');
 const HOME = { lat: 61.4729, lng: 23.7258 };
@@ -31,7 +32,7 @@ describe('the Charter in the store', () => {
     expect(ring).toHaveLength(HEARTH_RING);
     let cells: readonly Cell[] = ring;
     const store = await realm(cells);
-    const api = charterApi(() => store, async () => cells);
+    const api = charterApi(() => store, async () => cells, async () => []);
 
     expect(await api.view(T0)).toMatchObject({ step: { id: 'first-step' }, ready: false });
     expect(await api.claim('first-step', T0)).toEqual({ ok: false, refused: 'not-done' });
@@ -48,7 +49,7 @@ describe('the Charter in the store', () => {
   it('a veteran realm ticks off what it already did, unpaid', async () => {
     const cells = [...ring, ...more];
     const store = await realm(cells);
-    const api = charterApi(() => store, async () => cells);
+    const api = charterApi(() => store, async () => cells, async () => []);
     // Past the Hearth and past twelve, nothing revealed: the reveal is the step it starts on.
     expect((await api.view(T0))?.step.id).toBe('reveal');
     expect((await pouch(store))?.wisdom).toBe(0);
@@ -59,7 +60,7 @@ describe('the Charter in the store', () => {
     const store = await realm(cells);
     await store.set(K.revealed, { [ring[0]!.h3]: T0 });
     await store.set(K.charter, { claimed: ['first-step', 'realm'] });
-    const v = await charterApi(() => store, async () => cells).view(T0);
+    const v = await charterApi(() => store, async () => cells, async () => []).view(T0);
     expect(v?.step.id).toBe('reveal');
     expect(v?.ready).toBe(true);
     expect(v?.hex).not.toBe(ring[0]!.h3);
@@ -69,11 +70,42 @@ describe('the Charter in the store', () => {
     const cells = [...ring, ...more];
     const store = await realm(cells);
     await store.set(K.charter, { claimed: ['first-step', 'realm', 'reveal', 'lookouts', 'watchtower', 'hands'] });
-    const v = await charterApi(() => store, async () => cells).view(T0);
+    const v = await charterApi(() => store, async () => cells, async () => []).view(T0);
     expect(v?.step.id).toBe('supply');
     const k = v?.title.match(/^Raise (\w+) to/)?.[1];
     expect(['food', 'stone']).toContain(k);
     if (v?.hex) expect(TERRAIN_TABLE[terrainForCell(cells.find((c) => c.h3 === v.hex) as Cell).kind].resource).toBe(k);
+  });
+
+  it("chapter III reads the realm's own records: the Keep's level, the standard, a temple (BRDC-ONBOARD-006)", async () => {
+    const cells = [...ring, ...more];
+    const store = await realm(cells);
+    const upTo = (id: string) => CHARTER_STEPS.slice(0, CHARTER_STEPS.findIndex((x) => x.id === id)).map((x) => x.id);
+    await store.set(K.charter, { claimed: upTo('keep-2') });
+    await store.set(K.charterSeason, { claimed: [] });
+    const api = charterApi(() => store, async () => cells, async () => [{ h3: ring[1]!.h3, kind: 'temple' } as RevealedPlace]);
+    expect(await api.view(T0)).toMatchObject({ step: { id: 'keep-2' }, ready: false });
+    await store.set('resources', { pool: { ...EMPTY_POOL }, since: T0, sinceDay: T0, keep: { level: 2, granary: { citizens: 1, box: 0, starvedH: 0 } } });
+    expect(await api.view(T0)).toMatchObject({ step: { id: 'keep-2' }, ready: true });
+    await store.set(K.charter, { claimed: upTo('temple') });
+    expect(await api.view(T0)).toMatchObject({ step: { id: 'temple' }, ready: true });
+  });
+
+  it("chapter V is the season's: its claims go under their own key, and a new season asks again", async () => {
+    const cells = [...ring, ...more];
+    const store = await realm(cells);
+    const api = charterApi(() => store, async () => cells, async () => []);
+    const before = CHARTER_STEPS.filter((x) => x.chapter < SEASON_CHAPTER).map((x) => x.id);
+    await store.set(K.charter, { claimed: before });
+    await store.set(K.charterSeason, { claimed: [] });
+    await store.set(K.ambition, { id: 'lord-of-the-ground', at: T0 });
+    expect(await api.claim('ambition', T0)).toMatchObject({ ok: true });
+    expect(await store.get(K.charterSeason)).toEqual({ claimed: ['ambition'] });
+    expect(await store.get(K.charter)).toEqual({ claimed: before });
+
+    await resetForSeason(store);
+    expect(await store.get(K.charterSeason)).toBeUndefined();
+    expect(await store.get(K.charter)).toEqual({ claimed: before });
   });
 
   it('outlives the season: the Charter is taught once per realm', async () => {

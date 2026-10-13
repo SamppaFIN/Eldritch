@@ -5,7 +5,7 @@
  * The Keeper's Charter's current step always leads (BRDC-ONBOARD-001): it is the one thing
  * the game asks of you, so it is not ranked against the clocks.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { hoursToAfford, rankUpNext } from '@es3/core';
 import type { Cell, GameRepository, UpNextItem } from '@es3/core';
 
@@ -29,9 +29,14 @@ export function useUpNext(
 ): UpNextRow[] {
   // Which target a row goes to, not the function: the targets change as the realm boots.
   const [rows, setRows] = useState<{ item: UpNextItem; to: keyof UpNextTargets | undefined }[]>([]);
+  // Newest read *finished* wins, not newest read *started*: `owned` changes faster than a
+  // read lands while the realm boots, and dropping every read that a newer one overtook
+  // left the strip empty for good (BRDC-ONBOARD-006, found by up-next.spec).
+  const asked = useRef(0);
+  const shown = useRef(0);
   useEffect(() => {
     if (!repository) return;
-    let live = true;
+    const n = ++asked.current;
     void (async () => {
       const t = now();
       const [lore, forecast, keep, tasks, ambition, charter] = await Promise.all([
@@ -71,11 +76,10 @@ export function useUpNext(
         : charter.ready ? [{ id: 'charter', label: `${charter.short} — claim` }]
         : [{ id: 'charter', label: charter.short, ...(charter.need > 1 ? { have: charter.have, need: charter.need } : {}) }];
       target.charter = 'keep';
-      if (live) setRows([...first, ...rankUpNext(items, 3 - first.length)].map((item) => ({ item, to: target[item.id] })));
+      if (n < shown.current) return;
+      shown.current = n;
+      setRows([...first, ...rankUpNext(items, 3 - first.length)].map((item) => ({ item, to: target[item.id] })));
     })();
-    return () => {
-      live = false;
-    };
   }, [repository, now, owned]);
   return rows.map((r) => ({ item: r.item, open: r.to ? to[r.to] : undefined }));
 }

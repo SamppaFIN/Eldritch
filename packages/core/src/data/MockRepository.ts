@@ -67,6 +67,6 @@ export class MockRepository extends MockRepositoryBase implements GameRepository
   readonly otherWorld: OtherWorldApi = otherWorldApi(() => this.store, () => this.gates);
   readonly monsters: MonsterApi = monsterApi(() => this.store, (t) => this.getOwnedCells(t));
   readonly great: GreatApi = greatApi(() => this.store, (t) => this.getOwnedCells(t), () => this.gates);
-  readonly charter: CharterApi = charterApi(() => this.store, (t) => this.getOwnedCells(t));
+  readonly charter: CharterApi = charterApi(() => this.store, (t) => this.getOwnedCells(t), () => this.getPlaces());
   readonly week: WeekApi = weekApi(() => this.store, (t) => this.getOwnedCells(t), (t) => this.legacy.tally(t));
 }

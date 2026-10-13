@@ -143,4 +143,7 @@ export const K = {
   /** The Keeper's Charter's claimed steps, `{ claimed: string[] }` — forever: taught once per
    *  realm (BRDC-ONBOARD-001). */
   charter: 'charter',
+  /** The Charter's season chapter (V), claimed this season, `{ claimed: string[] }` — not
+   *  forever: it renews with every season (BRDC-ONBOARD-006). */
+  charterSeason: 'charter-season',
 } as const;

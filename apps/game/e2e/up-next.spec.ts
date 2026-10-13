@@ -46,7 +46,8 @@ test('the sheet names what finishes next, and a tap goes there', async ({ page }
   }
   const strip = page.getByLabel('Up next');
   await expect(strip).toBeVisible({ timeout: 20_000 });
-  await expect(strip).toContainText(/\d+ (min|h|d)|now/);
+  // The rows are read after boot, and a booting realm is slow here (software GL, IndexedDB).
+  await expect(strip).toContainText(/\d+ (min|h|d)|now/, { timeout: 20_000 });
   // A tap goes there: the next citizen is the Keep's business.
   // Two in view, the rest behind "+N" (BRDC-UX-008).
   const rest = strip.getByRole('button', { name: /^\+\d+$/ });
