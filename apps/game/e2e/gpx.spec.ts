@@ -26,7 +26,10 @@ function track(points = 8): string {
 async function openImport(page: import('@playwright/test').Page) {
   await open(page, HERE);
   await page.getByRole('button', { name: 'Menu' }).click();
-  await page.getByRole('button', { name: 'Import a walk' }).click();
+  // Behind Advanced, and named exactly: "Advanced · history · import a walk" is a button
+  // too, and a loose match clicked that and never reached the import (BRDC-GPX-004).
+  await page.getByRole('button', { name: /^Advanced/ }).click();
+  await page.getByRole('button', { name: 'Import a walk', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Import a walk' });
   await expect(panel).toBeVisible({ timeout: 15_000 });
   return panel;

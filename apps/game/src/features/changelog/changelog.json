@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.10.1",
+    "date": "2026-10-13",
+    "notes": [
+      "A lesson card no longer opens over another window or a celebration. It waits, and comes once you have stopped walking for half a minute.",
+      "Lessons now reach you when you stand still after a walk. Before, the game kept thinking you were still walking.",
+      "Each number in the pouch now says which resource it is to a screen reader, not only by its colour.",
+      "A long walk no longer drops ground when the phone is slow to save, which had made claims stop partway."
+    ]
+  },
+  {
     "version": "0.10.0",
     "date": "2026-10-11",
     "notes": [

@@ -33,11 +33,13 @@ test('the backdrop does not eat taps meant for the map', async ({ page }) => {
   // it must still be reachable — this is the regression `opening.spec` and `guide.spec`
   // caught, where the backdrop swallowed a Build click across the whole viewport.
   //
-  // The proof is that the menu opened, not that the lesson closed: the lesson has no
-  // reason to close for a popover, and asserting that instead would be testing a
-  // behaviour nothing promises.
+  // The proof is that the menu opened. The lesson steps aside while it is open — never
+  // two dialogs at once (BRDC-TUTOR-004) — and comes back when it closes.
   await page.getByRole('button', { name: 'Menu' }).click();
-  await expect(page.getByRole('button', { name: 'Retreat from the map' })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible();
+  await expect(page.locator('.unlock__card')).toHaveCount(0);
+  await page.keyboard.press('Escape'); // the open menu covers its own button
+  await expect(page.locator('.unlock__card')).toBeVisible({ timeout: 15_000 });
 });
 
 test('reading a lesson dismisses it and it does not come back', async ({ page }) => {
@@ -45,6 +47,11 @@ test('reading a lesson dismisses it and it does not come back', async ({ page })
 
   const card = page.locator('.unlock__card');
   await expect(card).toBeVisible({ timeout: 15_000 });
+  // The wisdom chip, by its resource — the founding stash carries 30 now, so the proof
+  // is the step of ten, not the chip appearing.
+  const wisdom = page.locator('.hud__chip[data-resource="wisdom"]');
+  const amount = async () => Number((await wisdom.innerText().catch(() => '0')).replace(/\D/g, '')) || 0;
+  const before = await amount();
   await card.getByRole('button', { name: /Understood/ }).click();
 
   // The contract is that a lesson once read is never taught again — not that the screen
@@ -64,8 +71,7 @@ test('reading a lesson dismisses it and it does not come back', async ({ page })
    * the wisdom pip appearing in the pouch *is* the write, and it doubles as the only
    * end-to-end proof that reading a lesson pays for it.
    */
-  const wisdom = page.locator('.hud__res[title="wisdom"]');
-  await expect(wisdom).toContainText('10', { timeout: 15_000 });
+  await expect.poll(amount, { timeout: 15_000 }).toBeGreaterThanOrEqual(before + 10);
 
   await page.reload();
   await page.waitForTimeout(4_000);
@@ -93,8 +99,23 @@ test('answering a lesson clears the screen, even with more of them waiting', asy
     await page.waitForTimeout(7_000);
   }
 
+  // The walk took ground: its "New ground" cards and the "First Ground" moment are what the
+  // lesson waits behind (BRDC-TUTOR-004) — put them away first, as a player sitting down would.
+  const finds = page.getByRole('dialog', { name: 'New ground' });
+  const moment = page.locator('.moment-fx__panel');
+  // The finds first: a native <dialog> is on the top layer, over the moment.
+  for (let i = 0; i < 15; i += 1) {
+    if (await finds.isVisible().catch(() => false)) {
+      const all = finds.getByRole('button', { name: /^Close all/ });
+      const button = (await all.isVisible().catch(() => false)) ? all : finds.getByRole('button', { name: /^(Later|Next)$/ });
+      await button.click({ timeout: 3_000 }).catch(() => undefined);
+    } else if (await moment.isVisible().catch(() => false)) await moment.click({ timeout: 3_000 }).catch(() => undefined);
+    else break;
+    await page.waitForTimeout(300);
+  }
+  // A lesson waits for the walker to stop: half a minute without a new fix (BRDC-TUTOR-004).
   const card = page.locator('.unlock__card');
-  await expect(card).toBeVisible({ timeout: 20_000 });
+  await expect(card).toBeVisible({ timeout: 50_000 });
   await card.getByRole('button', { name: /Understood/ }).click();
 
   // The screen is clear, and stays clear — not replaced a second later by the next one.

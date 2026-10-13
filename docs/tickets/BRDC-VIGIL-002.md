@@ -24,6 +24,11 @@ pitkälle', APK on kiireellisempi kuin mikään 4X-sisältö."*
 
 Tätä ei ratkaista arvaamalla. Se mitataan.
 
+> **Järjestys (2026-10-13):** mittaus ensin — kolme kävelyä ulkona. Aukon paikkausta ei
+> koodata ennen sitä: jos vastaus on APK (`foreground service`), paikkaus on turha, ja se
+> koskee anti-cheatin rajaa (§15). Paikatut pisteet eivät saisi valtaamaan eivätkä
+> sulkemaan lenkkiä, joten ne korjaisivat vain viivan jatkuvuuden kartalla.
+
 ## 🟢 GREEN
 
 - [ ] **Mitattu vastaus, ei mielipide.** Kävele sama reitti kolmesti: (a) näyttö auki,

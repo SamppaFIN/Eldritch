@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `e2e/gpx.spec.ts`, `features/gpx/GpxPanel.tsx`, `useGpxImport.ts` |
 | **Vaihe** | 3 — Sivilisaatio |
-| **Status** | `todo` — mitattu, ei diagnosoitu |
+| **Status** | `done` — 2026-10-13 |
 | **Lähde** | Löytyi `BRDC-GPX-003`:a todentaessa, 2026-09-15 |
 
 ## 🔴 RED
@@ -41,3 +41,12 @@ Infinite pyysi. Kaksi mahdollista totuutta, molemmat tärkeitä tietää:
   vai vain tiukka?
 - Häiritseekö `BRDC-TUTOR-004`in "unlock"-dialogi tässäkin, kuten se häiritsee kolmea
   muuta speksiä?
+
+## 🟢 GREEN (2026-10-13)
+
+- [x] Diagnosoitu: **speksi, ei tuonti.** `getByRole('button', { name: 'Import a walk' })` osuu
+      Playwrightin oletuksella osittain ja kirjainkoosta välittämättä myös riviin
+      *"Advanced · history · import a walk"* — klikkaus avasi Advanced-sivun eikä koskaan tuontia.
+      Tuonti siirtyi Advancedin taakse aiemmin, speksiä ei päivitetty
+- [x] Speksi menee Advancedin kautta ja nimeää napin tarkasti; gpx.spec 6/6 vihreänä 360 px:llä
+- [x] Tuonti itse toimii puhelinkoossa — sama speksi kävelee tiedoston läpi ja raportoi

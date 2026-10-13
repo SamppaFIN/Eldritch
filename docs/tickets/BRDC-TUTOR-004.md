@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Alue** | `features/tutor/UnlockMoment.tsx`, and whatever dialog it can land on top of |
-| **Status** | `todo` — raportoitu kolmesti, **diagnosoitu 2026-09-15**, ei korjattu |
+| **Status** | `done` — 2026-10-13 |
 | **Lähde** | Huomattu sivutuotteena `BRDC-DETAIL-001`/`-KEEP-008`/`-TECH-003`in e2e-todennuksissa |
 
 ## 🔴 RED
@@ -57,3 +57,18 @@ opastusta taittamatta paneelia ensin — eikä mikään kerro että niin pitäis
 2. **Pysyy HUD-tasolla, mutta paneelin yläpuolella:** sijoitus `--hud-height`in yläpuolelle
    ja taustakerrokselle `pointer-events: none`, jolloin vain dialogi itse ottaa kosketuksen.
    Säilyttää nykyisen tarkoituksen (*"Centred in the map, not in the window"*)
+
+## 🟢 GREEN (2026-10-13)
+
+- [x] Opastuskortti ei avaudu toisen dialogin päälle: `useOtherDialogOpen` lukee sivulta avoimen
+      `<dialog>`in tai `role="dialog"`n (paitsi itsensä) ja juhlahetken (`MomentFx`) — luettelo
+      `busy`ssä oli jäänyt jälkeen (Research, asetukset, vahvistukset puuttuivat)
+- [x] Löytyi samalla: **opastus ei koskaan tullut pysähtyneelle kävelijälle.** "Hiljaa" luettiin
+      kahden viimeisen jälkipisteen nopeudesta, ja seisominen ei tuota uusia pisteitä (alle 5 m
+      yhdistyy) — nopeus jäätyi viimeiseen kävelyvauhtiin. Nyt 30 s ilman uutta pistettä on seisomista
+- [x] Löytyi samalla: HUDin pussin sirut kertoivat resurssin **vain värillä** (§14). Nyt jokaisella
+      näkymätön nimi ja `data-resource`
+- [x] dialogs.spec 6/6, tutor.spec 6/6, temple.spec vihreä (360 px). Speksit kirjaavat uuden
+      käytöksen: odottanut opastus saa avautua kun vahvistus sulkeutuu; valikko piilottaa opastuksen
+      ja se palaa; löydöt ja juhlahetki laitetaan pois ennen opastusta
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines`

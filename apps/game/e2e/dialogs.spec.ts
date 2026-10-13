@@ -55,7 +55,9 @@ test('keeping walking leaves everything alone', async ({ page }) => {
   await openMenuAction(page, 'Retreat from the map');
   await page.getByRole('dialog').getByRole('button', { name: 'Keep walking' }).click();
 
-  await expect(page.getByRole('dialog')).not.toBeVisible();
+  // The confirmation is gone. A lesson card that waited for it may open now — that is
+  // the lesson's turn, not a second dialog (BRDC-TUTOR-004).
+  await expect(page.locator('dialog[open]')).toHaveCount(0);
   await expect(page.locator('.es-player__core')).toBeVisible();
 });
 
@@ -73,7 +75,7 @@ test('ESC closes the dialog', async ({ page }) => {
   await expect(page.getByRole('dialog')).toBeVisible();
 
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.locator('dialog[open]')).toHaveCount(0); // a lesson that waited may open now (BRDC-TUTOR-004)
   await expect(page.locator('.es-player__core')).toBeVisible();
 });
 
@@ -116,7 +118,7 @@ test('resetting asks, and says exactly what it will do', async ({ page }) => {
   await expect(dialog).toContainText(/cannot be undone/i);
 
   await page.getByRole('button', { name: 'Keep my sanctuary' }).click();
-  await expect(dialog).not.toBeVisible();
+  await expect(page.locator('dialog[open]')).toHaveCount(0); // a lesson that waited may open now (BRDC-TUTOR-004)
 });
 
 test('resetting actually empties the sanctuary', async ({ page }) => {

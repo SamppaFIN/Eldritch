@@ -16,7 +16,7 @@ import type { GeoStatus, PositionSource } from '../trail/usePositionSource.js';
 // The same law the Codex reads its figures from (BRDC-KEEP-008) — this used to keep its
 // own copy, at a different precision than the Keep's own area line said for the same land.
 import { formatArea, formatDistance } from '../codex/figures.js';
-import { RESOURCE_COLOUR } from '../territory/territoryFeatures.js';
+import { RESOURCE_COLOUR, RESOURCE_WORD } from '../territory/territoryFeatures.js';
 import type { ClaimEvent } from '../territory/useTerritory.js';
 import type { KeepAliveState } from '../trail/useKeepAlive.js';
 import { vigilLine } from './Vigil.js';
@@ -282,13 +282,13 @@ export function Hud({
           </div>
         </div>
 
-        {/* The pouch as chips: a dot in the resource's own colour and the number beside it.
-            The colour law makes this scannable at walking pace (Sigil §01). */}
+        {/* The pouch as chips: a dot in the resource's own colour and the number (Sigil §01);
+            the name rides along unseen — colour alone never carries information (§14). */}
         {resources && RESOURCE_KINDS.some((k) => resources[k] > 0) ? (
           <div className="hud__pouch hud__value--pouch">
             {RESOURCE_KINDS.filter((k) => resources[k] > 0).map((k) => (
-              <span key={k} className="hud__chip" style={{ color: RESOURCE_COLOUR[k] }}>
-                <span className="hud__pip" style={{ background: RESOURCE_COLOUR[k] }} aria-hidden />
+              <span key={k} className="hud__chip" data-resource={k} style={{ color: RESOURCE_COLOUR[k] }}>
+                <span className="hud__pip" style={{ background: RESOURCE_COLOUR[k] }} aria-hidden /><span className="es-visually-hidden">{RESOURCE_WORD[k]} </span>
                 {resources[k]}
               </span>
             ))}

@@ -23,6 +23,10 @@ import { RESOURCE_KINDS, nextUnlock } from '@es3/core';
 import type { GameRepository, Reach, ResourcePool, UnlockId } from '@es3/core';
 import { UnlockMoment } from './UnlockMoment.js';
 import type { WikiRef } from '../help/wikiPages.js';
+import { useOtherDialogOpen } from './useOtherDialogOpen.js';
+
+/** No new fix for this long reads as standing still. */
+const STILL_AFTER_MS = 30_000;
 
 /**
  * Pace at or under which the player counts as standing still, in m/s.
@@ -102,9 +106,20 @@ export function UnlockTeacher({
   // heaviest store call there is, and it queued every other read behind it.
   const pouchKinds = pool ? RESOURCE_KINDS.filter((k) => (pool[k] ?? 0) > 0) : [];
   const id = seen ? nextUnlock({ ...reach, held: pouchKinds }, seen) : null;
-  const quiet = paceMs === null || paceMs <= QUIET_SPEED_MS;
+  // Still means slow — or no new fix for a while. Standing adds no trail points (fixes
+  // closer than 5 m merge), so the pace froze at the last walking speed and a lesson never
+  // came to someone who had stopped after a walk (BRDC-TUTOR-004).
+  const [stood, setStood] = useState(false);
+  useEffect(() => {
+    setStood(false);
+    const wake = setTimeout(() => setStood(true), STILL_AFTER_MS);
+    return () => clearTimeout(wake);
+  }, [paceMs]);
+  const quiet = paceMs === null || paceMs <= QUIET_SPEED_MS || stood;
   const held = holdUntil > Date.now();
-  const showing = id && !waved.has(id) && quiet && !busy && !held ? id : null;
+  // Never a second dialog: it waits while any other is open (BRDC-TUTOR-004).
+  const otherDialog = useOtherDialogOpen();
+  const showing = id && !waved.has(id) && quiet && !busy && !otherDialog && !held ? id : null;
 
   const onRead = useCallback(() => {
     if (!showing) return;

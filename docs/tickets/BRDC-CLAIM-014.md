@@ -5,7 +5,7 @@
 | **Alue** | `apps/game/e2e/step-claim.spec.ts`, askelvaltauksen polku |
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | M |
-| **Status** | `todo` |
+| **Status** | `done` — 2026-10-13 |
 | **Löydetty** | 2026-09-12, BRDC-EVENT-002:n portissa |
 
 ## 🔴 RED
@@ -61,10 +61,10 @@ lähtötaso antoi saman luvun (9).
 
 ## 🟢 GREEN
 
-- [ ] Mitataan kumpi se on: lokita hylätyt pisteet ja niiden syy yhden testiajon ajalta
-- [ ] Jos anti-cheat: **testi korjataan, ei sääntö.** §15 on selvä
-- [ ] Jos valtaus hukkaa: korjataan, ja testi jää sellaisenaan
-- [ ] Kumpi tahansa: testi ei saa jäädä punaiseksi eikä sitä saa poistaa
+- [x] Mitataan kumpi se on: lokita hylätyt pisteet ja niiden syy yhden testiajon ajalta — mitattu BRDC-SIM-003:n reittitoistossa (`ZZFLUSH`-loki erä erältä): ei anti-cheat, vaan **jälki**. `useTrail`in kaksi päällekkäistä flushia lukivat saman radan, viimeinen kirjoitus voitti ja pisteitä katosi, ja myöhemmän erän ensimmäinen heksa ei vielä rajannut aiemman valtauksia — valtausnauha katkesi ja loppui kokonaan, juuri kuten tässä mitattiin
+- [x] Jos anti-cheat: **testi korjataan, ei sääntö.** §15 on selvä — ei ollut anti-cheat
+- [x] Jos valtaus hukkaa: korjataan, ja testi jää sellaisenaan — kirjoitukset jonoon (`useTrail`, commit 3c0b332); testi ennallaan (≥ 4 jalkaa)
+- [x] Kumpi tahansa: testi ei saa jäädä punaiseksi eikä sitä saa poistaa — 3/3 `--repeat-each=3`, ja vihreä v0.10.0:n täydessä ajossa
 
 ## Ei tässä
 
