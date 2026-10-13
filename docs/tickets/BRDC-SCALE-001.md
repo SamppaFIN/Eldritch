@@ -5,8 +5,8 @@
 | **Vaihe** | 2.6 — mobiili ja jaettu maailma |
 | **Effort** | L (2–3 päivää) |
 | **Riippuvuudet** | BRDC-MOCK-001, BRDC-CLAIM-005, BRDC-CLAIM-006, BRDC-PERSIST-002 (kohta 6) |
-| **Status** | `in_progress` — rajattu kysely tehty, `claim.spec.ts` korjattu 2026-09-04; `getOwnedCells`in `owned:`-indeksi jäljellä |
-| **Valmius** | 92 % |
+| **Status** | `done` — 2026-10-13: mitattu, ja `owned:`-indeksi osoittautui tarpeettomaksi (alla) |
+| **Valmius** | 100 % |
 | **Lähde** | Koodiauditointi 2026-08-31, ajettu `BRDC-ATLAS-001`:n taustaksi |
 
 ## 🔴 RED
@@ -223,3 +223,24 @@ jossa oli nolla osumaa. Luku oli totta; se ei vain mitannut sitä, mitä otsikko
   osan työstä sen sijaan että siirtäisi sen toiseen säikeeseen
 - `world.json`:n sharding. Se on `BRDC-SHARE-001`, ja se käyttää samaa `regionOf`ia
 - Kansallinen näkymä → `BRDC-ATLAS-001`. Tämä tiketti on sen edellytys
+
+## Mitattu 2026-10-13 — pullonkaula ei ollut luku
+
+CPU-profiili 5 000 heksan valtakunnan uudelleenlatauksesta (CDP Profiler, lähdekartat):
+`getOwnedCells` vei **4,3 s**, ja siitä lähes kaikki oli rappeuman pyyhkäisyä — ei lukua
+(`cellCache.ts` hoitaa luvun jo). Jokaiselle solulle `fortified` (2,4 s) ja `loyaltyFactor`
+(2,1 s) laskivat naapurinsa h3:n `gridDisk`illä; h3-indeksin muunnos oli yksin 2,1 s.
+
+Korjaus käänsi suunnan: lähteitä (Linnoitukset, Monumentit, paikat) on vähän, joten
+`fortressCover` ja `loyaltyByCell` (`rules/aura.ts`) lasketaan kerran lähteistä ja solu
+katsotaan taulukosta. Testattu samaksi vastaukseksi satunnaisilla valtakunnilla
+(`aura.cover.test.ts`).
+
+| | Ennen | Jälkeen |
+|---|---|---|
+| `getOwnedCells` (kokonaisaika profiilissa) | 4 302 ms | 194 ms |
+| Lataus → Warded näkyy (5 000 heksaa) | 8,1 s | 4,3 s |
+
+`owned:`-indeksiä ei tehty: luku oli jo halpa, ja ~30 kirjoituskohtaa ylläpitämässä indeksiä
+olisi ollut ajautumisen riski ilman mitattua hyötyä. Jäljelle jäävä aika (kartta idleen ~10 s
+ohjelmistografiikalla) on piirtämistä — BRDC-PERF-*:n alaa, ja puhelimen GPU:lla eri luku.

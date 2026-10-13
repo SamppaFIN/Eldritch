@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.10.2",
+    "date": "2026-10-13",
+    "notes": [
+      "A big realm opens about twice as fast: working out which ground fades and which a Fortress or Monument protects no longer goes hex by hex."
+    ]
+  },
+  {
     "version": "0.10.1",
     "date": "2026-10-13",
     "notes": [

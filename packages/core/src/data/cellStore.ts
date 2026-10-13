@@ -14,7 +14,7 @@ import { cellToLatLng } from 'h3-js';
 import { cellsWithin, regionsCoveringBBox } from '../geo/cells.js';
 import { sweepDecay } from '../rules/decay.js';
 import type { DecaySweep } from '../rules/decay.js';
-import { FORTRESS_REACH, fortified, loyaltyFactor, loyaltySourceCells } from '../rules/aura.js';
+import { FORTRESS_REACH, fortified, fortressCover, loyaltyByCell, loyaltySourceCells } from '../rules/aura.js';
 import { readPlaces } from './keepStore.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
@@ -89,7 +89,10 @@ export async function sweepAndPersist(
   routeOwner: PlayerId | null = null,
 ): Promise<DecaySweep> {
   const lookup = new Map<H3Index, Cell>(cells.map((c) => [c.h3, c]));
-  const underFortress = (c: Cell): boolean => fortified(lookup, c.h3);
+  // Each Fortress's ring walked once, not every cell's ring (BRDC-SCALE-001); rebuilt below
+  // when the ring around a release brings in cells the set did not hold.
+  let cover = fortressCover(lookup);
+  const underFortress = (c: Cell): boolean => c.ownerId !== null && (cover.get(c.h3)?.has(c.ownerId) ?? false);
   let sweep = sweepDecay(cells, now, loyalty, home, underFortress, routeOwner);
 
   /*
@@ -109,6 +112,7 @@ export async function sweepAndPersist(
         const cell = found[i];
         if (cell) lookup.set(h3, cell);
       });
+      cover = fortressCover(lookup);
       sweep = sweepDecay(cells, now, loyalty, home, underFortress, routeOwner);
     }
   }
@@ -127,7 +131,9 @@ export async function loyaltyOver(
 ): Promise<(cell: Cell) => number> {
   const places = (await readPlaces(store, () => Promise.resolve(home))).map((p) => p.h3);
   const sources = loyaltySourceCells(cells.filter((c) => c.ownerId === me), places);
-  return (cell) => (cell.ownerId === me ? loyaltyFactor(cell.h3, sources) : 1);
+  // Built from the sources once, not counted per cell (BRDC-SCALE-001).
+  const byCell = loyaltyByCell(sources);
+  return (cell) => (cell.ownerId === me ? (byCell.get(cell.h3) ?? 1) : 1);
 }
 
 /**

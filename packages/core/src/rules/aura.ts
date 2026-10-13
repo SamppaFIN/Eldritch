@@ -152,3 +152,37 @@ export function fortified(known: ReadonlyMap<H3Index, Cell>, h3: H3Index): boole
   }
   return false;
 }
+
+/**
+ * Every hex a Fortress protects, and whose (BRDC-SCALE-001).
+ *
+ * `fortified` answers one hex by walking its ring, and a decay sweep asked it of every
+ * cell: on a 5 000-hex realm that was the ring walk five thousand times, two and a half
+ * seconds of a reload. Fortresses are few, so this walks each Fortress's ring once
+ * instead. Same answer: `fortressCover(known).get(h3)?.has(ownerOf(h3))` is
+ * `fortified(known, h3)`.
+ */
+export function fortressCover(known: ReadonlyMap<H3Index, Cell>): Map<H3Index, Set<PlayerId>> {
+  const cover = new Map<H3Index, Set<PlayerId>>();
+  for (const cell of known.values()) {
+    if (!cell.ownerId || !hasWork(cell, 'fortress')) continue;
+    for (const h3 of cellsWithin(cell.h3, FORTRESS_REACH)) {
+      const owners = cover.get(h3) ?? new Set<PlayerId>();
+      owners.add(cell.ownerId);
+      cover.set(h3, owners);
+    }
+  }
+  return cover;
+}
+
+/**
+ * The decay multiplier of every hex beside a loyalty source, built from the sources
+ * (BRDC-SCALE-001). `loyaltyFactor` counts one hex's neighbours; asked of every cell in a
+ * sweep it was the other two seconds. A hex missing from the map has no source beside it,
+ * so its factor is 1 — exactly `loyaltyFactor`.
+ */
+export function loyaltyByCell(sources: ReadonlySet<H3Index>): Map<H3Index, number> {
+  const count = new Map<H3Index, number>();
+  for (const src of sources) for (const n of neighboursOf(src)) count.set(n, (count.get(n) ?? 0) + 1);
+  return new Map([...count].map(([h3, n]) => [h3, 1 - Math.min(LOYALTY_MAX, n * LOYALTY_PER_SOURCE)]));
+}
