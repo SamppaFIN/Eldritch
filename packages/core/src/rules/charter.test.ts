@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { CHARTER_REALM, CHARTER_STEPS, alreadyDone, charterView } from './charter.js';
+import { CHARTER_RATE, CHARTER_REALM, CHARTER_STEPS, alreadyDone, charterView, groundFor, scarcest } from './charter.js';
 import type { CharterState } from './charter.js';
 import { HEARTH_RING } from './constants.js';
 import { BUILDINGS } from './build.js';
 import { LORE, loreCost } from './lore.js';
 
-const fresh: CharterState = { owned: HEARTH_RING, revealed: 0, lore: [], works: {}, hands: 0 };
-const veteran: CharterState = { owned: 40, revealed: 5, lore: ['lookouts'], works: { watchtower: 1 }, hands: 2 };
+const fresh: CharterState = { owned: HEARTH_RING, revealed: 0, lore: [], works: {}, hands: 0, perHour: { food: 10 } };
+const veteran: CharterState = { owned: 40, revealed: 5, lore: ['lookouts'], works: { watchtower: 1 }, hands: 2, perHour: { food: 12, stone: 8 } };
 
 describe('the Keeper\'s Charter (BRDC-ONBOARD-001/002)', () => {
   it('opens a fresh realm on its first step, not yet done', () => {
@@ -38,6 +38,17 @@ describe('the Keeper\'s Charter (BRDC-ONBOARD-001/002)', () => {
     expect(at('watchtower', { ...fresh, works: { watchtower: 1 } })?.ready).toBe(true);
     expect(at('watchtower', { ...fresh, works: { sawmill: 1 } })?.ready).toBe(false);
     expect(at('hands', { ...fresh, hands: 1 })?.ready).toBe(true);
+  });
+
+  it('names the scarcest of what the Keep costs, and is done when both reach the rate (BRDC-ONBOARD-003)', () => {
+    const before = CHARTER_STEPS.slice(0, CHARTER_STEPS.findIndex((x) => x.id === 'supply')).map((x) => x.id);
+    const v = charterView(fresh, before);
+    expect(v).toMatchObject({ title: `Raise stone to ${CHARTER_RATE}/h.`, short: `Raise stone to ${CHARTER_RATE}/h`, have: 0, ready: false });
+    expect(v?.why).toContain('hill');
+    expect(scarcest({ ...fresh, perHour: { food: 2, stone: 9 } })).toBe('food');
+    expect(groundFor('food')).toBe('lake or coast or marsh');
+    expect(charterView({ ...fresh, perHour: { food: 7, stone: 3.9 } }, before)).toMatchObject({ have: 3, ready: false });
+    expect(charterView({ ...fresh, perHour: { food: 7, stone: 6 } }, before)?.ready).toBe(true);
   });
 
   it('is finished once every step is claimed', () => {

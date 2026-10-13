@@ -1,6 +1,6 @@
 /**
- * Everything the walking sheet's own row links to (`SheetActions`): Your lands, the
- * Counsel, your standard (BRDC-STANDARD-001), what finishes next (BRDC-NEXT-001), a
+ * Everything the walking sheet's own row links to (`SheetActions`): Your lands, your
+ * standard (BRDC-STANDARD-001), what finishes next (BRDC-NEXT-001), a
  * golden or dark week (BRDC-AGE-001) and the day's sky (BRDC-MOON-001) — gathered here
  * so the map view passes one object, and stays under its line ceiling.
  */
@@ -21,7 +21,6 @@ export interface SheetLinkInputs {
   /** The map re-reads after a plant, so the flag moves at once. */
   onPlanted: () => void;
   onOpenLands: () => void;
-  onOpenCounsel: () => void;
   to: UpNextTargets;
 }
 
@@ -34,5 +33,5 @@ export function useSheetLinks(i: SheetLinkInputs): SheetLinks {
   // The town's terror rides the same line as the sky (BRDC-TERROR-001).
   const terror = useTerror();
   const sky = [skyLine(weatherAt(t), moonDay(t)), terror > 0 ? `Terror ${terror}/10` : ''].filter(Boolean).join(' · ') || undefined;
-  return { onOpenLands: i.onOpenLands, onOpenCounsel: i.onOpenCounsel, standard, upNext, week, sky };
+  return { onOpenLands: i.onOpenLands, standard, upNext, week, sky };
 }

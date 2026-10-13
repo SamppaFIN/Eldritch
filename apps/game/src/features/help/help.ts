@@ -14,6 +14,8 @@
 import { PERKS } from '@es3/core';
 import { SEASON_THREE_HELP, SEASON_THREE_TOPICS } from './helpSeasonThree.js';
 import type { SeasonThreeTopic } from './helpSeasonThree.js';
+import { REALM_HELP, REALM_TOPICS } from './helpRealm.js';
+import type { RealmTopic } from './helpRealm.js';
 
 export type HelpTopic =
   | 'how-to-play'
@@ -35,7 +37,8 @@ export type HelpTopic =
   | 'hearth'
   | 'sky'
   | 'consciousness'
-  | SeasonThreeTopic;
+  | SeasonThreeTopic
+  | RealmTopic;
 
 export interface HelpEntry {
   title: string;
@@ -47,6 +50,7 @@ export interface HelpEntry {
 
 export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
   ...SEASON_THREE_HELP,
+  ...REALM_HELP,
   'how-to-play': {
     title: 'How to Play',
     body: [
@@ -217,7 +221,7 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
  * one group — help.test.ts fails the run on an orphan or a duplicate.
  */
 export const GROUPS: readonly { heading: string; topics: readonly HelpTopic[] }[] = [
-  { heading: 'Getting started', topics: ['how-to-play', 'first-walk', 'vocabulary', 'consciousness'] },
+  { heading: 'Getting started', topics: ['how-to-play', 'first-walk', 'vocabulary', 'consciousness', ...REALM_TOPICS] },
   { heading: 'This season', topics: SEASON_THREE_TOPICS },
   {
     heading: 'The ground',

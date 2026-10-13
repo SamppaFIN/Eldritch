@@ -44,7 +44,6 @@ import { useShownCells } from '../features/territory/useShownCells.js';
 import { FirstLook } from '../features/hud/FirstLook.js';
 import { TopStack } from '../features/hud/TopStack.js';
 import { GuideNews } from '../features/help/GuideNews.js';
-import { UnlockTeacher } from '../features/tutor/UnlockTeacher.js';
 import { AdventureOverlays } from '../features/hud/AdventureOverlays.js';
 import { MapNotices } from '../features/hud/MapNotices.js';
 import { geoTrouble } from '../features/hud/notices.js';
@@ -165,7 +164,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
   // The cell underfoot — held against GPS jitter while still (BRDC-DWELL-002).
   const standingOn = useStandingCell(point, pace);
-  const nav = useSheetLinks({ repository, standingOn, owned: territory.owned, now: clock.now, onPlanted: territory.refresh, onOpenLands: aside.openLands, onOpenCounsel: aside.openCounsel, to: { research: isRoute ? undefined : inspect.openResearch, keep: castle && !isRoute ? inspect.onCastleTap : undefined } });
+  const nav = useSheetLinks({ repository, standingOn, owned: territory.owned, now: clock.now, onPlanted: territory.refresh, onOpenLands: aside.openLands, to: { research: isRoute ? undefined : inspect.openResearch, keep: castle && !isRoute ? inspect.onCastleTap : undefined } });
   const mapRef = useRef<MapHandle | null>(null);
 
   const moments = useMoments();
@@ -304,7 +303,7 @@ export function MapView({ onLeave }: MapViewProps) {
 
       <TopStack hidden={sheetOpen}>
         <FirstLook
-          owned={territory.owned.length} works={inspect.build.myBuildings.length} researched={inspect.build.researched.length}
+          repository={repository} now={clock.now} owned={territory.owned.length}
           rivalCells={territory.cells.length} rivalBearing={territory.rivalBearing}
         />
         <GuideNews {...aside.guideNews} />
@@ -344,21 +343,6 @@ export function MapView({ onLeave }: MapViewProps) {
         onHelp={aside.openHelp} nav={nav}
         onOpenLog={aside.openLog}
       />
-
-      {/* Teaches adventure mechanics progressively — nothing to teach a route-mode save
-          (BRDC-MODE-001). */}
-      {isRoute ? null : (
-        <UnlockTeacher
-          repository={repository} paceMs={pace} onSee={aside.openHelp} pool={resources}
-          reach={{
-            owned: territory.owned.length,
-            researched: inspect.build.researched.length,
-            rivalCells: territory.cells.length,
-          }}
-          busy={aside.anyOpen || inspect.cell !== null || inspect.sanctum}
-          onPaid={() => void repository?.getResources(clock.now()).then(setResources)}
-        />
-      )}
 
       {aside.node}
       {EDITOR_AVAILABLE ? <EditorPanel editor={editor} /> : null}

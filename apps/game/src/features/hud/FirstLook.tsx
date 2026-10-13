@@ -16,13 +16,19 @@
  * the middle of the map with no way to be rid of it — on the one screen whose whole job
  * is showing you where you are. It is a card now, hugging the HUD, dismissed by a tap and
  * back on the next rung: a hint you have read is not a hint any more.
+ *
+ * BRDC-ONBOARD-004: the ladder is the Keeper's Charter now — one voice, so this says the
+ * Charter's current step and no longer keeps a ladder of its own (`steps.ts` is gone).
  */
-import { useState } from 'react';
-import { nextStep } from './steps.js';
-import type { Progress } from './steps.js';
+import { useEffect, useState } from 'react';
+import type { CharterPage, GameRepository } from '@es3/core';
 import './first-look.css';
 
-export interface FirstLookProps extends Progress {
+export interface FirstLookProps {
+  repository: GameRepository | null;
+  now: () => number;
+  /** Hexes held — re-read the Charter whenever the ground changes. */
+  owned: number;
   /** Rival cells on screen, so the last line can be honest about them. */
   rivalCells: number;
   /** Bearing to the nearest rival ground, degrees from north, or null. */
@@ -51,23 +57,32 @@ export function compassPoint(bearingDeg: number): string {
   return points[index] as string;
 }
 
-export function FirstLook({ owned, works, researched, rivalCells, rivalBearing }: FirstLookProps) {
-  const step = nextStep({ owned, works, researched });
-  // Kept by rung, not by a flag: waving away "walk" must not silence "build" as well.
+export function FirstLook({ repository, now, owned, rivalCells, rivalBearing }: FirstLookProps) {
+  const [page, setPage] = useState<CharterPage | null>(null);
+  useEffect(() => {
+    if (!repository) return;
+    let live = true;
+    void repository.charter.view(now()).then((p) => live && setPage(p));
+    return () => {
+      live = false;
+    };
+  }, [repository, now, owned]);
+  // Kept by step, not by a flag: waving away one step must not silence the next as well.
   const [waved, setWaved] = useState<string | null>(null);
-  if (!step || waved === step.id) return null;
+  if (!page || waved === page.step.id) return null;
+  const hint = page.ready ? `${page.short} — claim it in the Keep.` : page.title;
 
   return (
     <aside className="first-look">
       <button
         type="button"
         className="first-look__card"
-        aria-label={`Dismiss: ${step.hint}`}
-        onClick={() => setWaved(step.id)}
+        aria-label={`Dismiss: ${hint}`}
+        onClick={() => setWaved(page.step.id)}
       >
-        <span className="first-look__line">{step.hint}</span>
-        <span className="first-look__sub">{step.because}</span>
-        {step.id === 'walk' && rivalCells > 0 && rivalBearing !== null ? (
+        <span className="first-look__line">{hint}</span>
+        {page.ready ? null : <span className="first-look__sub">{page.why}</span>}
+        {page.step.id === 'first-step' && rivalCells > 0 && rivalBearing !== null ? (
           <span className="first-look__sub">
             Someone already holds ground to the {compassPoint(rivalBearing)}.
           </span>

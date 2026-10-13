@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | BRDC-ONBOARD-001, -002 |
 | **Lähde** | Infinite 2026-10-13: *"joo voi korvata"* |
-| **Status** | `todo` |
+| **Status** | `done` |
 
 ## 🔴 RED
 
@@ -17,14 +17,23 @@ kolme.
 
 ## 🟢 GREEN
 
-- [ ] Opetuskortit (`UnlockTeacher`) poistuvat; niiden sisältö (mitä resurssi on, mihin sitä
-      käytetään) siirtyy Kirjan askelten *miksi*-riveihin ja Oppaaseen
-- [ ] Counselin kiireelliset (nälkä, portti lähellä, varastot täynnä, joutilaat kädet, Keep täynnä)
+- [x] Opetuskortit (`UnlockTeacher`) poistuvat; niiden sisältö (mitä resurssi on, mihin sitä
+      käytetään) siirtyy Kirjan askelten *miksi*-riveihin ja Oppaaseen — `features/tutor/` poistettu,
+      Oppaaseen *Resources* (`helpRealm.ts`, Työt luetaan `BUILDINGS`ista)
+- [x] Counselin kiireelliset (nälkä, portti lähellä, varastot täynnä, joutilaat kädet, Keep täynnä)
       **ohittavat Kirjan järjestyksen**: ne näkyvät Today-kortissa ennen nykyistä askelta
-- [ ] Counsel-nappi ja -paneeli poistuvat kävelyarkista; codex-kortit siirtyvät Oppaaseen
-- [ ] Ensimmäisen kävelyn reunavihje näyttää Kirjan nykyisen askeleen, ei omaa portaikkoaan
-- [ ] Vanhat avaimet (`unlocks`, `codexRead`) jäävät lukematta, eivät riko vanhaa tallennusta
-- [ ] e2e: opetuskorttia ei enää ole; tutor.spec ja dialogs.spec korvataan Kirjan speksillä
+      (*Urgent*-osio, vaara-reunus; *Nothing urgent* ei näy)
+- [x] Counsel-nappi ja -paneeli poistuvat kävelyarkista; codex-kortit siirtyvät Oppaaseen
+      (*Running a Realm*, `CODEX_CARDS`ista)
+- [x] Ensimmäisen kävelyn reunavihje näyttää Kirjan nykyisen askeleen, ei omaa portaikkoaan
+      (`steps.ts` poistettu)
+- [~] Vanhat avaimet (`unlocks-seen`, `codex-read`) jäävät lukematta eivätkä riko tallennusta.
+      Niiden ytimen koodi (`rules/unlock.ts`, `unlockStore`, `keep.codex()`/`readCodex()`) on nyt
+      orpo — jätetty paikalleen, poisto erikseen
+- [x] e2e: `tutor.spec` poistettu, `charter.spec` tilalla; `keep-citizens` ja `sheet-links`
+      päivitetty. 360 px -ajo 2026-10-13: uudet punaiset vain perusviivalta tai
+      uusinta-ajossa vihreät (keep-citizens:80, up-next:37 kuormassa). `dialogs.spec` ei
+      viitannut opetuskorttiin, ja se meni läpi
 
 ## Ei tässä
 

@@ -1,7 +1,8 @@
 /**
- * The walking sheet's own row of controls: Your lands and the Keeper's Counsel beside
+ * The walking sheet's own row of controls: Your lands beside
  * the Vigil toggle (Infinite 2026-09-30, drawn on a screenshot: into the empty space
- * left of ○, not onto the nav bar).
+ * left of ○, not onto the nav bar). The Counsel's button went with BRDC-ONBOARD-004: its
+ * urgent word is said on the Keeper's Charter now.
  */
 import { useState } from 'react';
 import { RitualButton } from '@es3/ui';
@@ -15,7 +16,6 @@ import type { HelpTopic } from '../help/help.js';
 
 export interface SheetLinks {
   onOpenLands?: (() => void) | undefined;
-  onOpenCounsel?: (() => void) | undefined;
   /** Plant your standard where you stand (BRDC-STANDARD-001). */
   standard?: StandardBinding | undefined;
   /** What finishes next, three at most (BRDC-NEXT-001). */
@@ -29,7 +29,7 @@ export interface SheetLinks {
 /** Shown on the strip before "+N". */
 const STRIP_SHOWN = 2;
 
-export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, upNext, week, sky, onHelp }: VigilProps & SheetLinks & { onHelp?: ((t: HelpTopic) => void) | undefined }) {
+export function SheetActions({ keepAlive, onOpenLands, standard, upNext, week, sky, onHelp }: VigilProps & SheetLinks & { onHelp?: ((t: HelpTopic) => void) | undefined }) {
   const [all, setAll] = useState(false);
   const strip = [
     sky ? (
@@ -70,11 +70,6 @@ export function SheetActions({ keepAlive, onOpenLands, onOpenCounsel, standard, 
       {onOpenLands ? (
         <RitualButton variant="ghost" className="hud__sheet-link" onClick={onOpenLands}>
           <span aria-hidden>⬡</span> Lands
-        </RitualButton>
-      ) : null}
-      {onOpenCounsel ? (
-        <RitualButton variant="ghost" className="hud__sheet-link" onClick={onOpenCounsel}>
-          <span aria-hidden>☉</span> Counsel
         </RitualButton>
       ) : null}
       <Vigil keepAlive={keepAlive} />

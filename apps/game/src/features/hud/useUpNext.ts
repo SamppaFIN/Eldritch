@@ -68,8 +68,8 @@ export function useUpNext(
       }
       // The Charter's step (BRDC-ONBOARD-001): its count only when there is one to count.
       const first: UpNextItem[] = !charter ? []
-        : charter.ready ? [{ id: 'charter', label: `${charter.step.short} — claim` }]
-        : [{ id: 'charter', label: charter.step.short, ...(charter.need > 1 ? { have: charter.have, need: charter.need } : {}) }];
+        : charter.ready ? [{ id: 'charter', label: `${charter.short} — claim` }]
+        : [{ id: 'charter', label: charter.short, ...(charter.need > 1 ? { have: charter.have, need: charter.need } : {}) }];
       target.charter = 'keep';
       if (live) setRows([...first, ...rankUpNext(items, 3 - first.length)].map((item) => ({ item, to: target[item.id] })));
     })();

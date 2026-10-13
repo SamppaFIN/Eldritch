@@ -22,7 +22,6 @@ import { RouteCodexPanel } from '../codex/RouteCodexPanel.js';
 import { SeasonPanel } from '../season/SeasonPanel.js';
 import { LandsPanel } from '../lands/LandsPanel.js';
 import { TempleTour } from '../lands/TempleTour.js';
-import { CounselPanel } from '../keep/CounselPanel.js';
 import { GpxPanel } from '../gpx/GpxPanel.js';
 import { HallOfFamePanel } from '../hall/HallOfFamePanel.js';
 import { ClanPanel } from '../clan/ClanPanel.js';
@@ -47,8 +46,6 @@ export interface MapAside {
   openSeason: () => void;
   /** The ledger of held ground (BRDC-LANDS-001). */
   openLands: () => void;
-  /** The Keeper's Counsel, from the nav bar. */
-  openCounsel: () => void;
   /** Import a recorded walk (BRDC-GPX-001). */
   openGpx: () => void;
   /** Kingdoms retired on this device (BRDC-HALL-001). */
@@ -93,7 +90,6 @@ export function useMapAside(
   const [routeCodexOpen, setRouteCodexOpen] = useState(false);
   const [seasonOpen, setSeasonOpen] = useState(false);
   const [landsOpen, setLandsOpen] = useState(false);
-  const [counselOpen, setCounselOpen] = useState(false);
   const [tour, setTour] = useState<{ list: readonly string[]; i: number } | null>(null);
   /** A payout earned on the ledger page, handed to the one toast the map owns. */
   const [landsGain, setLandsGain] = useState<Collected | null>(null);
@@ -202,7 +198,6 @@ export function useMapAside(
         }}
         onDone={() => setTour(null)}
       />
-      <CounselPanel open={counselOpen} repository={repository} now={now} onClose={() => setCounselOpen(false)} />
       <GpxPanel
         open={gpxOpen}
         repository={repository}
@@ -236,7 +231,6 @@ export function useMapAside(
     openRouteCodex: () => setRouteCodexOpen(true),
     openSeason: () => setSeasonOpen(true),
     openLands: () => setLandsOpen(true),
-    openCounsel: () => setCounselOpen(true),
     openGpx: () => setGpxOpen(true),
     openHallOfFame: () => setHallOpen(true),
     openClan: () => setClanOpen(true),
@@ -251,7 +245,6 @@ export function useMapAside(
       routeCodexOpen ||
       seasonOpen ||
       landsOpen ||
-      counselOpen ||
       gpxOpen ||
       hallOpen ||
       clanOpen ||
@@ -265,7 +258,6 @@ export function useMapAside(
       setRouteCodexOpen(false);
       setSeasonOpen(false);
       setLandsOpen(false);
-      setCounselOpen(false);
       setGpxOpen(false);
       setHallOpen(false);
       setClanOpen(false);

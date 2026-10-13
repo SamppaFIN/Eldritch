@@ -12,7 +12,9 @@
  * claimed; this only says which step is current and how far along it is.
  */
 import { HEARTH_RING } from './constants.js';
-import type { ResourcePool } from './terrain.js';
+import { keepRaiseCost } from './citizens.js';
+import { TERRAIN_TABLE } from './terrain.js';
+import type { ResourceKind, ResourcePool } from './terrain.js';
 import type { BuildingId } from '../types/domain.js';
 
 export interface CharterState {
@@ -26,13 +28,15 @@ export interface CharterState {
   works: Readonly<Partial<Record<BuildingId, number>>>;
   /** Citizens at work in any building. */
   hands: number;
+  /** What the realm earns an hour, as the pouch will pay it (`forecastRates`). */
+  perHour: Readonly<Partial<ResourcePool>>;
 }
 
 /**
  * Where "Show me" goes. `unrevealed`, `build-site` and `work` are a hex the store picks
  * from your ground; `research` opens the Lore. Absent = nothing to show, just walk.
  */
-export type CharterShow = 'research' | 'unrevealed' | 'build-site' | 'work';
+export type CharterShow = 'research' | 'unrevealed' | 'build-site' | 'work' | 'supply-site';
 
 export interface CharterStep {
   id: string;
@@ -44,6 +48,8 @@ export interface CharterStep {
   /** The few words the Up next strip has room for. */
   short: string;
   show?: CharterShow;
+  /** Words that depend on the realm — the missing-resource step names its resource. */
+  say?(s: CharterState): Pick<CharterStep, 'title' | 'why' | 'short'>;
   /** Paid once, when the step is claimed: what the next goal needs. */
   reward: Readonly<Partial<ResourcePool>>;
   progress(s: CharterState): { have: number; need: number };
@@ -58,6 +64,21 @@ export const CHAPTER_NAMES: Readonly<Record<number, string>> = {
 export const CHARTER_REALM = 12;
 
 const count = (have: number, need: number) => ({ have: Math.min(have, need), need });
+
+/** The hourly rate the missing-resource step asks for (BRDC-ONBOARD-003). */
+export const CHARTER_RATE = 6;
+
+/** What the next goal — raising the Keep — is paid in. */
+const SUPPLY = Object.keys(keepRaiseCost(1)) as ResourceKind[];
+
+/** The resource the next goal needs that the realm earns least of. */
+export function scarcest(s: CharterState): ResourceKind {
+  return SUPPLY.reduce((a, b) => ((s.perHour[b] ?? 0) < (s.perHour[a] ?? 0) ? b : a));
+}
+
+/** The ground that yields a resource: "hill", "lake or coast or marsh". */
+export const groundFor = (k: ResourceKind): string =>
+  Object.entries(TERRAIN_TABLE).filter(([, t]) => t.resource === k).map(([kind]) => kind).join(' or ');
 
 export const CHARTER_STEPS: readonly CharterStep[] = [
   {
@@ -118,10 +139,32 @@ export const CHARTER_STEPS: readonly CharterStep[] = [
     reward: { stone: 40, food: 30 },
     progress: (s) => count(s.hands, 1),
   },
+  {
+    id: 'supply',
+    chapter: 2,
+    title: `Raise what the Keep needs to ${CHARTER_RATE}/h.`,
+    why: 'Raising the Keep costs food and stone.',
+    short: 'Raise the scarce supply',
+    say: (s) => {
+      const k = scarcest(s);
+      return {
+        title: `Raise ${k} to ${CHARTER_RATE}/h.`,
+        why: `Raising the Keep costs food and stone. Hold ${groundFor(k)} hexes, or raise a Work on one.`,
+        short: `Raise ${k} to ${CHARTER_RATE}/h`,
+      };
+    },
+    show: 'supply-site',
+    reward: { food: 50, stone: 25 },
+    progress: (s) => count(Math.floor(s.perHour[scarcest(s)] ?? 0), CHARTER_RATE),
+  },
 ];
 
 export interface CharterView {
   step: CharterStep;
+  /** The step's words for this realm (`say`), or its fixed ones. */
+  title: string;
+  why: string;
+  short: string;
   chapterName: string;
   /** The step's place in its chapter: "2 of 3". */
   at: number;
@@ -143,8 +186,12 @@ export function charterView(s: CharterState, claimed: readonly string[]): Charte
   if (!step) return null;
   const chapter = CHARTER_STEPS.filter((x) => x.chapter === step.chapter);
   const p = step.progress(s);
+  const { title, why, short } = step.say?.(s) ?? step;
   return {
     step,
+    title,
+    why,
+    short,
     chapterName: CHAPTER_NAMES[step.chapter] ?? '',
     at: chapter.indexOf(step) + 1,
     of: chapter.length,

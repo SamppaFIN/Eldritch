@@ -7,12 +7,12 @@
  * again each spring (Infinite 2026-10-13). The first read of a realm ticks off what it has
  * already done, unpaid, so a veteran starts where they actually are.
  */
-import { alreadyDone, charterView } from '../rules/charter.js';
+import { alreadyDone, charterView, scarcest } from '../rules/charter.js';
 import type { CharterShow, CharterState, CharterView } from '../rules/charter.js';
 import { BUILDINGS, worksOn } from '../rules/build.js';
-import { terrainForCell } from '../rules/terrain.js';
+import { TERRAIN_TABLE, terrainForCell } from '../rules/terrain.js';
 import type { ResourcePool } from '../rules/terrain.js';
-import { grantBonus, settlePouch } from './pouch.js';
+import { forecastRates, grantBonus, settlePouch } from './pouch.js';
 import { readLore } from './loreStore.js';
 import { readRevealed } from './revealStore.js';
 import { K } from './keys.js';
@@ -39,19 +39,25 @@ export interface CharterApi {
 
 export async function charterState(store: KeyValueStore, cells: readonly Cell[], now: number): Promise<CharterState> {
   const [revealed, lore, pouch] = await Promise.all([readRevealed(store), readLore(store), settlePouch(store, cells, now)]);
+  const { perHour } = await forecastRates(store, cells, now);
   const works: Partial<Record<BuildingId, number>> = {};
   for (const c of cells) for (const w of worksOn(c)) works[w.id] = (works[w.id] ?? 0) + 1;
   const hands = Object.values(pouch.keep?.staff ?? {}).reduce((s, n) => s + n, 0);
-  return { owned: cells.length, revealed: Object.keys(revealed).length, lore, works, hands };
+  return { owned: cells.length, revealed: Object.keys(revealed).length, lore, works, hands, perHour };
 }
 
-async function hexFor(store: KeyValueStore, show: CharterShow | undefined, cells: readonly Cell[]): Promise<H3Index | null> {
+async function hexFor(store: KeyValueStore, show: CharterShow | undefined, cells: readonly Cell[], state: CharterState): Promise<H3Index | null> {
   if (show === 'unrevealed') {
     const revealed = await readRevealed(store);
     return cells.find((c) => revealed[c.h3] === undefined)?.h3 ?? null;
   }
   if (show === 'build-site') {
     return cells.find((c) => worksOn(c).length === 0 && BUILDINGS.watchtower.terrain.includes(terrainForCell(c).kind))?.h3 ?? null;
+  }
+  if (show === 'supply-site') {
+    // A bare hex of the ground that yields it — a Work there doubles what it already pays.
+    const k = scarcest(state);
+    return cells.find((c) => worksOn(c).length === 0 && TERRAIN_TABLE[terrainForCell(c).kind].resource === k)?.h3 ?? null;
   }
   if (show === 'work') return cells.find((c) => worksOn(c).some((w) => w.id === 'watchtower'))?.h3 ?? cells.find((c) => worksOn(c).length > 0)?.h3 ?? null;
   return null;
@@ -73,7 +79,7 @@ export function charterApi(store: () => KeyValueStore, owned: (now: number) => P
       const cells = await owned(now);
       const state = await charterState(store(), cells, now);
       const v = charterView(state, await claimed(store(), state));
-      return v ? { ...v, hex: await hexFor(store(), v.step.show, cells) } : null;
+      return v ? { ...v, hex: await hexFor(store(), v.step.show, cells, state) } : null;
     },
 
     async claim(id, now) {

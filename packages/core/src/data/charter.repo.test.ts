@@ -7,7 +7,7 @@ import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
 import { charterApi } from './charterStore.js';
 import { resetForSeason } from './seasonReset.js';
-import { EMPTY_POOL } from '../rules/terrain.js';
+import { EMPTY_POOL, TERRAIN_TABLE, terrainForCell } from '../rules/terrain.js';
 import { HEARTH_RING } from '../rules/constants.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
 import type { Cell } from '../types/domain.js';
@@ -63,6 +63,17 @@ describe('the Charter in the store', () => {
     expect(v?.step.id).toBe('reveal');
     expect(v?.ready).toBe(true);
     expect(v?.hex).not.toBe(ring[0]!.h3);
+  });
+
+  it('the missing-resource step names its resource and shows a bare hex of the ground that yields it (BRDC-ONBOARD-003)', async () => {
+    const cells = [...ring, ...more];
+    const store = await realm(cells);
+    await store.set(K.charter, { claimed: ['first-step', 'realm', 'reveal', 'lookouts', 'watchtower', 'hands'] });
+    const v = await charterApi(() => store, async () => cells).view(T0);
+    expect(v?.step.id).toBe('supply');
+    const k = v?.title.match(/^Raise (\w+) to/)?.[1];
+    expect(['food', 'stone']).toContain(k);
+    if (v?.hex) expect(TERRAIN_TABLE[terrainForCell(cells.find((c) => c.h3 === v.hex) as Cell).kind].resource).toBe(k);
   });
 
   it('outlives the season: the Charter is taught once per realm', async () => {

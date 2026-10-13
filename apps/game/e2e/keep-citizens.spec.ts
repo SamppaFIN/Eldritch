@@ -93,16 +93,11 @@ test('a Season 2 save shows its citizens, granary and the Raise button', async (
   const masterworks = page.getByLabel('Your sanctuary').getByLabel('Masterworks');
   await expect(masterworks).toContainText('The Fortress · 0 of 3 met');
   await expect(masterworks).toContainText('○ Lore · signal-fires');
-  // BRDC-COUNSEL-001: the Counsel and the first codex card, read once — a button on the
-  // walking sheet now (Infinite 2026-09-30), not a section of the Keep.
-  await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Counsel', exact: true }).click();
-  const sheet = page.getByRole('region', { name: 'The Keeper’s Counsel' });
-  await expect(sheet.getByLabel('Counsel')).toContainText(/1 of \d+/);
-  const codex = sheet.getByLabel('Codex');
-  await expect(codex).toContainText('Citizens are born of food.');
-  await codex.getByRole('button', { name: 'Got it' }).click();
-  await expect(codex).toContainText('No hands, no harvest.');
+  // BRDC-ONBOARD-004: the Counsel's word is the Keeper's Charter's now, at the head of
+  // Today; its codex cards are the Guide's "Running a Realm".
+  await page.getByRole('tab', { name: 'Today' }).click();
+  await expect(page.getByLabel('Your sanctuary').getByRole('region', { name: "The Keeper's Charter" })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Counsel', exact: true })).toHaveCount(0);
 });
 
 /** Put a farm on the Hearth hex, the way building one would (BRDC-PROG-002). */

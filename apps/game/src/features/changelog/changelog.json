@@ -1,5 +1,17 @@
 [
   {
+    "version": "0.11.0",
+    "date": "2026-10-13",
+    "notes": [
+      "The Keeper's Charter: one thing to do at a time, at the top of the Keep and first on the Up next strip. Walk past the Hearth, hold twelve hexes, reveal one, learn Lookouts, raise a Watchtower, put a citizen to work, then raise the food or stone the Keep needs.",
+      "Each step pays what the next one needs — Lookouts pays the Watchtower's price. Claim it with one tap. Show me takes you to the right hex or to Research.",
+      "If you already did a step before the Charter came, it is ticked off. The Charter keeps your place when a new season begins.",
+      "One voice instead of three: the lesson cards and the Counsel button are gone. Anything urgent — hunger, a gate close by, full stores — now shows above the Charter step.",
+      "The Guide has two new pages: Resources, which says what each resource is for, and Running a Realm.",
+      "The hint at the top of the map now shows the Charter's step."
+    ]
+  },
+  {
     "version": "0.10.3",
     "date": "2026-10-13",
     "notes": [

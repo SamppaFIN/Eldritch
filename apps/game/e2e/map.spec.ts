@@ -68,6 +68,7 @@ async function panByHand(page: Page) {
       },
       [sx, vs?.height ?? 640] as const,
     );
+  const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await dismissUnlockCard(page);
     const sy = await bareMap();

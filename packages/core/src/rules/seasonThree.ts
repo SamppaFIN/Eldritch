@@ -6,7 +6,7 @@ export { ADJ_KIN_CAP, ADJ_KIN_STEP, ADJ_TEMPLE_WISDOM, ADJ_WATER_FOOD, adjacency
 export type { AdjacencyLine, AdjacencyWorld } from './adjacency.js';
 export { hoursToAfford, rankUpNext, upNextText, whenText } from './upNext.js';
 export type { UpNextItem } from './upNext.js';
-export { CHAPTER_NAMES, CHARTER_REALM, CHARTER_STEPS, alreadyDone, charterView, stepDone } from './charter.js';
+export { CHAPTER_NAMES, CHARTER_RATE, CHARTER_REALM, CHARTER_STEPS, alreadyDone, charterView, groundFor, scarcest, stepDone } from './charter.js';
 export type { CharterShow, CharterState, CharterStep, CharterView } from './charter.js';
 export { EUREKA_DISCOUNT, eurekaCost, eurekaFor } from './eureka.js';
 export type { Eureka, EurekaState } from './eureka.js';

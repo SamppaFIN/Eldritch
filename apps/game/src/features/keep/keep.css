@@ -382,3 +382,8 @@
   color: var(--text-dim);
   font-size: var(--text-sm);
 }
+
+/* The Counsel's urgent word, above the step (BRDC-ONBOARD-004): the danger rail, not the gold. */
+.keep-charter--urgent {
+  border-inline-start-color: var(--danger);
+}
