@@ -183,8 +183,8 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
   'the-wager': {
     title: 'The Wager',
     body: [
-      'The Wager was a duel sent between two phones as a block of text. It is resting: since a step decides who owns a hex, there is no siege left for it to settle.',
-      'Its code is kept, not thrown away. If it comes back, this page will say how it plays.',
+      'The Wager was a duel sent between two phones as a block of text. Since a step decides who owns a hex, there was no siege left for it to settle.',
+      'It was retired in October 2026: your friends’ ground reaches you through the shared world now. Old entries in your History still name the Wagers you fought.',
     ],
     see: ['corruption'],
   },

@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.11.7",
+    "date": "2026-10-13",
+    "notes": [
+      "The Wager is retired. Your friends' ground reaches you through the shared world, so the duel by text message is gone for good.",
+      "A hex you shared with an imported Wager is wholly yours again, and pays its full yield."
+    ]
+  },
+  {
     "version": "0.11.6",
     "date": "2026-10-13",
     "notes": [

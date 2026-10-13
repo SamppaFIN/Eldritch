@@ -5,7 +5,7 @@
 | **Vaihe** | 2.5 — suunnanmuutos |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-CLAIM-005, BRDC-HEARTH-001 |
-| **Status** | `done` |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` |
 | **Valmius** | 100 % |
 | **Lähde** | `files/pelin-suunnittelumuistiinpanot.md` · `PIVOT-2026-08-27.md` |
 
@@ -67,3 +67,7 @@ Pagesiin. Tämän tiketin muoto ja `CHALLENGE_VERSION`-checksum kelpaavat sellai
 
 Muuttumaton: **`world.json` on luettava tila, ei totuus.** Riidat ratkaistaan Wagerilla,
 kuten `PIVOT-2026-08-27.md` §5 päätti.
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

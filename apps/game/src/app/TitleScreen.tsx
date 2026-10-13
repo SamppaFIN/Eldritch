@@ -12,13 +12,11 @@ import './title.css';
 
 export interface TitleScreenProps {
   onBegin?: () => void;
-  /** Opens the Wager. Never passed since BRDC-CLAIM-017 parked it. */
-  onWager?: () => void;
   /** Shown when a save was rejected, so an empty sanctuary is never unexplained. */
   notice?: string | null;
 }
 
-export function TitleScreen({ onBegin, onWager, notice }: TitleScreenProps) {
+export function TitleScreen({ onBegin, notice }: TitleScreenProps) {
   return (
     <>
       <Starfield count={110} />
@@ -50,14 +48,6 @@ export function TitleScreen({ onBegin, onWager, notice }: TitleScreenProps) {
           <RitualButton onClick={onBegin} className="title__cta">
             Begin the Awakening
           </RitualButton>
-
-          {/* Secondary and quiet. Most openings of this screen are a walk about to
-              start, not a challenge about to be sent. */}
-          {onWager ? (
-            <RitualButton variant="ghost" onClick={onWager} className="title__wager">
-              The Wager
-            </RitualButton>
-          ) : null}
 
           <p className="title__phase">
             <span aria-hidden>◇</span> Phase 1 — the ley-line

@@ -25,7 +25,7 @@ import {
   mergePlayerFiles,
   parsePlayerFile,
 } from './worldMerge.js';
-import { toWireCell } from './challenge.js';
+import { toWireCell } from './wireCell.js';
 import type { WorldSource } from './world.js';
 import type { Cell } from '../types/domain.js';
 

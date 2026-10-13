@@ -122,8 +122,6 @@ export function App() {
   }, []);
 
   if (view === 'title') {
-    // The Wager's title-screen door is parked since BRDC-CLAIM-017 — `onWager` simply
-    // is not passed, and `TitleScreen`'s own guard hides the button.
     return <TitleScreen onBegin={begin} notice={notice} />;
   }
 

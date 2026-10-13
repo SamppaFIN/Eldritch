@@ -10,8 +10,8 @@
  */
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { regionOf } from '../geo/cells.js';
-import { checksum } from './challenge.js';
-import type { WireCell } from './challenge.js';
+import { checksum } from './wireCell.js';
+import type { WireCell } from './wireCell.js';
 import { trimWire } from './world.js';
 import type { WorldFault, WorldPlayer, WorldShard, WorldSource } from './world.js';
 import type { H3Index, PlayerId } from '../types/domain.js';

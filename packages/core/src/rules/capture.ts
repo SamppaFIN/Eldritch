@@ -216,8 +216,6 @@ export function resolveCapture(
       // This branch runs only on a new day, so every pass through it is one more day held.
       ownedDays: (cell.ownedDays ?? 1) + 1,
     };
-    // A fresh day's walk over contested ground reclaims the whole yield (BRDC-WAGER-JSON-002).
-    delete reinforced.shared;
     // A breached Fortress heals once it is walked back to base strength (BRDC-BUILD-012).
     // Below that it is still a breach: a day's patch does not undo a siege.
     if (strengthAfter >= BASE_STRENGTH) delete reinforced.breachedOn;

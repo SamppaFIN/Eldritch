@@ -58,7 +58,7 @@ test('adventure mode is unchanged: Keep and Research stay reachable', async ({ p
   await expect(page.locator('.hud__xp')).toBeVisible();
 
   await page.getByRole('button', { name: 'Menu' }).click();
-  // The Wager is parked (BRDC-CLAIM-017) regardless of mode, not an adventure-only thing.
+  // The Wager is gone in either mode (BRDC-WAGER-008).
   await expect(page.getByRole('button', { name: 'Challenge a friend' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Join or start a friend circle' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Where you stand' })).toBeVisible();

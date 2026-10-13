@@ -63,9 +63,21 @@ async function openMap(page: Page) {
 async function unpinCamera(page: Page) {
   const vs = page.viewportSize();
   const sx = (vs?.width ?? 360) - 20;
-  const sy = (vs?.height ?? 640) / 2;
+  // The first point down the right edge that is bare map: the camera buttons sit on that
+  // edge, and a drag that starts on one is a press, not a pan (the same fix map.spec has).
+  const bareMap = () =>
+    page.evaluate(
+      ([x, h]) => {
+        for (let y = Math.round(h * 0.2); y < h * 0.6; y += 8) {
+          if (document.elementFromPoint(x, y)?.classList.contains('maplibregl-canvas')) return y;
+        }
+        return Math.round(h / 2);
+      },
+      [sx, vs?.height ?? 640] as const,
+    );
   const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
   for (let attempt = 0; attempt < 3; attempt += 1) {
+    const sy = await bareMap();
     await page.mouse.move(sx, sy);
     await page.mouse.down();
     for (let i = 1; i <= 10; i += 1) {

@@ -92,24 +92,8 @@ export type {
   AdventureChoiceOutcome,
   QuestOutcome,
 } from './adventureStore.js';
-export {
-  MAX_CHALLENGE_CELLS,
-  buildChallenge,
-  challengeToCells,
-  checksum,
-  encodeChallenge,
-  parseChallenge,
-  challengeToCombatant,
-  toWireCell,
-} from './challenge.js';
-export type {
-  Challenge,
-  ChallengeFault,
-  ChallengeResult,
-  ChallengeSource,
-  WireCell,
-} from './challenge.js';
-export type { ImportResult, WagerIdentity, WagerReport } from './wager.js';
+export { checksum, toWireCell } from './wireCell.js';
+export type { WireCell } from './wireCell.js';
 export {
   buildSubmission,
   encodeSubmission,

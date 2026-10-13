@@ -5,7 +5,7 @@
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | M |
 | **Riippuvuudet** | BRDC-WAGER-JSON-004, BRDC-WAGER-JSON-006, BRDC-MAP-002 |
-| **Status** | `done` (2026-09-06, v0.5.40) |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` (2026-09-06, v0.5.40) |
 | **Valmius** | 100 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-06: *"Nyt tuo heksa ei näytä omistuksen graafia"* + *"wagerissa on kaksi moodia, ota käyttöön näkyvää.. saat kaikki vihun tiedot ruudulle, tai kuten nyt että näkyy punaisena"* + AskUserQuestion → *"Vastaanottaja togglettaa"* |
 
@@ -50,3 +50,7 @@ Ja vastustajan solu vuoti aina koko tietonsa: vahvuuspalkki, rappioaika,
 - Lähettäjän valinta paljastuksesta (päätös 3 sulki tämän pois).
 - Vastustajan rakennusten piirto — se tuli `BRDC-ART-003`:ssa (`buildings` on jo datassa).
 - Scrying / manalla paljastus (`BRDC-SPELL-002`).
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

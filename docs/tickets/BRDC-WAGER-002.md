@@ -5,7 +5,7 @@
 | **Alue** | `features/wager/WagerDialog.tsx` |
 | **Vaihe** | 3 — Sivilisaatio (2.6:n pinnan viimeistely) |
 | **Effort** | XS |
-| **Status** | `done` — 2026-09-15 (v0.5.99) |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` — 2026-09-15 (v0.5.99) |
 | **Riippuvuudet** | `BRDC-WAGER-JSON-002/-005/-006`, ja se vastaa `BRDC-CLAIM-015`:n omaan kysymykseen |
 | **Lähde** | Infinite 2026-09-15: *"Nyt tuolla on paljon jaettuja heksoja."* |
 
@@ -63,3 +63,7 @@ uudestaan ennen kuin käyntilaskuri ja arbitraatio rakennetaan.
 
 - Sääntömuutokset jaettuun maahan. Tämä on yksi lause, ei mekaniikka
 - Se, näkyykö jaettu heksa kartalla omalla merkillään — `BRDC-HEX-003`:n aluetta
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

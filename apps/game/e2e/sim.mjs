@@ -1,6 +1,6 @@
 /**
- * A playthrough against the dev server (5173) — founds a Hearth, imports the Sampoamaja
- * Wager, walks and claims, builds, checks the Guide and the rename. Run:
+ * A playthrough against the dev server (5173) — founds a Hearth, walks and claims,
+ * builds, checks the Guide and the rename. Run:
  *
  *   pnpm --filter @es3/game dev            # in one terminal
  *   node apps/game/e2e/sim.mjs             # in another
@@ -8,7 +8,6 @@
  * Not a test — a check that a human could sit down and play. It logs a line per step and
  * a summary; it does not throw on a soft miss, so the whole run always reports.
  */
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { chromium } from '@playwright/test';
@@ -16,7 +15,6 @@ import { chromium } from '@playwright/test';
 const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 const URL = process.env.SIM_URL ?? 'http://localhost:5173';
 const dir = dirname(fileURLToPath(import.meta.url));
-const CHALLENGE = readFileSync(join(dir, 'fixtures/sampoamaja.json'), 'utf8');
 
 const LEG_M = 45;
 const LEG_MS = 7_000;
@@ -33,14 +31,6 @@ const wardedCount = (page) =>
     .nth(2)
     .innerText()
     .then((t) => Number.parseInt(t, 10) || 0)
-    .catch(() => 0);
-const rivalCells = (page) =>
-  page
-    .evaluate(() => {
-      const m = globalThis.__esMap;
-      const feats = m?.getSource('cells')?.serialize?.().data?.features ?? [];
-      return feats.filter((f) => f.properties?.color === '#5c1a1a').length;
-    })
     .catch(() => 0);
 /** Stone as the HUD shows it — React state, not a race with the app's IndexedDB writes.
  *  The row is absent at zero, which reads back as 0. */
@@ -93,30 +83,6 @@ const run = async () => {
       stash = await pouchStone(page);
     }
     step('the founding stash is one Monument, not a handout', stash === 60, `stone ${stash}`);
-
-    // --- Import the Wager -------------------------------------------------
-    await page.getByRole('button', { name: 'Keep', exact: true }).click();
-    const keep = page.getByLabel('Your sanctuary');
-    await keep.waitFor({ state: 'visible', timeout: 10_000 });
-    await keep.getByRole('button', { name: 'The Wager' }).click();
-    const dialog = page.getByRole('dialog', { name: 'The Wager' });
-    await dialog.getByLabel('A challenge you were sent').fill(CHALLENGE);
-    await dialog.getByRole('button', { name: 'Accept the Wager' }).click();
-    // The real outcome is the rival ground appearing — poll for it (a cold dev server
-    // takes a few seconds to first-compile the import path). The message is best-effort.
-    let rivals = 0;
-    for (let t = 0; t < 25 && rivals === 0; t += 1) {
-      await page.waitForTimeout(1_000);
-      rivals = await rivalCells(page);
-    }
-    const msg = await dialog
-      .getByText(/ground is on your map/i)
-      .innerText()
-      .then((s) => s.replace(/\s+/g, ' ').trim())
-      .catch(() => '(no message shown)');
-    step('accepted the Sampoamaja Wager', rivals > 0, msg);
-    await dialog.getByRole('button', { name: 'Done' }).click().catch(() => {});
-    step('rival ground is drawn on the map', rivals > 0, `${rivals} enemy-red cells in view`);
 
     // --- Build on the Hearth, before walking off it -------------------
     await page.getByRole('button', { name: 'Here' }).click();

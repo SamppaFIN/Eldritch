@@ -11,7 +11,7 @@
  * `mode === 'route'` realms out of the Adventure Codex and into this one.
  */
 import { ROUTE_CODEX_VERSION } from '../rules/constants.js';
-import type { WireCell } from './challenge.js';
+import type { WireCell } from './wireCell.js';
 import type { PlayerId } from '../types/domain.js';
 
 /** The least a realm has to carry to be measured. `WorldSource`/`WorldPlayer` both do. */

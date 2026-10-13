@@ -5,7 +5,7 @@
 | **Vaihe** | 2.6 — Mobiilikokemus ja jaettu maailma |
 | **Effort** | M–L |
 | **Riippuvuudet** | BRDC-WAGER-JSON-005 (valmis) |
-| **Status** | `done` (2026-09-05) |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` (2026-09-05) |
 | **Valmius** | 100 % |
 | **Lähde** | Infinite, kenttähavainto 2026-09-05: *"wager tiedoston voi ajaa uusiksi.. se näyttää kaikki vihulaisen heksat, ja päivittää ruudulle mitkä ruudut on jaettuja.. ympyrä chart omistuksesta.. resurssien jako sen perusteella kumpi on käynyt heksalla useampana päivänä.. wager json tarvii kans päivityksen"* |
 
@@ -102,3 +102,7 @@ viestiä voi tuoda toiste (`already-fought`). Kentältä neljä puutetta:
   Wager on tämän tiketin rajaus. Erikseen jos pyydetään.
 - Globaali omistuskaavio (Keep → Realm): Infinite rajasi *"vain per-solu CellPanelissa."*
 - Taistelukoodin poisto — jätetään pysäköidyksi, ei kuolleena poistettavaksi.
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

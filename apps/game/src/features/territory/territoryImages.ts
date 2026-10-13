@@ -19,7 +19,6 @@ import { BOUNTY_SPRITE_IDS, bountySpriteId, rasteriseBounty } from './bountySpri
 import { WORLDSEED_BOUNTY_IDS, rasteriseWorldseedBounty, worldseedBountySpriteId } from './worldseedBountySprites.js';
 import { CELL_BOUNTY_LAYER, CELL_GROUND_LAYER, CELL_ICON_LAYER, CELL_TEXTURE_LAYER } from './layerIds.js';
 import { TEXTURE_KINDS, rasteriseTextures, textureId } from './terrainTextures.js';
-import { ENEMY_FILL, OWN_FILL } from './territoryFeatures.js';
 
 /**
  * Draw the six banner icons into this map's atlas if they are not there yet
@@ -90,32 +89,6 @@ export async function addBountySprites(map: MapLibreMap): Promise<void> {
   if (map.getLayer(CELL_BOUNTY_LAYER)) {
     map.setLayoutProperty(CELL_BOUNTY_LAYER, 'visibility', 'visible');
   }
-}
-
-/**
- * A four-square checkerboard of your own colour and the fixed rival red, for a cell an
- * imported Wager and your own walking both claim (BRDC-WAGER-JSON-005).
- *
- * `fill-pattern` is the only way MapLibre tiles a fill, and it always wants a raster —
- * there is no vector escape hatch here the way §12 prefers for ceremony. One check
- * spells out "part yours, part theirs" with colours the map already teaches, so this
- * needs no third colour and no legend.
- */
-export function sharedPatternImage(): { width: number; height: number; data: Uint8ClampedArray } {
-  const size = 16;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return { width: size, height: size, data: new Uint8ClampedArray(size * size * 4) };
-  const half = size / 2;
-  ctx.fillStyle = OWN_FILL;
-  ctx.fillRect(0, 0, half, half);
-  ctx.fillRect(half, half, half, half);
-  ctx.fillStyle = ENEMY_FILL;
-  ctx.fillRect(half, 0, half, half);
-  ctx.fillRect(0, half, half, half);
-  return ctx.getImageData(0, 0, size, size);
 }
 
 /**

@@ -44,9 +44,7 @@ import type { TradeOutcome } from '../data/cityStateStore.js';
 import type { Collected, Forecast } from '../data/pouch.js';
 import type { StepClaimOutcome } from '../data/stepStore.js';
 import type { RevealOutcome } from '../data/revealStore.js';
-import type { ImportResult, WagerIdentity } from '../data/wager.js';
 import type { WorldIdentity, WorldImportResult, WorldSource } from '../data/world.js';
-import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import type { LogEntry } from '../rules/log.js';
 import type {
   Anomaly,
@@ -244,34 +242,6 @@ export interface GameRepository extends SeasonTwoApis, OctoberApis, SeasonThreeA
    */
   castSpell(id: SpellId, target: H3Index | null, now: number): Promise<CastOutcome>;
 
-  /* --- The Wager, carried by hand --------------------------------------- */
-  /**
-   * Everything a friend's game needs to hold you as a rival, as text.
-   *
-   * Phases 0-2 have no server, so this is what multiplayer is: a block of JSON sent
-   * through whatever app people already use, and read back by the other phone.
-   */
-  exportChallenge(now: number, identity?: WagerIdentity): Promise<string>;
-  /** What the player built on their border, and the choice of it. */
-  getDefence(): Promise<Defence>;
-  setDefence(defence: Defence): Promise<void>;
-  /**
-   * The local player as the battle rules see them.
-   *
-   * Both sides of a duel are assembled the same way — theirs from the message, this one
-   * from the store — because the two phones must agree on every input.
-   */
-  getCombatant(now: number): Promise<Combatant>;
-  /**
-   * Accept a Wager: take their ground onto the map, fight it, and settle the spoils.
-   *
-   * One call, because they are one act — a rival's territory that exists without the
-   * duel having happened is a state nothing should be able to observe.
-   *
-   * Refusals come back as named faults rather than exceptions: every one of them has to
-   * become a sentence the player can act on.
-   */
-  importChallenge(text: string, now: number): Promise<ImportResult>;
 
   /**
    * Merge one `world/<res6>.json` shard: other players' territory as read-only, imported

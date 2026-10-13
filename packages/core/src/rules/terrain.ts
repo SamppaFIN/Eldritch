@@ -20,7 +20,6 @@ import { seededTerrainOf } from './terrainSeed.js';
 import { paintedTerrainOf } from '../data/mapData.js';
 import { surveyedTerrainOf } from '../data/localSurvey.js';
 import { hexSeedOf } from '../data/hexSeedStore.js';
-import { localShare } from './share.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 import type { KeepState } from './citizens.js';
 
@@ -238,7 +237,7 @@ export function resourceForCell(cell: Cell): ResourceKind | null {
 export function trickleRate(cell: Cell, now: number): { resource: ResourceKind; perHour: number } | null {
   if (now - cell.lastVisitedAt > DORMANT_AFTER_MS) return null;
   const resource = resourceForCell(cell);
-  return resource ? { resource, perHour: TRICKLE_PER_HOUR * localShare(cell) } : null;
+  return resource ? { resource, perHour: TRICKLE_PER_HOUR } : null;
 }
 
 /**

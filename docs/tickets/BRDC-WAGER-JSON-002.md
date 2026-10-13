@@ -5,7 +5,7 @@
 | **Vaihe** | 2.6 — Mobiilikokemus ja jaettu maailma |
 | **Effort** | S (puoli päivää) |
 | **Riippuvuudet** | BRDC-WAGER-JSON-001, BRDC-TERRAIN-001 |
-| **Status** | `done` — 2026-09-01 |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` — 2026-09-01 |
 | **Valmius** | 90 % |
 
 ## 🔴 RED
@@ -51,3 +51,7 @@ oikeaksi käyntilaskuriksi.
 ## Lähde
 
 Kenttätesti 2026-09-01 (Infinite) · `wager.ts` §openChallenge
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

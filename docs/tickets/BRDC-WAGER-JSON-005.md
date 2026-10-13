@@ -5,7 +5,7 @@
 | **Vaihe** | 2.6 — Mobiilikokemus ja jaettu maailma |
 | **Effort** | M |
 | **Riippuvuudet** | BRDC-WAGER-JSON-004 |
-| **Status** | `done` (v0.5.31) |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` (v0.5.31) |
 | **Valmius** | 100 % |
 | **Lähde** | Infinite, kenttähavainto 2026-09-05: *"wageriin muutos, kaikki kaverin antamat ruudut näkyy heti.. kaiki jaetut ruudut näkyy jaettuna.. tee gradiikka.. yksin omistettu on väri ja kahdestaan omistettu on tuudukko tms"* |
 
@@ -64,3 +64,7 @@ ilman lisätyötä `openChallenge`ssa, eikä sitä pyydetty.
   398/400 riviä — vaatisi oman alipaneelinsa `ImportedNote.tsx`n tapaan, jos pyydetään).
 - Jaetun solun erillinen käsittely piiritys-/rappeutumislaskennassa muualla kuin
   spoilsissa — `openChallenge` jo suojaa sen niiltä molemmilta.
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

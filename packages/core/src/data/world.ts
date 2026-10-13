@@ -18,8 +18,8 @@
  */
 import { MAX_SHARD_CELLS, WORLD_VERSION } from '../rules/constants.js';
 import { isOwnershipCell } from '../geo/cells.js';
-import { checksum, toWireCell } from './challenge.js';
-import type { WireCell } from './challenge.js';
+import { checksum, toWireCell } from './wireCell.js';
+import type { WireCell } from './wireCell.js';
 import type { Cell, GameMode, H3Index, PlayerId } from '../types/domain.js';
 
 export interface WorldPlayer {

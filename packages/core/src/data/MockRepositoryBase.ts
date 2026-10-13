@@ -48,11 +48,8 @@ import { MemoryStore, type KeyValueStore } from './kv.js';
 import { versioned, type SchemaOutcome, type VersionedStore } from './schema.js';
 import { seedWorldAt } from './seed.js';
 import { K } from './keys.js';
-import { readDefence, writeDefence, type ImportResult, type WagerIdentity } from './wager.js';
-import { combatantFrom, exportChallengeFrom, importChallengeInto, muster } from './wagerRepo.js';
 import { exportWorldSource as sealWorld, mergeWorld } from './worldStore.js';
 import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
-import type { Combatant, Defence } from '../rules/wagerBattle.js';
 import { claimHearth } from './hearth.js';
 import { growHearthAt, readHearthRing, type HearthGrowth } from './hearthGrowthStore.js';
 import { assignCastle } from './castle.js';
@@ -174,14 +171,7 @@ export class MockRepositoryBase {
     return doResearch(this.store, id, await this.getOwnedCells(now), await this.getHome(), now);
   }
 
-  /* --- The Wager, carried by hand — store half in `wagerRepo.js` -------- */
-
-  async exportChallenge(now: number, identity?: WagerIdentity): Promise<string> {
-    return exportChallengeFrom(await muster(this, now), now, identity);
-  }
-
-  importChallenge = async (text: string, now: number): Promise<ImportResult> =>
-    importChallengeInto(this.store, await muster(this, now), text, now);
+  /* --- The shared world ------------------------------------------------- */
 
   importWorld = async (
     text: string,
@@ -191,13 +181,6 @@ export class MockRepositoryBase {
 
   exportWorldSource = (now: number, identity: WorldIdentity): Promise<WorldSource> =>
     sealWorld(this, identity, now, this.store);
-
-  getDefence = (): Promise<Defence> => readDefence(this.store);
-
-  setDefence = (defence: Defence): Promise<void> => writeDefence(this.store, defence);
-
-  getCombatant = async (now: number): Promise<Combatant> =>
-    combatantFrom(await muster(this, now));
 
   /* --- The Hearth ------------------------------------------------------- */
 

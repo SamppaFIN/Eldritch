@@ -5,7 +5,7 @@
 | **Vaihe** | 2.6 — Mobiilikokemus |
 | **Effort** | S (puoli päivää) |
 | **Riippuvuudet** | BRDC-WAGER-JSON-001, BRDC-WAGER-JSON-002, BRDC-INSPECT-001 |
-| **Status** | `done` (v0.5.23), kenttätodennus `[~]` |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` (v0.5.23), kenttätodennus `[~]` |
 | **Valmius** | 90 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
@@ -86,3 +86,7 @@ Ei mukana: XP, pouch, tekniikkapuu, dwell — ne ovat pelaajan omaa tilaa, eivä
   klientti muuntaa `toWireCell`illa kun SHARE-001 kytkee sen.
 - **Keep/Hearth-julkaisu ei muuttunut** — `Challenge.home` matkaa jo; §10-kiista erikseen.
 - Väestön / XP:n / tekniikan jakaminen — pelaajan omaa tilaa, ei karttaa.
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

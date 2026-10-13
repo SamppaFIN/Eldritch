@@ -98,8 +98,3 @@
   text-transform: uppercase;
 }
 
-/* Secondary door. Present, not competing with the walk. */
-.title__wager {
-  min-block-size: var(--touch-min);
-  margin-block-start: calc(var(--space-2) * -1);
-}

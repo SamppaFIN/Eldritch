@@ -180,8 +180,6 @@ export type {
   SpellScope,
   SpellVia,
 } from './spell.js';
-export { muster, resolveWager, wagerSeed } from './wagerBattle.js';
-export type { Combatant, Defence, WagerOutcome, WagerRound } from './wagerBattle.js';
 export {
   BOUNTIES,
   BOUNTY_IDS,
@@ -234,7 +232,6 @@ export {
   wondersNear,
   wondersOfRarity,
 } from './wonderPlace.js';
-export { localShare } from './share.js';
 export { WORKS_DEFS, WORKS_KINDS } from './works/defs/index.js';
 export {
   WIRED,

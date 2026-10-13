@@ -4,10 +4,6 @@
  * Every other cell on the map is about itself. This one is about the whole of it — it is
  * where the player agreed to start, and it is the natural place to ask "what have I
  * built" rather than "what is under my feet".
- *
- * It also gives the Wager a door from the map. Until now a challenge could only be sent
- * from the title screen, which meant ending a walk to reach it (BRDC-WAGER-JSON-001,
- * known limitation). Standing on your own Hearth is a better place to be asked.
  */
 import { useCallback, useState } from 'react';
 import { GlassPanel, MetatronsCube, RitualButton } from '@es3/ui';
@@ -71,8 +67,6 @@ export interface HearthPanelProps {
   onPouch: (pool: ResourcePool) => void;
   /** Per-hour / per-day production, as the pouch will actually earn it (BRDC-STATS-001). */
   forecast: Forecast | null;
-  /** Absent since BRDC-CLAIM-017 — see `KeepRealm`'s own comment on the same prop. */
-  onWager?: (() => void) | undefined;
   /** Publish your realm to the shared world — set only when the share toggle is on (BRDC-SHARE-002). */
   onPublish?: (() => Promise<PublishResult>) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
@@ -97,7 +91,6 @@ export function HearthPanel({
   repository,
   onPouch,
   forecast,
-  onWager,
   onPublish,
   onWeakest,
   shown,
@@ -193,7 +186,6 @@ export function HearthPanel({
           firstLossInHours={d.firstLossInHours}
           fading={d.fading}
           dark={dark}
-          onWager={onWager}
           onPublish={onPublish}
           onWeakest={onWeakest}
         />

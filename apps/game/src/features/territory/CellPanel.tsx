@@ -38,7 +38,6 @@ import { cellActions } from './hexActions.js';
 import type { ActionId } from './hexActions.js';
 import { cellOffer } from './cellOffer.js';
 import { ImportedNote } from './ImportedNote.js';
-import { OwnershipNote, isSharedGround } from './OwnershipNote.js';
 import { RevealControl } from './RevealControl.js';
 import { SpellPanel } from './SpellPanel.js';
 import { TempleSchoolPanel } from './TempleSchoolPanel.js';
@@ -306,7 +305,6 @@ export function CellPanel({
 
 
       {cell.importedFrom && showDetail ? <ImportedNote from={cell.importedFrom} now={now} /> : null}
-      {isSharedGround(cell) ? <OwnershipNote cell={cell} me={me} /> : null}
 
       {history ? <p className="cell-panel__history">{history}</p> : null}
 

@@ -11,11 +11,16 @@ import type { WorldIdentity, WorldImportResult, WorldSource } from './world.js';
 import { leyLineM } from '../geo/paths.js';
 import { readPaths } from './pathStore.js';
 import { readRouteDistance } from './distanceStore.js';
-import { muster } from './wagerRepo.js';
-import type { MusterDeps } from './wagerRepo.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
-import type { Cell, PlayerId } from '../types/domain.js';
+import type { Cell, H3Index, PlayerId, PlayerProfile } from '../types/domain.js';
+
+/** The three repository reads publishing needs — passed as `this` by MockRepository. */
+export interface PublishDeps {
+  getProfile(): Promise<PlayerProfile>;
+  getOwnedCells(now: number): Promise<readonly Cell[]>;
+  getCastle(): Promise<H3Index | null>;
+}
 
 /**
  * Import one `world/<res6>.json` shard as read-only rival cells.
@@ -55,8 +60,8 @@ export async function mergeWorld(
 /**
  * The local player's own ground, sealed for publishing (BRDC-SHARE-002).
  *
- * Same `muster` the Wager gathers — who you are, the ground still standing, the Keep —
- * turned into a `WorldSource` the client POSTs to the Worker.
+ * Who you are, the ground still standing, the Keep — turned into a `WorldSource` the
+ * client POSTs to the Worker.
  *
  * The ley-line goes with it (BRDC-CODEX-001). It is measured here rather than stored as a
  * running total because the walked-path map is the only honest source: it holds one entry
@@ -64,17 +69,17 @@ export async function mergeWorld(
  * have to decide what to do about that, and it would get it wrong.
  */
 export async function exportWorldSource(
-  deps: MusterDeps,
+  deps: PublishDeps,
   identity: WorldIdentity,
   now: number,
   store: KeyValueStore,
 ): Promise<WorldSource> {
-  const m = await muster(deps, now);
-  const routeDistanceM = m.me.mode === 'route' ? await readRouteDistance(store) : 0;
+  const me = await deps.getProfile();
+  const routeDistanceM = me.mode === 'route' ? await readRouteDistance(store) : 0;
   return worldSourceFrom(
-    m.me,
-    m.owned,
-    m.castle,
+    me,
+    await deps.getOwnedCells(now),
+    await deps.getCastle(),
     identity,
     leyLineM(await readPaths(store)),
     routeDistanceM,

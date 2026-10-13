@@ -3,8 +3,7 @@
  *
  * State-of-the-nation, gathered from the loose lines that used to trail the panel: what
  * fades and when, the dark time on the calendar, the one privacy sentence
- * BRDC-CASTLE-001 asks for, and jumping to the cell about to be lost. The Wager door
- * (`onWager`) is parked since BRDC-CLAIM-017 — see that prop's own comment.
+ * BRDC-CASTLE-001 asks for, and jumping to the cell about to be lost.
  */
 import { useState } from 'react';
 import { landmarkOn, terrainForCell } from '@es3/core';
@@ -41,10 +40,6 @@ export interface KeepRealmProps {
   /** The soonest few cells to fade, nearest first (`dominionOf`'s own `fading`). */
   fading: readonly { cell: Cell; hoursLeft: number }[];
   dark: { active: boolean; inDays: number };
-  /** Absent since BRDC-CLAIM-017 — instant-capture ownership leaves the Wager's siege
-   *  duel nothing left to settle. Not removed, only never wired to a door (§6 "parked
-   *  the same shape as the claim chime"). */
-  onWager?: (() => void) | undefined;
   /** Publish your realm to the shared world — present only when the share toggle is on. */
   onPublish?: (() => Promise<PublishResult>) | undefined;
   onWeakest: (h3: string) => void;
@@ -56,7 +51,6 @@ export function KeepRealm({
   firstLossInHours,
   fading,
   dark,
-  onWager,
   onPublish,
   onWeakest,
 }: KeepRealmProps) {
@@ -133,11 +127,6 @@ export function KeepRealm({
         {weakestH3 ? (
           <RitualButton variant="ghost" onClick={() => onWeakest(weakestH3)}>
             Show the first to fade
-          </RitualButton>
-        ) : null}
-        {onWager ? (
-          <RitualButton variant="ghost" onClick={onWager}>
-            The Wager
           </RitualButton>
         ) : null}
         {onPublish ? (

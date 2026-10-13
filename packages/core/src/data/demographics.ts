@@ -17,7 +17,7 @@
 import { regionOf, totalAreaM2 } from '../geo/cells.js';
 import { population } from '../rules/nation.js';
 import { CODEX_VERSION } from '../rules/constants.js';
-import type { WireCell } from './challenge.js';
+import type { WireCell } from './wireCell.js';
 import type { PlayerId } from '../types/domain.js';
 
 /** What every measure is called, and the order the table lists them in. */

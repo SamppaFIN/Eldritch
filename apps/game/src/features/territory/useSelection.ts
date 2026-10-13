@@ -119,7 +119,6 @@ export interface Selection {
   anomaly: AnomalyBinding;
   refusal: WardRefusal | null;
   sanctum: boolean;
-  wager: boolean;
   /** The Research dialog, opened from the HUD footer (BRDC-KEEP-007). */
   researchOpen: boolean;
   build: BuildBinding;
@@ -128,8 +127,6 @@ export interface Selection {
   /** Tapping the Keep marker opens the nation panel, the same door as the Anchor. */
   onCastleTap: () => void;
   onWard: (h3: H3Index) => void;
-  openWager: () => void;
-  closeWager: () => void;
   openResearch: () => void;
   closeResearch: () => void;
   close: () => void;
@@ -166,7 +163,6 @@ export function useSelection({
   const known = useMemo(() => new Map(cells.map((c) => [c.h3, c])), [cells]);
 
   const [sanctum, setSanctum] = useState(false);
-  const [wager, setWager] = useState(false);
   const [researchOpen, setResearchOpen] = useState(false);
 
   /** Build, demolish, expand, cast and research all pay: re-read the pouch and the map. */
@@ -332,7 +328,6 @@ export function useSelection({
     anomaly,
     refusal,
     sanctum,
-    wager,
     researchOpen,
     build: {
       researched: research.researched,
@@ -349,11 +344,6 @@ export function useSelection({
     onPlaceTap,
     onCastleTap,
     onWard,
-    openWager: useCallback(() => {
-      setSanctum(false);
-      setWager(true);
-    }, []),
-    closeWager: useCallback(() => setWager(false), []),
     openResearch: useCallback(() => setResearchOpen(true), []),
     closeResearch: useCallback(() => setResearchOpen(false), []),
     close: useCallback(() => {

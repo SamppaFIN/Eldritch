@@ -130,8 +130,6 @@ export interface CellProperties {
   /** Which banner the flag draws (BRDC-HEX-003) — `''` alongside an empty `flag`. Yours
    *  on your own Keep, theirs on an imported cell that is actually their Keep. */
   bannerId: string;
-  /** Both you and an imported Wager claim this cell (BRDC-WAGER-JSON-005) — `cell.shared`. */
-  shared: boolean;
   /** Yours and inside the Hearth's grown ring — drawn with a gold edge (Infinite 2026-09-29). */
   hearth: boolean;
 }
@@ -355,6 +353,5 @@ export function cellProperties(
     // banner in the same centre slot is the collision the slot table exists to prevent.
     flag: bannerId ? FLAG_GLYPH : '',
     bannerId,
-    shared: cell.shared !== undefined,
   };
 }

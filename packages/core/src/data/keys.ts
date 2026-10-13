@@ -22,7 +22,6 @@ export const K = {
   home: 'home',
   hearthRing: 'hearth-ring',
   castle: 'castle',
-  defence: 'defence',
   lastReading: 'reading:last',
   researched: 'researched',
   /** Temple expansion levels, `Record<H3Index, number>` (BRDC-MANA-001). */

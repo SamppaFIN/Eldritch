@@ -5,7 +5,7 @@
 | **Vaihe** | 2.5 — suunnanmuutos |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-WAGER-JSON-001 |
-| **Status** | `done` |
+| **Status** | `superseded` — purettu 2026-10-13 (BRDC-WAGER-008); oli `done` |
 | **Valmius** | 100 % |
 | **Lähde** | Infiniten päätös 2026-08-29: *"alkuun clientillä, rakennetaan back endi sit lopuks"* |
 
@@ -95,3 +95,7 @@ ensimmäistä kierrosta on se mitä sillä oli sen jälkeen plus se mikä siitä
 Johtaminen voittaa lankaformaatin leventämisen edistymispalkin takia.
 
 ## Ei tässä
+
+## Purettu 2026-10-13
+
+Wager poistettiin kokonaan ([BRDC-WAGER-008](BRDC-WAGER-008.md)). Tämä tiketti jää kertomaan, miksi koodi oli olemassa.

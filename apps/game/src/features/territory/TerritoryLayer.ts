@@ -14,7 +14,7 @@ import { ALLY_STROKE, CONTESTED_STROKE, OWN_STROKE, REVEAL_FILL } from './territ
 import { cellMarksToGeoJson, cellsToGeoJson, marksFromPolygons } from './cellMarks.js';
 import { BANNER_IDS } from '../nation/nation.js';
 import type { BannerId } from '../nation/nation.js';
-import { addBannerSprites, addBountySprites, addTerrainSprites, addTerrainTextures, bannerSpriteId, sharedPatternImage } from './territoryImages.js';
+import { addBannerSprites, addBountySprites, addTerrainSprites, addTerrainTextures, bannerSpriteId } from './territoryImages.js';
 
 // The names live in `layerIds.ts` so `territoryImages.ts` can read them without importing
 // this file back — one id string in two places is how a layer quietly stops being toggled.
@@ -23,7 +23,6 @@ import {
   CELL_SOURCE,
   CELL_FILL_LAYER,
   CELL_TEXTURE_LAYER,
-  CELL_SHARED_LAYER,
   CELL_BLIGHT_LAYER,
   CELL_LINE_LAYER,
   CELL_RIVAL_LINE_LAYER,
@@ -48,7 +47,6 @@ import { addNationLayers } from './nationLayer.js';
 export {
   CELL_SOURCE,
   CELL_FILL_LAYER,
-  CELL_SHARED_LAYER,
   CELL_BLIGHT_LAYER,
   CELL_LINE_LAYER,
   CELL_CONTESTED_LAYER,
@@ -69,7 +67,6 @@ export const CELL_FADING_LAYER = 'cells-fading';
 export const CELL_HEARTH_LAYER = 'cells-hearth';
 
 /** The `map.addImage` id for the shared-ground checkerboard. */
-const SHARED_PATTERN = 'cells-shared-pattern';
 
 // The fill stays visible below CELL_DETAIL_MINZOOM so a territory's shape still reads
 // from above; the per-cell strokes and marks go, which is most of the drawing cost.
@@ -88,7 +85,6 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
   // The marks ride their own point source, so a hexagon wider than a tile cannot have
   // its glyphs placed twice (BRDC-SIGIL-006).
   map.addSource(CELL_MARK_SOURCE, { type: 'geojson', data: cellMarksToGeoJson([], null), promoteId: 'h3' });
-  if (!map.hasImage(SHARED_PATTERN)) map.addImage(SHARED_PATTERN, sharedPatternImage());
   addNationLayers(map);
   /*
    * The ground is back on the map, small (field report 2026-09-30: *"heksan maan tyyppi ei
@@ -140,17 +136,6 @@ export function ensureTerritoryLayers(map: MapLibreMap): void {
         ['case', ['get', 'mine'], 0.32, ['==', ['get', 'color'], REVEAL_FILL], 0.04, 0.22],
       ),
     },
-  });
-
-  // Over the base fill, only where a Wager import and your own walking both claim the
-  // ground: the checkerboard reads as "part yours, part theirs" without a third colour.
-  map.addLayer({
-    id: CELL_SHARED_LAYER,
-    type: 'fill',
-    source: CELL_SOURCE,
-    minzoom: NATION_FADE_START,
-    filter: ['get', 'shared'],
-    paint: { 'fill-pattern': SHARED_PATTERN, 'fill-opacity': fadeAcrossBand(0, 0.75) },
   });
 
   /*
@@ -333,8 +318,7 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
     CELL_CONTESTED_LAYER,
     CELL_LINE_LAYER,
     CELL_BLIGHT_LAYER,
-    CELL_SHARED_LAYER,
-    CELL_FILL_LAYER,
+      CELL_FILL_LAYER,
   ]) {
     if (map.getLayer(id)) map.removeLayer(id);
   }
@@ -351,7 +335,6 @@ export function removeTerritoryLayers(map: MapLibreMap): void {
   if (map.getSource(CELL_SOURCE)) map.removeSource(CELL_SOURCE);
   if (map.getSource(CELL_MARK_SOURCE)) map.removeSource(CELL_MARK_SOURCE);
   if (map.getSource(NATION_SOURCE)) map.removeSource(NATION_SOURCE);
-  if (map.hasImage(SHARED_PATTERN)) map.removeImage(SHARED_PATTERN);
   for (const id of BANNER_IDS) {
     if (map.hasImage(bannerSpriteId(id))) map.removeImage(bannerSpriteId(id));
   }

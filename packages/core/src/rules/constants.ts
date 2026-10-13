@@ -154,20 +154,6 @@ export const XP_PER_LEVEL = 100; // v2
 export { ANCHOR, DISCOVERY } from './phase6Constants.js';
 
 /**
- * The wire format for a challenge carried by hand (BRDC-WAGER-JSON-001).
- *
- * Separate from SAVE_VERSION on purpose: a save and a message between two phones change
- * for different reasons, and bumping one should not invalidate the other.
- *
- * v2 added the sender's defence. v3 (BRDC-WAGER-JSON-006) dropped the fight from import
- * altogether and added `d` per cell — the days the sender has held it, which breaks a
- * tie when a shared cell's yield is split. v4 (BRDC-BUILD-007) turned `b` from one
- * building id into the list of them, which an older reader cannot make sense of. An
- * older message is refused by name.
- */
-export const CHALLENGE_VERSION = 4;
-
-/**
  * The wire format for one region's slice of the shared world (BRDC-SHARE-001).
  *
  * Its own number, like CHALLENGE_VERSION: `world/<res6>.json` is rebuilt by a cron job
@@ -187,7 +173,7 @@ export const ROUTE_CODEX_VERSION = 1;
  * The build's own version, shown in the menu and headed each `changelog.json` block
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2. */
-export const APP_VERSION = '0.11.6';
+export const APP_VERSION = '0.11.7';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -360,31 +346,6 @@ export const PATH_TIER_VISITS = [1, 4, 10, 20, 40] as const;
  * player is meant to feel.
  */
 export const MAX_PATH_SEGMENTS = 6_000;
-
-/* --- The Wager (BRDC-WAGER-BATTLE-001) ---------------------------------- */
-
-/**
- * Rounds before a fight is called on points.
- *
- * Long enough that a small advantage compounds, short enough that a duel is a moment
- * rather than a spectator sport — the result is read on a phone, standing up.
- */
-export const WAGER_ROUNDS = 12;
-
-/** Orcs bite harder. This is what they add to a blow. */
-export const ORC_BITE = 60;
-
-/** A wall turns aside this percentage of every blow, and never tires. */
-export const WALL_GUARD = 35;
-
-/**
- * Strength a lost Wager costs the loser's cells on the winner's map.
- *
- * Roughly one and a half ordinary attacks — enough that winning saves a walk or two,
- * not enough that a duel replaces walking. It never reaches zero: a cell emptied this
- * way would be released by decay, and that is ownership changing hands by message.
- */
-export const WAGER_SPOIL = 150;
 
 /** Cells a founded Hearth hands over: itself and its ring of six (BRDC-TUTOR-001). */
 export const HEARTH_RING = 7;

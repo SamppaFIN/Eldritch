@@ -31,7 +31,6 @@ import { useMapAside } from '../features/map/useMapAside.js';
 import { useBoot } from '../features/map/useBoot.js';
 import { EditorPanel } from '../features/editor/EditorPanel.js';
 import { EDITOR_AVAILABLE, useEditor } from '../features/editor/useEditor.js';
-import { WagerDialog } from '../features/wager/WagerDialog.js';
 import { PlaceReveal } from '../features/territory/PlaceReveal.js';
 import { useGameClock } from '../features/time/useGameClock.js';
 import { useMinuteNow } from '../features/time/useMinuteNow.js';
@@ -270,13 +269,6 @@ export function MapView({ onLeave }: MapViewProps) {
         />
       ) : null}
 
-      {/* The Wager: parked, not deleted, since BRDC-CLAIM-017 — nothing opens it any more. */}
-      <WagerDialog
-        open={false}
-        repository={repository}
-        onClose={inspect.closeWager}
-        onImported={territory.refresh}
-      />
       <ResearchDialog open={inspect.researchOpen && !isRoute} research={inspect.research} pool={resources} wisdomPerHour={forecast?.perHour.wisdom ?? 0} onClose={inspect.closeResearch} repository={repository} />
 
       <CellPanel
