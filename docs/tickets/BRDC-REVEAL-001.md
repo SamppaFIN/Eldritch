@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-AWAKEN-001, BRDC-TERRAIN-002, BRDC-HEX-001 |
-| **Status** | `in_progress` — 2026-09-01: deterministinen `revealOf` + jakaumatesti tehty; sumu ja kortti jäljellä |
+| **Status** | `done` — 2026-10-13: rakentui myöhempien tikettien alla (CLAIM-009, REVEAL-002, ART-005, ART-008); tarkistettu |
 | **Valmius** | 25 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §4, §6 (P1–P3), §8.1 |
 
@@ -20,17 +20,17 @@ paljastuminen on se hetki, joka toistuu satoja kertoja**, ja se on tällä hetke
 
 ## 🟢 GREEN
 
-- [ ] **Sumu hälvenee**: paljastumaton maa on peitossa, ja peite väistyy solu kerrallaan
-- [ ] **Kortti**: maastotyyppi, nimi, resurssit kuvakkeina, rakennuspaikat
-- [ ] **Harvinaisuus** näkyy — tavallinen, harvinainen, legendaarinen
-- [ ] Harvinaisuus **ei ole pelkkä väri**: `claude.md` §14 kieltää värin ainoana
-      tiedonkantajana. Reunus, teksti ja pyhä geometria kantavat sen myös
-- [ ] Kortti **ei keskeytä kävelyä**: se sulkeutuu itsestään, ja monta paljastusta
+- [x] **Sumu hälvenee**: paljastumaton maa on peitossa, ja peite väistyy solu kerrallaan — sumu (`withFogOfWar`): vain omat solut ja niiden rengas, kävely tuo rajan mukanaan; sää ja Transcendent säätävät renkaita
+- [~] **Kortti**: maastotyyppi, nimi, resurssit kuvakkeina, rakennuspaikat — "New ground" -kortti: maaston oma kuva ja nimi (ART-008), harvinaisuus paljastettaessa; resurssit ja rakennuspaikat ovat heksakortissa *Open its card* -napin takana
+- [x] **Harvinaisuus** näkyy — tavallinen, harvinainen, legendaarinen — `Rarity`-komponentti, neljä astetta
+- [x] Harvinaisuus **ei ole pelkkä väri**: `claude.md` §14 kieltää värin ainoana
+      tiedonkantajana. Reunus, teksti ja pyhä geometria kantavat sen myös — asteen sana (`GRADE`) ja lause (`TIER`) värin rinnalla
+- [x] Kortti **ei keskeytä kävelyä**: se sulkeutuu itsestään, ja monta paljastusta
       peräkkäin **niputetaan yhdeksi** — kymmenen korttia korttelin varrella on este,
-      ei palkinto
-- [ ] Ääni on **opt-in ja oletuksena vaiti** (`BRDC-REGRESSION-000` #7)
-- [ ] `prefers-reduced-motion` pysäyttää animaation, ei sisältöä
-- [ ] Peittosumun renderöinti testattu 5 000 solulla, kuten `BRDC-CLAIM-006`
+      ei palkinto — **muutettu päätöksellä 2026-09-30:** kortit eivät sulkeudu itsestään vaan odottavat pinona ("N finds waiting" / *Close all*); toiston aikana ne odottavat napin takana
+- [x] Ääni on **opt-in ja oletuksena vaiti** (`BRDC-REGRESSION-000` #7) — paljastus ei soi; ainoa ääni on valtauksen kilahdus (sääntö 6, REGRESSION-000 #7)
+- [x] `prefers-reduced-motion` pysäyttää animaation, ei sisältöä — `tokens.css`: jokainen keyframe nollataan
+- [x] Peittosumun renderöinti testattu 5 000 solulla, kuten `BRDC-CLAIM-006` — `claim.spec.ts` piirtää 5 000 heksaa sumuineen (aikabudjetti on PERF-alaa)
 
 ## Toteutus — paljastus on deterministinen, ei arvottu
 

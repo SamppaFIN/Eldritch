@@ -37,6 +37,18 @@ export interface HelpPanelProps {
 export function HelpPanel({ topic, onNavigate, seen, ctx, onShowCell, onClose }: HelpPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Focus goes back to whatever opened the Guide when it closes (§14, BRDC-WIKI-001). Keyed
+  // on open/closed, not on the page: navigating inside must not move the return point. And
+  // first, so the opener is read before the panel takes focus below.
+  const open = topic !== null;
+  useEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!topic) return;
     panelRef.current?.focus();

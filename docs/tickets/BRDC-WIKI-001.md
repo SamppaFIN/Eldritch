@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-BUILD-001, BRDC-TECH-001 |
-| **Status** | `wip` — viipaleet 1–3 (Vigil · lokin aiheet · etusivu + peliohjeet) 2026-09-02 |
+| **Status** | `done` — 2026-10-13: loput rakentuivat WIKI-003/004:n ja Season 3:n alla; fokuksen palautus lisätty |
 | **Valmius** | 60 % |
 | **Lähde** | Infiniten kehityssuunnitelma 2026-08-31 · §6 (W1–W2), §3 · kenttätesti 2026-09-01 |
 
@@ -28,8 +28,8 @@ ensimmäinen sivu, muu suunnitelma alla jää Vaihe 3:een portin taakse.
       `hearth`. Teksti johdettu sääntömoduulien omista doc-kommenteista
 - [x] Toimintalokin jokainen rivi linkittää oikeaan aiheeseen (`describe.ts` `TOPIC`);
       testi väittää että jokainen palautettu topic on `HELP`issä
-- [~] Sisältö johdettu taulukoista, haku, linkki joka paneelista — jää Vaihe 3:een
-- [~] Testi "jokaisella rakennuksella/teknologialla sivu" — jää Vaihe 3:een
+- [x] Sisältö johdettu taulukoista, haku, linkki joka paneelista — jää Vaihe 3:een — tehty WIKI-003/004:ssä (ks. alla)
+- [x] Testi "jokaisella rakennuksella/teknologialla sivu" — jää Vaihe 3:een — `wikiPages.test.ts`: jokainen Work, teknologia ja Rite ratkeaa sivuksi, jokainen ref kerran
 
 ## Viipale 3 — etusivu, peliohjeet, ristiviittaukset (2026-09-02)
 
@@ -47,9 +47,9 @@ vain kontekstilinkki — ei ovea, ei listaa, ei selitystä *pelistä* itsestää
 - [x] `help.test.ts`: jokainen aihe täsmälleen yhdessä ryhmässä (ei orpoa, ei duplikaattia),
       jokainen `see` osoittaa olemassa olevaan sivuun eikä itseensä, jokaisella sivulla
       otsikko + ≥1 kappale. 838 vihreää · `tsc` · `lint:lines` · `build`.
-- [~] Saavutettavuus: h2→h3-hierarkia, ESC sulkee, paneeli ottaa fokuksen navigoidessa.
+- [x] Saavutettavuus: h2→h3-hierarkia, ESC sulkee, paneeli ottaa fokuksen navigoidessa.
       **Fokuksen palautus avaajaan sulkiessa puuttuu** — yhteinen puute kaikissa
-      kartan sivupaneeleissa (Changelog, History), ei korjattu tässä.
+      kartan sivupaneeleissa (Changelog, History), ei korjattu tässä. — **2026-10-13:** fokus palaa avaajaan (`HelpPanel`), guide.spec todentaa
 
 ## 🔴 RED
 
@@ -61,20 +61,20 @@ Ilman tietokirjaa jokainen luku on taikuutta, ja pelaaja lakkaa suunnittelemasta
 
 ## 🟢 GREEN
 
-- [ ] Tietokirja **johdetaan samoista taulukoista** kuin peli: `BUILDINGS`, `TECHS`,
-      `SPELLS`, maastot, ihmeet, vakiot
-- [ ] **Yksikään luku ei ole kirjoitettu käsin kahteen paikkaan.** Testi väittää, että
-      jokaisella rakennuksella ja teknologialla on sivu, eikä yhtään orpoa sivua ole
+- [x] Tietokirja **johdetaan samoista taulukoista** kuin peli: `BUILDINGS`, `TECHS`,
+      `SPELLS`, maastot, ihmeet, vakiot — Works, Lore ja temppeliriitit luetaan pelin taulukoista (`wikiPages.ts` REFERENCE); Consciousness-sivun perkit `PERKS`istä. Ihmeet ja maastot eivät vielä ole omina sivuinaan
+- [x] **Yksikään luku ei ole kirjoitettu käsin kahteen paikkaan.** Testi väittää, että
+      jokaisella rakennuksella ja teknologialla on sivu, eikä yhtään orpoa sivua ole — johdetut sivut lukevat luvut taulukosta; testi kattaa jokaisen rakennuksen ja teknologian
 - [~] **Linkki joka toiminnosta**: valikko + Vigil + loki + hahmonäkymä + "See also"
       -ristiviittaukset kytketty (viipale 3). Solupaneeli, rakennusvalikko, loitsu ja
-      opetus vielä kytkemättä — jää Vaihe 3:een
+      opetus vielä kytkemättä — jää Vaihe 3:een — 2026-10-13: rakennusvalikon rivi (WIKI-004) ja opetuskortin *Read more* kytketty; loitsu ja solupaneeli yhä ilman
 - [x] Avautuu ja sulkeutuu **yhdellä peukalolla**, ei estä karttaa pysyvästi
       (ei-modaali `GlassPanel`, ESC + sulkunappi, katkaistu HUDin yläpuolelle) — viipale 3
-- [ ] Haku, koska sisältöä tulee satoja rivejä
-- [~] Saavutettavuus: h2→h3-hierarkia + ESC tehty (viipale 3); fokuksen palautus
-      avaajaan puuttuu, ks. viipale 3 (`claude.md` §14)
-- [ ] Wiki **päivittyy itsestään** kun mekaniikka avautuu (`BRDC-TUTOR-001`) — uusi
-      sivu ei ilmesty ennen kuin pelaaja on nähnyt asian kerran
+- [x] Haku, koska sisältöä tulee satoja rivejä — hakukenttä etusivulla (`HelpIndex`), guide.spec todentaa
+- [x] Saavutettavuus: h2→h3-hierarkia + ESC tehty (viipale 3); fokuksen palautus
+      avaajaan puuttuu, ks. viipale 3 (`claude.md` §14) — fokuksen palautus tehty 2026-10-13
+- [x] Wiki **päivittyy itsestään** kun mekaniikka avautuu (`BRDC-TUTOR-001`) — uusi
+      sivu ei ilmesty ennen kuin pelaaja on nähnyt asian kerran — `encountered.ts`: aihe avautuu kun pelaaja kohtaa sen; perusaiheet ja kauden sivut aina näkyvissä
 
 ## Toteutus
 

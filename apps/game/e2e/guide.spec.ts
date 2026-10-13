@@ -58,3 +58,17 @@ test('a build-menu row opens the building page (BRDC-WIKI-004)', async ({ page }
   await expect(page2).toBeVisible();
   await expect(page2.getByText(/None built yet|Held on/)).toBeVisible();
 });
+
+test('closing the guide hands focus back to what opened it (BRDC-WIKI-001)', async ({ page }) => {
+  test.setTimeout(60_000);
+  await openMap(page, HERE);
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: 'Guide' }).click();
+  const panel = page.getByRole('region', { name: 'Guide' });
+  await expect(panel).toBeVisible();
+  // Browsing inside does not move the return point.
+  await panel.getByRole('button', { name: 'Sawmill', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeFocused();
+});
