@@ -4,7 +4,7 @@ import { riteApi } from './riteStore.js';
 import { gateApi } from './gateStore.js';
 import { loreApi } from './loreStore.js';
 import { keepApi } from './citizenStore.js';
-import { settlePouch, writePouch } from './pouch.js';
+import { settlePouch, commit } from './pouch.js';
 import { K } from './keys.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { cellAt, cellsWithin, neighboursOf } from '../geo/cells.js';
@@ -27,7 +27,7 @@ async function realm() {
   const rites = riteApi(() => store, cells, () => gateApi(() => store, cells));
   const keep = keepApi(() => store, cells);
   await keep.found(T0);
-  await writePouch(store, { ...EMPTY_POOL, wisdom: 999, mana: 400 }, T0);
+  await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, wisdom: 999, mana: 400 } }));
   await loreApi(() => store, cells).study('kindling', T0);
   return { store, rites, keep };
 }
@@ -109,7 +109,7 @@ describe('riteApi (BRDC-PROG-007)', () => {
     expect((await settlePouch(brackish.store, [farm, plain], at)).pool.mana).toBe(before - 30 + 2);
 
     const under = await knowing('undertow');
-    await writePouch(under.store, { ...EMPTY_POOL, wood: 100, mana: 400 }, T0);
+    await commit(under.store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, wood: 100, mana: 400 } }));
     expect((await under.rites.cast('undertow', T0)).ok).toBe(true);
     expect((await settlePouch(under.store, [farm, plain], T0)).pool.wood).toBe(110);
   });

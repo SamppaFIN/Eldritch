@@ -63,7 +63,7 @@ export async function castSpellAt(
   );
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   // An instant Rite is never stored: `activeSpells` would drop it on the next read
   // anyway, and a list that only grows is a list that eventually has to be swept.
   if (SPELLS[id].durationMs > 0) await store.set(K.spells, [...running, result.spell]);

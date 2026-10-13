@@ -57,7 +57,7 @@ export async function researchWorkAt(
   const result = researchNode(def, trees[h3] ?? [], nodeId, state.pool, true);
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   trees[h3] = result.learned;
   await store.set(K.worksTree, trees);
 

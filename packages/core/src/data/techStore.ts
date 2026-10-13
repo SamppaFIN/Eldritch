@@ -10,7 +10,7 @@ import type { TechId, TechResult } from '../rules/tech.js';
 import { DORMANT_AFTER_MS } from '../rules/terrain.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
-import { researchWith } from './pouch.js';
+import { researchWith } from './pouchSpend.js';
 import { readTempleSchools } from './templeStore.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';

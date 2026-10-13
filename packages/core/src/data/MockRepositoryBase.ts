@@ -16,7 +16,7 @@ import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, loyaltyOver, setStoredTerrain, sweepAndPersist } from './cellStore.js';
 import { dailyOmenFor, encounterOnStepFor, takeEncounterChoiceFor } from './encounterRepo.js';
 import { EMPTY_POOL, type ResourcePool, type ResourceKind } from '../rules/terrain.js';
-import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch, type Collected, type Forecast } from './pouch.js';
+import { collectPouch, commit, forecastRates, grantAll, resetPouch, settlePouch, type Collected, type Forecast } from './pouch.js';
 import { freeWardReady, wardAt } from './wardStore.js';
 import { closeWalk, submitWalk, type WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
@@ -210,8 +210,8 @@ export class MockRepositoryBase {
     await this.ensureSeeded({ ...position, t: now, accuracy: 0 });
     // The founding stash: once per game, and only into an empty pouch — one building's worth.
     if (!(await this.store.get<boolean>(K.starterGiven))) {
-      const bare = !Object.values(await this.getResources(now)).some((v) => v > 0);
-      if (bare) await writePouch(this.store, { ...EMPTY_POOL, ...STARTER_STASH }, now);
+      // Into an empty pouch only — judged inside the lock, against the pool as it is then.
+      await commit(this.store, now, (cur) => ((Object.values(cur.pool) as number[]).some((v) => v > 0) ? cur : { ...cur, pool: { ...EMPTY_POOL, ...STARTER_STASH } }));
       await this.store.set(K.starterGiven, true);
     }
     return h3;

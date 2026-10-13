@@ -7,7 +7,7 @@
  */
 import { projectCell } from '../rules/decay.js';
 import { underFortressAt } from './cellStore.js';
-import { wardWith } from './pouch.js';
+import { wardWith } from './pouchSpend.js';
 import { hasPerk } from '../rules/perks.js';
 import { writeLogEntry } from './logStore.js';
 import { K } from './keys.js';

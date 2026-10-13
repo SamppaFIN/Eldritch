@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { EMPTY_POOL, cellAt, neighboursOf } from '@es3/core';
-import { writePouch } from './pouch.js';
+import { commit } from './pouch.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
@@ -149,7 +149,7 @@ describe('claimStep on a Season 2 save — walking always claims (Infinite 2026-
   it('takes the hex with an empty pouch, and charges no culture', async () => {
     const { repo, store, near } = await repoWithHearth();
     await repo.keep.found(T0);
-    await writePouch(store, { ...EMPTY_POOL, culture: 3 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, culture: 3 } }));
     expect(await repo.claimStep(near, T0)).toMatchObject({ claimed: near });
     expect((await repo.getResources(T0)).culture).toBe(3);
   });

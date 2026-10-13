@@ -66,7 +66,7 @@ export async function payDebt(store: KeyValueStore, owned: readonly Cell[], now:
   if (!hasCondition(inv, 'debt', now)) return { ok: false, refused: 'no-debt' };
   const state = await settlePouch(store, owned, now);
   if (state.pool.gold < DEBT_GOLD) return { ok: false, refused: 'cannot-afford' };
-  await writePouch(store, { ...state.pool, gold: state.pool.gold - DEBT_GOLD }, now);
+  await writePouch(store, state.pool, { ...state.pool, gold: state.pool.gold - DEBT_GOLD }, now);
   await store.set(K.investigator, dropCondition(inv, 'debt'));
   return { ok: true };
 }

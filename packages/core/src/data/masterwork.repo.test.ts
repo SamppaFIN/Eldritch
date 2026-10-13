@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { masterworkApi } from './masterworkStore.js';
 import { keepApi } from './citizenStore.js';
-import { settlePouch, writePouch } from './pouch.js';
+import { settlePouch, commit } from './pouch.js';
 import { K } from './keys.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
@@ -25,7 +25,7 @@ describe('masterworkApi (BRDC-PROG-006)', () => {
     const cells = async () => Promise.all(ring.map(async (h) => (await store.get<Cell>(K.cell(h))) as Cell));
     const mw = masterworkApi(() => store, cells);
     await keepApi(() => store, cells).found(T0);
-    await writePouch(store, { ...EMPTY_POOL, stone: 400, iron: 400, wood: 400 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, stone: 400, iron: 400, wood: 400 } }));
 
     expect((await mw.view(T0))?.find((r) => r.id === 'fortress')?.ready).toBe(false);
     expect(await mw.raise('fortress', T0)).toEqual({ ok: false, refused: 'not-ready' });

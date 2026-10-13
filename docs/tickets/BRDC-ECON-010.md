@@ -7,7 +7,7 @@
 | **Effort** | M |
 | **Riippuvuudet** | — |
 | **Lähde** | keep-citizens:138:n juurisyy 2026-10-13 (v0.11.4): Keepin kirjoitukset kirjoittivat vanhan kopion takaisin |
-| **Status** | `todo` |
+| **Status** | `done` |
 
 ## 🔴 RED
 
@@ -22,10 +22,14 @@ Keepin kirjoitukset (`citizenStore`) kärsivät samasta ja korjattiin v0.11.4:ss
 
 ## 🟢 GREEN
 
-- [ ] `writePouch` korvataan muutoksella tuoreeseen tilaan (`commit(store, now, (cur) => …)`)
-      kaikissa 23 kutsujassa; hinta tarkistetaan lukon sisällä tuoretta poolia vasten
-- [ ] Testi: kaksi päällekkäistä kirjoitusta (palkinto + ostos) — molemmat näkyvät lopussa
-- [ ] `pnpm test && pnpm typecheck && pnpm lint:lines`
+- [~] `writePouch(store, before, after, now)` kirjoittaa **muutoksen** (`after − before`) tuoreeseen
+      pooliin lukon sisällä, ei koskaan alle nollan — kaikki 22 kutsujaa päivitetty, perustamislahja
+      tarkistaa tyhjän pussin lukon sisällä. Hinnan tarkistus tapahtuu yhä ennen lukkoa: kaksi
+      samanaikaista ostoa voi viedä resurssin nollaan (ei miinukselle). Täysi tarkistus lukon
+      sisällä vaatisi jokaisen säännön ajamisen siellä — ei tehty
+- [x] Testi: kaksi päällekkäistä kirjoitusta (palkinto + Ward) — molemmat näkyvät lopussa
+      (`pouchRace.repo.test.ts`; todennettu punaiseksi vanhalla `writePouch`illa: kulta 0, ei 30)
+- [x] `pnpm test && pnpm typecheck && pnpm lint:lines` (`pouch.ts` jaettu: `pouchSpend.ts`)
 
 ## Ei tässä
 

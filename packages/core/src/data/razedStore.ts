@@ -41,7 +41,7 @@ export async function takeRazed(
     }
     await writeLogEntry(store, { at: now, kind: 'demolish', ref: id });
   }
-  await writePouch(store, pool, now);
+  await writePouch(store, state.pool, pool, now);
   await store.delete(K.razed);
   return razed;
 }

@@ -120,7 +120,7 @@ export async function buildOn(
 
   const paid = spend(state.pool, priceFor(buildCost(id, copies), archetype, ally));
   if (!paid) return { ok: false, refused: 'cannot-afford' };
-  await writePouch(store, paid, now);
+  await writePouch(store, state.pool, paid, now);
 
   // An upgrade takes its predecessor's slot rather than sitting beside it (BUILD-007);
   // everything else joins what is already there, up to the per-cell cap `canBuild` checked.
@@ -161,7 +161,7 @@ export async function demolishOn(
   const back = refund(removed);
   const pool = { ...state.pool };
   for (const [k, v] of Object.entries(back) as [ResourceKind, number][]) pool[k] += v;
-  await writePouch(store, pool, now);
+  await writePouch(store, state.pool, pool, now);
 
   const left = here.filter((w) => w.id !== removed);
   const bare: Cell = { ...stored };

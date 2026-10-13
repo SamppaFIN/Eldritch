@@ -677,4 +677,4 @@ Counselin. Järjestys: 001 → 002 → 003 → 004 → 006 → 005.
 | [BRDC-ONBOARD-005](BRDC-ONBOARD-005.md) | Asteittain avautuva käyttöliittymä | M | `done` |
 | [BRDC-ONBOARD-006](BRDC-ONBOARD-006.md) | Luvut III–V: valtakunta, kaupunki, kausi | M | `done` |
 
-Käytettävyys jatkuu: [BRDC-HUD-006](BRDC-HUD-006.md) — kapea ja leveä HUD — `done`. [BRDC-ECON-010](BRDC-ECON-010.md) — pussin kirjoitukset lukon sisällä — `todo`.
+Käytettävyys jatkuu: [BRDC-HUD-006](BRDC-HUD-006.md) — kapea ja leveä HUD — `done`. [BRDC-ECON-010](BRDC-ECON-010.md) — pussin kirjoitukset lukon sisällä — `done`.

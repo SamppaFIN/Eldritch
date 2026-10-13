@@ -174,6 +174,6 @@ export async function takeEncounterChoice(
   const result = applyChoice(chain, 0, choiceIndex, state.pool);
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   return { ok: true, next: 'end', xp: result.xp };
 }

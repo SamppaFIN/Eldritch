@@ -60,7 +60,7 @@ export async function raiseAltarFor(
   const r = expandTemple(expansions[home] ?? 0, state.pool);
   if (!r.ok) return r;
 
-  await writePouch(store, r.pool, now);
+  await writePouch(store, state.pool, r.pool, now);
   await store.set(K.expansions, { ...expansions, [home]: r.level });
   await writeLogEntry(store, { at: now, kind: 'mana', ref: 'altar', count: r.level });
   return { ok: true, level: r.level };

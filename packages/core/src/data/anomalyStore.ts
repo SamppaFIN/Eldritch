@@ -120,7 +120,7 @@ export async function investigateAt(
   const result = beginInvestigation(cell, state.pool, now);
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   await store.set(K.cell(h3), result.cell);
   await writeLogEntry(store, { at: now, kind: 'anomaly', ref: 'begin' });
   return { ok: true };
@@ -151,7 +151,7 @@ export async function resolveAt(
   const state = await settlePouch(store, owned, now);
   const pool = { ...state.pool };
   for (const [k, v] of Object.entries(reward.pool) as [ResourceKind, number][]) pool[k] += v;
-  await writePouch(store, pool, now);
+  await writePouch(store, state.pool, pool, now);
   await store.set(K.cell(h3), { ...cell, anomaly: { startedAt: cell.anomaly.startedAt, done: true } });
   await writeLogEntry(store, { at: now, kind: 'anomaly', ref: 'resolve' });
   await findPage(store, h3, now); // a finished anomaly may turn up a page of the Book (BRDC-PAGES-001)
@@ -175,7 +175,7 @@ export async function chooseAt(
   const result = applyChoice(chainForCell(h3), stage, choiceIndex, state.pool);
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   const anomaly =
     result.next === 'end'
       ? { startedAt: cell.anomaly!.startedAt, done: true as const }

@@ -9,7 +9,7 @@ import { buildOn, templeAdjacentTo } from './buildStore.js';
 import { researchWorkAt } from './worksStore.js';
 import { readRevealed, readSighted } from './revealStore.js';
 import { keepApi } from './citizenStore.js';
-import { writePouch } from './pouch.js';
+import { commit } from './pouch.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { cellAt, cellsWithin, neighboursOf } from '../geo/cells.js';
 import type { Cell } from '../types/domain.js';
@@ -33,7 +33,7 @@ describe('a Watchtower sees (BRDC-WORKS-003)', () => {
   it('sees two rings when built, and further with the tree — sight, never a reveal', async () => {
     const store = new MemoryStore();
     await store.set(K.cell(TOWER), hill);
-    await writePouch(store, { ...EMPTY_POOL, wood: 999, stone: 999, iron: 999 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, wood: 999, stone: 999, iron: 999 } }));
     expect((await buildOn(store, TOWER, 'watchtower', 'me', [hill], [], T0)).ok).toBe(true);
     expect(Object.keys(await readSighted(store))).toHaveLength(cellsWithin(TOWER, 2).length);
     // The hexes it sees keep their own reveal, pay and all (v0.7.8 had taken it).

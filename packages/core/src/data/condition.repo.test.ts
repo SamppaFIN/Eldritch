@@ -4,7 +4,7 @@ import { MemoryStore } from './kv.js';
 import { K } from './keys.js';
 import { payDebt, settleConditions } from './conditionStore.js';
 import { rumourApi } from './deckStore.js';
-import { settlePouch, writePouch } from './pouch.js';
+import { settlePouch, commit } from './pouch.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { FIRST_INVESTIGATOR } from '../rules/investigator.js';
 import { gainCondition } from '../rules/condition.js';
@@ -49,7 +49,7 @@ describe('payDebt', () => {
   it('pays from the pouch and lifts the debt; without the gold it says so', async () => {
     const store = await withInvestigator(gainCondition(FIRST_INVESTIGATOR(T0), 'debt', T0));
     expect(await payDebt(store, [], T0)).toEqual({ ok: false, refused: 'cannot-afford' });
-    await writePouch(store, { ...EMPTY_POOL, gold: 80 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, gold: 80 } }));
     expect(await payDebt(store, [], T0)).toEqual({ ok: true });
     expect((await settlePouch(store, [], T0)).pool.gold).toBe(30);
     expect(await payDebt(store, [], T0)).toEqual({ ok: false, refused: 'no-debt' });

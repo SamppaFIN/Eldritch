@@ -55,7 +55,7 @@ export async function growHearthAt(
   const result = growHearth(state.pool, ring, Math.min(free.length, hearthRingHexes(next)));
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   const attacker = { id: profile.id, level: profile.level };
   const bought = free.slice(0, result.bought);
   for (const h3 of bought) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { reckoningApi } from './reckoningStore.js';
 import { keepApi } from './citizenStore.js';
-import { writePouch } from './pouch.js';
+import { commit } from './pouch.js';
 import { K } from './keys.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { STRIKE_COOLDOWN_MS } from '../rules/reckoning.js';
@@ -37,7 +37,7 @@ describe('reckoningApi (BRDC-DOOM-004)', () => {
     const r = reckoningApi(() => store, async () => []);
     await keepApi(() => store, async () => []).found(T0);
     expect(await r.rite(T0)).toEqual({ ok: false, refused: 'cannot-afford' });
-    await writePouch(store, { ...EMPTY_POOL, mana: 40 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, mana: 40 } }));
     expect(await r.rite(T0)).toEqual({ ok: true, damage: 150 });
   });
 });

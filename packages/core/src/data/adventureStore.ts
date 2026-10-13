@@ -129,7 +129,7 @@ export async function chooseAt(
   if (Object.keys(delta).length > 0) {
     const next = { ...pool };
     for (const [k, v] of Object.entries(delta) as [ResourceKind, number][]) next[k] += v;
-    await writePouch(store, next, now);
+    await writePouch(store, pool, next, now);
   }
 
   const ended = r.next === 'end';

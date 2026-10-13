@@ -13,10 +13,6 @@ import { realmBonus } from '../rules/hexYield.js';
 import type { YieldContext } from '../rules/hexYield.js';
 import type { WonderId } from '../rules/wonder.js';
 import { worksContext, worksContextFrom, type WorksContext } from './worksTrees.js';
-import { ward } from '../rules/ward.js';
-import type { WardResult } from '../rules/ward.js';
-import { research } from '../rules/tech.js';
-import type { ResearchResult, TechId } from '../rules/tech.js';
 import { buildingDayBonus, buildingsOf, storageCap } from '../rules/build.js';
 import { placesWithHome } from '../rules/dwell.js';
 import type { DwellMap } from '../rules/dwell.js';
@@ -31,7 +27,8 @@ import type { TradeRoute } from '../rules/tradeRoute.js';
 import type { CityStateId } from '../rules/cityState.js';
 import { CHOIR_FINALE, isFlooded } from '../rules/choir.js';
 import type { SeasonPhase } from '../rules/season.js';
-import type { CaptureOutcome, Cell, H3Index, PlayerId } from '../types/domain.js';
+import type { CaptureOutcome, Cell, H3Index } from '../types/domain.js';
+import type { TechId } from '../rules/tech.js';
 import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 
@@ -308,7 +305,7 @@ export async function grantAll(
   const cap = capFor(owned, await worksContext(store));
   const pool = { ...state.pool };
   for (const k of RESOURCE_KINDS) pool[k] = Math.min(capOf(cap, k), pool[k] + amount);
-  await writePouch(store, pool, now);
+  await writePouch(store, state.pool, pool, now);
 }
 
 /**
@@ -327,7 +324,7 @@ export async function grantBonus(
   for (const [k, v] of Object.entries(bonus) as [ResourceKind, number][]) {
     pool[k] = Math.min(capOf(cap, k), pool[k] + v);
   }
-  await writePouch(store, pool, now);
+  await writePouch(store, state.pool, pool, now);
 }
 
 /**
@@ -342,57 +339,31 @@ export async function resetPouch(store: KeyValueStore, now: number): Promise<Res
 }
 
 /**
- * Write a pool back without touching the trickle clock.
+ * Write a spend or a gain back without touching the trickle clock.
  *
- * For spending. `since` belongs to the trickle and must survive a purchase — moving it
- * would hand the player a free hour, or steal one, depending on which way it went.
+ * `since` belongs to the trickle and must survive a purchase — moving it would hand the
+ * player a free hour, or steal one, depending on which way it went.
+ *
+ * Written as the change it is — `after − before`, onto the pool as it stands inside the
+ * lock (BRDC-ECON-010). Writing `after` whole put back whatever landed between the read
+ * and the write: a reward and a purchase in the same moment lost one of the two. Never
+ * below zero, should two spends of the same thing cross.
  */
 export async function writePouch(
   store: KeyValueStore,
-  pool: ResourcePool,
+  before: ResourcePool,
+  after: ResourcePool,
   now: number,
 ): Promise<void> {
-  await commit(store, now, (cur) => ({ ...cur, pool }));
-}
-
-/**
- * Spend the pouch to ward one cell.
- *
- * Settles first: the trickle owed up to this moment has to be in the pool before it is
- * spent, or a player is refused a ward they had already earned the timber for.
- *
- * Returns the new cell rather than writing it — the cell store belongs to the repository
- * and this module only owns the ledger.
- */
-export async function wardWith(
-  store: KeyValueStore,
-  cell: Cell,
-  me: PlayerId,
-  owned: readonly Cell[],
-  now: number, cost?: Readonly<Partial<ResourcePool>>, // nothing for a free Ward (BRDC-MIND-001)
-): Promise<WardResult> {
-  const state = await settlePouch(store, owned, now);
-  const result = ward(cell, state.pool, me, cost);
-  if (result.warded) await writePouch(store, result.pool, now);
-  return result;
-}
-
-/**
- * Spend wisdom to research one technology (BRDC-TECH-001).
- *
- * The pouch's second verb, after warding. Settles first — the trickle owed up to now has
- * to be banked before it can be spent — and writes the pool back only on success. The
- * researched list itself belongs to the repository; this module only moves the wisdom.
- */
-export async function researchWith(
-  store: KeyValueStore,
-  researched: readonly TechId[],
-  id: TechId,
-  owned: readonly Cell[],
-  now: number,
-): Promise<ResearchResult> {
-  const state = await settlePouch(store, owned, now);
-  const result = research(researched, id, state.pool);
-  if (result.ok) await writePouch(store, result.pool, now);
-  return result;
+  await commit(store, now, (cur) => {
+    const pool = { ...cur.pool };
+    let moved = false;
+    for (const k of RESOURCE_KINDS) {
+      const d = after[k] - before[k];
+      if (d === 0) continue;
+      pool[k] = Math.max(0, pool[k] + d);
+      moved = true;
+    }
+    return moved ? { ...cur, pool } : cur;
+  });
 }

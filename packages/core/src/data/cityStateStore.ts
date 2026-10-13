@@ -103,7 +103,7 @@ export async function tradeAt(
   const result = trade(state.pool, give, want, parcel, terrorEffects(terror).tradeLoss);
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   await writeLogEntry(store, { at: now, kind: 'route', ref: city.id });
   return result;
 }

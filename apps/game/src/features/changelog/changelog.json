@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.11.6",
+    "date": "2026-10-13",
+    "notes": [
+      "A reward and a purchase at the same moment both count now. Before, one could undo the other: a reward vanished, or a price was never paid."
+    ]
+  },
+  {
     "version": "0.11.5",
     "date": "2026-10-13",
     "notes": [

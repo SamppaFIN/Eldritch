@@ -88,7 +88,7 @@ export function loreApi(
       const learned = await readLore(store());
       const check = canStudy(id, learned, state.pool.wisdom, price(id, await eurekaState(now)));
       if (!check.ok) return check;
-      await writePouch(store(), { ...state.pool, wisdom: state.pool.wisdom - check.cost }, now);
+      await writePouch(store(), state.pool, { ...state.pool, wisdom: state.pool.wisdom - check.cost }, now);
       const next = [...learned, id];
       await store().set(K.lore, next);
       await writeLogEntry(store(), { at: now, kind: 'research', ref: id });

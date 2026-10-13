@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { loreApi } from './loreStore.js';
 import { keepApi } from './citizenStore.js';
-import { settlePouch, writePouch } from './pouch.js';
+import { settlePouch, commit } from './pouch.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { worksApi } from './worksStore.js';
 import { WORKS_DEFS } from '../rules/works/defs/index.js';
@@ -24,7 +24,7 @@ describe('loreApi (BRDC-PROG-004)', () => {
     const lore = loreApi(() => store, async () => []);
     const keep = keepApi(() => store, async () => []);
     await keep.found(T0);
-    await writePouch(store, { ...EMPTY_POOL, wisdom: 500, food: 2000, stone: 2000 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, wisdom: 500, food: 2000, stone: 2000 } }));
 
     expect((await lore.view(T0))?.techs.find((t) => t.id === 'granaries')?.state).toBe('sealed');
     for (const id of ['husbandry', 'woodcraft'] as const) expect(await lore.study(id, T0)).toEqual({ ok: true, age: 1 });
@@ -53,7 +53,7 @@ describe('the Age is the ceiling for a building tree (BRDC-PROG-005)', () => {
     const works = worksApi(() => store, async () => 'me', async () => [farm]);
     const lore = loreApi(() => store, async () => [farm]);
     await keepApi(() => store, async () => [farm]).found(T0);
-    await writePouch(store, { ...EMPTY_POOL, wisdom: 999, food: 9999, wood: 9999, stone: 9999, gold: 9999, iron: 9999, culture: 9999, mana: 9999 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, wisdom: 999, food: 9999, wood: 9999, stone: 9999, gold: 9999, iron: 9999, culture: 9999, mana: 9999 } }));
 
     const tiers = WORKS_DEFS.farm.tree.tiers;
     const first = tiers[0]?.nodes[0]?.id as string;

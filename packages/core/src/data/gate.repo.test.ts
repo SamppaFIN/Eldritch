@@ -3,7 +3,7 @@ import { MemoryStore } from './kv.js';
 import { gateApi } from './gateStore.js';
 import { keepApi } from './citizenStore.js';
 import { riteApi } from './riteStore.js';
-import { writePouch } from './pouch.js';
+import { commit } from './pouch.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { K } from './keys.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
@@ -99,7 +99,7 @@ describe('gateApi (BRDC-DOOM-002)', () => {
   it('Elder Sign seals the nearest gate from afar and brings clues (BRDC-PROG-007)', async () => {
     const { store, gates, gate } = await withGate();
     const cells = async () => Promise.all(held.map(async (c) => (await store.get<Cell>(K.cell(c.h3))) as Cell));
-    await writePouch(store, { ...EMPTY_POOL, mana: 100 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, mana: 100 } }));
     await store.set(K.rites, { schools: ['ward'], learned: { 'elder-sign': 1 }, castAt: {} });
     expect((await riteApi(() => store, cells, () => gates).cast('elder-sign', T0)).ok).toBe(true);
     const v = await gates.view(T0);

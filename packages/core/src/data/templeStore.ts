@@ -53,7 +53,7 @@ export async function consecrateAt(
     const state = await settlePouch(store, owned, now);
     const paid = spend(state.pool, cost);
     if (!paid) return { ok: false, refused: 'cannot-afford' };
-    await writePouch(store, paid, now);
+    await writePouch(store, state.pool, paid, now);
   }
 
   await store.set(K.dwell, { ...dwell, [h3]: Math.max(dwellMs, TEMPLE_THRESHOLD_MS) });
@@ -88,7 +88,7 @@ export async function expandTempleAt(
   const result = expandTemple(expansions[h3] ?? 0, state.pool);
   if (!result.ok) return result;
 
-  await writePouch(store, result.pool, now);
+  await writePouch(store, state.pool, result.pool, now);
   await store.set(K.expansions, { ...expansions, [h3]: result.level });
   await writeLogEntry(store, { at: now, kind: 'expand', count: result.level });
   return { ok: true, level: result.level };

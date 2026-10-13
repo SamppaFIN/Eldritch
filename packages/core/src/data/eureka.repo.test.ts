@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { loreApi } from './loreStore.js';
 import { keepApi } from './citizenStore.js';
-import { settlePouch, writePouch } from './pouch.js';
+import { settlePouch, commit } from './pouch.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { loreCost } from '../rules/lore.js';
 import { cellAt, cellsWithin } from '../geo/cells.js';
@@ -24,7 +24,7 @@ describe('eurekas in the Lore (BRDC-EUREKA-001)', () => {
     await keepApi(() => store, async () => cells).found(T0);
     const full = loreCost(1);
     const half = Math.floor(full / 2);
-    await writePouch(store, { ...EMPTY_POOL, wisdom: half }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, wisdom: half } }));
 
     const row = (await lore.view(T0))?.techs.find((t) => t.id === 'woodcraft');
     expect(row?.eureka).toEqual({ text: 'Hold 3 forest hexes', have: 3, need: 3, met: true });

@@ -177,7 +177,7 @@ describe('a no-op settle does not write (BRDC-ECON-006)', () => {
       sinceDay: T0 - HOUR,
     });
 
-    const spend = writePouch(store, { ...EMPTY_POOL }, T0); // the build, debiting to zero
+    const spend = writePouch(store, { ...EMPTY_POOL, stone: 60 }, { ...EMPTY_POOL }, T0); // the build, debiting to zero
     const settle = settlePouch(store, [], T0); // a poll, nudging the clock
     await Promise.all([spend, settle]);
 

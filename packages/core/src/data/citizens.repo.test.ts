@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryStore } from './kv.js';
 import { keepApi, titheAtKeep } from './citizenStore.js';
-import { settlePouch, writePouch } from './pouch.js';
+import { settlePouch, commit } from './pouch.js';
 import { EMPTY_POOL } from '../rules/terrain.js';
 import { cellAt } from '../geo/cells.js';
 import type { Cell } from '../types/domain.js';
@@ -28,7 +28,7 @@ describe('keepApi', () => {
     const keep = keepApi(() => store, async () => []);
     await keep.found(T0);
     expect(await keep.raise(T0)).toEqual({ ok: false, refused: 'cannot-afford' });
-    await writePouch(store, { ...EMPTY_POOL, food: 500, stone: 500 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, food: 500, stone: 500 } }));
     expect(await keep.raise(T0)).toMatchObject({ ok: true, paid: { food: 100, stone: 50 } });
     expect((await settlePouch(store, [], T0)).pool).toMatchObject({ food: 400, stone: 450 });
     expect((await keep.view(T0))?.housing).toBe(9);
@@ -116,7 +116,7 @@ describe('raising the Keep widens the Hearth (Infinite 2026-09-30)', () => {
     await store.set(K.cell(ring2[0] as string), { h3: ring2[0], ownerId: 'rival', strength: 100, lastVisitedAt: T0, visitDays: [] });
     const keep = keepApi(() => store, async () => []);
     await keep.found(T0);
-    await writePouch(store, { ...EMPTY_POOL, food: 500, stone: 500 }, T0);
+    await commit(store, T0, (cur) => ({ ...cur, pool: { ...EMPTY_POOL, food: 500, stone: 500 } }));
     const r = await keep.raise(T0);
     expect(r).toMatchObject({ ok: true, hearth: { ring: 2, claimed: 11 } });
     expect(await store.get(K.hearthRing)).toBe(2);
