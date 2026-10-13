@@ -1,5 +1,12 @@
 [
   {
+    "version": "0.11.3",
+    "date": "2026-10-13",
+    "notes": [
+      "Choosing the week's boon now holds the list until the boon is taken. Before, the choice cleared at once and could look as if nothing had happened."
+    ]
+  },
+  {
     "version": "0.11.2",
     "date": "2026-10-13",
     "notes": [

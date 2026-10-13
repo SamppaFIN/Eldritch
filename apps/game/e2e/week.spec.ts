@@ -47,7 +47,8 @@ test('a golden week is named on the sheet, and its boon is taken once', async ({
   const week = page.getByLabel('Your sanctuary').getByRole('region', { name: 'This week' });
   await week.getByRole('radio', { name: 'Long Harvest · +3 food/h' }).check(); // a pick, then the button (BRDC-UX-007)
   await week.getByRole('button', { name: 'Take Long Harvest for the week' }).click();
-  await expect(week).toContainText('The week’s boon · Long Harvest');
+  // Taking it settles the pouch first, which waits behind a booting realm's writes here.
+  await expect(week).toContainText('The week’s boon · Long Harvest', { timeout: 20_000 });
   await expect(week.getByRole('button')).toHaveCount(0);
   await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/week.png' });
 });

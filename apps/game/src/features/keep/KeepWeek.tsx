@@ -14,6 +14,9 @@ const said = (p: Partial<Record<string, number>>) =>
 
 export function KeepWeek({ repository, now }: { repository: GameRepository | null; now: number }) {
   const [week, setWeek] = useState<WeekView | null>(null);
+  // The choice settles the pouch first, and that can wait seconds behind a booting
+  // realm's writes: hold the list, so the cleared pick does not read as "nothing happened".
+  const [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
     if (repository) setWeek(await repository.week.view(now));
   }, [repository, now]);
@@ -22,7 +25,10 @@ export function KeepWeek({ repository, now }: { repository: GameRepository | nul
   }, [load]);
 
   if (!repository || !week || week.kind === 'plain') return null;
-  const choose = (id: BoonId) => void repository.week.chooseBoon(id, now).then(load);
+  const choose = (id: BoonId) => {
+    setBusy(true);
+    void repository.week.chooseBoon(id, now).then(load).finally(() => setBusy(false));
+  };
 
   return (
     <>
@@ -40,6 +46,7 @@ export function KeepWeek({ repository, now }: { repository: GameRepository | nul
             choices={week.choices.map((b) => ({ id: b.id, name: b.name, detail: `${said(b.perHour)}/h` }))}
             confirm={(b) => `Take ${b.name} for the week`}
             onConfirm={choose}
+            busy={busy}
           />
         ) : null}
       </section>

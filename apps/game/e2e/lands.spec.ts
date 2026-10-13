@@ -14,6 +14,10 @@ const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
 async function openLands(page: Page) {
+  // A reveal can find a wonder (BRDC-WONDER-001), and the founding ring here holds one: its
+  // card is a real modal and takes the next tap. Close it the way a player would, whenever
+  // it stands in the way — the find is the wonder spec's to test, not this one's.
+  await page.addLocatorHandler(page.locator('.wonder__close'), (close) => close.click());
   await open(page, HERE);
   await expect(page.locator('.hud__value--pouch')).toContainText('60', { timeout: 25_000 });
   // Own lands are a button on the walking sheet (Infinite 2026-09-30).

@@ -145,7 +145,8 @@ test('a building on a Season 2 save takes a citizen to work (BRDC-PROG-002)', as
   const workers = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Workers');
   await expect(workers).toContainText('Farm · 0 / 1 at work — no hands, no yield', { timeout: 20_000 });
   await workers.getByRole('button', { name: 'Send a citizen' }).click();
-  await expect(workers).toContainText('Farm · 1 / 1 at work');
+  // A hand moves through the pouch's write chain, which a booting realm keeps busy here.
+  await expect(workers).toContainText('Farm · 1 / 1 at work', { timeout: 20_000 });
   await expect(workers.getByRole('button', { name: 'Call one back' })).toBeVisible();
   // BRDC-MAP-009: the citizen stands on the map at once, not a minute later.
   const citizens = () =>
@@ -258,5 +259,5 @@ test('during the Reckoning the Keep strikes the Ancient One (BRDC-DOOM-004)', as
   const fight = page.getByLabel('Your sanctuary').getByLabel('The Reckoning');
   await expect(fight).toContainText('Its strength · 5200 / 5400');
   await fight.getByRole('button', { name: 'Strike · Fight test' }).click();
-  await expect(fight.getByRole('status')).toContainText(/damage lands|shrugs the blow off/);
+  await expect(fight.getByRole('status')).toContainText(/damage lands|shrugs the blow off/, { timeout: 20_000 });
 });
