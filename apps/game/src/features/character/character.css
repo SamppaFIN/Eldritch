@@ -70,6 +70,8 @@
 .character__avatar-ring {
   position: absolute;
   inset: 0;
+  /* Drawn over the Sigil button, and only decoration: the tap goes through to the button. */
+  pointer-events: none;
   inline-size: 100%;
   block-size: 100%;
 }

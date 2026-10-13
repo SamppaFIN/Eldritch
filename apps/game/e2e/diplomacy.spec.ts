@@ -18,98 +18,31 @@ const QUAY_CENTRE = cellCentre(cellAt(QUAY));
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
 /**
- * Free the camera, put the quay under the crosshair, and tap it.
+ * Walk to `at` and open the hex underfoot.
  *
- * The recenter button only ever *pins* — the camera is unpinned by a real drag, which is
- * why this pans by hand first (`useCameraFollow`). Without that, `jumpTo` is undone by the
- * follow animation within a second and the tap lands back on the player's own hex.
+ * This used to free the camera, put the quay under the crosshair and tap it. Fog of war
+ * draws only your own ground and its ring now, so a village 270 m away is not on the map
+ * to be tapped — and reaching a city state was always meant to be a walk to a place. The
+ * wait keeps the jump under `MAX_SPEED_MS`, so the fix is accepted, not rejected as a
+ * teleport.
  */
-async function tapTheQuay(page: Page) {
-  const vs = page.viewportSize();
-  const sx = (vs?.width ?? 360) - 20;
-  const sy = (vs?.height ?? 640) / 2;
-  const unpinned = page.getByRole('button', { name: 'Recenter the map on you' });
-
-  // A drag is the only thing that unpins, and on a dense map it does not always take —
-  // the same retry `map.spec.ts` needs.
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await page.mouse.move(sx, sy);
-    await page.mouse.down();
-    for (let i = 1; i <= 10; i += 1) {
-      await page.mouse.move(sx - i * 20, sy - i * 7);
-      await page.waitForTimeout(15);
-    }
-    await page.mouse.up();
-    await page.waitForTimeout(500);
-    if (await unpinned.isVisible().catch(() => false)) break;
-  }
-  await expect(unpinned).toBeVisible();
-
-  // A drag on this map can also land a tap; clear the sheet before the real one.
-  const sheet = page.locator('.cell-panel');
-  for (let attempt = 0; attempt < 3 && (await sheet.isVisible().catch(() => false)); attempt += 1) {
-    await page.locator('.cell-panel__close').click({ force: true }).catch(() => undefined);
-    await page.waitForTimeout(300);
-  }
-
-  /*
-   * Centre the quay and tap it. The camera eases back to the player while it is pinned,
-   * so the tap must not wait for an animation to undo the jump — and a hex is a small
-   * target, so a miss lands on a neighbour of the quay rather than the quay itself. Both
-   * are why this retries rather than asserting on one shot.
-   */
-  const canvas = page.locator('.maplibregl-canvas');
-  const box = await canvas.boundingBox();
-  const cx = (box?.width ?? 640) / 2;
-  const cy = (box?.height ?? 400) / 2;
-  /*
-   * A res-11 hex is about 45 m across, which at zoom 18 is roughly seventy pixels — so a
-   * miss has to be corrected by tens of pixels, not by six. This walks the quay's own hex
-   * and its six neighbours until the trade panel appears.
-   */
-  const R = 70;
-  const nudges = [
-    { x: 0, y: 0 },
-    { x: R, y: 0 },
-    { x: -R, y: 0 },
-    { x: R / 2, y: R },
-    { x: -R / 2, y: R },
-    { x: R / 2, y: -R },
-    { x: -R / 2, y: -R },
-  ];
-
-  for (const nudge of nudges) {
-    // Clear the previous miss at the *start*, so the last attempt leaves its card open.
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
-    await page.evaluate(({ lat, lng }: { lat: number; lng: number }) => {
-      const map = (globalThis as unknown as {
-        __esMap?: { jumpTo: (o: { center: [number, number]; zoom: number }) => void };
-      }).__esMap;
-      map?.jumpTo({ center: [lng, lat], zoom: 18 });
-    }, QUAY_CENTRE);
-
-    // The jump is synchronous but the frame it produces is not; let it land before tapping.
-    await page.waitForTimeout(250);
-    // The onboarding card ("Understood · +10 wisdom") can sit over the map and swallow the
-    // tap — the same interceptor `map.spec.ts` dismisses.
-    await page.locator('.unlock__read').click({ force: true, timeout: 1_000 }).catch(() => undefined);
-    await canvas.click({ position: { x: cx + nudge.x, y: cy + nudge.y } });
-    // Wait for *a* card before asking whether it is the quay — under load the tap and the
-    // panel are far enough apart that checking straight away reads the previous state.
-    await sheet.first().waitFor({ state: 'visible', timeout: 8_000 }).catch(() => undefined);
-    if (await page.getByRole('button', { name: 'Trade post' }).isVisible().catch(() => false)) break;
-  }
-
+async function walkTo(page: Page, at: { lat: number; lng: number }) {
+  await page.waitForTimeout(45_000);
+  await page.context().setGeolocation({ latitude: at.lat, longitude: at.lng, accuracy: 8 });
   const card = page.getByRole('region', { name: 'Selected cell' });
-  await expect(card).toBeVisible({ timeout: 15_000 });
+  // "Here" opens the hex underfoot once the fix has landed; retry until it is the village's.
+  await expect(async () => {
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Here', exact: true }).click();
+    await expect(card).toContainText('Härmälänranta', { timeout: 3_000 });
+  }).toPass({ timeout: 40_000 });
   return card;
 }
 
 test('the village is on the map, named, and holds for good', async ({ page }) => {
   test.setTimeout(200_000);
   await open(page, HERE);
-  const card = await tapTheQuay(page);
+  const card = await walkTo(page, QUAY_CENTRE);
 
   // Named, rather than the generic "Held by another" every rival gets.
   await expect(card).toContainText('Härmälänranta');
@@ -142,12 +75,7 @@ test('a village hex says where its quay is', async ({ page }) => {
    */
   test.setTimeout(200_000);
   await open(page, HERE);
-  await tapTheQuay(page);
-
-  // Whichever hex of the village the tap landed on, it names the village — and if it is
-  // not the quay, it says how far the quay is.
-  const card = page.getByRole('region', { name: 'Selected cell' });
-  await expect(card).toContainText('Härmälänranta');
-  const onQuay = await page.getByRole('button', { name: 'Trade post' }).isVisible().catch(() => false);
-  if (!onQuay) await expect(card).toContainText(/quay is .* from here|quay is the next hex/);
+  // One hex south of the quay: inside the village, and not its door.
+  const card = await walkTo(page, { lat: QUAY_CENTRE.lat - 45 / 111_320, lng: QUAY_CENTRE.lng });
+  await expect(card).toContainText(/quay is .* from here|quay is the next hex/);
 });

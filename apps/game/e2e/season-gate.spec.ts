@@ -94,7 +94,8 @@ test('a ruin of last season’s Fortress can be searched once (BRDC-SEASON-007)'
   const ruin = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Ruins');
   await expect(ruin).toContainText('Ruins of a Fortress', { timeout: 20_000 });
   await ruin.getByRole('button', { name: 'Search the ruins' }).click();
-  await expect(ruin.getByRole('status')).not.toBeEmpty();
+  // The find pays into the pouch, whose write chain a reloaded realm keeps busy here.
+  await expect(ruin.getByRole('status')).not.toBeEmpty({ timeout: 20_000 });
   await expect(ruin.getByRole('button', { name: 'Search the ruins' })).toHaveCount(0);
 });
 
@@ -127,6 +128,6 @@ test('a wonder the realm found offers its action once a day (BRDC-SEASON-008)', 
   const wonder = page.getByRole('region', { name: 'Selected cell' }).getByLabel('Wonder');
   await expect(wonder).toContainText('Innsmouth · The Catch.', { timeout: 20_000 });
   await wonder.getByRole('button', { name: 'Use · The Catch' }).click();
-  await expect(wonder.getByRole('status')).toContainText('Gain 60 food.');
+  await expect(wonder.getByRole('status')).toContainText('Gain 60 food.', { timeout: 20_000 });
   await expect(wonder.getByRole('button', { name: 'Resting until tomorrow' })).toBeDisabled();
 });

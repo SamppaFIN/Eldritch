@@ -77,9 +77,23 @@ export interface KeepApi {
   counsel(now: number): Promise<Counsel[] | null>;
 }
 
-/** Write the Keep beside the pouch it lives in, with the pool it paid from. */
-async function writeKeep(store: KeyValueStore, keep: KeepState, pool: ResourcePool, now: number): Promise<void> {
-  await commit(store, now, (cur) => ({ ...cur, pool, keep }));
+/**
+ * Change the Keep inside the pouch's lock, against the record as it is *now*.
+ *
+ * Every Keep write used to settle, then write back the whole Keep and pool it had read —
+ * so two at once (a hand sent to work while the Keep collected its tithe) put each other's
+ * change back, and one citizen could be sent to two places. `change` gets the fresh Keep
+ * and returns the new one, or null to write nothing.
+ */
+function changeKeep(
+  store: KeyValueStore,
+  now: number,
+  change: (keep: KeepState, pool: ResourcePool) => { keep: KeepState; pool?: ResourcePool } | null,
+): Promise<ResourceState> {
+  return commit(store, now, (cur) => {
+    const next = cur.keep ? change(cur.keep, cur.pool) : null;
+    return next ? { ...cur, keep: next.keep, pool: next.pool ?? cur.pool } : cur;
+  });
 }
 
 /**
@@ -89,7 +103,7 @@ async function writeKeep(store: KeyValueStore, keep: KeepState, pool: ResourcePo
 export async function titheAtKeep(store: KeyValueStore, owned: readonly Cell[], now: number): Promise<boolean> {
   const state = await settlePouch(store, owned, now);
   if (!state.keep) return false;
-  await writeKeep(store, { ...state.keep, titheAt: now }, state.pool, now);
+  await changeKeep(store, now, (keep) => ({ keep: { ...keep, titheAt: now } }));
   return true;
 }
 
@@ -122,11 +136,18 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
     },
     raise: async (now) => {
       const state = await settlePouch(store(), await owned(now), now);
-      const result = raiseKeep(state.keep, state.pool, keepCeiling(await readLore(store())));
+      const ceiling = keepCeiling(await readLore(store()));
+      // Judged again inside the lock, against the pool as it is when the price is paid.
+      let result: KeepRaiseResult = raiseKeep(state.keep, state.pool, ceiling);
       if (result.ok) {
-        const { food, stone } = result.paid;
-        const pool = { ...state.pool, food: state.pool.food - food, stone: state.pool.stone - stone };
-        await writeKeep(store(), result.keep, pool, now);
+        await changeKeep(store(), now, (keep, pool) => {
+          result = raiseKeep(keep, pool, ceiling);
+          if (!result.ok) return null;
+          const { food, stone } = result.paid;
+          return { keep: result.keep, pool: { ...pool, food: pool.food - food, stone: pool.stone - stone } };
+        });
+      }
+      if (result.ok) {
         const profile = await store().get<PlayerProfile>(K.profile);
         const hearth = profile ? await widenHearth(store(), profile, now) : null;
         return hearth ? { ...result, hearth } : result;
@@ -134,8 +155,8 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
       return result;
     },
     found: async (now) => {
-      const state = await settlePouch(store(), await owned(now), now);
-      if (!state.keep) await writeKeep(store(), { ...FIRST_KEEP, titheAt: now }, state.pool, now);
+      await settlePouch(store(), await owned(now), now);
+      await commit(store(), now, (cur) => (cur.keep ? cur : { ...cur, keep: { ...FIRST_KEEP, titheAt: now } }));
     },
     staffOn: async (h3, now) => {
       const cells = await owned(now);
@@ -169,9 +190,13 @@ export function keepApi(store: () => KeyValueStore, owned: (now: number) => Prom
       if (!keep) return { ok: false, refused: 'no-keep' };
       if (!cell) return { ok: false, refused: 'none-there' };
       const level = (await worksViewAt(store(), cell))?.level ?? 0;
-      const r = assignWorker(keep.staff ?? {}, keep.granary.citizens, h3, id, delta, level);
+      // Assigned inside the lock: two taps at once must not send one citizen to two places.
+      let r: ReturnType<typeof assignWorker> = assignWorker(keep.staff ?? {}, keep.granary.citizens, h3, id, delta, level);
+      await changeKeep(store(), now, (fresh) => {
+        r = assignWorker(fresh.staff ?? {}, fresh.granary.citizens, h3, id, delta, level);
+        return r.ok ? { keep: { ...fresh, staff: r.staff } } : null;
+      });
       if (!r.ok) return r;
-      await writeKeep(store(), { ...keep, staff: r.staff }, state.pool, now);
       // A hand in a Watchtower lets it see a ring further (field report 2026-09-30).
       if (id === 'watchtower' && delta > 0) await towerSight(store(), h3, now);
       return { ok: true };

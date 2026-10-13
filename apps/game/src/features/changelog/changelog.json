@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.11.4",
+    "date": "2026-10-13",
+    "notes": [
+      "A citizen sent to work stays at work. If the Keep collected its stores at the same moment, the citizen could go home again. One citizen could also be sent to two places at once.",
+      "If the phone loses its position for a moment, the game keeps where you last were. Before, Here could not find you until the next fix.",
+      "A wonder's answer stays on its card after you use it. Before, it vanished at once. The same goes for a refusal when sending a citizen to work.",
+      "The Sigil on the You screen opens when tapped in the middle. The ring around it took the tap."
+    ]
+  },
+  {
     "version": "0.11.3",
     "date": "2026-10-13",
     "notes": [

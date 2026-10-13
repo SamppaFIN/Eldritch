@@ -103,11 +103,15 @@ export function usePositionSource({
           setState((prev) => ({ ...prev, status: 'searching' }));
           return;
         }
-        setState({
-          point: null,
-          status: err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable',
-          source: 'device',
-        });
+        // POSITION_UNAVAILABLE is often a moment, too — the signal drops, the watch carries
+        // on. Say so, but keep the last good point: wiping it left the marker where it was
+        // and the game unable to say where you are ("Here" flew nowhere). Only a refusal
+        // takes the position away.
+        if (err.code !== err.PERMISSION_DENIED) {
+          setState((prev) => ({ ...prev, status: 'unavailable' }));
+          return;
+        }
+        setState({ point: null, status: 'denied', source: 'device' });
       },
       // maximumAge 0: a cached fix from an hour ago is worse than no fix, because
       // it would be accepted as movement and draw a line the player never walked.

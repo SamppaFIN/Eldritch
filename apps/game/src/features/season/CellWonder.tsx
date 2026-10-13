@@ -23,8 +23,10 @@ export function CellWonder({ repository, h3, mine, now }: { repository: GameRepo
   const [here, setHere] = useState<WonderHere | null>(null);
   const [said, setSaid] = useState<string | null>(null);
 
+  // What was said clears with the hex, not with the clock: `now` is new on almost every
+  // render of the panel, and clearing on it wiped the answer the moment it was shown.
+  useEffect(() => setSaid(null), [h3]);
   useEffect(() => {
-    setSaid(null);
     if (repository) void repository.wonderActs.at(h3, now).then(setHere);
   }, [repository, h3, now]);
 

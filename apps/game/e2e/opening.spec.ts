@@ -95,15 +95,27 @@ test('a greyed action says what it is waiting for (BRDC-UI-002)', async ({ page 
   const card = page.getByRole('region', { name: 'Selected cell' });
   await expect(card).toBeVisible({ timeout: 10_000 });
 
-  // The Hearth is the Anchor Stone, so it offers no Consecrate (it used to, while the
-  // Anchor was missing — BRDC-MAP-007). Ward is the greyed action here: no timber yet.
+  // The founding stash pays for one Ward (40 timber, 25 a Ward), so spend it here: the
+  // next hex's Ward is then the greyed action, 10 timber short.
   const row = card.getByRole('group', { name: 'Actions on this hex' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
   const ward = card.getByRole('button', { name: /^Ward/ });
-  await behindMore(row, ward); // a grey press waits behind More
-  await expect(ward).toBeDisabled();
+  await behindMore(row, ward);
+  await ward.click();
+  await expect(page.locator('.hud__chip[data-resource="wood"]')).toContainText('15', { timeout: 15_000 });
+
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Lands', exact: true }).click();
+  const lands = page.getByRole('region', { name: 'Your lands' });
+  await lands.locator('.lands__cell').nth(1).click();
+  const next = page.getByRole('region', { name: 'Selected cell' });
+  const nextRow = next.getByRole('group', { name: 'Actions on this hex' }).first();
+  await expect(nextRow).toBeVisible({ timeout: 10_000 });
+  const greyWard = next.getByRole('button', { name: /^Ward/ });
+  await behindMore(nextRow, greyWard); // a grey press waits behind More
+  await expect(greyWard).toBeDisabled();
   // It names the shortfall in the game's own words.
-  await expect(card).toContainText(/Short .*timber/);
+  await expect(next).toContainText(/Short .*timber/);
 });
 
 test('Ward explains itself on ground that is already as safe as it gets', async ({ page }) => {

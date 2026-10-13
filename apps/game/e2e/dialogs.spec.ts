@@ -123,7 +123,9 @@ test('resetting asks, and says exactly what it will do', async ({ page }) => {
 
 test('resetting actually empties the sanctuary', async ({ page }) => {
   test.setTimeout(120_000);
-  await openMap(page);
+  // Without "Show everything": its init script writes settings back on every load, and the
+  // point here is that nothing comes back after the reset's reload.
+  await open(page, HERE, undefined, undefined, false);
 
   // Give it something to lose.
   await page.waitForTimeout(2_000);

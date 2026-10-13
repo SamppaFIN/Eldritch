@@ -31,8 +31,9 @@ export function CellStaff({ repository, h3, now, onChanged }: CellStaffProps) {
   const [said, setSaid] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // A refusal clears with the hex, not with the clock — `now` changes on almost every render.
+  useEffect(() => setSaid(null), [h3]);
   useEffect(() => {
-    setSaid(null);
     if (repository) void repository.keep.staffOn(h3, now).then(setRows);
   }, [repository, h3, now]);
 
