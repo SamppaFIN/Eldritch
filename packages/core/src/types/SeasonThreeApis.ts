@@ -16,6 +16,7 @@ import type { MaskApi } from '../data/maskStore.js';
 import type { PropellerApi } from '../data/propellerStore.js';
 import type { OtherWorldApi } from '../data/otherWorldStore.js';
 import type { MonsterApi } from '../data/monsterStore.js';
+import type { CharterApi } from '../data/charterStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -46,4 +47,6 @@ export interface SeasonThreeApis {
   readonly otherWorld: OtherWorldApi;
   /** Creatures let out of gates, walking on the Keep (BRDC-MONSTER-001). */
   readonly monsters: MonsterApi;
+  /** The Keeper's Charter: one step at a time, rewards that lead on (BRDC-ONBOARD-001). */
+  readonly charter: CharterApi;
 }

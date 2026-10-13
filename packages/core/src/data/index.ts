@@ -34,6 +34,7 @@ export type { ChooseOutcome, InvestigatorApi, InvestigatorView } from './investi
 export type { TaskApi, TaskOutcome, TaskView } from './taskStore.js';
 export type { MythosApi, MythosToday } from './mythosStore.js';
 export type { AmbitionApi, AmbitionOutcome, AmbitionView } from './ambitionStore.js';
+export type { CharterApi, CharterOutcome, CharterPage } from './charterStore.js';
 export type { EraApi, EraOutcome, EraView } from './eraStore.js';
 export type { WeekApi, WeekOutcome, WeekView } from './ageStore.js';
 export type { DreamApi, DreamOutcome, DreamView } from './dreamStore.js';

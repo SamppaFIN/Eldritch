@@ -369,3 +369,16 @@
   color: var(--text-muted);
   font-size: var(--text-sm);
 }
+
+/* The Keeper's Charter (BRDC-ONBOARD-001): the chapter as a small gold eyebrow, the reward quiet. */
+.keep-charter__chapter {
+  color: var(--sacred-gold);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.keep-charter__reward {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+}

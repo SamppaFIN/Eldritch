@@ -34,5 +34,6 @@ describe('text', () => {
     expect(whenText(60)).toBe('3 d');
     expect(upNextText({ id: 'l', label: 'Lookouts', hours: 2 })).toBe('Lookouts 2 h');
     expect(upNextText({ id: 't', label: 'Cornelius', have: 3, need: 5 })).toBe('Cornelius 3/5');
+    expect(upNextText({ id: 'c', label: 'Reveal a hex' })).toBe('Reveal a hex');
   });
 });

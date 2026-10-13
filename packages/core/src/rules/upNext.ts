@@ -39,8 +39,9 @@ export function whenText(hours: number): string {
   return `${Math.round(hours / 24)} d`;
 }
 
-/** One row as the strip says it: "Lookouts 2 h", "Cornelius Needs Company 3/5". */
+/** One row as the strip says it: "Lookouts 2 h", "Cornelius Needs Company 3/5", or the bare label. */
 export function upNextText(i: UpNextItem): string {
   if (i.hours !== undefined) return `${i.label} ${whenText(i.hours)}`;
+  if (!i.need) return i.label;
   return `${i.label} ${i.have ?? 0}/${i.need ?? 0}`;
 }

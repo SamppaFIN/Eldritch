@@ -29,6 +29,7 @@ import { KeepDoom } from '../keep/KeepDoom.js';
 import { KeepReckoning } from '../keep/KeepReckoning.js';
 import { KeepAmbition } from '../keep/KeepAmbition.js';
 import { KeepWeek } from '../keep/KeepWeek.js';
+import { KeepCharter } from '../keep/KeepCharter.js';
 import { KeepGreat } from '../keep/KeepGreat.js';
 import { KeepMysteries } from '../keep/KeepMysteries.js';
 import { KeepLegacy } from '../keep/LegacyTally.js';
@@ -76,6 +77,8 @@ export interface HearthPanelProps {
   onPublish?: (() => Promise<PublishResult>) | undefined;
   /** Opens the weakest cell, so the fix for a warning is one tap from the warning. */
   onWeakest: (h3: string) => void;
+  /** Opens Research, for the Charter's "Show me" on a Lore step (BRDC-ONBOARD-001). */
+  onResearch?: (() => void) | undefined;
   /** New ground appeared without a step — Hearth growth (BRDC-HEARTH-003). Redraw the map. */
   onGrown?: (() => void) | undefined;
   onClose: () => void;
@@ -95,6 +98,7 @@ export function HearthPanel({
   onWager,
   onPublish,
   onWeakest,
+  onResearch,
   onGrown,
   onClose,
 }: HearthPanelProps) {
@@ -162,6 +166,7 @@ export function HearthPanel({
       {/* Every tab stays mounted — the gates' daily sync and the Doom's outbox run when the
           Keep opens, as they always did; only what is shown changes (BRDC-UX-004). */}
       <div hidden={tab !== 'today'}>
+        <KeepCharter repository={repository} now={now} onPouch={onPouch} show={{ research: onResearch, hex: onWeakest }} />
         <KeepWeek repository={repository} now={now} />
         <KeepCitizens repository={repository} now={now} onPouch={onPouch} onGrown={onGrown ?? (() => {})} />
 

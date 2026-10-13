@@ -660,3 +660,19 @@ UX-001…003 koskevat myös nykyistä peliä; ne voi poimia `main`iin hotfixinä
 | [BRDC-UX-006](BRDC-UX-006.md) | Lore tiiviimmäksi | S |
 | [BRDC-UX-007](BRDC-UX-007.md) | Valinnat tiiviiksi listaksi | S–M |
 | [BRDC-UX-008](BRDC-UX-008.md) | Pienet: nauha, You, Tavernan valmiit, kylän laituri, Ledgerin välilehdet | S–M |
+
+## Onboarding: Pitäjän kirja (Keeper's Charter) — 2026-10-13 → `main`
+
+Infinite: *"Pelin ominaisuudet on räjähtänyt käsiin, mutta jotenkin tuntuu että peli on sekava"*.
+Päätökset: **1** asteittain avautuva käyttöliittymä, **2** kerran per valtakunta (luku V uusiutuu
+joka kausi), **3** palkinto vie lähemmäs seuraavaa tavoitetta, **4** Kirja korvaa opetuskortit ja
+Counselin. Järjestys: 001 → 002 → 003 → 004 → 006 → 005.
+
+| Tiketti | Mitä | Effort | Tila |
+|---|---|---|---|
+| [BRDC-ONBOARD-001](BRDC-ONBOARD-001.md) | Moottori, Keepin Today-kortti, Up next -nauha | M | `done` |
+| [BRDC-ONBOARD-002](BRDC-ONBOARD-002.md) | Luvut I–II: maa ja Työt, *Show me* | S–M | `in-progress` |
+| [BRDC-ONBOARD-003](BRDC-ONBOARD-003.md) | Kasvata puuttuvan resurssin saantia | S | `todo` |
+| [BRDC-ONBOARD-004](BRDC-ONBOARD-004.md) | Yksi ääni: opetuskortit, Counsel ja reunavihje pois | M | `todo` |
+| [BRDC-ONBOARD-005](BRDC-ONBOARD-005.md) | Asteittain avautuva käyttöliittymä | M | `todo` |
+| [BRDC-ONBOARD-006](BRDC-ONBOARD-006.md) | Luvut III–V: valtakunta, kaupunki, kausi | M | `todo` |

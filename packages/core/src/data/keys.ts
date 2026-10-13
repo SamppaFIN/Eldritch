@@ -140,4 +140,7 @@ export const K = {
   /** Each building's learned research, `Record<h3, nodeId[]>` — the tree belongs to the
    *  cell, so it passes to whoever holds it next (BRDC-WORKS-002). */
   worksTree: 'works-tree',
+  /** The Keeper's Charter's claimed steps, `{ claimed: string[] }` — forever: taught once per
+   *  realm (BRDC-ONBOARD-001). */
+  charter: 'charter',
 } as const;
