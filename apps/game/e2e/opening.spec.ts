@@ -3,6 +3,21 @@ import { openMap as open } from './hearth.js';
 import type { Page } from '@playwright/test';
 
 /**
+ * Three actions up front, the rest behind More (BRDC-UX-005) — and the row fills in as the
+ * hex's tale and Works load, so a press can slip behind More after the first look. Open
+ * More until `target` shows.
+ */
+async function behindMore(row: import('@playwright/test').Locator, target: import('@playwright/test').Locator) {
+  const more = row.getByRole('button', { name: /^More · / });
+  await expect
+    .poll(async () => {
+      if (await more.isVisible().catch(() => false)) await more.click().catch(() => undefined);
+      return target.isVisible().catch(() => false);
+    }, { timeout: 15_000 })
+    .toBe(true);
+}
+
+/**
  * The opening loop, end to end: you are given a stash, you can see it, and you can spend
  * it on the one thing it is sized for.
  *
@@ -51,8 +66,7 @@ test('and it can be spent on the building it is sized for', async ({ page }) => 
   // could be built here at all.
   const row = card.getByRole('group', { name: 'Actions on this hex' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
-  const more = row.getByRole('button', { name: /^More · / });
-  if (await more.isVisible().catch(() => false)) await more.click(); // three up front, the rest behind More (BRDC-UX-005)
+  await behindMore(row, card.getByRole('button', { name: 'Works', exact: true }));
   await card.getByRole('button', { name: 'Works', exact: true }).click();
   await expect(card).toContainText('Monument');
   const build = card.getByRole('button', { name: 'Build', exact: true }).first();
@@ -85,9 +99,8 @@ test('a greyed action says what it is waiting for (BRDC-UI-002)', async ({ page 
   // Anchor was missing — BRDC-MAP-007). Ward is the greyed action here: no timber yet.
   const row = card.getByRole('group', { name: 'Actions on this hex' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
-  const more = row.getByRole('button', { name: /^More · / }); // a grey press waits behind More (BRDC-UX-005)
-  if (await more.isVisible().catch(() => false)) await more.click();
   const ward = card.getByRole('button', { name: /^Ward/ });
+  await behindMore(row, ward); // a grey press waits behind More
   await expect(ward).toBeDisabled();
   // It names the shortfall in the game's own words.
   await expect(card).toContainText(/Short .*timber/);
@@ -143,8 +156,7 @@ test('Ward explains itself on ground that is already as safe as it gets', async 
   await expect(card).toBeVisible({ timeout: 15_000 });
   const row = card.getByRole('group', { name: 'Actions on this hex' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
-  const more = row.getByRole('button', { name: /^More · / }); // a grey press waits behind More (BRDC-UX-005)
-  if (await more.isVisible().catch(() => false)) await more.click();
+  await behindMore(row, card.getByRole('button', { name: /^Ward/ })); // a grey press waits behind More
   await expect(card).toContainText(/Already at full strength/, { timeout: 15_000 });
 });
 
@@ -203,8 +215,7 @@ test('ground says what it is for, even when you cannot build it yet', async ({ p
   await expect(card).toBeVisible({ timeout: 15_000 });
   const row = card.getByRole('group', { name: 'Actions on this hex' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
-  const more = row.getByRole('button', { name: /^More · / });
-  if (await more.isVisible().catch(() => false)) await more.click(); // three up front, the rest behind More (BRDC-UX-005)
+  await behindMore(row, card.getByRole('button', { name: 'Works', exact: true }));
   await card.getByRole('button', { name: 'Works', exact: true }).click();
 
   // What belongs on this hex but is out of reach is named, with the reason.

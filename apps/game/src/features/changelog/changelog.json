@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.10.3",
+    "date": "2026-10-13",
+    "notes": [
+      "A wonder you found now pays its bonus to your whole realm every hour, for as long as you hold its hex. Its card says exactly what it gives.",
+      "Consciousness levels now give something. Level 5: you see whether an anomaly holds a reward or a story before you study it. Level 10: you see anomalies beyond your border. Level 15: one Ward a day is free. Level 20: you see a ring further.",
+      "The You screen shows each level's gift, and the next one's. Reaching a level brings a card that names its gift.",
+      "The Guide has a Consciousness page. Closing the Guide puts you back where you opened it from."
+    ]
+  },
+  {
     "version": "0.10.2",
     "date": "2026-10-13",
     "notes": [
