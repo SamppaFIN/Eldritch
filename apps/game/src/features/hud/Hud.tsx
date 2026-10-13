@@ -23,6 +23,8 @@ import { vigilLine } from './Vigil.js';
 import { HudNav } from './HudNav.js';
 import { SheetActions, type SheetLinks } from './SheetActions.js';
 import { useHudFold } from './useHudFold.js';
+import { HudNotes } from './HudNotes.js';
+import { HudNarrow } from './HudNarrow.js';
 import { HudClaim } from './HudClaim.js';
 import { useClaimFeedback } from './useClaimFeedback.js';
 import type { Settings } from './settings.js';
@@ -79,14 +81,6 @@ export interface HudProps {
   onHelp?: (topic: HelpTopic) => void;
   /** Opens the action log — the claim line is the way in (BRDC-LOG-001). */
   onOpenLog?: () => void;
-}
-
-/** Hours, said the way a person would say them. */
-function formatHours(hours: number): string {
-  if (hours <= 1) return 'under an hour';
-  if (hours < 24) return `${Math.round(hours)} h`;
-  const days = Math.round(hours / 24);
-  return days === 1 ? 'a day' : `${days} days`;
 }
 
 type Quality = 'good' | 'weak' | 'rejected' | 'none';
@@ -173,7 +167,7 @@ export function Hud({
   onHelp,
   onOpenLog,
 }: HudProps) {
-  const { shown, fold: foldSheet } = useHudFold();
+  const { wide, toggle: toggleSheet } = useHudFold();
 
   // Consciousness and XP are an adventure-only idea (BRDC-MODE-001) — a route-mode save
   // never earns either, so the walking sheet says what it is instead of a level that
@@ -214,48 +208,26 @@ export function Hud({
     <div className="hud" data-compact={compact || undefined} ref={hudRef}>
       {/* Outside the panel on purpose — it is a notice, and it must not grow the HUD. */}
       <HudClaim lastClaim={lastClaim} onOpenLog={onOpenLog} />
-      <GlassPanel as="section" className="hud__panel" aria-label="Status" data-folded={!shown || undefined}>
+      <GlassPanel as="section" className="hud__panel" aria-label="Status" data-narrow={!wide || undefined}>
         {/* The document's handle, made a real control: 44px of tap target around a 4px
             line, and it says which way it goes rather than relying on the shape. */}
         <button
           type="button"
           className="hud__handle"
-          aria-expanded={shown}
-          aria-label={shown ? 'Hide the status panel' : 'Show the status panel'}
-          onClick={foldSheet}
+          aria-expanded={wide}
+          aria-label={wide ? 'Narrow the status panel' : 'Widen the status panel'}
+          onClick={toggleSheet}
         >
           <span className="hud__handle-bar" aria-hidden />
         </button>
 
-        {!shown ? null : (
+        <HudNotes fading={fading} fadingInHours={fadingInHours} released={released} spellLine={spellLine} waypoint={waypoint} onWaypointSeen={onWaypointSeen} basemapVoid={basemapVoid} />
+
+        {/* Narrow by default, wide a tap on the handle away (BRDC-HUD-006). */}
+        {!wide ? (
+          <HudNarrow who={isRoute ? 'Walking' : `${level.level} · ${level.name}`} ownedCells={ownedCells} onCollect={onCollect} next={nav?.upNext?.[0]} />
+        ) : (
         <>
-
-        {fading > 0 ? (
-          <p className="hud__note hud__note--warn" role="status">
-            {fading} {fading === 1 ? 'cell fades' : 'cells fade'}
-            {fadingInHours !== null ? ` in ${formatHours(fadingInHours)}` : ''} — the blight is on them, walk them
-          </p>
-        ) : null}
-
-        {released.length > 0 ? (
-          <p className="hud__note hud__note--loss" role="status">
-            The Void reclaims {released.length}{' '}
-            {released.length === 1 ? 'warded cell' : 'warded cells'}
-          </p>
-        ) : null}
-
-        {spellLine ? (
-          <p className="hud__note" role="status">
-            <span aria-hidden>◇</span> {spellLine}
-          </p>
-        ) : null}
-
-        {waypoint ? (
-          <button type="button" className="hud__note hud__waypoint" aria-live="polite" onClick={onWaypointSeen}>
-            <span aria-hidden>✦</span> New waypoint · {waypoint} — walk there
-          </button>
-        ) : null}
-
         {/*
           * Two figures, not four (Sigil screen 02).
           *
@@ -325,12 +297,6 @@ export function Hud({
             <div className="hud__xp-fill" style={{ inlineSize: `${level.progress * 100}%` }} />
           </div>
         )}
-
-        {basemapVoid ? (
-          <p className="hud__note" role="status">
-            The streets are unreachable. Your line is still being drawn.
-          </p>
-        ) : null}
 
         {source !== 'device' ? (
           <p className="hud__note hud__note--dev">{source === 'playback' ? 'Route playback' : 'Simulated walk · WASD'}</p>

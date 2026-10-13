@@ -84,9 +84,14 @@ export async function openMap(
   await expect(page.locator(ready)).toBeVisible({ timeout: 20_000 });
 }
 
-/** Merged into whatever settings are there — `enableLoopClosure` writes its own first. */
+/**
+ * Merged into whatever settings are there — `enableLoopClosure` writes its own first. The
+ * walking sheet opens wide as well (BRDC-HUD-006): the specs before it read the pouch, Lands
+ * and the Vigil off the sheet, and a new player's narrow one shows none of them.
+ */
 async function showEverything(page: Page): Promise<void> {
   await page.addInitScript(() => {
+    window.localStorage.setItem('es3:hud-size', 'wide');
     const raw = window.localStorage.getItem('es3:settings');
     const env = raw ? (JSON.parse(raw) as { v: number; d: Record<string, unknown> }) : { v: 1, d: {} };
     window.localStorage.setItem('es3:settings', JSON.stringify({ ...env, d: { ...env.d, showEverything: true } }));

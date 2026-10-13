@@ -130,7 +130,35 @@
   border-radius: var(--radius-sm);
 }
 
-/* Folded: no vertical padding to leave behind an empty band. */
-.hud__panel[data-folded] {
-  padding-block: 0;
+/* Narrow (BRDC-HUD-006): one row of who, how much and Collect, then the next step. */
+.hud__panel[data-narrow] {
+  padding-block-start: 0;
+}
+
+.hud__narrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hud__narrow-who {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud__collect--narrow {
+  flex: none;
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.hud__panel[data-narrow] .hud__upnext {
+  /* The wide sheet lifts the strip above its foot row; here it simply follows the figures. */
+  order: 0;
+  flex: none;
+  margin: 0;
 }

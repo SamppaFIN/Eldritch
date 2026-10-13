@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.11.5",
+    "date": "2026-10-13",
+    "notes": [
+      "The walking sheet has a narrow and a wide version. Narrow shows your level, your hexes, Collect and the Charter's next step, and leaves most of the screen to the map. Tap the handle for the wide sheet with everything else, and again to narrow it.",
+      "You start on the narrow sheet, and the game remembers which one you chose.",
+      "Warnings — fading ground, ground lost, a running spell, a new waypoint, unreachable streets — show on both."
+    ]
+  },
+  {
     "version": "0.11.4",
     "date": "2026-10-13",
     "notes": [

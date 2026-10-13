@@ -55,6 +55,8 @@ test('a new realm walks its first step, claims it, and the next one comes', asyn
   await expect(news).toBeVisible({ timeout: 15_000 });
   await news.click();
   await expect(news).toHaveCount(0);
+  // Lands sits on the wide walking sheet; a new player starts on the narrow one (BRDC-HUD-006).
+  await page.getByRole('button', { name: 'Widen the status panel' }).click();
   await expect(page.getByRole('button', { name: 'Lands', exact: true })).toBeVisible();
   await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/charter.png' });
 });

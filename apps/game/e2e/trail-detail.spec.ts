@@ -80,8 +80,9 @@ test('fixes are written in batches, not one per tick', async ({ page }) => {
 
 test('the HUD leaves the map most of the screen', async ({ page }) => {
   // HUD-001. The map is the game; a status panel that eats half a phone screen
-  // is a status panel that gets in the way of walking.
-  await openMap(page);
+  // is a status panel that gets in the way of walking. Measured as a new player sees it:
+  // the narrow sheet (BRDC-HUD-006), with the wide one a tap on the handle away.
+  await open(page, START, undefined, undefined, false);
 
   const hud = await page.locator('.hud').boundingBox();
   const view = page.viewportSize();
@@ -90,6 +91,12 @@ test('the HUD leaves the map most of the screen', async ({ page }) => {
   // The measured number goes in the message: a bare `toBeLessThan` failure here says
   // nothing about whether the panel grew by a pixel or by a third of the screen.
   expect(ratio, `HUD is ${Math.round(ratio * 100)}% of the screen`).toBeLessThan(0.3);
+
+  // And the wide sheet is one tap away, with what the narrow one leaves out.
+  await page.getByRole('button', { name: 'Widen the status panel' }).click();
+  await expect(page.locator('.hud__signal')).toBeVisible();
+  await page.getByRole('button', { name: 'Narrow the status panel' }).click();
+  await expect(page.locator('.hud__signal')).toHaveCount(0);
 });
 
 test('the opening hint is a card at the edge, and a tap sends it away', async ({ page }) => {
