@@ -350,3 +350,8 @@
   outline: 2px solid var(--mystic-cyan);
   outline-offset: 2px;
 }
+
+/* A milestone's perk, beside its rung (BRDC-MIND-001). */
+.character__perk {
+  color: var(--sacred-gold);
+}

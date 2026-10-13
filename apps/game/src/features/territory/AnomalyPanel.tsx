@@ -39,10 +39,16 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
       <section className="cell-panel__anomaly" aria-label="Anomaly">
         <p className="cell-panel__anomaly-name">{a.sign.name}</p>
         <p className="cell-panel__anomaly-text">{a.sign.text}</p>
-        <p className="cell-panel__why">Your Medium senses it beyond your border. Take this hex to study it.</p>
+        {/* The Medium's sight, or Aware's (BRDC-MIND-001) — the same words fit both. */}
+        <p className="cell-panel__why">You sense it beyond your border. Take this hex to study it.</p>
       </section>
     );
   }
+
+  // Awakening knows before the study whether a reward or a story waits (BRDC-MIND-001).
+  const foretold = a.foretold ? (
+    <p className="cell-panel__anomaly-text">Foretold · {a.kind === 'chain' ? 'a story waits here' : 'a reward waits here'}</p>
+  ) : null;
 
   return (
     <section className="cell-panel__anomaly" aria-label="Anomaly">
@@ -50,6 +56,7 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
         <>
           <p className="cell-panel__anomaly-name">{a.sign.name}</p>
           <p className="cell-panel__anomaly-text">{a.sign.text}</p>
+          {foretold}
           <RitualButton
             variant="ghost"
             onClick={anomaly.onInvestigate}
@@ -69,6 +76,7 @@ export function AnomalyPanel({ anomaly, resources }: AnomalyPanelProps) {
         <>
           <p className="cell-panel__anomaly-name">{a.sign.name}</p>
           <p className="cell-panel__anomaly-text">Studying it… {Math.round(a.progress * 100)}%</p>
+          {foretold}
           <div className="cell-panel__bar" aria-hidden>
             <div className="cell-panel__bar-fill" style={{ inlineSize: `${a.progress * 100}%` }} />
           </div>

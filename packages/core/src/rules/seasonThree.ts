@@ -44,3 +44,5 @@ export { MYSTERIES, MYSTERY_CLUES, MYSTERY_HP_CUT, MYSTERY_SEALS, mysteriesSolve
 export type { Mystery } from './mystery.js';
 export { MONSTER_BITE, MONSTER_LIFE_DAYS, MONSTER_NEED, creatureAt, releases } from './monster.js';
 export type { Creature } from './monster.js';
+export { PERKS, hasPerk, perkAt, perksAt } from './perks.js';
+export type { Perk, PerkId } from './perks.js';

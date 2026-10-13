@@ -6,7 +6,7 @@
  * silently, so a returning player is not congratulated for a level they earned days ago.
  */
 import { useEffect, useRef } from 'react';
-import { levelState } from '@es3/core';
+import { levelState, perkAt } from '@es3/core';
 import type { MomentsApi } from './useMoments.js';
 
 export function useLevelUp(xp: number | undefined, show: MomentsApi['show']): void {
@@ -17,6 +17,9 @@ export function useLevelUp(xp: number | undefined, show: MomentsApi['show']): vo
     const { level, name } = levelState(xp);
     if (prev.current !== null && level > prev.current) {
       show('levelUp', 'Consciousness rises', `Level ${level} · ${name}`);
+      // A milestone's perk, said as its own card right after (BRDC-MIND-001).
+      const perk = perkAt(level);
+      if (perk) show('levelUp', 'A new gift', perk.text);
     }
     prev.current = level;
   }, [xp, show]);

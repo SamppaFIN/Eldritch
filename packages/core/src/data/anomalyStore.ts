@@ -39,6 +39,8 @@ export interface Anomaly {
   sign: { name: string; text: string; found: string };
   /** Seen beyond your ground by the Medium (BRDC-INVEST-001): take the hex to study it. */
   afar?: true;
+  /** Awakening (BRDC-MIND-001): `kind` may be told before the study — reward or story. */
+  foretold?: true;
 }
 
 /**

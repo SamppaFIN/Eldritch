@@ -35,6 +35,7 @@ export type { SecretSiteId } from './questSites.js';
 import type { KeyValueStore } from './kv.js';
 import { K } from './keys.js';
 import { MEDIUM_RINGS } from '../rules/archetype.js';
+import { hasPerk } from '../rules/perks.js';
 import type { Investigator } from '../rules/investigator.js';
 import type { Cell, PlayerProfile } from '../types/domain.js';
 import type { ResourcePool } from '../rules/terrain.js';
@@ -49,7 +50,11 @@ export interface StoryDeps {
 
 export async function getAnomaliesFor(d: StoryDeps, now: number, store?: KeyValueStore): Promise<Anomaly[]> {
   const medium = (await store?.get<Investigator>(K.investigator))?.archetype === 'medium';
-  return describeAnomalies(await d.getOwnedCells(now), now, medium ? MEDIUM_RINGS : 0);
+  const { level } = await d.getProfile();
+  // Aware sees what the Medium sees; Awakening knows a reward from a story (BRDC-MIND-001).
+  const rings = medium || hasPerk(level, 'far-sight') ? MEDIUM_RINGS : 0;
+  const all = describeAnomalies(await d.getOwnedCells(now), now, rings);
+  return hasPerk(level, 'foresight') ? all.map((a) => (a.state === 'dormant' || a.state === 'investigating' ? { ...a, foretold: true as const } : a)) : all;
 }
 
 export async function investigateAnomalyFor(

@@ -11,6 +11,7 @@
  * searches the lot; this is the hand-written core — the game's loop, its first walk, its
  * vocabulary, and one entry per concept the log links to.
  */
+import { PERKS } from '@es3/core';
 import { SEASON_THREE_HELP, SEASON_THREE_TOPICS } from './helpSeasonThree.js';
 import type { SeasonThreeTopic } from './helpSeasonThree.js';
 
@@ -33,6 +34,7 @@ export type HelpTopic =
   | 'the-wager'
   | 'hearth'
   | 'sky'
+  | 'consciousness'
   | SeasonThreeTopic;
 
 export interface HelpEntry {
@@ -190,6 +192,15 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     ],
     see: ['vigil', 'decay', 'vocabulary'],
   },
+  consciousness: {
+    title: 'Consciousness',
+    body: [
+      'Your level. Every hex you claim adds to it, up to Transcendent at 20. The You screen shows how far the next one is.',
+      // From the game's own list, so the Guide and the perks cannot drift (BRDC-MIND-001).
+      ...PERKS.map((p) => `Level ${p.level}: ${p.text}.`),
+    ],
+    see: ['awakening', 'anomaly', 'warding'],
+  },
   sky: {
     title: 'Moon and Weather',
     body: [
@@ -206,7 +217,7 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
  * one group — help.test.ts fails the run on an orphan or a duplicate.
  */
 export const GROUPS: readonly { heading: string; topics: readonly HelpTopic[] }[] = [
-  { heading: 'Getting started', topics: ['how-to-play', 'first-walk', 'vocabulary'] },
+  { heading: 'Getting started', topics: ['how-to-play', 'first-walk', 'vocabulary', 'consciousness'] },
   { heading: 'This season', topics: SEASON_THREE_TOPICS },
   {
     heading: 'The ground',

@@ -169,6 +169,12 @@ export function CellPanel({
     if (h3 && repository) void repository.lore.view(Date.now()).then((v) => setLore(v ? v.learned : null));
     if (h3 && repository) void repository.investigator.view(Date.now()).then((v) => setWho({ archetype: v?.archetype?.id, ally: v?.ally?.id }));
   }, [h3, repository]);
+  // Enlightened's free Ward, re-asked after a ward lands (BRDC-MIND-001).
+  const [freeWard, setFreeWard] = useState(false);
+  const strength = cell?.strength;
+  useEffect(() => {
+    if (h3 && repository) void repository.freeWardToday(Date.now()).then(setFreeWard);
+  }, [h3, repository, strength]);
 
   if (!cell) return null;
 
@@ -177,7 +183,7 @@ export function CellPanel({
   const showDetail = mine || revealRivals;
   const history = historyLine(cell, me, now);
   const wood = resources?.wood ?? 0;
-  const canWard = mine && cell.strength < MAX_STRENGTH && wood >= (WARD_COST.wood ?? 0);
+  const canWard = mine && cell.strength < MAX_STRENGTH && (freeWard || wood >= (WARD_COST.wood ?? 0));
   /*
    * Why not, said under the row (BRDC-UI-002). A hex walked for weeks sits at full
    * strength, and Ward was simply grey there — which reads as a broken button, not as
@@ -187,7 +193,9 @@ export function CellPanel({
     ? null
     : cell.strength >= MAX_STRENGTH
       ? 'Already at full strength — a ward would add nothing.'
-      : shortNote(shortOf(resources, WARD_COST));
+      : freeWard
+        ? null
+        : shortNote(shortOf(resources, WARD_COST));
   const isRevealed = known || revealed?.[cell.h3] !== undefined;
   const offer = cellOffer({
     mine,
@@ -195,6 +203,7 @@ export function CellPanel({
     place,
     canWard,
     wardGate,
+    freeWard,
     quest: quest ?? null,
     reveal: mine && Boolean(onReveal) && !isRevealed,
     page: works.view ? WORKS_DEFS[works.view.kind].name : null,

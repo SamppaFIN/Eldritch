@@ -15,7 +15,7 @@
  * question, and both halves of the answer belong to it.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { levelState, scriedCells, sightRings, weatherAt } from '@es3/core';
+import { hasPerk, levelState, scriedCells, sightRings, weatherAt } from '@es3/core';
 import type { ActiveSpell, Cell, GameRepository } from '@es3/core';
 import { withFogOfWar } from './fogOfWar.js';
 
@@ -50,7 +50,8 @@ export function useShownCells({ cells, owned, active, xp, now, repository = null
   // full rebuild, and only the level changes what a Scrying sees (BRDC-PERF-002).
   const level = levelState(xp).level;
   return useMemo(
-    () => withFogOfWar(cells, owned, scriedCells(active, level, now()), seen, sightRings(weatherAt(now()))),
+    // Transcendent sees a ring further, whatever the weather (BRDC-MIND-001).
+    () => withFogOfWar(cells, owned, scriedCells(active, level, now()), seen, sightRings(weatherAt(now())) + (hasPerk(level, 'wide-sight') ? 1 : 0)),
     // `now` is a function identity, stable for the session; the real triggers are above it.
     [cells, owned, active, level, now, seen],
   );

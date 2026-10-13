@@ -6,7 +6,7 @@
  * timestamped, no reward attached yet. Non-modal like the rest of the map's panels.
  */
 import { useEffect, useRef, useState } from 'react';
-import { QUEST_ITEMS, SECRET_SITES, SHARD_COUNT, levelState } from '@es3/core';
+import { QUEST_ITEMS, SECRET_SITES, SHARD_COUNT, levelState, perkAt } from '@es3/core';
 import type { AchievementView, GameRepository, SecretSiteId } from '@es3/core';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import type { HelpTopic } from '../help/help.js';
@@ -216,12 +216,14 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
           {ladder.reached.map((m) => (
             <li key={m.level} className={m.name === milestone.name ? 'character__rung--here' : undefined}>
               <span className="es-numeric">{m.level}</span> {m.name} — {m.blurb}
+              {perkAt(m.level) ? <span className="character__perk"> · {perkAt(m.level)?.text}</span> : null}
             </li>
           ))}
           {ladder.next ? (
             <li className="character__rung--locked">
               <span className="es-numeric">{ladder.next.level}</span> {ladder.next.name} — reach it
               to learn what it means.
+              {perkAt(ladder.next.level) ? <span className="character__perk"> It brings: {perkAt(ladder.next.level)?.text}.</span> : null}
             </li>
           ) : null}
         </ul>

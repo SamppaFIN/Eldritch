@@ -118,6 +118,8 @@ export const K = {
   otherWorld: 'other-world',
   /** Creatures stopped, and which of your hexes each has bitten (BRDC-MONSTER-001). Resets with the season. */
   monsters: 'monsters',
+  /** The UTC day the Enlightened's free Ward was last used, `YYYY-MM-DD` (BRDC-MIND-001). */
+  freeWard: 'free-ward',
   /** This realm's part in the Reckoning: last strike, damage dealt and not yet sent (DOOM-004). */
   reckoning: 'reckoning',
   /** True while the shared season is sealed: the map is a fossil, nothing is claimed (SEASON-004). */

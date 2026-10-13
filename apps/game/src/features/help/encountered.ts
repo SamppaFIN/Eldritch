@@ -14,7 +14,7 @@ const KEY = 'seen-topics';
 
 /** Always in the Guide — how to play, the first walk, what the words mean, and the season's
  *  own pages: those are the instructions for the season, not a reward for meeting it. */
-export const ALWAYS_SEEN: readonly HelpTopic[] = ['how-to-play', 'first-walk', 'vocabulary', ...SEASON_THREE_TOPICS];
+export const ALWAYS_SEEN: readonly HelpTopic[] = ['how-to-play', 'first-walk', 'vocabulary', 'consciousness', ...SEASON_THREE_TOPICS];
 
 export function readSeen(): Set<HelpTopic> {
   const stored = load<HelpTopic[] | null>(KEY, null);

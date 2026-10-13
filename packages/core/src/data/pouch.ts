@@ -369,10 +369,10 @@ export async function wardWith(
   cell: Cell,
   me: PlayerId,
   owned: readonly Cell[],
-  now: number,
+  now: number, cost?: Readonly<Partial<ResourcePool>>, // nothing for a free Ward (BRDC-MIND-001)
 ): Promise<WardResult> {
   const state = await settlePouch(store, owned, now);
-  const result = ward(cell, state.pool, me);
+  const result = ward(cell, state.pool, me, cost);
   if (result.warded) await writePouch(store, result.pool, now);
   return result;
 }

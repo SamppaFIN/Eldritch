@@ -199,6 +199,8 @@ export interface GameRepository extends SeasonTwoApis, OctoberApis, SeasonThreeA
    * are all things the interface has to be able to say out loud to the player.
    */
   wardCell(h3: H3Index, now: number): Promise<WardResult>;
+  /** True while today's free Ward is unused (Enlightened, BRDC-MIND-001). */
+  freeWardToday(now: number): Promise<boolean>;
 
   /* --- Buildings (BRDC-BUILD-001) ---------------------------------------- */
   /**

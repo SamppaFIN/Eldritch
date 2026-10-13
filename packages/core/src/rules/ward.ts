@@ -43,12 +43,18 @@ export type WardResult =
  * `now` is deliberately absent. Nothing here depends on the clock — that is the point,
  * and a parameter would invite someone to start using it.
  */
-export function ward(cell: Cell, pool: ResourcePool, me: PlayerId): WardResult {
+export function ward(
+  cell: Cell,
+  pool: ResourcePool,
+  me: PlayerId,
+  /** Nothing, for the day's free Ward at Enlightened (BRDC-MIND-001). */
+  cost: Readonly<Partial<ResourcePool>> = WARD_COST,
+): WardResult {
   if (cell.ownerId !== me) return { warded: false, refused: 'not-yours' };
   if (cell.strength >= MAX_STRENGTH) return { warded: false, refused: 'already-full' };
-  if (!canAfford(pool, WARD_COST)) return { warded: false, refused: 'cannot-afford' };
+  if (!canAfford(pool, cost)) return { warded: false, refused: 'cannot-afford' };
 
-  const paid = spend(pool, WARD_COST);
+  const paid = spend(pool, cost);
   // canAfford has already answered this; the null is the type system asking again.
   if (!paid) return { warded: false, refused: 'cannot-afford' };
 

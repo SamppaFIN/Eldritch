@@ -15,6 +15,8 @@ export interface OfferInput {
   place: Pick<PlaceBinding, 'kind' | 'expansion' | 'dwellMs'>;
   canWard: boolean;
   wardGate: string | null;
+  /** Today's Ward is free (Enlightened, BRDC-MIND-001). */
+  freeWard?: boolean;
   quest: QuestCellInfo | null;
   reveal: boolean;
   /** The building page's name, when this hex has one (BRDC-WORKS-001). */
@@ -31,7 +33,7 @@ export function cellOffer(i: OfferInput): CellOffer {
   if (i.quest?.canAct) offer.quest = { label: i.quest.label };
   if (i.reveal) offer.reveal = { label: 'Reveal this ground' };
   if (i.mine) {
-    offer.ward = { label: `Ward · ${WARD_COST.wood} timber`, disabled: !i.canWard, why: i.wardGate };
+    offer.ward = { label: i.freeWard ? 'Ward · free today' : `Ward · ${WARD_COST.wood} timber`, disabled: !i.canWard, why: i.wardGate };
   }
   if (i.page) offer.page = { label: `Open ${i.page}` };
   if (i.works) offer.works = 'Works';

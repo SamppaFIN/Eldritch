@@ -19,7 +19,7 @@ import { dailyOmenFor, encounterOnStepFor, takeEncounterChoiceFor } from './enco
 import type { UnlockId } from '../rules/unlock.js';
 import { EMPTY_POOL, type ResourcePool, type ResourceKind } from '../rules/terrain.js';
 import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch, type Collected, type Forecast } from './pouch.js';
-import { wardAt } from './wardStore.js';
+import { freeWardReady, wardAt } from './wardStore.js';
 import { closeWalk, submitWalk, type WalkDeps } from './walkFlow.js';
 import type { WardResult } from '../rules/ward.js';
 import { readResearched, researchTech as doResearch } from './techStore.js';
@@ -149,8 +149,9 @@ export class MockRepositoryBase {
   };
   async wardCell(h3: H3Index, now: number): Promise<WardResult> {
     const me = await this.getProfile();
-    return wardAt(this.store, h3, me.id, await this.getOwnedCells(now), now);
+    return wardAt(this.store, h3, me.id, await this.getOwnedCells(now), now, me.level);
   }
+  freeWardToday = async (now: number): Promise<boolean> => freeWardReady(this.store, (await this.getProfile()).level, now);
 
   /* --- Buildings and technology ----------------------------------------- */
   async build(h3: H3Index, id: BuildingId, now: number): Promise<BuildOutcome> {
