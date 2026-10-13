@@ -17,12 +17,14 @@
     "preview": "pnpm --filter @es3/game preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --testTimeout=30000",
     "typecheck": "tsc -b --force",
     "e2e": "pnpm --filter @es3/game e2e",
     "lint:lines": "node scripts/check-line-limit.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
+    "@vitest/coverage-v8": "3.2.7",
     "typescript": "^5.7.3",
     "vitest": "^3.1.1"
   }

@@ -5,7 +5,7 @@
 | **Vaihe** | läpileikkaava |
 | **Effort** | M (päivä, jaettuna vaiheisiin) |
 | **Riippuvuudet** | BRDC-SETUP-001 |
-| **Status** | `in_progress` — 12/12 riviä ratkaistu 2026-10-13; kattavuusportin riippuvuus hyväksytty |
+| **Status** | `done` — 2026-10-13 |
 | **Valmius** | 85 % |
 
 ## 🔴 RED
@@ -100,7 +100,10 @@ rikkonut kaksi vihreää testiä.
 
 - [x] Kaikki 12 riviä on toteutettu tai merkitty vaiheeseen, jossa ne toteutetaan — 2026-10-13: rivi 6 katettu (`rules/encounter.ts` puhtaana funktiona, `encounter.test.ts` + `encounter.repo.test.ts`); rivi 7 ratkaistu päätöksellä: v2:n vika oli taustaääni, jota v3:ssa ei ole — ainoa ääni on valtauksen kahden sävelen kilahdus, oletuksena päällä ja kytkettävissä pois (BRDC-CLAIM-007, claude.md sääntö 6)
 - [x] `pnpm test` sisältää nämä testit, eikä niitä ole merkitty ohitettaviksi
-- [~] CI epäonnistuu, jos kattavuus on 0 % (kohta 10) — kynnys on `vitest.config.ts`:ssä, mutta **portti ei ole päällä**: CI ajaa `pnpm test` ilman `--coverage`, ja kattavuuden tarjoaja `@vitest/coverage-v8` puuttuu riippuvuuksista. Uusi riippuvuus vaatii Infiniten luvan (sääntö 8) — odottaa
+- [x] CI epäonnistuu, jos kattavuus putoaa (kohta 10) — `@vitest/coverage-v8` lisätty
+      2026-10-13, CI ajaa `pnpm test:coverage`. Mitattu ydin: rivit 98 %, funktiot 96 %,
+      haarat 91 %; kynnys 95 / 93 / 88 (`vitest.config.ts`). Todennettu: kynnys 99 % kaataa
+      ajon (exit 1, *"Coverage for lines (97.99%) does not meet global threshold (99%)"*)
 
 ## Ei kuulu tähän tikettiin
 
