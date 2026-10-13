@@ -2,11 +2,10 @@
  * The Keeper's Counsel, read from the realm (BRDC-COUNSEL-001).
  *
  * The rules are pure (`rules/counsel.ts`); this gathers what they read — the granary, the
- * gates, the stores, idle hands, the Lore, the masterworks — and keeps which codex cards
- * have been read (`K.codexRead`, a forever key: the Counsel stops explaining what you
- * already know, season after season). Reached through `repository.keep`.
+ * gates, the stores, idle hands, the Lore, the masterworks. Reached through
+ * `repository.keep`. Its codex cards are the Guide's "Running a Realm" since BRDC-ONBOARD-004.
  */
-import { CODEX_CARDS, counselOf } from '../rules/counsel.js';
+import { counselOf } from '../rules/counsel.js';
 import type { Counsel } from '../rules/counsel.js';
 import { foodBalance, keepHousing } from '../rules/citizens.js';
 import { growBox } from '../rules/balance.js';
@@ -19,7 +18,6 @@ import { STORE_MS } from '../rules/citizens.js';
 import { forecastRates, settlePouch } from './pouch.js';
 import { readLore } from './loreStore.js';
 import { worksViewAt } from './worksStore.js';
-import { K } from './keys.js';
 import type { KeyValueStore } from './kv.js';
 import type { Cell } from '../types/domain.js';
 
@@ -71,15 +69,4 @@ export async function counselFor(store: KeyValueStore, cells: readonly Cell[], n
     granaryFill: keep.granary.box / growBox(keep.granary.citizens),
     cheapestTech: cheapest,
   });
-}
-
-/** The first codex card not yet read, or null. */
-export async function unreadCodex(store: KeyValueStore): Promise<(typeof CODEX_CARDS)[number] | null> {
-  const read = (await store.get<string[]>(K.codexRead)) ?? [];
-  return CODEX_CARDS.find((c) => !read.includes(c.id)) ?? null;
-}
-
-export async function markCodexRead(store: KeyValueStore, id: string): Promise<void> {
-  const read = (await store.get<string[]>(K.codexRead)) ?? [];
-  if (!read.includes(id)) await store.set(K.codexRead, [...read, id]);
 }

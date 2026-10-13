@@ -184,7 +184,6 @@ export {
 } from './encounterStore.js';
 export { NATION_BBOX, clearNationCache, nationProvinces } from './wonderNation.js';
 export { findWonderAt, readWonderFinds } from './wonderStore.js';
-export { markUnlockSeen, seenUnlocks } from './unlockStore.js';
 export { clearSurvey, recordSurvey, surveySize, surveyedTerrainOf } from './localSurvey.js';
 export { GPX_ASSUMED_ACCURACY_M, parseGpx } from './gpx.js';
 export type { GpxFault, GpxParse } from './gpx.js';

@@ -27,7 +27,6 @@ import type {
   TrailResult,
 } from './domain.js';
 import type { ResourceKind, ResourcePool } from '../rules/terrain.js';
-import type { UnlockId } from '../rules/unlock.js';
 import type { Encounter } from '../rules/encounter.js';
 import type { ChoiceOutcome as EncounterChoiceOutcome } from '../data/encounterStore.js';
 import type { WalkedEdge } from '../geo/paths.js';
@@ -145,14 +144,6 @@ export interface GameRepository extends SeasonTwoApis, OctoberApis, SeasonThreeA
   dailyOmen(now: number): Promise<Encounter | null>;
   /** Take one of an encounter's choices, paying and collecting what it says. */
   takeEncounterChoice(id: string, choiceIndex: number, now: number): Promise<EncounterChoiceOutcome>;
-  /** Mechanics already taught (BRDC-TUTOR-001). */
-  getUnlocksSeen(): Promise<Set<UnlockId>>;
-  /**
-   * Mark a lesson read and pay its wisdom. True when this call is the one that paid.
-   *
-   * Idempotent, so a double tap or two open panels cannot pay twice.
-   */
-  markUnlockSeen(id: UnlockId, now: number): Promise<boolean>;
   /** Applies decay at read time, then returns what survives in the viewport. */
   getCells(bbox: BBox, now: number): Promise<Cell[]>;
   getOwnedCells(now: number): Promise<Cell[]>;

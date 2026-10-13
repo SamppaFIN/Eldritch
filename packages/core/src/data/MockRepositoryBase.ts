@@ -14,9 +14,7 @@ import { latLngToCell } from 'h3-js';
 import { readPlaces, readDwellFor, raiseAltarFor, type AltarOutcome } from './keepStore.js';
 import { H3_RES_OWNERSHIP, STARTER_STASH } from '../rules/constants.js';
 import { allCells, cellsInBBox, loyaltyOver, setStoredTerrain, sweepAndPersist } from './cellStore.js';
-import { markUnlockSeen, seenUnlocks } from './unlockStore.js';
 import { dailyOmenFor, encounterOnStepFor, takeEncounterChoiceFor } from './encounterRepo.js';
-import type { UnlockId } from '../rules/unlock.js';
 import { EMPTY_POOL, type ResourcePool, type ResourceKind } from '../rules/terrain.js';
 import { collectPouch, forecastRates, grantAll, resetPouch, settlePouch, writePouch, type Collected, type Forecast } from './pouch.js';
 import { freeWardReady, wardAt } from './wardStore.js';
@@ -298,15 +296,6 @@ export class MockRepositoryBase {
   dailyOmen = (now: number) => dailyOmenFor(this.store, this, now);
   takeEncounterChoice = (id: string, i: number, now: number) =>
     takeEncounterChoiceFor(this.store, this, id, i, now);
-  async getUnlocksSeen(): Promise<Set<UnlockId>> {
-    return seenUnlocks(this.store);
-  }
-
-  /** Marks the lesson and pays its wisdom in one step, so the two cannot come apart. */
-  async markUnlockSeen(id: UnlockId, now: number): Promise<boolean> {
-    return markUnlockSeen(this.store, await this.getOwnedCells(now), id, now);
-  }
-
   async setCellTerrain(h3: H3Index, terrain: Terrain): Promise<void> {
     await setStoredTerrain(this.store, h3, terrain);
   }

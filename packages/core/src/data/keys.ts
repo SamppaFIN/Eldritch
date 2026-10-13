@@ -56,8 +56,6 @@ export const K = {
   starterGiven: 'starter-given',
   /** Works the one-per-cell migration took down, `BuildingId[]`, until they are paid back (BRDC-BUILD-009). */
   razed: 'razed',
-  /** Mechanics already taught, `Record<UnlockId, number>` — id → the ms it was shown (BRDC-TUTOR-001). */
-  unlocksSeen: 'unlocks-seen',
   /** Wonders found, `Partial<Record<WonderId, WonderFind>>` — where and when (BRDC-WONDER-001). */
   wonderFinds: 'wonder-finds',
   /** When each recent encounter fired, `number[]`, trimmed to a day (BRDC-EVENT-002). */
@@ -132,8 +130,6 @@ export const K = {
   ruinsSearched: 'ruins-searched',
   /** When each wonder's action was last used, `Partial<Record<WonderId, number>>` (SEASON-008). */
   wonderActs: 'wonder-acts',
-  /** Codex cards already read, `string[]` — forever, so the Counsel never re-explains (COUNSEL-001). */
-  codexRead: 'codex-read',
   /** A route-mode save's lifetime distance, metres, never pruned or reset (BRDC-MODE-002)
    *  — unlike `Run.distanceM`, which starts over every time a run closes. */
   routeDistanceM: 'route-distance-m',

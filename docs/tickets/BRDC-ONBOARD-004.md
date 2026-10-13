@@ -27,9 +27,9 @@ kolme.
       (*Running a Realm*, `CODEX_CARDS`ista)
 - [x] Ensimmäisen kävelyn reunavihje näyttää Kirjan nykyisen askeleen, ei omaa portaikkoaan
       (`steps.ts` poistettu)
-- [~] Vanhat avaimet (`unlocks-seen`, `codex-read`) jäävät lukematta eivätkä riko tallennusta.
-      Niiden ytimen koodi (`rules/unlock.ts`, `unlockStore`, `keep.codex()`/`readCodex()`) on nyt
-      orpo — jätetty paikalleen, poisto erikseen
+- [x] Vanhat avaimet (`unlocks-seen`, `codex-read`) jäävät lukematta eivätkä riko tallennusta.
+      Niiden ytimen koodi poistettu 2026-10-13: `rules/unlock.ts`, `unlockStore`,
+      `getUnlocksSeen`/`markUnlockSeen`, `keep.codex()`/`readCodex()`, avaimet `K`:sta
 - [x] e2e: `tutor.spec` poistettu, `charter.spec` tilalla; `keep-citizens` ja `sheet-links`
       päivitetty. 360 px -ajo 2026-10-13: uudet punaiset vain perusviivalta tai
       uusinta-ajossa vihreät (keep-citizens:80, up-next:37 kuormassa). `dialogs.spec` ei

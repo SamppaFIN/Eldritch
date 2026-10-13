@@ -234,8 +234,6 @@ export {
   wondersNear,
   wondersOfRarity,
 } from './wonderPlace.js';
-export { UNLOCK_IDS, UNLOCK_REWARD, isResourceLesson, nextUnlock, unlockedBy, walked } from './unlock.js';
-export type { Reach, ResourceLesson, UnlockId } from './unlock.js';
 export { localShare } from './share.js';
 export { WORKS_DEFS, WORKS_KINDS } from './works/defs/index.js';
 export {
