@@ -689,10 +689,13 @@ Infinite vastasi avoimiin kysymyksiin. Jono, pienimmästä isoimpaan:
    (Infinite ajaa komennon, admin-avain pysyy hänellä)
 2. **Pienet:** [BRDC-TRADE-001](BRDC-TRADE-001.md) · [BRDC-IDENTITY-001](BRDC-IDENTITY-001.md) ·
    [BRDC-APK-001](BRDC-APK-001.md) (odottaa latausosoitetta)
-3. **Mekaniikat:** [BRDC-TRAIL-004](BRDC-TRAIL-004.md) · [BRDC-CLAIM-010](BRDC-CLAIM-010.md) ·
+3. **Mekaniikat:** [BRDC-CLAIM-010](BRDC-CLAIM-010.md) ·
    [BRDC-RAID-001](BRDC-RAID-001.md) · [BRDC-QUEST-006](BRDC-QUEST-006.md) (*What Sleeps at the Shore* toiseksi taruksi)
 4. **Ihmeet** WONDER-004…012 yksi kerrallaan, luonnos ensin Infiniten hyväksyttäväksi
 5. [BRDC-WORLD-001](BRDC-WORLD-001.md) kun Härmälän kiinteä kartta-aineisto (Claude Design) on valmis
 
 Suljettu: CLAIM-015 (CLAIM-017 kattaa), CLAIM-016 (`ANCHOR_BONUS` pysyy 200), WAGER-JSON-003.
 VIGIL-002: kenttämittaus 2026-10-14; APK-polku on BRDC-APK-001.
+
+Tila 2026-10-14: siivous, TRADE-001 ja IDENTITY-001 `done`. [BRDC-TRAIL-004](BRDC-TRAIL-004.md)
+(polut teiksi) siirretty ideapankkiin — Infinite ei näe sille käyttöä nyt.

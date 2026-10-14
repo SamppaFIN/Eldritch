@@ -5,7 +5,7 @@
 | **Vaihe** | 3 — Sivilisaatio |
 | **Effort** | M (päivä) |
 | **Riippuvuudet** | BRDC-TRAIL-003, BRDC-HEX-001, BRDC-PERSIST-002 |
-| **Status** | `todo` |
+| **Status** | `parked` — ideapankissa 2026-10-14 |
 | **Valmius** | 0 % |
 | **Lähde** | Infinite, kenttätesti 2026-09-02 |
 
@@ -45,3 +45,8 @@ joka on jo olemassa.
   hyöty on oma harkintansa (ja tässä pelissä liikkuminen on omat jalat, joten "nopeampi
   liikkuminen" ei tarkoita mitään).
 - Teiden jakaminen muille pelaajille — Vaihe 5.
+
+## Päätös 2026-10-14
+
+Infinite: *"ohitetaan tuo ominaisuus.. en tällä hetkellä näe sille käyttöä.. jätetään
+idealistalle pohdittavaksi myöhempää varten."* Ei rakenneta nyt; tiketti jää ideaksi.
