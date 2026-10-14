@@ -68,6 +68,8 @@ import type { SeasonThreeApis } from './SeasonThreeApis.js';
 
 export interface GameRepository extends SeasonTwoApis, OctoberApis, SeasonThreeApis {
   /* --- Profile ---------------------------------------------------------- */
+  /** Take on a recovered id and name; your own cells follow to the new id (BRDC-IDENTITY-001). */
+  adoptIdentity(id: PlayerId, name: string): Promise<number>;
   getProfile(): Promise<PlayerProfile>;
   /** Only takes effect the moment a profile is first created; a no-op once one
    *  already exists — the choice is permanent for the save (BRDC-MODE-001). */

@@ -6,7 +6,7 @@
  * checksum exactly as far as the old GitHub-issue path did. Every failure here is
  * swallowed: the game is fully playable without a single shard.
  */
-import { buildSubmission, encodeSubmission } from '@es3/core';
+import { buildSubmission, encodeSubmission, saveNow } from '@es3/core';
 import type { SeasonJoinView, WorldSource } from '@es3/core';
 
 /** The Worker (BRDC-SHARE-003). Overridable per deploy; the default is the live one. */
@@ -179,7 +179,10 @@ export async function publishSubmission(source: WorldSource): Promise<PublishOut
     });
     if (res.status === 429) return { status: 'rate-limited', kicked: false };
     if (!res.ok) return { status: 'failed', kicked: false };
-    const data = (await res.json().catch(() => null)) as { kicked?: boolean } | null;
+    const data = (await res.json().catch(() => null)) as { kicked?: boolean; recovery?: string } | null;
+    // The first publish from this id brings its recovery code, once (BRDC-IDENTITY-001).
+    // `recovery.ts` reads the same key; written here because it imports from this file.
+    if (typeof data?.recovery === 'string') saveNow('recovery', data.recovery);
     return { status: 'ok', kicked: data?.kicked === true };
   } catch {
     return { status: 'failed', kicked: false };

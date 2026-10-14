@@ -21,6 +21,7 @@ import { useCharacter } from './useCharacter.js';
 import { useCodex } from '../codex/useCodex.js';
 import { METRIC_TITLE, titlesHeld } from '../codex/figures.js';
 import './character.css';
+import { RecoveryCard } from '../identity/RecoveryCard.js';
 
 /** 2π × the ring's own radius (44) — `stroke-dasharray`'s unit is the path length itself. */
 const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
@@ -270,6 +271,9 @@ export function CharacterPanel({ open, repository, now, version, onTopic, onClos
           <Achievements list={ahead.slice(1)} now={now()} />
         </details>
       ) : null}
+
+      <h3 className="character__section">Your identity</h3>
+      <RecoveryCard repository={repository} />
     </GlassPanel>
   );
 }

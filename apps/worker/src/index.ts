@@ -5,6 +5,7 @@
  * it felt like paperwork. This is the same contract over one Cloudflare Worker:
  *
  *   POST /submit        a sealed `WorldSubmission`; kept as this player's latest
+ *   POST /recover       a recovery code → the public id, name and clan (BRDC-IDENTITY-001)
  *   GET  /world/<res6>  the shard for one region, rebuilt on every submit
  *   GET  /demographics  the Codex of Dominion, every realm measured (BRDC-CODEX-001)
  *   GET  /route-codex   Route mode's own table — distance and hexes only (BRDC-MODE-002)
@@ -22,6 +23,7 @@
  * `/atlas*` family (`atlasOf`/`history.ts`), `/legacy*` (`legacy.ts`) and `/season*`
  * (`season.ts`) — a daily trail of distance and hexes for BRDC-SEASON-001's six players.
  */
+import { issueRecovery, recover } from './recovery.js';
 import {
   atlasOf,
   buildShards,
@@ -201,12 +203,27 @@ export default {
         const raw = await env.WORLD.get(CLAN + parsed.source.clanId);
         if (raw) kicked = ((JSON.parse(raw) as ClanRecord).kicked ?? []).includes(id);
       }
+      // The first publish from an id is given its recovery code, once (BRDC-IDENTITY-001).
+      const recovery = await issueRecovery(env.WORLD, id);
       return send({
         ok: true,
         cells: parsed.source.cells.length,
         regions,
         ...(kicked ? { kicked: true } : {}),
+        ...(recovery ? { recovery } : {}),
       });
+    }
+
+    // A recovery code back into the public profile (BRDC-IDENTITY-001). Five tries a
+    // minute per caller: a code is guessable only by trying, and trying is what this slows.
+    if (request.method === 'POST' && url.pathname === '/recover') {
+      const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
+      const tries = Number((await env.WORLD.get(`recover-rl:${ip}`)) ?? 0);
+      if (tries >= 5) return send({ fault: 'too-soon' }, 429);
+      await env.WORLD.put(`recover-rl:${ip}`, String(tries + 1), { expirationTtl: COOLDOWN_S });
+      const body = (await request.json().catch(() => null)) as { code?: unknown } | null;
+      const found = typeof body?.code === 'string' ? await recover(env.WORLD, body.code) : null;
+      return found ? send(found) : send({ fault: 'unknown' }, 404);
     }
 
     if (request.method === 'GET' && url.pathname.startsWith('/world/')) {
@@ -336,6 +353,7 @@ export default {
         world: 'eldritch',
         endpoints: [
           'POST /submit',
+          'POST /recover',
           'GET /world/<res6>',
           'GET /demographics',
           'GET /route-codex',

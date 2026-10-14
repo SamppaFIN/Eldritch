@@ -6,7 +6,7 @@
 | **Vaihe** | 3 — Sivilisaatio (multiplayer-sarja) |
 | **Effort** | S |
 | **Riippuvuudet** | ei mitään pakollista — voi rakentaa itsenäisesti `BRDC-CLAN-*`-sarjasta, hyötyy siitä kun klaanijäsenyys on olemassa palautettavaksi |
-| **Status** | `todo` — hyväksytty rakennettavaksi 2026-10-13 |
+| **Status** | `done` — 2026-10-14 (v0.11.9); Workerin julkaisu Infiniteltä |
 
 ## 🔴 RED
 
@@ -26,27 +26,28 @@ jokaisen `player:<id>`-tiedoston mukana.
 
 ## 🟢 GREEN
 
-- [ ] Worker: kun pelaaja julkaisee ensimmäistä kertaa (ei vielä palautuskoodia
+- [x] Worker: kun pelaaja julkaisee ensimmäistä kertaa (ei vielä palautuskoodia
       olemassa), generoidaan lyhyt, ihmisen kirjoitettavissa oleva koodi (esim. kolme
       tavallista sanaa + kaksi numeroa) ja talletetaan `recovery:<koodi> -> playerId`
       KV:hen. Koodi palautetaan `/submit`in vastauksessa **kerran**, asiakas tallettaa
       sen paikallisesti ja näyttää sen pelaajalle kertaalleen ("kirjoita tämä muistiin")
-- [ ] Worker: uusi `POST /recover {code}` — jos koodi löytyy, palauttaa
+- [x] Worker: uusi `POST /recover {code}` — jos koodi löytyy, palauttaa
       `{playerId, name, nation, banner, clanId}` (kaikki jo julkisesti tallennettu
       `player:<id>`-tiedostossa, ei mitään uutta arkaluontoista)
-- [ ] Asiakas: asetuksiin/otsikkoruutuun "Minulla on jo identiteetti" -kenttä.
+- [x] Asiakas: asetuksiin/otsikkoruutuun "Minulla on jo identiteetti" -kenttä.
       Syötetty koodi → paikallinen `profile.id`, nimi, kansallisuus, lippu ja
       klaanitila korvataan palautetuilla arvoilla. **Paikallinen peliaineisto
       (heksat, XP, rakennukset) koskematon** — tämä muuttaa vain sitä keneksi
       seuraava julkaisu tunnistautuu
-- [ ] UI sanoo rajauksen suoraan: *"Tämä palauttaa nimesi ja klaanisi tälle
+- [x] UI sanoo rajauksen suoraan: *"Tämä palauttaa nimesi ja klaanisi tälle
       laitteelle. Aiempi kuningaskuntasi pysyy sillä laitteella jolla se on."*
-- [ ] Ei salasanaa, ei sähköpostia, ei ulkoista tiliä — yksi KV-avain per koodi.
+- [x] Ei salasanaa, ei sähköpostia, ei ulkoista tiliä — yksi KV-avain per koodi.
       Sama rehellinen luottamusmalli kuin kaikkialla muualla pelissä: koodin tietävä
       *on* se pelaaja pelin silmissä, aivan kuten id:n tietävä jo tänään voi julkaista
       sen alla (`CLAUDE.md` §9: oikea todennus on varattu Vaiheeseen 5)
-- [ ] Portti: `lint:lines`, `tsc -b`, vitest, `pnpm build`. `/recover`-reitti käsin
-      todennettu `wrangler dev`illä
+- [~] Portti: `lint:lines`, `tsc -b`, vitest (2115), `pnpm build` vihreänä; e2e `identity.spec.ts`
+      360 px vihreä (`/recover` korvattu reitityksellä). `/recover` Workerissa käsin todentamatta —
+      vaatii Infiniten `wrangler deploy`n
 
 ## Todennus
 
@@ -71,3 +72,14 @@ yhteydessä — vain profiili- ja klaanikentät.
 ## Päätös 2026-10-13 (kysely)
 
 Rakennetaan sellaisenaan (S): palautuskoodi tuo julkisen nimen ja klaanin uudelle laitteelle. Valtakunta ei siirry (Vaihe 5).
+
+## Tehty 2026-10-14
+
+- Worker `recovery.ts`: koodi (kolme sanaa + kaksi numeroa) annetaan ensimmäisestä `/submit`ista
+  kerran (`recovery:<koodi>`, `recovery-of:<id>`); `/recover` palauttaa id:n, nimen, kansan,
+  lipun ja klaanin nimen; viisi yritystä minuutissa per osoite. `recovery.test.ts` (3).
+- **Rajauksen tarkennus:** profiilin id vaihtuu, joten **omat solut kirjataan uudelle id:lle**
+  (`adoptIdentity`) — muuten oma maa muuttuisi rivaalin maaksi. Heksat, rakennukset, XP ja pussi
+  pysyvät ennallaan. `identity.repo.test.ts` (2).
+- You-ruutu: *Your identity* — koodi näkyy kun se on saatu; *I already have an identity*
+  -kenttä palauttaa ja lataa sivun uudelleen.

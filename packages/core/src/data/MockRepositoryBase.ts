@@ -38,6 +38,7 @@ import type { TechId, TechResult, TempleSchool } from '../rules/tech.js';
 import type { BuildingId } from '../rules/build.js';
 import type { LogEntry } from '../rules/log.js';
 import { addXpTo, readProfile, setName } from './profileStore.js';
+import { adoptIdentity } from './identityStore.js';
 import { achievementsFor } from './achievementRepo.js';
 import type { AchievementView } from './achievementStore.js';
 import type {
@@ -92,6 +93,9 @@ export class MockRepositoryBase {
 
   /* --- Profile and achievements — seams in profileStore.js / achievementRepo.js --- */
   getProfile = (): Promise<PlayerProfile> => readProfile(this.store, this.newId);
+
+  /** A recovery code's id and name, taken on — your cells follow (BRDC-IDENTITY-001). */
+  adoptIdentity = (id: PlayerId, name: string): Promise<number> => adoptIdentity(this.store, id, name);
   // Only takes effect at first creation — `readProfile` no-ops otherwise (BRDC-MODE-001).
   setMode = async (mode: GameMode): Promise<void> => void (await readProfile(this.store, this.newId, mode));
   addXp(amount: number): Promise<PlayerProfile> {

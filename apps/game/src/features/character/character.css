@@ -357,3 +357,21 @@
 .character__perk {
   color: var(--sacred-gold);
 }
+
+/* Your identity (BRDC-IDENTITY-001): the recovery code, and the way back in. */
+.character__identity {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.character__identity-line {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.character__identity input {
+  inline-size: 100%;
+  min-block-size: var(--touch-min);
+  margin-block-start: var(--space-1);
+  font: inherit;
+}
