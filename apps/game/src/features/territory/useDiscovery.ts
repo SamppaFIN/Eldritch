@@ -20,6 +20,10 @@ import type {
   WonderId,
 } from '@es3/core';
 import { keepIfSame } from '../map/keepIfSame.js';
+import { NEW_GROUND_CARDS, load, saveNow } from '@es3/core';
+
+/** How many "New ground" cards this player has been shown (BRDC-CLAIM-010). */
+const CARDS_KEY = 'new-ground-cards';
 
 export interface Discovery {
   h3: H3Index;
@@ -61,7 +65,6 @@ export function useDiscovery(
   repository: GameRepository | null,
   standingOn: H3Index | null,
   now: () => number,
-  loopClosure: boolean,
   /** Called after a claim or a reveal, so the HUD re-reads the pouch and profile. */
   onChanged: () => void,
   /**
@@ -117,7 +120,7 @@ export function useDiscovery(
   useEffect(refreshRevealed, [refreshRevealed]);
 
   useEffect(() => {
-    if (loopClosure || !repository || !standingOn) return;
+    if (!repository || !standingOn) return;
     if (claimed.current.has(standingOn) || inFlight.current.has(standingOn)) return;
     const target = standingOn;
     inFlight.current.add(target);
@@ -135,14 +138,20 @@ export function useDiscovery(
       const found = nextDiscovery(r, claimed.current);
       if (!found) return;
       claimed.current.add(found);
-      setDiscovered({ h3: found, at: now() });
+      // The first few new hexes get the full card; after that the HUD's claim line says it,
+      // and the walk is not stopped every twenty-five metres (BRDC-CLAIM-010).
+      const shown = load<number>(CARDS_KEY, 0);
+      if (shown < NEW_GROUND_CARDS) {
+        saveNow(CARDS_KEY, shown + 1);
+        setDiscovered({ h3: found, at: now() });
+      }
       onChanged();
     });
     // No cleanup: the claim is written by the time this resolves, so cancelling on
     // cleanup would discard a real claim (the loop path's twice-made mistake). `claimed`
     // dedupes the result; `inFlight` keeps a re-fire or border jitter from a second call.
     // now / onChanged read fresh on fire; the real triggers are the cell and the mode.
-  }, [repository, standingOn, loopClosure]);
+  }, [repository, standingOn]);
 
   /*
    * Revealing paid into the pouch and said nothing whatsoever — no line, no sound, no

@@ -93,7 +93,8 @@ export async function charterState(
   for (const c of cells) for (const w of worksOn(c)) works[w.id] = (works[w.id] ?? 0) + 1;
   const hands = Object.values(pouch?.keep?.staff ?? {}).reduce((s, n) => s + n, 0);
   const later = await laterState(store, places);
-  return { owned: cells.length, revealed: Object.keys(revealed).length, lore, works, hands, perHour, keepLevel: pouch?.keep?.level ?? 0, ...later };
+  const loops = (await store.get<number>(K.loopsClosed)) ?? 0;
+  return { owned: cells.length, revealed: Object.keys(revealed).length, lore, works, hands, perHour, loops, keepLevel: pouch?.keep?.level ?? 0, ...later };
 }
 
 async function hexFor(store: KeyValueStore, show: CharterShow | undefined, cells: readonly Cell[], state: CharterState): Promise<H3Index | null> {

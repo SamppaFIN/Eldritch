@@ -173,7 +173,7 @@ export const ROUTE_CODEX_VERSION = 1;
  * The build's own version, shown in the menu and headed each `changelog.json` block
  * (BRDC-CHANGELOG-001). Bumped on every push — patch normally, minor for a phase or a
  * feature. Kept in step with `package.json` and `claude.md` §2. */
-export const APP_VERSION = '0.11.9';
+export const APP_VERSION = '0.11.10';
 /** Cells per region shard. A city block is fine; a city is a directory of shards. */
 export const MAX_SHARD_CELLS = 4_000;
 /**
@@ -349,3 +349,10 @@ export const MAX_PATH_SEGMENTS = 6_000;
 
 /** Cells a founded Hearth hands over: itself and its ring of six (BRDC-TUTOR-001). */
 export const HEARTH_RING = 7;
+
+/**
+ * "New ground" cards shown in full before a step-claim is said only by the HUD's claim line
+ * (BRDC-CLAIM-010): enough for a new player to learn what a hex is, few enough that a claim
+ * every twenty-five metres stops stopping the walk.
+ */
+export const NEW_GROUND_CARDS = 6;

@@ -143,4 +143,6 @@ export const K = {
   charterSeason: 'charter-season',
   /** Culture bought at the Tavern today, `{ day, culture }` (BRDC-TRADE-001). */
   tavernTrade: 'tavern-trade',
+  /** Loops closed that took ground, a number (BRDC-CLAIM-010) — the Charter's loop step reads it. */
+  loopsClosed: 'loops-closed',
 } as const;

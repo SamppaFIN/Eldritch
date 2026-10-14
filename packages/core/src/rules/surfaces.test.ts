@@ -6,7 +6,7 @@ import { HEARTH_RING } from './constants.js';
 
 const fresh: CharterState = {
   owned: HEARTH_RING, revealed: 0, lore: [], works: {}, hands: 0, perHour: {},
-  keepLevel: 1, standard: false, temples: 0, rites: false, investigator: false, tasks: 0, rumours: 0, gatesSealed: 0, ambition: false, adventure: false, routes: 0, clues: 0,
+  loops: 0, keepLevel: 1, standard: false, temples: 0, rites: false, investigator: false, tasks: 0, rumours: 0, gatesSealed: 0, ambition: false, adventure: false, routes: 0, clues: 0,
 };
 const upTo = (id: string) => CHARTER_STEPS.slice(0, CHARTER_STEPS.findIndex((x) => x.id === id)).map((x) => x.id);
 

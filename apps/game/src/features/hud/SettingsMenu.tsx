@@ -75,11 +75,10 @@ export interface SettingsMenuProps {
   visible?: boolean;
 }
 
-/** The document's groups. Only the loop toggle earns a note — it changes how the game plays. */
+/** The document's groups. The loop toggle went with BRDC-CLAIM-010: a loop now claims on top of stepping. */
 const WALKING: [keyof Settings, string][] = [
   ['sound', 'Sound'],
   ['vibration', 'Vibration'],
-  ['loopClosure', 'Claim by closing a loop'],
   ['showEverything', 'Show everything'],
 ];
 
@@ -245,10 +244,6 @@ export function SettingsMenu({
             <div className="settings__group">
               <p className="settings__group-label">Walking</p>
               <div className="settings__rows">{WALKING.map(row)}</div>
-              {/* The one setting that changes how the game is played keeps its sentence. */}
-              <p className="settings__note">
-                Off: you take ground by stepping into a hex beside yours.
-              </p>
             </div>
 
             <div className="settings__group">

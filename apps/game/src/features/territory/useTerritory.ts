@@ -64,7 +64,7 @@ export interface UseTerritoryOptions {
   now: () => number;
   /** The Hearth cell — it never fades, so it is left out of the fade warning. */
   home?: string | null;
-  /** Attempt loop closure at all. Off by default now — territory grows by stepping (BRDC-CLAIM-009). */
+  /** Attempt loop closure. On since BRDC-CLAIM-010 — a loop claims on top of stepping. */
   loopClosure?: boolean;
 }
 
@@ -76,7 +76,7 @@ export function useTerritory({
   now,
   position = null,
   home = null,
-  loopClosure = false,
+  loopClosure = true,
 }: UseTerritoryOptions): TerritoryState {
   const [cells, setCells] = useState<Cell[]>([]);
   const [owned, setOwned] = useState<Cell[]>([]);
@@ -164,7 +164,9 @@ export function useTerritory({
       if (result.closed && mounted.current) {
         setLastClaim({ kind: 'loop', outcomes: result.outcomes, areaM2: result.areaM2, at });
       }
-      if (mounted.current) await refresh();
+      // Only when a loop took ground: ground already held has its own load above, and a
+      // full re-read after every trail batch would cost a big realm every few seconds.
+      if (result.closed && mounted.current) await refresh();
     } finally {
       busy.current = false;
     }

@@ -31,6 +31,8 @@ export interface CharterState {
   /** What the realm earns an hour, as the pouch will pay it (`forecastRates`). */
   perHour: Readonly<Partial<ResourcePool>>;
   /** Chapters III–V (BRDC-ONBOARD-006): counts of what the realm has done, read from the store. */
+  /** Loops closed that took ground (BRDC-CLAIM-010). */
+  loops: number;
   keepLevel: number;
   standard: boolean;
   temples: number;
@@ -181,6 +183,16 @@ export const CHARTER_STEPS: readonly CharterStep[] = [
     progress: (s) => count(Math.floor(s.perHour[scarcest(s)] ?? 0), CHARTER_RATE),
   },
   // Chapter III — the realm (BRDC-ONBOARD-006). Rewards lead to the first Rite's mana.
+  {
+    id: 'loop',
+    chapter: 3,
+    title: 'Walk a closed loop around new ground.',
+    why: 'Every hex you step on is yours — and a closed loop takes everything inside it too.',
+    short: 'Close a loop',
+    // With the supply step's half, this makes up the Keep's next level (BRDC-CLAIM-010).
+    reward: { food: 50, stone: 25 },
+    progress: (s) => count(s.loops, 1),
+  },
   {
     id: 'keep-2',
     chapter: 3,

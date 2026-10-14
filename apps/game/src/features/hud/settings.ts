@@ -11,11 +11,6 @@ export interface Settings {
   sound: boolean;
   vibration: boolean;
   /**
-   * Claim territory by closing a loop (BRDC-CLAIM-009). Off by default for now: ground is
-   * taken by walking into it, one hex at a time. The loop comes back as it is taught.
-   */
-  loopClosure: boolean;
-  /**
    * Draw every Work as its own isometric icon on the map (BRDC-ART-003). Off falls back
    * to ART-002's single role glyph per cell. The map's first filter — more will follow.
    */
@@ -57,7 +52,6 @@ const KEY = 'settings';
 export const DEFAULT_SETTINGS: Settings = {
   sound: true,
   vibration: true,
-  loopClosure: false,
   buildingIcons: true,
   daylight: false,
   revealRivals: true,
@@ -71,7 +65,6 @@ export function loadSettings(): Settings {
   return {
     sound: stored.sound ?? DEFAULT_SETTINGS.sound,
     vibration: stored.vibration ?? DEFAULT_SETTINGS.vibration,
-    loopClosure: stored.loopClosure ?? DEFAULT_SETTINGS.loopClosure,
     buildingIcons: stored.buildingIcons ?? DEFAULT_SETTINGS.buildingIcons,
     daylight: stored.daylight ?? DEFAULT_SETTINGS.daylight,
     revealRivals: stored.revealRivals ?? DEFAULT_SETTINGS.revealRivals,

@@ -158,6 +158,9 @@ export async function closeWalk(d: WalkDeps, runId: RunId, now: number): Promise
     if (count > 0) await writeLogEntry(d.store, { at: now, kind, count });
   }
 
+  // A loop that took ground is one the Keeper's Charter can tick off (BRDC-CLAIM-010).
+  if (tally('claimed') + tally('taken') > 0) await d.store.set(K.loopsClosed, ((await d.store.get<number>(K.loopsClosed)) ?? 0) + 1);
+
   // The ring is spent. Keeping it would let the next fix close the same loop again.
   await d.store.set(K.trail(runId), points.slice(detected.loop.endIndex));
 

@@ -47,6 +47,8 @@ describe('the action log', () => {
     const log = await repo.getLog();
     expect(log[0]?.kind).toBe('awaken');
     expect(log[0]?.count).toBeGreaterThan(0);
+    // …and the loop is counted, for the Keeper's Charter's loop step (BRDC-CLAIM-010).
+    expect(await store.get('loops-closed')).toBe(1);
   });
 
   it('records a build with the building slug', async () => {

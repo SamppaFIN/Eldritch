@@ -111,7 +111,6 @@ export function MapView({ onLeave }: MapViewProps) {
     now: clock.now,
     position: point,
     home: castle,
-    loopClosure: settings.loopClosure,
   });
   // A route played back is watched claiming: re-read the map as each batch lands (BRDC-SIM-003).
   useEffect(() => { if (source === 'playback') void territory.refresh(); }, [source, trail.points.length, territory.refresh]);
@@ -175,7 +174,7 @@ export function MapView({ onLeave }: MapViewProps) {
   // (CLAIM-009), draw a moment for a milestone it crossed (FX-001).
   const { awakening, discovery } = useClaimSync({
     repository, lastClaim: territory.lastClaim, standingOn, now: clock.now,
-    settings, refreshTerritory: territory.refresh, recordClaim: territory.recordClaim,
+    refreshTerritory: territory.refresh, recordClaim: territory.recordClaim,
     setProfile, setResources, onMoment: moments.show,
   });
 

@@ -95,7 +95,7 @@ export const HELP: Readonly<Record<HelpTopic, HelpEntry>> = {
     title: 'Awakening the Ground',
     body: [
       'Step into an unclaimed hex that borders your ground and it is yours, at base strength. From then on it pays what its ground is made of, every hour — timber from woodland, food from water, gold from a row of shops.',
-      'An old way is still there for those who want it: turn on Claim by closing a loop in Settings, and a closed walk takes the land inside it too.',
+      'Walk a closed loop and the land inside it is yours too, all at once — on top of every hex you stepped on along the way.',
     ],
     see: ['how-to-play', 'reinforcement', 'decay', 'corruption'],
   },

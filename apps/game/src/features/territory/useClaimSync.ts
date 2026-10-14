@@ -20,7 +20,6 @@ import type { MomentsApi } from '../fx/useMoments.js';
 import { useDiscovery } from './useDiscovery.js';
 import type { DiscoveryState } from './useDiscovery.js';
 import type { ClaimEvent } from './useTerritory.js';
-import type { Settings } from '../hud/settings.js';
 import { ZOOM_WALKING } from '../map/useMap.js';
 
 export interface ClaimSync {
@@ -33,7 +32,6 @@ export function useClaimSync(opts: {
   lastClaim: ClaimEvent | null;
   standingOn: H3Index | null;
   now: () => number;
-  settings: Settings;
   refreshTerritory: () => Promise<void>;
   /** Announce a step-claim as a `ClaimEvent`, the same way a closure announces itself. */
   recordClaim: (event: ClaimEvent) => void;
@@ -42,7 +40,7 @@ export function useClaimSync(opts: {
   /** Draw an effect for a milestone crossed by this claim (BRDC-FX-001). */
   onMoment?: MomentsApi['show'];
 }): ClaimSync {
-  const { repository, lastClaim, standingOn, now, settings, refreshTerritory } = opts;
+  const { repository, lastClaim, standingOn, now, refreshTerritory } = opts;
   const { setProfile, setResources, onMoment, recordClaim } = opts;
 
   const syncHud = useCallback(() => {
@@ -89,7 +87,7 @@ export function useClaimSync(opts: {
   );
 
   const discovery = useDiscovery(
-    repository, standingOn, now, settings.loopClosure, syncHud, onStepClaimed,
+    repository, standingOn, now, syncHud, onStepClaimed,
   );
 
   /*

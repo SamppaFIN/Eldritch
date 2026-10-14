@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.11.10",
+    "date": "2026-10-14",
+    "notes": [
+      "Closing a loop claims again — on top of stepping. Every hex you step on is yours, and a closed loop takes the land inside it too. The Settings switch is gone: nobody has to choose.",
+      "The Keeper's Charter teaches it: chapter III begins with \"Walk a closed loop around new ground\".",
+      "The New ground card shows for your first six hexes. After that the claim line on the HUD says it, and your walk is not stopped every few steps."
+    ]
+  },
+  {
     "version": "0.11.9",
     "date": "2026-10-14",
     "notes": [
