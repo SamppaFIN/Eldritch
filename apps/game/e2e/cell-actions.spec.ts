@@ -16,10 +16,16 @@ test('the Hearth card puts its actions in one row at the top', async ({ page }) 
   await expect(card).toBeVisible({ timeout: 10_000 });
 
   const row = card.getByRole('group', { name: 'Actions on this hex' });
-  // Three up front, the rest behind More; a grey Ward waits there (BRDC-UX-005).
+  // Three up front, the rest behind More; the Ward may wait there (BRDC-UX-005). Polled:
+  // the card fills in after it opens, and a More pressed before that opens nothing.
   const more = row.getByRole('button', { name: /^More · / });
-  if (await more.isVisible().catch(() => false)) await more.click();
-  await expect(row.getByRole('button', { name: /^Ward/ })).toBeVisible();
+  const ward = row.getByRole('button', { name: /^Ward/ });
+  await expect
+    .poll(async () => {
+      if (await more.isVisible().catch(() => false)) await more.click().catch(() => undefined);
+      return ward.isVisible().catch(() => false);
+    }, { timeout: 15_000 })
+    .toBe(true);
   await expect(row.getByRole('button', { name: 'Works', exact: true })).toBeVisible();
 
   // In the upper half of the screen, straight under the header — no scrolling for it.

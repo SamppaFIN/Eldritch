@@ -4,7 +4,7 @@
 |---|---|
 | **Alue** | `data/seed`, `rules/terrain.ts`, `rules/cityState.ts`, `rules/wonder.ts`, editori |
 | **Effort** | L |
-| **Status** | `todo` — aineisto saapui 2026-10-14; kohdistus tarkistettava ennen koodia |
+| **Status** | `[~]` — maasto käytössä 2026-10-14 (v0.11.11); mittakaava ja kylät auki |
 | **Lähde** | Infinite 2026-09-15: *"voisin myös antaa uuden kartan ja suunnitella maaston sen mukaan mitä siellä oikeasti on.. eli esigeneroidaan heksojen tiedot ja resurssit.. haluan myös että saan asetella maailman ihmeet ja resurssit ja kaupunkivaltion kartalle.. haluan, että voin antaa kaupunkivaltiolle myös rakennuksia esim temppelin ja fortifikaatioita."* |
 
 ## 🔴 RED
@@ -79,3 +79,25 @@ osuisi rannalle. Yhdellä pisteellä voi korjata vain siirron, ei mittakaavaa.
 3. **5 km:n raja**: yli 5 km lentäjäpatsaasta aloittava saa arvotun maaston kuten nyt.
 4. **POI:t erikseen**: aineiston kylät ovat ehdokkaita uusiksi kaupunkivaltioiksi
    (BRDC-CITY-001) — se on oma päätöksensä, ei osa maastoa.
+
+## Tehty 2026-10-14 (v0.11.11)
+
+- [x] **Kohdistus**: Infinite antoi patsaan tarkan paikan (61.472883311234405,
+      23.726056773550532). Koko design siirretään sen mukaan: **55,9 m pohjoiseen, 98,0 m
+      itään**. Mittakaava `SCALE = 1` — korjattavissa yhdellä luvulla, kun toinen, kaukana
+      patsaasta oleva piste tiedetään.
+- [x] **Muunnos**: `scripts/gen-harmala.mjs` lukee `data/seed/harmala.design.json`:n
+      (designin JSON sellaisenaan) ja kirjoittaa `harmala.design-terrain.json`:n — rivi per
+      H3 res-10 -vanhempi, seitsemän lapsen maastokirjaimet. **8 767 heksaa**, 36 kt.
+      Lähin designheksa: tarkka (25 m) ensin, sitten karkea (66 m).
+- [x] **Ketjun kärkeen**: `designedTerrainOf` heti käsin maalatun jälkeen, ennen Worldseediä
+      (`terrainOf` ja `terrainForCell`). Päällä sovelluksessa (`enableDesignedTerrain`),
+      pois ytimen testeissä — sama malli kuin Worldseedillä.
+- [x] **5 km:n sääntö** toteutuu sellaisenaan: piirretyn alueen ulkopuolella design ei vastaa,
+      ja vanha ketju (Worldseed → kartoitus → laatat → hajautus) päättää.
+- [x] Testit: `harmalaDesign.test.ts` (4) — patsas osuu oikeaan, jokainen maastolaji
+      osuu omaan heksaansa, ketjun kärki, pois päältä hiljaa. e2e 360 px: 41/44 heti, kolme
+      speksin oletusta korjattu (patsaan rengas on nyt asutusta: Eureka-speksin Hearth
+      siirretty 190 m itään avomaalle; Lands-speksin maastolista; Hearth-kortin More-kilpajuoksu).
+- [ ] Mittakaavan tarkistus toisella pisteellä
+- [ ] POI:t: kylät kaupunkivaltioiksi (BRDC-CITY-001) — oma päätöksensä

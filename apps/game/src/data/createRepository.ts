@@ -5,7 +5,7 @@
  * directly. In Phase 3 this is where SupabaseRepository appears behind an environment
  * flag, with the mock staying on as the offline fallback — and nothing else changes.
  */
-import { MemoryStore, MockRepository, cellCache, enableTerrainSurvey, enableWorldseed } from '@es3/core';
+import { MemoryStore, MockRepository, cellCache, enableDesignedTerrain, enableTerrainSurvey, enableWorldseed } from '@es3/core';
 import type { BuildingId, GameMode, GameRepository, H3Index } from '@es3/core';
 import { IdbStore, idbAvailable } from './IdbStore.js';
 
@@ -14,6 +14,8 @@ import { IdbStore, idbAvailable } from './IdbStore.js';
 enableTerrainSurvey();
 // The built Worldseed data (BRDC-SEED-004) — same reasoning, same shape.
 enableWorldseed();
+// Härmälä as Infinite drew it in Claude Design (BRDC-WORLD-001) — first in the terrain chain.
+enableDesignedTerrain();
 
 export interface RepositoryHandle {
   repository: GameRepository;

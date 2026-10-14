@@ -5,7 +5,9 @@ import { openMap } from './hearth.js';
 /**
  * BRDC-EUREKA-001 — a Lore's condition met: a card says so once, and the Lore shows it.
  */
-const HERE = { latitude: 61.47290805, longitude: 23.72588249, accuracy: 8 };
+// Open ground 190 m east of the statue: the designed Härmälä (BRDC-WORLD-001) makes the
+// statue's own ring houses, and Husbandry needs three plain hexes held at founding.
+const HERE = { latitude: 61.473347, longitude: 23.729501, accuracy: 8 };
 test.use({ permissions: ['geolocation'], geolocation: HERE });
 
 /** A Keep in the pouch record, written until it stays (the app rewrites `resources`). */
@@ -41,7 +43,7 @@ test('a eureka is announced, and the Lore shows every condition', async ({ page 
   await page.reload();
   await expect(page.locator('.es-player__core')).toBeVisible({ timeout: 20_000 });
 
-  // The Hearth ring is plain ground here: Husbandry's three plain hexes are already held.
+  // The Hearth ring is plain ground here: Husbandry's three plain hexes are held at founding.
   const card = page.getByRole('button', { name: /^Eureka · .* — dismiss$/ });
   await expect(card.first()).toBeVisible({ timeout: 20_000 });
   await expect(card.first()).toContainText('costs half');

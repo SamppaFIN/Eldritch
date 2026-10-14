@@ -38,7 +38,7 @@ test('lists every hex held, with what it is and what it wants', async ({ page })
 
   // Each row carries the ground, the yield, the strength, the days walked and the clock.
   const first = lands.locator('.lands__row').first();
-  await expect(first).toContainText(/Plain|Forest|Hill|Mountain|Lake|Coast|Market/);
+  await expect(first).toContainText(/Plain|Forest|Hill|Mountain|Lake|Coast|Market|Marsh|Settlement/);
   await expect(first).toContainText(/walked \d+ days?/);
 });
 

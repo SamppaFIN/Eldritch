@@ -20,6 +20,7 @@ import { seededTerrainOf } from './terrainSeed.js';
 import { paintedTerrainOf } from '../data/mapData.js';
 import { surveyedTerrainOf } from '../data/localSurvey.js';
 import { hexSeedOf } from '../data/hexSeedStore.js';
+import { designedTerrainOf } from '../data/harmalaDesign.js';
 import type { Cell, H3Index, Terrain, TerrainKind } from '../types/domain.js';
 import type { KeepState } from './citizens.js';
 
@@ -180,6 +181,11 @@ export function terrainOf(h3: H3Index): Terrain {
   const drawn = paintedTerrainOf(h3);
   if (drawn) return drawn;
 
+  // Härmälä as Infinite drew it in Claude Design (BRDC-WORLD-001): the authored map wins
+  // over every older guess at the same ground.
+  const designed = designedTerrainOf(h3);
+  if (designed) return designed;
+
   const worldseed = worldseedTerrainOf(h3);
   if (worldseed) return worldseed;
 
@@ -207,6 +213,7 @@ export function terrainOf(h3: H3Index): Terrain {
 export function terrainForCell(cell: Cell): Terrain {
   return (
     paintedTerrainOf(cell.h3) ??
+    designedTerrainOf(cell.h3) ??
     worldseedTerrainOf(cell.h3) ??
     seededTerrainOf(cell.h3) ??
     cell.terrain ??

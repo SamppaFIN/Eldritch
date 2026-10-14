@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.11.11",
+    "date": "2026-10-14",
+    "notes": [
+      "Härmälä is drawn by hand now: the ground in about five kilometres around the Statue of the Boy — lake, shore, forest, houses, fields, markets — comes from Infinite's own map, not from a guess.",
+      "What your hexes yield and what you can build on them follows the real ground there."
+    ]
+  },
+  {
     "version": "0.11.10",
     "date": "2026-10-14",
     "notes": [
