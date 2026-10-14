@@ -28,6 +28,7 @@ export const LOG_TOPIC: Partial<Record<LogKind, HelpTopic>> = {
   wager: 'the-wager',
   reveal: 'awakening',
   hearth: 'hearth',
+  trade: 'resources',
 };
 
 const cells = (n = 0) => `${n} ${n === 1 ? 'cell' : 'cells'}`;
@@ -107,6 +108,8 @@ export function describeLogEntry(e: LogEntry): { text: string; topic?: HelpTopic
       return { text: 'Something happened on the way', topic };
     case 'hearth':
       return { text: 'Founded the Hearth', topic };
+    case 'trade':
+      return { text: `Bought ${e.count ?? 0} culture for ${e.ref ?? '?'} gold at the Tavern`, topic };
   }
 }
 

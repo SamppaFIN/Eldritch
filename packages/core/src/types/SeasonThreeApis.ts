@@ -17,6 +17,7 @@ import type { PropellerApi } from '../data/propellerStore.js';
 import type { OtherWorldApi } from '../data/otherWorldStore.js';
 import type { MonsterApi } from '../data/monsterStore.js';
 import type { CharterApi } from '../data/charterStore.js';
+import type { TavernTradeApi } from '../data/tavernTradeStore.js';
 
 export interface SeasonThreeApis {
   /** Today's Mythos card: the season's clock, and whether the headline was read (BRDC-MYTHOS-001). */
@@ -49,4 +50,6 @@ export interface SeasonThreeApis {
   readonly monsters: MonsterApi;
   /** The Keeper's Charter: one step at a time, rewards that lead on (BRDC-ONBOARD-001). */
   readonly charter: CharterApi;
+  /** Gold for culture at a Tavern of yours, a day's worth at a time (BRDC-TRADE-001). */
+  readonly tavern: TavernTradeApi;
 }

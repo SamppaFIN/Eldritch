@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.11.8",
+    "date": "2026-10-14",
+    "notes": [
+      "A Tavern of yours trades gold for culture: 5 gold for one culture, up to 20 a day, while you stand on it. The rate and what is left today show before you buy.",
+      "Each trade is written in your History."
+    ]
+  },
+  {
     "version": "0.11.7",
     "date": "2026-10-13",
     "notes": [

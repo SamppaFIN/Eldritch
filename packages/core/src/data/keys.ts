@@ -141,4 +141,6 @@ export const K = {
   /** The Charter's season chapter (V), claimed this season, `{ claimed: string[] }` — not
    *  forever: it renews with every season (BRDC-ONBOARD-006). */
   charterSeason: 'charter-season',
+  /** Culture bought at the Tavern today, `{ day, culture }` (BRDC-TRADE-001). */
+  tavernTrade: 'tavern-trade',
 } as const;

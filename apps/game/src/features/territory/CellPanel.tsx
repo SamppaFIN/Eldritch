@@ -47,6 +47,7 @@ import { QuestCellPanel } from '../quest/QuestCellPanel.js';
 import type { QuestCellInfo } from '../quest/questCell.js';
 import type { QuestBoardEntry } from '../quest/questBoard.js';
 import { TaskBoard } from '../quest/TaskBoard.js';
+import { TavernTrade } from '../quest/TavernTrade.js';
 import type { AnomalyBinding } from './useAnomaly.js';
 import type { BuildBinding, PlaceBinding, ResearchBinding } from './useSelection.js';
 import type { SpellBinding } from './useSpells.js';
@@ -372,6 +373,7 @@ export function CellPanel({
             <p className="cell-panel__note">Nothing under way.</p>
           )}
           {repository ? <TaskBoard repository={repository} /> : null}
+          {repository && mine ? <TavernTrade repository={repository} h3={cell.h3} here={here} now={now} onPouch={onPouch} /> : null}
         </div>
       ) : null}
     </GlassPanel>

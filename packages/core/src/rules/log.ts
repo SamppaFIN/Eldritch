@@ -31,7 +31,8 @@ export type LogKind =
   | 'reveal'
   | 'wonder'
   | 'encounter'
-  | 'hearth';
+  | 'hearth'
+  | 'trade';
 
 export interface LogEntry {
   at: number;
