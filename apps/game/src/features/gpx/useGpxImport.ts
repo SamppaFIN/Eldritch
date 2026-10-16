@@ -49,7 +49,8 @@ export function useGpxImport(
           return;
         }
         const run = await repository.startRun(now());
-        const result = await repository.submitTrail(run, parsed.points);
+        // Standalone: a walk recorded elsewhere takes its own path, touching only itself (BRDC-GPX-005).
+        const result = await repository.submitTrail(run, parsed.points, { standalone: true });
         await repository.endRun(run);
         setState({ status: 'done', points: parsed.points.length, result });
         afterImport();

@@ -52,6 +52,17 @@ test('a track is read, walked, and reported', async ({ page }) => {
   await expect(panel).toContainText(/\d+ m/);
 });
 
+test('a walk recorded far from the realm takes its own path (BRDC-GPX-005)', async ({ page }) => {
+  test.setTimeout(200_000);
+  const panel = await openImport(page);
+  // Two kilometres north of the Hearth: nothing of the realm anywhere near it.
+  const far = track().replace(/lat="([\d.]+)"/g, (_, lat: string) => `lat="${Number(lat) + 0.02}"`);
+  await panel.locator('input[type=file]').setInputFiles({ name: 'pocket.gpx', mimeType: 'application/gpx+xml', buffer: Buffer.from(far) });
+  await expect(panel).toContainText('8 points read', { timeout: 20_000 });
+  await expect(panel).toContainText(/new land/, { timeout: 20_000 });
+  await expect(panel).not.toContainText('out of reach');
+});
+
 test('a file that is not a track says so, by name', async ({ page }) => {
   test.setTimeout(200_000);
   const panel = await openImport(page);

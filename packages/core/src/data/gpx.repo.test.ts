@@ -142,3 +142,30 @@ describe('a track recorded away from the realm', () => {
     expect(result.outOfReach).toBe(0);
   });
 });
+
+/**
+ * BRDC-GPX-005 — Infinite 2026-10-16: *"Import ei onnistunut.. tee siitä niin ettei tartte
+ * koskee omia maita."* A walk recorded elsewhere (the pocket APK) is imported standalone:
+ * its first hex may stand alone, and the rest grows along its own path.
+ */
+describe('a recorded walk imported standalone', () => {
+  const farWalk = (): TrailPoint[] => walk().map((p) => ({ ...p, lat: p.lat + 0.02 }));
+
+  it('takes its own path as new ground, away from the realm', async () => {
+    const r = await repo();
+    const run = await r.startRun(T0);
+    const result = await r.submitTrail(run, farWalk(), { standalone: true });
+    const walked = new Set(farWalk().map((p) => cellAt(p)));
+    const held = new Set((await r.getOwnedCells(T0 + 100_000)).map((c) => c.h3));
+    for (const h3 of walked) expect(held.has(h3), h3).toBe(true);
+    expect(result.outOfReach).toBe(0);
+  });
+
+  it('still throws out a leap no walker could make', async () => {
+    const r = await repo();
+    const run = await r.startRun(T0);
+    const leap = farWalk().map((p, i) => (i === 4 ? { ...p, lat: p.lat + 0.05 } : p));
+    const result = await r.submitTrail(run, leap, { standalone: true });
+    expect(result.accepted).toBeLessThan(leap.length);
+  });
+});

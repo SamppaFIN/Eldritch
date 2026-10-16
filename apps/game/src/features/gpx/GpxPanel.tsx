@@ -95,11 +95,9 @@ export function GpxPanel({ open, repository, now, afterImport, onGain, onClose }
           {/*
             * Why a track can land in full and win nothing (BRDC-GPX-003).
             *
-            * Reported: "importista tulleet heksat eivät tulleet mulle". The rule is
-            * working — an imported walk claims by the same adjacency rule feet do, so a
-            * track recorded away from the player's realm touches nothing it may take —
-            * but the panel said "38 walked" and then went quiet, which reads as a broken
-            * import rather than as a rule. Same reason the rejected list above exists.
+            * Reported: "importista tulleet heksat eivät tulleet mulle". Since BRDC-GPX-005 an
+            * import is standalone — a walk recorded away from the realm takes its own path —
+            * so what is left out of reach is only what a long gap in the track cut off.
             */}
           {state.result.outOfReach > 0 ? (
             <p className="gpx__reach">
@@ -107,9 +105,8 @@ export function GpxPanel({ open, repository, now, afterImport, onGain, onClose }
                 {state.result.outOfReach}{' '}
                 {state.result.outOfReach === 1 ? 'hex was' : 'hexes were'} out of reach.
               </strong>{' '}
-              Ground has to touch ground you already hold — the same rule your own feet
-              follow, and what stops a stray fix founding a realm across town. A track that
-              passes your own ground takes everything along it.
+              A long gap in the track breaks its path: what lies past the gap had nothing of
+              the walk to touch. The rest of the walk is yours, wherever it was walked.
             </p>
           ) : null}
 

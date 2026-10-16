@@ -84,7 +84,12 @@ export interface GameRepository extends SeasonTwoApis, OctoberApis, SeasonThreeA
   /* --- Runs and trail --------------------------------------------------- */
   startRun(now: number): Promise<RunId>;
   getActiveRun(): Promise<Run | null>;
-  submitTrail(runId: RunId, points: TrailPoint[]): Promise<TrailResult>;
+  /**
+   * `standalone`: a recorded walk imported from a file (BRDC-GPX-005) — its first hex may
+   * stand alone, so a walk recorded away from the realm takes its own path as new ground.
+   * A live walk never passes it: a stray fix must not found a colony across town.
+   */
+  submitTrail(runId: RunId, points: TrailPoint[], opts?: { standalone?: boolean }): Promise<TrailResult>;
   getTrailPoints(runId: RunId): Promise<TrailPoint[]>;
   endRun(runId: RunId): Promise<void>;
 

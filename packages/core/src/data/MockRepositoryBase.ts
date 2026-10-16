@@ -124,7 +124,7 @@ export class MockRepositoryBase {
   getLog = async (limit = 100): Promise<LogEntry[]> =>
     (await readLog(this.store)).slice(-limit).reverse();
 
-  submitTrail = (runId: RunId, points: TrailPoint[]) => submitWalk(this.walkDeps(), runId, points);
+  submitTrail = (runId: RunId, points: TrailPoint[], opts?: { standalone?: boolean }) => submitWalk(this.walkDeps(), runId, points, opts);
 
   endRun = (runId: RunId): Promise<void> => closeRun(this.store, runId);
 

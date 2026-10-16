@@ -37,7 +37,7 @@ export interface WalkDeps {
   seed(origin: TrailPoint): Promise<void>;
 }
 
-export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]) {
+export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[], opts: { standalone?: boolean } = {}) {
   const run = await d.store.get<Run>(K.run(runId));
   if (!run) throw new Error(`Unknown run: ${runId}`);
 
@@ -85,7 +85,9 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
   const walked = await recordWalk(d.store, accepted, {
     id: profile.id,
     level: profile.level,
-    hasTerritory: owned.length > 0,
+    // An imported walk may begin away from the realm (BRDC-GPX-005): its first hex is a seed,
+    // and the rest of it grows along its own path, touching only itself.
+    hasTerritory: opts.standalone ? false : owned.length > 0,
     takesOutright: profile.mode !== 'route',
     ...((await d.store.get<boolean>(K.sealed)) ? { claimBudget: 0 } : {}),
   });
