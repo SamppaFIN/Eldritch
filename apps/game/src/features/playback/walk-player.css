@@ -1,0 +1,42 @@
+/* The walk player (BRDC-APK-001): a small glass card in the top stack, controls a thumb can hit. */
+.walk-player {
+  pointer-events: auto;
+  display: grid;
+  gap: var(--space-2);
+  inline-size: 100%;
+  max-inline-size: 26rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--glass-bg);
+}
+
+.walk-player__line {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.walk-player__bar {
+  block-size: 4px;
+  border-radius: 2px;
+  background: oklch(1 0 0 / 0.12);
+  overflow: hidden;
+}
+
+.walk-player__fill {
+  block-size: 100%;
+  background: var(--mystic-cyan);
+  transition: inline-size 0.2s ease;
+}
+
+.walk-player__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walk-player__fill {
+    transition-duration: 0.01ms;
+  }
+}

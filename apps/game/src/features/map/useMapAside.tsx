@@ -77,6 +77,8 @@ export function useMapAside(
   onWorldChanged: () => void = () => {},
   /** Joining the Weekly Tournament also turns sharing on (BRDC-SEASON-001). */
   onJoinedSeason?: () => void,
+  /** Play an imported walk on the map (BRDC-APK-001); a fault's code, or null. */
+  onPlayWalk?: (text: string, name: string, speed: number) => string | null,
 ): MapAside {
   const showCell = useRef(onShowCell);
   showCell.current = onShowCell;
@@ -203,6 +205,7 @@ export function useMapAside(
         repository={repository}
         now={now}
         afterImport={changed.current}
+        onPlay={onPlayWalk}
         onGain={setLandsGain}
         onClose={() => setGpxOpen(false)}
       />

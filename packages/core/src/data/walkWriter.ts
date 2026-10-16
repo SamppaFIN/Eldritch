@@ -36,6 +36,8 @@ export interface Walker {
   claimBudget?: number;
   /** Take a rival's hex outright rather than wear it down — Adventure mode (2026-09-30). */
   takesOutright?: boolean;
+  /** A recorded walk from a file: no adjacency, the path between fixes filled (BRDC-GPX-005). */
+  standalone?: boolean;
 }
 
 export interface WalkRecord {
@@ -72,20 +74,21 @@ export async function recordWalk(
    * into one. Order does not matter here: these only populate `known` before planning.
    */
   const known = new Map<H3Index, Cell>();
-  const ids = walkNeighbourhood(accepted);
+  const previous = (await store.get<DwellReading | null>(K.lastReading)) ?? null;
+  const ids = walkNeighbourhood(accepted, walker.standalone, previous);
   const loaded = await Promise.all(ids.map((h3) => store.get<Cell>(K.cell(h3))));
   ids.forEach((h3, i) => {
     const cell = loaded[i];
     if (cell) known.set(h3, cell);
   });
 
-  const previous = (await store.get<DwellReading | null>(K.lastReading)) ?? null;
   const plan = planWalk(accepted, {
     attacker: { id: walker.id, level: walker.level, ...(walker.takesOutright ? { takesOutright: true } : {}) },
     known,
     dwell: (await store.get<DwellMap>(K.dwell)) ?? {},
     previous,
     hasTerritory: walker.hasTerritory,
+    ...(walker.standalone ? { standalone: true } : {}),
   });
 
   /*

@@ -85,9 +85,9 @@ export async function submitWalk(d: WalkDeps, runId: RunId, points: TrailPoint[]
   const walked = await recordWalk(d.store, accepted, {
     id: profile.id,
     level: profile.level,
-    // An imported walk may begin away from the realm (BRDC-GPX-005): its first hex is a seed,
-    // and the rest of it grows along its own path, touching only itself.
-    hasTerritory: opts.standalone ? false : owned.length > 0,
+    hasTerritory: owned.length > 0,
+    // A recorded walk from a file takes its own path, away from the realm (BRDC-GPX-005).
+    ...(opts.standalone ? { standalone: true } : {}),
     takesOutright: profile.mode !== 'route',
     ...((await d.store.get<boolean>(K.sealed)) ? { claimBudget: 0 } : {}),
   });

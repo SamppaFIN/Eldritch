@@ -5,9 +5,10 @@
  * accepted, and — when something was thrown out — why, because a track that half-lands
  * with no explanation is the kind of thing a player decides is broken.
  */
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { GlassPanel, RitualButton } from '@es3/ui';
 import { NewLands } from './NewLands.js';
+import { parseGpx } from '@es3/core';
 import type { Collected, GameRepository, RejectReason } from '@es3/core';
 import { useEscape } from '../hud/useEscape.js';
 import { useGpxImport } from './useGpxImport.js';
@@ -18,7 +19,12 @@ const FAULT: Readonly<Record<string, string>> = {
   'no-points': 'That track has no points in it.',
   'no-times': 'That track has no timestamps. Without them there is no way to tell walking from driving.',
   'no-repository': 'The game is still opening. Try again in a moment.',
+  'too-short': 'One point is not a walk. It needs two at least.',
+  'not-json': 'That is not a GPX file.',
 };
+
+/** How fast a walk plays on the map (BRDC-APK-001): an hour's walk is twelve, three or one minute. */
+const PLAY_SPEEDS = [5, 20, 60] as const;
 
 /** Errors say what to do, not what failed (AI-Koulu ch.3). */
 const REJECTED: Readonly<Record<RejectReason, string>> = {
@@ -35,12 +41,26 @@ export interface GpxPanelProps {
   afterImport: () => void;
   /** A payout from a reveal here, for the one toast the map owns. */
   onGain: (collected: Collected) => void;
+  /** Play the walk on the map at `speed` (BRDC-APK-001); the fault's name if it cannot. */
+  onPlay?: ((text: string, name: string, speed: number) => string | null) | undefined;
   onClose: () => void;
 }
 
-export function GpxPanel({ open, repository, now, afterImport, onGain, onClose }: GpxPanelProps) {
+export function GpxPanel({ open, repository, now, afterImport, onGain, onPlay, onClose }: GpxPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
-  const { state, importFile, reset } = useGpxImport(repository, now, afterImport);
+  const { state, importText, reset } = useGpxImport(repository, now, afterImport);
+  // The file read once, then played on the map or walked in at once (BRDC-APK-001).
+  const [picked, setPicked] = useState<{ text: string; name: string } | null>(null);
+  const [said, setSaid] = useState<string | null>(null);
+  const play = (speed: number) => {
+    if (!picked || !onPlay) return;
+    const fault = onPlay(picked.text, picked.name, speed);
+    if (fault) setSaid(FAULT[fault] ?? 'That walk cannot be played.');
+    else {
+      setPicked(null);
+      onClose();
+    }
+  };
   useEscape(open, onClose);
 
   if (!open) return null;
@@ -55,8 +75,8 @@ export function GpxPanel({ open, repository, now, afterImport, onGain, onClose }
       </div>
 
       <p className="gpx__note">
-        A track from a watch or a tracker is walked into the game exactly as if you had
-        walked it now: the same ground is taken, and the same points are thrown out.
+        A walk from a watch, a tracker or the pocket app. Play it on the map and watch the
+        ground being taken, or walk it in all at once — the same ground either way.
       </p>
 
       <label className="gpx__file">
@@ -66,10 +86,47 @@ export function GpxPanel({ open, repository, now, afterImport, onGain, onClose }
           accept=".gpx,application/gpx+xml,text/xml"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) importFile(file);
+            if (!file) return;
+            reset();
+            setSaid(null);
+            void file.text().then((text) => {
+              // A file that is no walk says so now, before it is offered to be played.
+              const parsed = parseGpx(text);
+              if (parsed.ok) setPicked({ text, name: file.name.replace(/\.gpx$/i, '') });
+              else {
+                setPicked(null);
+                setSaid(FAULT[parsed.fault] ?? 'That file could not be read.');
+              }
+            });
           }}
         />
       </label>
+
+      {picked && state.status === 'idle' ? (
+        <div className="gpx__choice" role="group" aria-label="What to do with the walk">
+          <p className="gpx__line">
+            <strong>{picked.name}</strong>
+          </p>
+          {onPlay ? (
+            <div className="gpx__speeds">
+              {PLAY_SPEEDS.map((s) => (
+                <RitualButton key={s} onClick={() => play(s)}>
+                  Play ×{s}
+                </RitualButton>
+              ))}
+            </div>
+          ) : null}
+          <RitualButton variant="ghost" onClick={() => importText(picked.text)}>
+            Walk it in at once
+          </RitualButton>
+        </div>
+      ) : null}
+
+      {said ? (
+        <p className="gpx__fault" role="status">
+          {said}
+        </p>
+      ) : null}
 
       {state.status === 'failed' ? (
         <p className="gpx__fault" role="status">

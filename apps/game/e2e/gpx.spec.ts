@@ -35,15 +35,17 @@ async function openImport(page: import('@playwright/test').Page) {
   return panel;
 }
 
+/** Choose the file, then walk it in at once — playing it is the other choice (BRDC-APK-001). */
+async function walkIn(panel: import('@playwright/test').Locator, name: string, body: string) {
+  await panel.locator('input[type=file]').setInputFiles({ name, mimeType: 'application/gpx+xml', buffer: Buffer.from(body) });
+  await panel.getByRole('button', { name: 'Walk it in at once' }).click();
+}
+
 test('a track is read, walked, and reported', async ({ page }) => {
   test.setTimeout(200_000);
   const panel = await openImport(page);
 
-  await panel.locator('input[type=file]').setInputFiles({
-    name: 'walk.gpx',
-    mimeType: 'application/gpx+xml',
-    buffer: Buffer.from(track()),
-  });
+  await walkIn(panel, 'walk.gpx', track());
 
   // It says what it read and what it took, because a track that half-lands in silence is
   // the kind of thing a player decides is broken.
@@ -57,7 +59,7 @@ test('a walk recorded far from the realm takes its own path (BRDC-GPX-005)', asy
   const panel = await openImport(page);
   // Two kilometres north of the Hearth: nothing of the realm anywhere near it.
   const far = track().replace(/lat="([\d.]+)"/g, (_, lat: string) => `lat="${Number(lat) + 0.02}"`);
-  await panel.locator('input[type=file]').setInputFiles({ name: 'pocket.gpx', mimeType: 'application/gpx+xml', buffer: Buffer.from(far) });
+  await walkIn(panel, 'pocket.gpx', far);
   await expect(panel).toContainText('8 points read', { timeout: 20_000 });
   await expect(panel).toContainText(/new land/, { timeout: 20_000 });
   await expect(panel).not.toContainText('out of reach');
@@ -101,11 +103,7 @@ test('a track with no timestamps is refused, and says why', async ({ page }) => 
  */
 async function importTrack(page: import('@playwright/test').Page, points = 14) {
   const panel = await openImport(page);
-  await panel.locator('input[type=file]').setInputFiles({
-    name: 'walk.gpx',
-    mimeType: 'application/gpx+xml',
-    buffer: Buffer.from(track(points)),
-  });
+  await walkIn(panel, 'walk.gpx', track(points));
   await expect(panel).toContainText(/\d+ walked/, { timeout: 20_000 });
   return panel;
 }
@@ -149,4 +147,25 @@ test('all at once names every one of them', async ({ page }) => {
   await expect.poll(() => panel.locator('.gpx__lands-spoils').count(), { timeout: 20_000 })
     .toBeGreaterThan(0);
   await expect(panel).toContainText(/looked at/);
+});
+
+/*
+ * BRDC-APK-001. "haluan nähdä siis tän playback simulaationa.. käyttäjä painaa play,
+ * valitsee nopeuden ja kartta antaa playbackinä mitä tapahtuu pelissä"
+ */
+test('a walk plays on the map, and the ground falls as it goes', async ({ page }) => {
+  test.setTimeout(200_000);
+  const panel = await openImport(page);
+  const far = track(14).replace(/lat="([\d.]+)"/g, (_, lat: string) => `lat="${Number(lat) + 0.02}"`);
+  await panel.locator('input[type=file]').setInputFiles({ name: 'pocket.gpx', mimeType: 'application/gpx+xml', buffer: Buffer.from(far) });
+  await panel.getByRole('button', { name: 'Play ×60' }).click();
+  await expect(panel).toHaveCount(0);
+
+  const player = page.getByRole('region', { name: 'Walk playing' });
+  await expect(player).toContainText('pocket', { timeout: 15_000 });
+  await expect(player.getByRole('button', { name: '×60' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(player).toContainText('played through', { timeout: 90_000 });
+  await page.screenshot({ path: 'C:/Users/User/AppData/Local/Temp/claude/c--Projects-Klitoritari-FinalFantasy/27bd54f7-66d3-41b5-b027-226ec7e8fb2b/scratchpad/walk-player.png' });
+  await player.getByRole('button', { name: 'Close' }).click();
+  await expect(player).toHaveCount(0);
 });

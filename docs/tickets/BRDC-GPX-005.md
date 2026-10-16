@@ -27,6 +27,20 @@ mailla ei siis vallannut mitään — tuonti näytti epäonnistuneen.
       e2e `gpx.spec.ts` (+1, 360 px: 2 km pohjoiseen nauhoitettu kävely tuo uutta maata)
 - [x] `pnpm test` (2121) · `pnpm typecheck` · `pnpm lint:lines` · build
 
+## Jatko 2026-10-16 (v0.11.13) — polku täytetään kiintopisteiden välistä
+
+Kenttäraportti (kuvakaappaus): *240 points read · 105 walked · 69 hexes out of reach*.
+Suodattimet jättävät harvan jonon: kaksi peräkkäistä hyväksyttyä pistettä voi olla
+heksojen päässä toisistaan, ja välistä heksaa ei koskaan astuttu — nauha katkesi ja
+loput jäivät *out of reach*.
+
+- [x] Itsenäinen kävely täyttää kahden peräkkäisen kiintopisteen välin (`hexPath`): jokainen
+      heksa linjalla otetaan kuin astuttu. Ei yli `OBSERVATION_GAP_MS`:n katkon — pitkän
+      tauon jälkeen ei keksitä reittiä
+- [x] Testi: `gpx.repo.test.ts` (+1: neljä pistettä 120 m välein — jokainen välin heksa on
+      oma, `outOfReach` 0)
+- [x] `pnpm test` (2122) · `pnpm typecheck` · `pnpm lint:lines` · build
+
 ## Ei tässä
 
 APK:n latauslinkki ja playback-toisto (BRDC-APK-001).

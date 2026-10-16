@@ -14,6 +14,7 @@ import { useWalkSource } from '../features/trail/useWalkSource.js';
 import { useTrail } from '../features/trail/useTrail.js';
 import { useKeepAlive } from '../features/trail/useKeepAlive.js';
 import { PlaybackDev } from '../features/playback/PlaybackDev.js';
+import { WalkPlayer } from '../features/playback/WalkPlayer.js';
 import { useTerritory } from '../features/territory/useTerritory.js';
 import { ClaimBurst } from '../features/territory/ClaimBurst.js';
 import { MomentFx, useMomentTriggers, useMoments } from '../features/fx/index.js';
@@ -94,7 +95,7 @@ export function MapView({ onLeave }: MapViewProps) {
     void repository.seedAround(point, clock.now());
   }, [repository, point, clock.now]);
 
-  const trail = useTrail({ repository, point, collecting: true, batchMs: source === 'playback' ? 1_000 : undefined, link: playback.link });
+  const trail = useTrail({ repository, point, collecting: true, batchMs: source === 'playback' ? 1_000 : undefined, link: playback.link, standalone: source === 'playback' });
 
   // Places re-read on a reveal, and once at start so a returning player's Anchor is there.
   useEffect(() => {
@@ -138,6 +139,7 @@ export function MapView({ onLeave }: MapViewProps) {
     laps,
     (h3) => { inspect.onCellTap(h3); mapRef.current?.focusCell(h3); }, () => void territory.refresh(),
     () => onSettingsChange({ ...settings, shareWorld: true }),
+    (text, name, speed) => { const fault = playback.loadText(text, name); if (!fault) playback.play(speed); return fault; },
   );
 
   const onViewportChange = useCallback((next: BBox) => setBbox((prev) => nextLoaded(prev, next)), []);
@@ -300,6 +302,7 @@ export function MapView({ onLeave }: MapViewProps) {
           repository={repository} now={clock.now} owned={territory.owned.length}
           rivalCells={territory.cells.length} rivalBearing={territory.rivalBearing}
         />
+        <WalkPlayer playback={playback} />
         <GuideNews {...aside.guideNews} />
         <SurfaceNews news={surfaces.news} onDismiss={surfaces.dismiss} />
         <MapNotices {...alerts} geo={geoTrouble(permission, status)} worldStirredMs={world.stirredMs} shifted={clock.shifted} offsetDays={clock.offsetDays} />

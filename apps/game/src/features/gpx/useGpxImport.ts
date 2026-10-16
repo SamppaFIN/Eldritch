@@ -24,6 +24,8 @@ export type ImportState =
 export interface GpxImport {
   state: ImportState;
   importFile: (file: File) => void;
+  /** The same, from text already read — the panel reads a file once, then plays or imports it. */
+  importText: (text: string) => void;
   reset: () => void;
 }
 
@@ -35,15 +37,15 @@ export function useGpxImport(
 ): GpxImport {
   const [state, setState] = useState<ImportState>({ status: 'idle' });
 
-  const importFile = useCallback(
-    (file: File) => {
+  const importText = useCallback(
+    (text: string) => {
       if (!repository) {
         setState({ status: 'failed', fault: 'no-repository' });
         return;
       }
       setState({ status: 'reading' });
       void (async () => {
-        const parsed = parseGpx(await file.text());
+        const parsed = parseGpx(text);
         if (!parsed.ok) {
           setState({ status: 'failed', fault: parsed.fault });
           return;
@@ -59,5 +61,7 @@ export function useGpxImport(
     [repository, now, afterImport],
   );
 
-  return { state, importFile, reset: () => setState({ status: 'idle' }) };
+  const importFile = useCallback((file: File) => void file.text().then(importText), [importText]);
+
+  return { state, importFile, importText, reset: () => setState({ status: 'idle' }) };
 }

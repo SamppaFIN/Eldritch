@@ -58,6 +58,9 @@ export interface UseTrailOptions {
    *  buffer, without a render each; `settle` writes what is buffered and waits for it, so
    *  an action runs on ground already claimed. */
   link?: MutableRefObject<TrailLink | null> | undefined;
+  /** A recorded walk being played (BRDC-GPX-005): its batches take their own path, with
+   *  no need to touch ground already held. Never set for a live walk. */
+  standalone?: boolean | undefined;
 }
 
 export interface TrailLink {
@@ -86,7 +89,7 @@ function actionableRejection(
   return null;
 }
 
-export function useTrail({ repository, point, collecting, batchMs = TRAIL_BATCH_MS, link }: UseTrailOptions): TrailState {
+export function useTrail({ repository, point, collecting, batchMs = TRAIL_BATCH_MS, link, standalone = false }: UseTrailOptions): TrailState {
   const [state, setState] = useState<TrailState>({
     runId: null,
     points: [],
@@ -168,7 +171,7 @@ export function useTrail({ repository, point, collecting, batchMs = TRAIL_BATCH_
     buffer.current = [];
 
     queue.current = queue.current.then(async () => {
-      const result = await repository.submitTrail(runId, batch);
+      const result = await repository.submitTrail(runId, batch, standalone ? { standalone: true } : undefined);
       const points = await repository.getTrailPoints(runId);
       // The batch just wore the walked-path store; re-read so the layer thickens live.
       const walkedPaths = await repository.getWalkedPaths();
@@ -189,7 +192,7 @@ export function useTrail({ repository, point, collecting, batchMs = TRAIL_BATCH_
       console.error('trail write failed', e);
     });
     return queue.current;
-  }, [repository]);
+  }, [repository, standalone]);
 
 
   /*

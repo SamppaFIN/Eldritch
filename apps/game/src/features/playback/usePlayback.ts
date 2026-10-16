@@ -226,6 +226,9 @@ export function usePlayback(here: LatLng | null, act?: RouteActor): Playback {
   const load = useCallback(
     (route: Route) => {
       if (timeline.current.length > 0) stop();
+      // The ref too, at once: a `play` straight after a load (the walk player) reads it
+      // before React has rendered the new state.
+      viewRef.current = { ...viewRef.current, route, played: 0, playing: false, done: false, log: [], total: route.points.length };
       setView((v) => ({ ...v, route, played: 0, playing: false, done: false, log: [], total: route.points.length }));
     },
     [stop],

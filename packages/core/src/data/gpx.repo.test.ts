@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { EMPTY_POOL, cellAt, parseGpx } from '@es3/core';
+import { hexPath } from '../geo/cells.js';
 import { MockRepository } from './MockRepository.js';
 import { MemoryStore } from './kv.js';
 import { SCHEMA_KEY, SCHEMA_VERSION } from './schema.js';
@@ -158,6 +159,21 @@ describe('a recorded walk imported standalone', () => {
     const walked = new Set(farWalk().map((p) => cellAt(p)));
     const held = new Set((await r.getOwnedCells(T0 + 100_000)).map((c) => c.h3));
     for (const h3 of walked) expect(held.has(h3), h3).toBe(true);
+    expect(result.outOfReach).toBe(0);
+  });
+
+  it('fills the hexes between sparse fixes, so the path has no holes', async () => {
+    // Four fixes 120 m apart, 20 s each (6 m/s): every gap skips two hexes or so.
+    const sparse: TrailPoint[] = Array.from({ length: 4 }, (_, i) => ({
+      lat: ORIGIN.lat + 0.02 + (i * 120) / 111_320, lng: ORIGIN.lng, t: T0 + i * 20_000, accuracy: 10,
+    }));
+    const r = await repo();
+    const run = await r.startRun(T0);
+    const result = await r.submitTrail(run, sparse, { standalone: true });
+    const held = new Set((await r.getOwnedCells(T0 + 100_000)).map((c) => c.h3));
+    const line = hexPath(cellAt(sparse[0] as TrailPoint), cellAt(sparse[3] as TrailPoint));
+    expect(line.length).toBeGreaterThan(sparse.length); // or the test proves nothing
+    for (const h3 of line) expect(held.has(h3), h3).toBe(true);
     expect(result.outOfReach).toBe(0);
   });
 

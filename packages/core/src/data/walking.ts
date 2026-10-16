@@ -8,7 +8,7 @@
  * Kept out of MockRepository so the sequence stays a pure function of state in and state
  * out, and so the same steps can be replayed against a recorded walk.
  */
-import { cellAt } from '../geo/cells.js';
+import { cellAt, hexPath } from '../geo/cells.js';
 import { DWELL_JITTER_GAP_MS, OBSERVATION_GAP_MS } from '../rules/constants.js';
 import type { Attacker } from '../rules/capture.js';
 import { accrueDwell, dwellAnchorAt, revealPlaces, stickyDwell } from '../rules/dwell.js';
@@ -50,13 +50,38 @@ export interface WalkContext {
   /** The last reading of the previous batch, so time is not lost at the seam. */
   previous: DwellReading | null;
   hasTerritory: boolean;
+  /**
+   * A recorded walk played or imported from a file (BRDC-GPX-005): every hex it passes is
+   * taken, with no need to touch ground already held, and the hexes *between* two fixes
+   * are filled in — a file's fixes are sparse once the filters thin them, and a skipped hex
+   * would otherwise break the path. Never for a live walk: a stray fix must not found a
+   * colony across town.
+   */
+  standalone?: boolean;
+}
+
+/** Where a walk was, as far as filling the path between fixes needs: the hex and the moment. */
+interface Seen {
+  h3: H3Index;
+  t: number;
+}
+
+/** The hexes strictly between two fixes, when the gap is short enough to have been walked. */
+function between(a: Seen, b: Seen): H3Index[] {
+  if (b.t - a.t >= OBSERVATION_GAP_MS || a.h3 === b.h3) return [];
+  return hexPath(a.h3, b.h3).slice(1, -1);
 }
 
 /** Every cell a batch of points could touch. The caller loads these before planning. */
-export function walkNeighbourhood(points: readonly TrailPoint[]): H3Index[] {
+export function walkNeighbourhood(points: readonly TrailPoint[], standalone = false, seam: Seen | null = null): H3Index[] {
   const needed = new Set<H3Index>();
+  let last = seam;
   for (const point of points) {
-    for (const h3 of growthNeighbourhood(cellAt(point))) needed.add(h3);
+    const here = { h3: cellAt(point), t: point.t };
+    for (const h3 of growthNeighbourhood(here.h3)) needed.add(h3);
+    // A standalone walk also takes the hexes between fixes — load those too (BRDC-GPX-005).
+    if (standalone && last) for (const step of between(last, here)) for (const h3 of growthNeighbourhood(step)) needed.add(h3);
+    last = here;
   }
   return [...needed];
 }
@@ -85,6 +110,9 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
   const before = new Set(revealPlaces(dwell).map((p) => `${p.h3}:${p.kind}`));
 
   let unobservedMs = 0;
+  // Where the walk last was — the previous batch's seam to begin with, so a playback fed in
+  // one-second batches fills across the seam as well.
+  let last: Seen | null = context.previous;
 
   for (const point of points) {
     const raw = cellAt(point);
@@ -112,7 +140,17 @@ export function planWalk(points: readonly TrailPoint[], context: WalkContext): W
     dwell = accrueDwell(dwell, previous, reading);
     previous = reading;
 
-    const grown = growInto(raw, known, attacker, point.t, hasTerritory && !resumed);
+    // A standalone walk fills the hexes it passed between two fixes (BRDC-GPX-005).
+    if (context.standalone && last) {
+      for (const h3 of between(last, { h3: raw, t: point.t })) {
+        const filled = growInto(h3, known, attacker, point.t, false);
+        if (filled.cell) known.set(h3, filled.cell);
+        steps.push({ h3, cell: filled.cell, outcome: filled.outcome, skipped: filled.skipped, resumed: false });
+      }
+    }
+    last = { h3: raw, t: point.t };
+
+    const grown = growInto(raw, known, attacker, point.t, !context.standalone && hasTerritory && !resumed);
     if (grown.cell) {
       known.set(raw, grown.cell);
       if (grown.cell.ownerId === attacker.id) hasTerritory = true;
